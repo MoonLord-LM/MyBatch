@@ -6,11 +6,11 @@ echo 本批处理需要拖入文件到批处理图标上运行
 pause
 exit
 )
-set /p="MoonLord"<nul>>"%~1"
+set /p="0"<nul>>"%~1"
 for %%a in ("%~1") do set exname=%%~xa
 for %%a in ("%~1") do set filename=%%~na
-rename "%~1" "%filename%-MoonLord%exname%"
-echo 文件MD5值修改成功，新文件命名为%filename%-MoonLord%exname%
+rename "%~1" "%filename%-0%exname%"
+echo 文件MD5值修改成功，新文件命名为%filename%-0%exname%
 @echo on
 pause
 exit
