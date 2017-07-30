@@ -1,0 +1,52 @@
+
+用法:
+    ipconfig [/allcompartments] [/? | /all |
+                                 /renew [adapter] | /release [adapter] |
+                                 /renew6 [adapter] | /release6 [adapter] |
+                                 /flushdns | /displaydns | /registerdns |
+                                 /showclassid adapter |
+                                 /setclassid adapter [classid] |
+                                 /showclassid6 adapter |
+                                 /setclassid6 adapter [classid] ]
+
+其中
+    adapter             连接名称
+                       (允许使用通配符 * 和 ?，参见示例)
+
+    选项:
+       /?               显示此帮助消息
+       /all             显示完整配置信息。
+       /release         释放指定适配器的 IPv4 地址。
+       /release6        释放指定适配器的 IPv6 地址。
+       /renew           更新指定适配器的 IPv4 地址。
+       /renew6          更新指定适配器的 IPv6 地址。
+       /flushdns        清除 DNS 解析程序缓存。
+       /registerdns     刷新所有 DHCP 租约并重新注册 DNS 名称
+       /displaydns      显示 DNS 解析程序缓存的内容。
+       /showclassid     显示适配器的所有允许的 DHCP 类 ID。
+       /setclassid      修改 DHCP 类 ID。
+       /showclassid6    显示适配器允许的所有 IPv6 DHCP 类 ID。
+       /setclassid6     修改 IPv6 DHCP 类 ID。
+
+
+默认情况下，仅显示绑定到 TCP/IP 的适配器的 IP 地址、子网掩码和
+默认网关。
+
+对于 Release 和 Renew，如果未指定适配器名称，则会释放或更新所有绑定
+到 TCP/IP 的适配器的 IP 地址租约。
+
+对于 Setclassid 和 Setclassid6，如果未指定 ClassId，则会删除 ClassId。
+
+示例:
+    > ipconfig                       ... 显示信息
+    > ipconfig /all                  ... 显示详细信息
+    > ipconfig /renew                ... 更新所有适配器
+    > ipconfig /renew EL*            ... 更新所有名称以 EL 开头
+                                         的连接
+    > ipconfig /release *Con*        ... 释放所有匹配的连接，
+                                         例如 "Local Area Connection 1" 或
+                                             "Local Area Connection 2"
+    > ipconfig /allcompartments      ... 显示有关所有分段的
+                                         信息
+    > ipconfig /allcompartments /all ... 显示有关所有分段的
+                                         详细信息
