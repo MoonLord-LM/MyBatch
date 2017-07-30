@@ -1,0 +1,23 @@
+创建目录。
+
+MKDIR [drive:]path
+MD [drive:]path
+
+如果命令扩展被启用，MKDIR 会如下改变:
+
+如果需要，MKDIR 会在路径中创建中级目录。例如: 假设 \a 不
+存在，那么:
+
+    mkdir \a\b\c\d
+
+与:
+
+    mkdir \a
+    chdir \a
+    mkdir b
+    chdir b
+    mkdir c
+    chdir c
+    mkdir d
+
+相同。如果扩展被停用，则需要键入 mkdir \a\b\c\d。

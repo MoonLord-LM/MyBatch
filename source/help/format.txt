@@ -1,0 +1,44 @@
+格式化磁盘以供 Windows 使用。
+
+FORMAT volume [/FS:file-system] [/V:label] [/Q] [/A:size] [/C] [/X] [/P:passes] [/S:state]
+FORMAT volume [/V:label] [/Q] [/F:size] [/P:passes]
+FORMAT volume [/V:label] [/Q] [/T:tracks /N:sectors] [/P:passes]
+FORMAT volume [/V:label] [/Q] [/P:passes]
+FORMAT volume [/Q]
+
+  volume          指定驱动器号(后面跟一个冒号)、装入点或卷名。
+  /FS:filesystem 指定文件系统的类型(FAT、FAT32、exFAT、NTFS、或 UDF)。
+  /V:label        指定卷标。
+  /Q              执行快速格式化。请注意，此开关可替代 /P。
+  /C              仅适于 NTFS: 默认情况下，将压缩在该新建卷上创建的
+                  文件。
+  /X              如果必要，请先强制卸除卷。该卷的所有打开句柄
+                  不再有效。
+  /R:revision     仅 UDF: 强制格式化为特定的 UDF 版本
+                  (1.02、1.50、2.00、2.01、2.50)。
+                  默认 修订版为 2.01。
+  /D              仅适用于 UDF 2.50: 将复制元数据。
+  /A:size         替代默认分配单元大小。强烈建议您在通常情况下使用默认 设置。
+                  NTFS 支持 512、1024、2048、4096、8192、16K、32K、64K。
+                  FAT 支持 512、1024、2048、4096、8192、16K、32K、64k，
+                  (128k、256k 用于大于 512 个字节的扇区)。 FAT32 支持 512、
+                  1024、2048、4096、8192、16k、32k、64k， (128k 、256k 用于
+                  大于 512 个字节的扇区)。EXFAT 支持 512、1024、2048、4096、
+                  8192、16K、32K、64K、 128K、256K、512k、1M、2M、4M、8M、16M、
+                  32M。
+
+                  请注意，FAT 及 FAT32 文件系统对卷上的群集数量施加以下限制:
+
+                  FAT: 群集数量 <= 65526 FAT32: 65526 < 群集数量 < 4177918
+
+                  如果判定使用指定的群集大小无法满足以上需求，将立即停止格式化。
+
+                  大于 4096 的分配单元大小不支持 NTFS 压缩。
+
+  /F:size 指定要格式化的软盘大小(1.44)
+  /T:tracks       为磁盘指定每面磁道数。
+  /N:sectors      指定每条磁道的扇区数。
+  /P:passes       将卷上每个扇区的操作次数清零。
+                  此开关对 /Q 无效
+  /S:state        其中 "state" 为 "enable" 或 "disable"
+                  默认情况下启用了短名称

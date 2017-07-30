@@ -1,0 +1,5 @@
+从损坏的磁盘中恢复可读取的信息。
+
+RECOVER [drive:][path]filename
+在使用 RECOVER 命令之前，
+请先参阅 Windows 帮助中的联机命令参考。

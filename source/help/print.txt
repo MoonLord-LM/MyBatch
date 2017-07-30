@@ -1,0 +1,6 @@
+打印文本文件。
+
+PRINT [/D:device] [[drive:][path]filename[...]]
+
+   /D:device   指定打印设备。
+

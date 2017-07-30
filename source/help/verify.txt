@@ -1,0 +1,5 @@
+指示 cmd.exe 是否要验证文件是否已正确地写入磁盘。
+  
+VERIFY [ON | OFF]
+
+要显示当前 VERIFY 设置，键入不带参数的 VERIFY。

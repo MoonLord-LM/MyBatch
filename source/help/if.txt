@@ -1,0 +1,91 @@
+执行批处理程序中的条件处理。
+
+IF [NOT] ERRORLEVEL number command
+IF [NOT] string1==string2 command
+IF [NOT] EXIST filename command
+
+  NOT               指定只有条件为 false 的情况下，Windows 才
+                    应该执行该命令。
+
+  ERRORLEVEL number 如果最后运行的程序返回一个等于或大于
+                    指定数字的退出代码，指定条件为 true。
+
+  string1==string2  如果指定的文字字符串匹配，指定条件为 true。
+
+  EXIST filename    如果指定的文件名存在，指定条件为 true。
+
+  command           如果符合条件，指定要执行的命令。如果指定的
+                    条件为 FALSE，命令后可跟 ELSE 命令，该命令将 
+                    在 ELSE 关键字之后执行该命令。
+
+ELSE 子句必须出现在同一行上的 IF 之后。例如:
+
+    IF EXIST filename. (
+        del filename.
+    ) ELSE (
+        echo filename. missing.
+    )
+
+由于 del 命令需要用新的一行终止，因此以下子句不会有效:
+
+IF EXIST filename. del filename. ELSE echo filename. missing
+
+由于 ELSE 命令必须与 IF 命令的尾端在同一行上，以下子句也
+不会有效:
+
+    IF EXIST filename. del filename.
+    ELSE echo filename. missing
+
+如果都放在同一行上，以下子句有效:
+
+    IF EXIST filename. (del filename.) ELSE echo filename. missing
+
+如果命令扩展被启用，IF 会如下改变:
+
+    IF [/I] string1 compare-op string2 command
+    IF CMDEXTVERSION number command
+    IF DEFINED variable command
+
+其中， compare-op 可以是:
+
+    EQU - 等于
+    NEQ - 不等于
+    LSS - 小于
+    LEQ - 小于或等于
+    GTR - 大于
+    GEQ - 大于或等于
+
+而 /I 开关(如果指定)说明要进行的字符串比较不分大小写。
+/I 开关可以用于 IF 的 string1==string2 的形式上。这些
+比较都是通用的；原因是，如果 string1 和 string2 都是
+由数字组成的，字符串会被转换成数字，进行数字比较。
+
+CMDEXTVERSION 条件的作用跟 ERRORLEVEL 的一样，除了它
+是在跟与命令扩展有关联的内部版本号比较。第一个版本
+是 1。每次对命令扩展有相当大的增强时，版本号会增加一个。
+命令扩展被停用时，CMDEXTVERSION 条件不是真的。
+
+如果已定义环境变量，DEFINED 条件的作用跟 EXIST 的一样，
+除了它取得一个环境变量，返回的结果是 true。
+
+如果没有名为 ERRORLEVEL 的环境变量，%ERRORLEVEL%
+会扩充为 ERROLEVEL 当前数值的字符串表达式；否则，您会得到
+其数值。运行程序后，以下语句说明 ERRORLEVEL 的用法:
+
+    goto answer%ERRORLEVEL%
+    :answer0
+    echo Program had return code 0
+    :answer1
+    echo Program had return code 1
+
+您也可以使用以上的数字比较:
+
+    IF %ERRORLEVEL% LEQ 1 goto okay
+
+如果没有名为 CMDCMDLINE 的环境变量，%CMDCMDLINE%
+将在 CMD.EXE 进行任何处理前扩充为传递给 CMD.EXE 的原始
+命令行；否则，您会得到其数值。
+
+如果没有名为 CMDEXTVERSION 的环境变量，
+%CMDEXTVERSION% 会扩充为 CMDEXTVERSION 当前数值的
+字串符表达式；否则，您会得到其数值。

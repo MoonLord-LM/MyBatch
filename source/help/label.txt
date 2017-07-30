@@ -1,0 +1,10 @@
+创建、更改或删除磁盘的卷标。
+
+LABEL [drive:][label]
+LABEL [/MP] [volume] [label]
+
+  drive:          指定驱动器号。
+  label           指定卷标。
+  /MP             指定卷应被视为装入点或卷名。
+  volume          指定驱动器号(后面跟一个冒号)、装入点或卷名。
+                  如果指定了卷名，/MP 标志则不必要。

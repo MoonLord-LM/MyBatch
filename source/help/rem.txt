@@ -1,0 +1,3 @@
+在批处理文件或 CONFIG.SYS 里加上注解或说明。
+
+REM [comment]
