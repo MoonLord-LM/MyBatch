@@ -1,0 +1,104 @@
+
+动词:
+  -dump             -- 转储配置信息或文件
+  -asn              -- 分析 ASN.1 文件
+
+  -decodehex        -- 解码十六进制编码的文件
+  -decode           -- 解码 Base64 编码的文件
+  -encode           -- 将文件编码为 Base64
+
+  -deny             -- 拒绝挂起的申请
+  -resubmit         -- 重新提交挂起的申请
+  -setattributes    -- 为挂起申请设置属性
+  -setextension     -- 为挂起申请设置扩展
+  -revoke           -- 吊销证书
+  -isvalid          -- 显示当前证书部署
+
+  -getconfig        -- 获取默认配置字符串
+  -ping             -- Ping Active Directory 证书服务申请接口
+  -pingadmin        -- Ping Active Directory 证书服务管理接口
+  -CAInfo           -- 显示 CA 信息
+  -ca.cert          -- 检索 CA 的证书
+  -ca.chain         -- 检索 CA 的证书链
+  -GetCRL           -- 获取 CRL
+  -CRL              -- 发布新的 CRL [或仅增量 CRL]
+  -shutdown         -- 关闭 Active Directory 证书服务
+
+  -installCert      -- 安装证书颁发机构证书
+  -renewCert        -- 续订证书颁发机构证书
+
+  -schema           -- 转储证书架构
+  -view             -- 转储证书视图
+  -db               -- 转储原始数据库
+  -deleterow        -- 删除服务器数据库行
+
+  -backup           -- 备份 Active Directory 证书服务
+  -backupDB         -- 备份 Active Directory 证书服务数据库
+  -backupKey        -- 备份 Active Directory 证书服务证书和私钥
+  -restore          -- 还原 Active Directory 证书服务
+  -restoreDB        -- 还原 Active Directory 证书服务数据库
+  -restoreKey       -- 还原 Active Directory 证书服务证书和私钥
+  -importPFX        -- 导入证书和私钥
+  -dynamicfilelist  -- 显示动态文件列表
+  -databaselocations -- 显示数据库位置
+  -hashfile         -- 通过文件生成并显示加密哈希
+
+  -store            -- 转储证书存储
+  -addstore         -- 将证书添加到存储
+  -delstore         -- 从存储删除证书
+  -verifystore      -- 验证存储中的证书
+  -repairstore      -- 修复密钥关联，或者更新证书属性或密钥安全描述符
+  -viewstore        -- 转储证书存储
+  -viewdelstore     -- 从存储删除证书
+
+  -dsPublish        -- 将证书或 CRL 发布到 Active Directory
+
+  -ADTemplate       -- 显示 AD 模板
+  -Template         -- 显示注册策略模板
+  -TemplateCAs      -- 显示模板的 CA
+  -CATemplates      -- 显示 CA 的模板
+  -enrollmentServerURL -- 显示、添加或删除与 CA 关联的注册服务器 URL
+  -ADCA             -- 显示 AD CA
+  -CA               -- 显示注册策略 CA
+  -Policy           -- 显示注册策略
+  -PolicyCache      -- 显示或删除注册策略缓存项目
+  -CredStore        -- 显示、添加或删除凭据存储项目
+  -InstallDefaultTemplates -- 安装默认的证书模板
+  -URLCache         -- 显示或删除 URL 缓存项目
+  -pulse            -- 暂停自动注册事件
+  -MachineInfo      -- 显示 Active Directory 计算机对象信息
+  -DCInfo           -- 显示域控制器信息
+  -EntInfo          -- 显示企业信息
+  -TCAInfo          -- 显示 CA 信息
+  -SCInfo           -- 显示智能卡信息
+
+  -SCRoots          -- 管理智能卡根证书
+
+  -verifykeys       -- 验证公/私钥集
+  -verify           -- 验证证书，CRL 或链
+  -sign             -- 重新签名 CRL 或证书
+
+  -vroot            -- 创建/删除 Web 虚拟根和文件共享
+  -vocsproot        -- 创建/删除 OCSP Web Proxy 的 Web 虚拟根
+  -addEnrollmentServer -- 添加注册服务器应用程序
+  -deleteEnrollmentServer -- 删除注册服务器应用程序
+  -oid              -- 显示 ObjectId 或设置显示名称
+  -error            -- 显示错误代码消息文本
+  -getreg           -- 显示注册表值
+  -setreg           -- 设置注册表值
+  -delreg           -- 删除注册表值
+
+  -ImportKMS        -- 为密钥存档导入用户密钥和证书到服务器数据库
+  -ImportCert       -- 将证书文件导入数据库
+  -GetKey           -- 检索存档的私钥恢复点
+  -RecoverKey       -- 恢复存档的私钥
+  -MergePFX         -- 合并 PFX 文件
+  -ConvertEPF       -- 将 PFX 文件转换为 EPF 文件
+  -?                -- 显示该用法消息
+
+
+CertUtil -?              -- 显示动词列表(命名列表)
+CertUtil -dump -?        -- 显示 "dump" 动词的帮助文本
+CertUtil -v -?           -- 显示所有动词的所有帮助文本
+
+CertUtil: -? 命令成功完成。

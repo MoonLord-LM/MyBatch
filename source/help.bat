@@ -17,7 +17,7 @@ call chcp comp copy date echo exit find goto mode mode path ping popd sort time 
 assoc color erase ftype label mkdir pause print pushd rmdir shift start subst title xcopy
 attrib chkdsk compact convert format prompt rename verify
 chkntfs netstat recover replace
-endlocal diskcomp diskcopy ipconfig setlocal
+certutil endlocal diskcomp diskcopy ipconfig setlocal
 
 ) do (
 

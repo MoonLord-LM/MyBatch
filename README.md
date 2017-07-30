@@ -4,10 +4,9 @@ A function library for the Windows Batch.
 ## [简介]
 Windows 批处理函数库，对常用的批处理代码进行了收集整理  
 
-## [示例]
-请查看<a href="example\">【example】</a>文件夹中的 ".bat" 文件  
-
 ## [说明]
+- 代码示例，请查看<a href="example\">【example】</a>文件夹中的 ".bat" 文件  
+- 命令帮助，请查看<a href="source\help\">source\help</a>文件夹中的 ".txt" 文件  
 - 默认字符编码：Chinese (GBK)  
 - 开发测试环境：Windows 7 + Visual Studio Code  
 
@@ -16,7 +15,7 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     文件-首选项-设置，在 settings.json 中添加一项 "files.autoGuessEncoding": true  
 02. 批处理中的注释方法：  
     :: 注释内容  
-    rem 注释内容  
+    REM 注释内容  
     :标签 注释内容  
     goto 标签 注释内容  
     echo 注释内容 〉nul  
@@ -36,6 +35,7 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
 07. 检验变量是否定义过：  
     if defined str1 ( echo str已经被定义 ) else ( echo str没有被定义 )  
     要注意 if、条件语句、else 都要和左右的括号以空格隔开，否则会报错，语法不正确
+    多行的括号中间需要注释整行的，使用 REM 注释，而不用 :: 注释，否则可能会报错，语法不正确
 08. if errorlevel 1 上个命令的返回值大于等于1，if %errorlevel%==1 上个命令的返回值等于1  
     数值大小比较需要使用：equ 等于、neq 不等于、lss 小于、leq 小于或等于、gtr 大于、geq 大于或等于  
     如果执行一条命令，使得 %errorlevel% 变为大于1，那么可以在这条命令的后面直接加上 && echo 正常执行 || echo 执行出错  
