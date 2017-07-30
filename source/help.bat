@@ -7,7 +7,7 @@ del /q "help\*"
 ::
 mkdir "tmp\"
 ::
-echo :: 临时脚本>tmp.bat
+echo :: 临时脚本>"tmp\help.tmp.bat"
 ::
 for %%i in (
 
