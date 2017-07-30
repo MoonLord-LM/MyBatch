@@ -1,7 +1,7 @@
 @echo off
 setlocal enabledelayedexpansion
 ::
-::  Output the help information in the 锟斤拷help锟斤拷 folder
+::  更新【help】文件夹中的所有的命令帮助信息
 ::
 del /q "help\*"
 ::
