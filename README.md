@@ -65,10 +65,10 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
 16. 使用 for /f 分行读取文本文件，基本格式为：  
     for /f ["options"] %variable in ( file-set/"string"/'command' ) do command [command-parameters]  
     其中，["options"]参数：  
-    usebackq 将后引号 ` 包括的字符串视为命令，将单引号 ' 包括的字符串视为文本，并将双引号 " 包括的字符串视为文件  
+    usebackq 将后引号 \` 包括的字符串视为命令，将单引号 ' 包括的字符串视为文本，并将双引号 " 包括的字符串视为文件  
     tokens=2,3* 使用 %i 指代第2个分割单元，%j 指代第3个分割单元，%k 指代之后的所有剩余单元（剩余单元不再分割）  
     delims=,  使用逗号和空格作为分割位置（使用空格时，要将此参数放在最后一个）  
     eol=; 忽略分号开头的行  
     skip=n 跳过前 n 行  
     例如，遍历环境变量：  
-    for /f "usebackq tokens=1,2* delims==;" %i in (`set`) do echo %i = %j;%k  
+    for /f "usebackq tokens=1,2* delims==;" %i in (\`set\`) do echo %i = %j;%k  
