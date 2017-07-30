@@ -2,7 +2,6 @@
 SetLocal EnableDelayedExpansion
 adb remount
 for /r %%c in (*) do (
-    @echo on
     REM echo %%c
     set line=%%c
     REM echo !line!
@@ -13,6 +12,6 @@ for /r %%c in (*) do (
         echo "正在安装!line!……"
         adb install -r !line!
     )
-    @echo off
 )
 adb shell
+pause

@@ -3,7 +3,6 @@ adb nodaemon server
 netstat -ano | findstr "5037"
 netstat -ano | findstr "5037" > C:\Windows\Temp\adb_restart.log
 for /f "delims=" %%i in (C:\Windows\Temp\adb_restart.log) do (
-    @echo on
     REM echo %%i
     set line=%%i
     SetLocal EnableDelayedExpansion
@@ -17,6 +16,6 @@ for /f "delims=" %%i in (C:\Windows\Temp\adb_restart.log) do (
     if not "!pid!" == "0" (
         taskkill /f /pid !pid!
     )
-    @echo off
 )
 adb shell
+pause
