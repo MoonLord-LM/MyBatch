@@ -6,7 +6,7 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
 
 ## [说明]
 - 代码示例，请查看<a href="example\">【example】</a>文件夹中的 ".bat" 文件  
-- 命令帮助，请查看<a href="source\help\">source\help</a>文件夹中的 ".txt" 文件  
+- 命令帮助，请查看<a href="source\help\">【source\help】</a>文件夹中的 ".txt" 文件  
 - 默认字符编码：Chinese (GBK)  
 - 开发测试环境：Windows 7 + Visual Studio Code  
 
