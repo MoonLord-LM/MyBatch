@@ -90,7 +90,7 @@ goto :eof
         if %debug_exception%==true echo 【——————Exception——————】参数1不应为空
         goto :eof
     )
-    set /p="%~1" <nul
+    set /p=%~1 <nul
 goto :eof
 
 :function_exists - "判断内部命令(function_name)是否存在，返回值%function_exists_value%：0不存在，1存在"
@@ -271,17 +271,17 @@ goto :eof
     del "%~2" 1>nul 2>nul
     for /f "usebackq delims=" %%i in (`dir "%~1" /b /a-d`) do (
         echo %%i>>"%~2"
-        :: echo %%i
-        :: echo 字节大小：%%~zi
-        :: echo 修改日期：%%~ti
-        :: echo 文件属性：%%~ai
-        :: echo 所在目录：%%~pi
-        :: echo 文件名称：%%~ni
-        :: echo 扩展名称：%%~xi
-        :: echo 完整路径：%%~fi
-        :: echo 驱动器号：%%~di
-        :: echo 文件短名：%%~si
-        :: echo.
+        REM echo %%i
+        REM echo 字节大小：%%~zi
+        REM echo 修改日期：%%~ti
+        REM echo 文件属性：%%~ai
+        REM echo 所在目录：%%~pi
+        REM echo 文件名称：%%~ni
+        REM echo 扩展名称：%%~xi
+        REM echo 完整路径：%%~fi
+        REM echo 驱动器号：%%~di
+        REM echo 文件短名：%%~si
+        REM echo.
     )
 goto :eof
 
@@ -300,17 +300,17 @@ goto :eof
     del "%~2" 1>nul 2>nul
     for /f "usebackq delims=" %%i in (`dir "%~1" /b /ad`) do (
         echo %%i>>"%~2"
-        :: echo %%i
-        :: echo 字节大小：%%~zi
-        :: echo 修改日期：%%~ti
-        :: echo 目录属性：%%~ai
-        :: echo 父级目录：%%~pi
-        :: echo 目录名称：%%~ni
-        :: echo 扩展名称：%%~xi
-        :: echo 完整路径：%%~fi
-        :: echo 驱动器号：%%~di
-        :: echo 目录短名：%%~si
-        :: echo.
+        REM echo %%i
+        REM echo 字节大小：%%~zi
+        REM echo 修改日期：%%~ti
+        REM echo 目录属性：%%~ai
+        REM echo 父级目录：%%~pi
+        REM echo 目录名称：%%~ni
+        REM echo 扩展名称：%%~xi
+        REM echo 完整路径：%%~fi
+        REM echo 驱动器号：%%~di
+        REM echo 目录短名：%%~si
+        REM echo.
     )
 goto :eof
 
@@ -341,7 +341,7 @@ goto :eof
     )
 goto :eof
 
-:append_file - "添加字符串(append_string)到文件(file_string)的末尾（不换行），返回void"
+:append_file - "添加字符串(append_string)到文件(file_string)的末尾（不换行，需换行直接使用 echo 即可），返回void"
     if %debug_function%==true (
         echo 【Function】append_file, parameter:%~1,%~2,%~3,%~4,%~5,%~6,%~7,%~8,%~9
     )
@@ -439,4 +439,33 @@ goto :eof
         goto loop
     )
     call :return %string_length_value%
+goto :eof
+
+:string_trim - "删除字符串参数(source_string)的首尾空格，返回值%string_trim_value%：新的字符串"
+    if %debug_function%==true (
+        echo 【Function】string_trim, parameter:%~1,%~2,%~3,%~4,%~5,%~6,%~7,%~8,%~9
+    )
+    if "%~1"=="" (
+        if %debug_exception%==true echo 【——————Exception——————】参数1不应为空
+        goto :eof
+    )
+    set string_trim_value=""
+    setlocal
+    set str=%~1
+    :: 替换左边的空格
+    :loop1
+    if "%str:~0,1%"==" " (
+        set str=%str:~1%
+        echo "%str%"
+        goto loop1
+    )
+    :: 替换右边的空格
+    :loop2
+    if "%str:~-1%"==" " (
+        set str=%str:~0,-1%
+        echo "%str%"
+        goto loop2
+    )
+    set string_trim_value="%str%"
+    call :return %string_trim_value%
 goto :eof
