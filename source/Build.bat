@@ -1,24 +1,17 @@
 @echo off
-::
-::
-::
-::MyBatch代码处理
-::
-::
-::
 setlocal enabledelayedexpansion
-echo 输出帮助信息……
-del /q "help\*"
-set /? >"help\set.txt"
-for /? >"help\for.txt"
-del /? >"help\del.txt"
-dir /? >"help\dir.txt"
-tree /? >"help\tree.txt"
-goto /? >"help\goto.txt"
-call /? >"help\call.txt"
-copy /? >"help\copy.txt"
-shift /? >"help\shift.txt"
-setlocal /? >"help\setlocal.txt"
+::
+::
+::
+:: 代码处理
+
+
+
+
+
+
+
+
 
 echo 文件初步处理……
 del /q "bin\*"
