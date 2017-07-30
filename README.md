@@ -71,4 +71,5 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     eol=; 忽略分号开头的行  
     skip=n 跳过前 n 行  
     例如，遍历环境变量：  
+    for /f "usebackq tokens=1,2 delims==" %i in (\`set\`) do echo %i = %j  
     for /f "usebackq tokens=1,2* delims==;" %i in (\`set\`) do echo %i = %j;%k  
