@@ -1,0 +1,12 @@
+结束批处理文件中环境改动的本地化操作。在执行ENDLOCAL 之后
+所做的环境改动不再仅限于批处理文件。批处理文件结束后，
+原先的设置无法还原。
+
+ENDLOCAL
+
+如果命令扩展被启用，ENDLOCAL 会如下改变:
+
+如果相应的 SETLOCAL 用新的 ENABLEEXTENSIONS 或
+DISABLEEXTENSIONS 选项启用或停用了命令扩展，那么，在 
+ENDLOCAL 之后，命令扩展的启用/停用状态会还原到执行
+相应的 SETLOCAL 命令前的状态。

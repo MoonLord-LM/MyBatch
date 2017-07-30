@@ -51,6 +51,7 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     for /l %%i in (0, 1, 9) do echo %%i  
     for /l %%i in (0, 1, 9) do (set a=%%i && echo !a!)  
 10. ^ 为转义字符，例如 echo test^>1.txt 只会输出字符串 test>1.txt  
+    echo echo test^^^>1.txt 则会输出字符串 echo test^>1.txt
 11. 在批处理中执行 cmd 命令会进入等待输入输出的状态，栈的深度增加，需要调用 exit 才会退出当前cmd栈  
     使用 call 1.bat ，即可在例如 2.bat 中调用 1.bat 并继续执行，直接使用 1.bat，则会在执行完 1.bat 后退出  
 12. %cd%、%~dp0 代表当前执行的批处理的文件夹路径，区别在于 %~dp0 以 \ 结尾  
