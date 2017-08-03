@@ -7,6 +7,8 @@ exit
 )
 for %%a in ("%~1") do set filename=%%~na
 for %%a in ("%~1") do set exname=%%~xa
+certutil -hashfile "%~1" MD2 >>"%filename%%exname%.txt"
+certutil -hashfile "%~1" MD4 >>"%filename%%exname%.txt"
 certutil -hashfile "%~1" MD5 >>"%filename%%exname%.txt"
 certutil -hashfile "%~1" SHA1 >>"%filename%%exname%.txt"
 certutil -hashfile "%~1" SHA256 >>"%filename%%exname%.txt"
