@@ -12,7 +12,7 @@ echo :: ÁÙÊ±½Å±¾>"tmp\help.tmp.bat"
 for %%i in (
 
 at cd if rd
-arp cls cmd del dir for rem ren set ver vol
+arp cls cmd del dir for net rem ren set ver vol
 call chcp comp copy date echo exit find goto mode mode path ping popd sort time tree type wmic
 assoc color erase ftype label mkdir pause print pushd rmdir shift start subst title xcopy
 attrib chkdsk compact convert format prompt rename verify
