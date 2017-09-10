@@ -1,9 +1,9 @@
 @echo off
 echo Win7锁屏界面背景修改（图片大小必须小于256KB）
 if "%~1"=="" (
-echo 请拖拽要设置为背景的图片，到本文件图标上运行
-pause
-exit
+    echo 请拖拽要设置为背景的图片，到本文件图标上运行
+    pause
+    exit
 )
 call :AdministratorPrivileges "%~0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
 set tmp="C:\Windows\Temp\LogonUI_Background_%random%.reg"
@@ -20,6 +20,11 @@ if "%~6" neq "" ( set bg="%~1 %~2 %~3 %~4 %~5 %~6" )
 if "%~7" neq "" ( set bg="%~1 %~2 %~3 %~4 %~5 %~6 %~7" )
 if "%~8" neq "" ( set bg="%~1 %~2 %~3 %~4 %~5 %~6 %~7 %~8" )
 if "%~9" neq "" ( set bg="%~1 %~2 %~3 %~4 %~5 %~6 %~7 %~8 %~9" )
+if not exist "bg" (
+    echo Win7锁屏界面背景修改失败，图片不存在：%bg%
+    pause
+    exit
+)
 copy %bg% "C:\Windows\System32\oobe\info\backgrounds\backgroundDefault.jpg" /y
 if %errorlevel% equ 0 ( echo Win7锁屏界面背景修改成功，图片文件为：%bg% ) else ( echo Win7锁屏界面背景修改失败，图片文件为：%bg% )
 pause

@@ -1,9 +1,9 @@
 @echo off
 echo 获取指定文件夹路径下的文件和文件夹列表，并保存为txt文件
 if "%~1"=="" (
-echo 请拖拽文件夹，到本文件图标上运行
-pause
-exit
+    echo 请拖拽文件夹，到本文件图标上运行
+    pause
+    exit
 )
 ::for %%a in ("%~1") do echo %%a %%~na %%~xa
 for %%a in ("%~1") do set dirname=%%~na%%~xa
