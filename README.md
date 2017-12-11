@@ -33,7 +33,7 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     set /a n+=1  
     在 setlocal ，和 endlocal (或 goto :eof) 之间 set 的值为临时变量  
 07. 检验变量是否定义过：  
-    if defined str1 ( echo str已经被定义 ) else ( echo str没有被定义 )  
+    if defined str1 ( echo str1已经被定义 ) else ( echo str1没有被定义 )  
     要注意 if、条件语句、else 都要和左右的括号以空格隔开，否则会报错，语法不正确
     多行的括号中间需要注释整行的，使用 REM 注释，而不用 :: 注释，否则可能会报错，语法不正确
 08. if errorlevel 1 上个命令的返回值大于等于1，if %errorlevel%==1 上个命令的返回值等于1  
