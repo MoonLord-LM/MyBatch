@@ -1,6 +1,6 @@
 @echo off
 
-set "adv_name=游侠热门单机游戏.url"
+set adv_name=游侠热门单机游戏.url
 
 del %adv_name%
 rd /S /Q %adv_name%
