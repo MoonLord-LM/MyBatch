@@ -2,9 +2,7 @@
 if not exist "VTS_01_0.VOB" (
     echo 本批处理用于合并 DVD 中的多个 VOB 视频文件
     echo 文件 VTS_01_0.VOB 不存在！
-
     pause
-
     exit
 )
 
