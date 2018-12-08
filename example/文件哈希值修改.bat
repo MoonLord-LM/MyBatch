@@ -11,3 +11,4 @@ for %%a in ("%~1") do set exname=%%~xa
 rename "%~1" "%filename%-0%exname%"
 echo 文件的哈希值修改成功，新文件命名为：%filename%-0%exname%
 pause
+exit

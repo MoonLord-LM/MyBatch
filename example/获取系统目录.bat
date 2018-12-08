@@ -71,3 +71,4 @@ do set "appdata_locallow_dir=%%i"
 echo AppData LocalLow Â·¾¶£º%appdata_locallow_dir%
 
 pause
+exit

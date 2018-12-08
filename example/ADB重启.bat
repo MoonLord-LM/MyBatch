@@ -5,7 +5,7 @@ netstat -ano | findstr "5037" > C:\Windows\Temp\adb_restart.log
 for /f "delims=" %%i in (C:\Windows\Temp\adb_restart.log) do (
     REM echo %%i
     set line=%%i
-    SetLocal EnableDelayedExpansion
+    setlocal enabledelayedexpansion
     REM echo !line!
     REM //��ȡĩβ5λ
     set pid=!line:~-5%!
@@ -19,3 +19,4 @@ for /f "delims=" %%i in (C:\Windows\Temp\adb_restart.log) do (
 )
 adb shell
 pause
+exit

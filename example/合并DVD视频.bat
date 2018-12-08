@@ -59,3 +59,6 @@ if exist "VTS_03_14.VOB" ( set "input_filename=%input_filename%+"VTS_03_14.VOB""
 if exist "VTS_03_15.VOB" ( set "input_filename=%input_filename%+"VTS_03_15.VOB"" )
 
 copy /b %input_filename% "%output_filename%"
+
+pause
+exit

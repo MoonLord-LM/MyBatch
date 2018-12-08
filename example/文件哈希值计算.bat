@@ -16,3 +16,4 @@ certutil -hashfile "%~1" SHA384 >>"%filename%%exname%.txt"
 certutil -hashfile "%~1" SHA512 >>"%filename%%exname%.txt"
 echo 文件的哈希值计算完成，请查看生成的txt文件
 pause
+exit

@@ -1,7 +1,7 @@
 @echo off
-SetLocal EnableDelayedExpansion
+setlocal enabledelayedexpansion
 adb remount
-for /r %%c in (*) do (
+for /r "%cd%" %%c in (*) do (
     REM echo %%c
     set line=%%c
     REM echo !line!
@@ -15,3 +15,4 @@ for /r %%c in (*) do (
 )
 adb shell
 pause
+exit
