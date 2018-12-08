@@ -17,6 +17,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "[Thz.la]"
     call :new_name_replace "[ThZu.Cc]"
     call :new_name_replace "hjd2048.com-"
+    call :new_name_replace "-kan224.com"
     call :new_name_replace "-h264"
     call :new_name_replace "-1080p"
     REM echo new_name : !new_name!
