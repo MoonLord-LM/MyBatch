@@ -33,6 +33,7 @@ echo type "C:\Windows\Temp\file_batch_rename.bat"
 type "C:\Windows\Temp\file_batch_rename.bat"
 echo.
 echo 请确认重命名脚本，请按任意键继续执行. . .
+echo.
 pause
 call "C:\Windows\Temp\file_batch_rename.bat"
 exit
@@ -52,7 +53,7 @@ exit
     call set "file_name=%%file_path:~-!tmp_offset!%%%"
 goto :eof
 
-:new_name_replace - "将新的文件名(new_name)中的特定字符串(参数)删除"
+:new_name_replace - "将新的文件名(new_name)中的字符串(参数1)替换为字符串(参数2)"
     if not "%~1"=="" (
         set "old_tag=%~1"
         set "new_tag=%~2"
