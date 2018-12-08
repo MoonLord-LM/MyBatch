@@ -1,7 +1,7 @@
 @echo off
 adb nodaemon server
 netstat -ano | findstr "5037"
-netstat -ano | findstr "5037" > C:\Windows\Temp\adb_restart.log
+netstat -ano | findstr "5037" >C:\Windows\Temp\adb_restart.log
 for /f "delims=" %%i in (C:\Windows\Temp\adb_restart.log) do (
     REM echo %%i
     set line=%%i
