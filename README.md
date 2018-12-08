@@ -40,13 +40,12 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     数值大小比较需要使用：equ 等于、neq 不等于、lss 小于、leq 小于或等于、gtr 大于、geq 大于或等于  
     如果执行一条命令，使得 %errorlevel% 变为大于1，那么可以在这条命令的后面直接加上 && echo 正常执行 || echo 执行出错  
 09. setlocal enabledelayedexpansion 延迟环境变量扩展  
-    将叹号 ! 视为特殊字符，两个 ! 包含的变量的值，会动态进行解释，通常与for一起用  
-    在for循环中，想要读取变量的值，需要使用 !n! 的形式，否则会由于批处理的预处理，n 始终为循环外的值  
-    在for循环中，/L 参数表示以 (start, step, end) 的范围取值  
-    在for循环中，%%i 
-    输出 0123456789 的代码示例：  
-    @echo off
-    setlocal enabledelayedexpansion
+    将叹号 ! 视为特殊字符，两个 ! 包含的变量的值，会动态进行解释，通常与 for 一起用  
+    在 for 循环中，想要读取变量的值，需要使用 !n! 的形式，否则会由于批处理的预处理，n 始终为循环外的值  
+    在 for 循环中，/L 参数表示以 (start, step, end) 的范围取值  
+    在 for 循环中，%%i 输出 0123456789 的代码示例：  
+    @echo off  
+    setlocal enabledelayedexpansion  
     for %%i in (0 1 2 3 4 5 6 7 8 9) do echo %%i  
     for /l %%i in (0, 1, 9) do echo %%i  
     for /l %%i in (0, 1, 9) do (set a=%%i && echo !a!)  
@@ -54,11 +53,18 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     两个 ^ 会转义为一个，例如 echo echo test^^^>1.txt 只会输出字符串 echo test^>1.txt  
 11. 在批处理中执行 cmd 命令会进入等待输入输出的状态，栈的深度增加，需要调用 exit 才会退出当前cmd栈  
     使用 call 1.bat ，即可在例如 2.bat 中调用 1.bat 并继续执行，直接使用 1.bat，则会在执行完 1.bat 后退出  
+    在命令前加上 call，会导致参数动态计算，效果类似于延迟变量扩展，例如：  
+    set "a=b"  
+    set "b=c"  
+    echo %a% : echo ^%a^% is b  
+    echo %%a%% : echo ^%^%a^%^% is ^%b^%  
+    call echo %%a%%  : call echo ^%^%a^%^% is c  
 12. %cd%、%~dp0 代表当前执行的批处理的文件夹路径，区别在于 %~dp0 以 \ 结尾  
     %0 代表当前执行的批处理的文件名（不包含扩展名，例如 test）
     %~n0%~x0 代表当前执行的批处理的完整文件名（包含扩展名，例如 test.bat）
 13. 字符串替换，set "a=%a:b=c%" ，意思是在字符串 a 中替换 b 为 c  
-    例如 set str=!str:"= ! ，将引号替换为空格  
+    例如 set "str=!str:"= !" ，将引号替换为空格  
+    在 for 循环中，如果要动态替换，可以用 call set "str=%%str:.= %%"，将点号替换为空格
 14. 命令太长需要换行写时，在行尾以一个空格，和一个 ^ 符号（Shift+6）结束  
 15. 修改 CMD 命令的字符编码：chcp 65001 修改为UTF-8编码，chcp 931 修改为GBK编码（默认值）  
     查看当前的编码设置：在CMD窗口标题栏，右键，属性，选项，当前代码页  
