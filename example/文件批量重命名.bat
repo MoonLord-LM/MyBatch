@@ -18,13 +18,28 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "[ThZu.Cc]"
     call :new_name_replace "[44x.me]"
     call :new_name_replace "[HD]"
+
     call :new_name_replace "(S1)("
     call :new_name_replace "(妄想族)("
+    call :new_name_replace ")" " "
+
     call :new_name_replace "hjd2048.com-"
+    call :new_name_replace "-javbo.net_"
     call :new_name_replace "-kan224.com"
     call :new_name_replace "-1080p"
     call :new_name_replace "-h264"
-    call :new_name_replace ")" " "
+
+    call :new_name_replace "FHD." "."
+    call :new_name_replace "hhb." "."
+    call :new_name_replace "-C." "."
+    call :new_name_replace "-high." "."
+    call :new_name_replace "_HD." "."
+    call :new_name_replace "_hd." "."
+    call :new_name_replace "_postree." "."
+
+    call :new_name_replace ".HD." "."
+    call :new_name_replace ".HDx." "."
+
     REM echo new_name : !new_name!
 
     REM //重命名脚本
