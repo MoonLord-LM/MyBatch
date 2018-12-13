@@ -16,10 +16,15 @@ for /r "%cd%" %%i in (%extension%) do (
     set "new_name=!file_name!"
     call :new_name_replace "[Thz.la]"
     call :new_name_replace "[ThZu.Cc]"
+    call :new_name_replace "[44x.me]"
+    call :new_name_replace "[HD]"
+    call :new_name_replace "(S1)("
+    call :new_name_replace "(妄想族)("
     call :new_name_replace "hjd2048.com-"
     call :new_name_replace "-kan224.com"
-    call :new_name_replace "-h264"
     call :new_name_replace "-1080p"
+    call :new_name_replace "-h264"
+    call :new_name_replace ")" " "
     REM echo new_name : !new_name!
 
     REM //重命名脚本
