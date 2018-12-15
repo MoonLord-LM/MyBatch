@@ -1,0 +1,26 @@
+比较两个文件或两个文件集并显示它们之间
+的不同
+
+
+FC [/A] [/C] [/L] [/LBn] [/N] [/OFF[LINE]] [/T] [/U] [/W] [/nnnn]
+   [drive1:][path1]filename1 [drive2:][path2]filename2
+FC /B [drive1:][path1]filename1 [drive2:][path2]filename2
+
+  /A         只显示每个不同处的第一行和最后一行。
+  /B         执行二进制比较。
+  /C         不分大小写。
+  /L         将文件作为 ASCII 文字比较。
+  /LBn       将连续不匹配的最大值设置为指定
+             的行数。
+  /N         在 ASCII 比较上显示行数。
+  /OFF[LINE] 不要跳过带有脱机属性集的文件。
+  /T         不要将制表符扩充到空格。
+  /U         将文件作为 UNICODE 文本文件比较。
+  /W         为了比较而压缩空白(制表符和空格)。
+  /nnnn      指定不匹配处后必须连续
+             匹配的行数。
+  [drive1:][path1]filename1
+             指定要比较的第一个文件或第一个文件集。
+  [drive2:][path2]filename2
+             指定要比较的第二个文件或第二个文件集。
+

@@ -1,0 +1,28 @@
+编辑命令行，重新调用 Windows 命令，并创建宏。
+
+DOSKEY [/REINSTALL] [/LISTSIZE=size] [/MACROS[:ALL | :exename]]
+  [/HISTORY] [/INSERT | /OVERSTRIKE] [/EXENAME=exename] [/MACROFILE=filename]
+  [macroname=[text]]
+
+  /REINSTALL          安装新的 Doskey 副本。
+  /LISTSIZE=size      设置命令历史记录的缓冲区大小。
+  /MACROS             显示所有 Doskey 宏。
+  /MACROS:ALL         为具有 Doskey 宏的所有可执行文件显示
+所有 Doskey 宏。
+  /MACROS:exename     显示指定可执行文件的所有 Doskey 宏。
+  /HISTORY            显示存储在内存中的所有命令。
+  /INSERT             指定您键入的新文本插入到旧文本中。
+  /OVERSTRIKE         指定新文本覆盖旧文本。
+  /EXENAME=exename    指定可执行文件。
+  /MACROFILE=filename 指定要安装的宏文件。
+  macroname           指定您创建的宏的名称。
+  text                指定要录制的命令。
+
+上下箭头 重新调用命令；Esc 清除命令行；F7 
+显示命令历史记录；Alt+F7 清除
+命令历史记录；F8 搜索命令历史记录；F9 按编号选择命令；Alt+F10 清除宏定义。
+
+以下是 Doskey 宏定义的一些特殊代码:
+$T     命令分隔符。允许一个宏中存在多个命令。
+$1-$9  批处理参数。与批处理程序中的 %1-%9 等同。
+$*     以命令行中命令名称后面的任何内容替换的符号。

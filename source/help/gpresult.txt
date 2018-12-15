@@ -1,0 +1,63 @@
+
+GPRESULT [/S system [/U username [/P [password]]]] [/SCOPE scope]
+           [/USER targetusername] [/R | /V | /Z] [(/X | /H) <filename> [/F]]
+
+描述:
+    此命令行工具显示目标用户和计算机的策略结果集 (RSoP) 的信息。
+
+参数列表:
+    /S        system           指定要连接到的远程系统。
+
+    /U        [domain\]user    指定命令应在其下执行的
+                               用户上下文。
+                               无法与 /X、/H 一起使用。
+
+    /P        [password]       为给定的用户上下文指定密码。如果省
+                               略则提示输入。
+                               无法与 /X、/H 一起使用。
+
+    /SCOPE    scope            指定是显示用户还是计算机设置。
+                               有效值: "USER"，"COMPUTER"。
+
+    /USER     [domain\]user    指定要显示 RSOP 的用户名称。
+
+
+
+    /X        <filename>       以 XML 格式将报告保存该位置，
+                               并使用由
+                               <filename> 参数指定的文件名。(在 Windows
+                               Vista SP1 和更高版本以及 Windows Server 2008 和更高版本中有效)
+
+    /H        <filename>       以 HTML 格式将报告保存该位置，
+                               并使用由
+                               <filename> 参数指定的文件名。(在 Windows
+                               Vista SP1 和更高版本以及 Windows Server 2008 和更高版本中有效)
+
+    /F                         强制 gpresult 覆盖在
+                               /X 或 /H 命令中指定的文件名。
+
+    /R                         显示 RSoP 摘要数据。
+
+    /V                         指定要显示详细信息。详细信息提供
+                               已经应用的、优先权是 1 的详细设置。
+
+
+
+    /Z                         指定显示超详细信息。超详细信息提供其他
+                               详细设置，用 1 或更高的优先权应用于此
+                               设置。这允许您查看是否在多处设置了某一
+                               设置。请参阅组策略联机帮助主题获得更多
+                               信息。
+
+
+
+
+    /?                         显示该帮助消息。
+
+
+示例:
+    GPRESULT /R
+    GPRESULT /H GPReport.html
+    GPRESULT /USER targetusername /V
+    GPRESULT /S system /USER targetusername /SCOPE COMPUTER /Z
+    GPRESULT /S system /U username /P password /SCOPE USER /V

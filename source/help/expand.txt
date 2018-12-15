@@ -1,0 +1,20 @@
+Microsoft (R) 文件扩展实用程序版本 6.1.7600.16385
+版权所有 (c) Microsoft Corporation。保留所有权利。
+
+展开一个或多个压缩文件。
+
+EXPAND [-R] Source Destination
+EXPAND -R Source [Destination]
+EXPAND -I Source [Destination]
+EXPAND -D Source.cab [-F:Files]
+EXPAND Source.cab -F:Files Destination
+
+  -R		重命名展开的文件。
+  -I            重命名展开的文件但忽略目录结构。
+  -D		显示来源中的文件列表。
+  Source	源文件规格。可使用通配字符。
+  -F:Files	从 .CAB 文件展开的文件的名称。
+  Destination   目标文件 | 路径规格。
+		目标可以是目录。
+		如果来源是多个文件且没有指定 -r，
+		目标则必须是目录。

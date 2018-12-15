@@ -1,0 +1,108 @@
+用法:
+  CertReq -?
+  CertReq [-v] -?
+  CertReq [-Command] -?
+
+  CertReq [-Submit] [Options] [RequestFileIn [CertFileOut [CertChainFileOut [FullResponseFileOut]]]]
+    将申请提交到证书颁发机构
+
+  选项:
+    -attrib AttributeString
+    -binary
+    -PolicyServer PolicyServer
+    -config ConfigString
+    -Anonymous
+    -Kerberos
+    -ClientCertificate ClientCertId
+    -UserName UserName
+    -p Password
+    -crl
+    -rpc
+    -AdminForceMachine
+    -RenewOnBehalfOf
+
+  CertReq -Retrieve [Options] RequestId [CertFileOut [CertChainFileOut [FullResponseFileOut]]]
+    检索来自证书颁发机构的对上一次申请的响应。
+
+  选项:
+    -binary
+    -PolicyServer PolicyServer
+    -config ConfigString
+    -Anonymous
+    -Kerberos
+    -ClientCertificate ClientCertId
+    -UserName UserName
+    -p Password
+    -crl
+    -rpc
+    -AdminForceMachine
+
+  CertReq -New [Options] [PolicyFileIn [RequestFileOut]]
+    按 PolicyFileIn 创建一个新申请
+
+  选项:
+    -attrib AttributeString
+    -binary
+    -cert CertId
+    -PolicyServer PolicyServer
+    -config ConfigString
+    -Anonymous
+    -Kerberos
+    -ClientCertificate ClientCertId
+    -UserName UserName
+    -p Password
+    -user
+    -machine
+    -xchg ExchangeCertFile
+
+  CertReq -Accept [Options] [CertChainFileIn | FullResponseFileIn | CertFileIn]
+    接受和安装到上一次新申请的响应。
+
+  选项:
+    -user 
+    -machine
+
+  CertReq -Policy [Options] [RequestFileIn [PolicyFileIn [RequestFileOut [PKCS10FileOut]]]]
+    从一个已有的 CA 证书或已有的申请构造交叉
+    证书或合格的从属申请。
+
+  选项:
+    -attrib AttributeString
+    -binary
+    -cert CertId
+    -PolicyServer PolicyServer
+    -Anonymous
+    -Kerberos
+    -ClientCertificate ClientCertId
+    -UserName UserName
+    -p Password
+    -noEKU
+    -AlternateSignatureAlgorithm
+    -HashAlgorithm HashAlgorithm
+
+  CertReq -Sign [Options] [RequestFileIn [RequestFileOut]]
+    为使用注册代理证书申请或
+合格的从属签名证书签名。
+
+  选项:
+    -binary
+    -cert CertId
+    -PolicyServer PolicyServer
+    -Anonymous
+    -Kerberos
+    -ClientCertificate ClientCertId
+    -UserName UserName
+    -p Password
+    -crl
+    -noEKU
+    -HashAlgorithm HashAlgorithm
+
+  CertReq -Enroll [选项] TemplateName
+  CertReq -Enroll -cert CertId [选项] Renew [ReuseKeys]
+    注册或续订证书。
+
+  选项:
+    -PolicyServer PolicyServer
+    -user 
+    -machine
+

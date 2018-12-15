@@ -1,0 +1,27 @@
+
+Bcdboot - Bcd 启动文件创建和修复工具。
+
+bcdboot.exe 命令行工具用于将关键启动文件复制到系统分区以及创建新的系统 BCD 存储。
+
+bcdboot <source> [/l <locale>] [/s <volume-letter>] [/v]
+                 [/m [{OS Loader ID}]]
+
+  source            指定 windows 系统根目录的位置。
+
+  /l                指定在初始化 BCD 存储时使用的可选区域设置参数。
+                    默认值为“简体中文”。
+
+  /s                指定一个可选的卷号参数，该参数用于指定要将启动环境文件复制到
+                    的目标系统分区。默认值为固件标识的系统分区。
+
+  /v                启用详细模式。
+
+  /m                如果提供了操作系统加载器 GUID，则此选项可以将给定的加载器
+                    对象与系统模板合并起来，以产生可启动条目。否则，只合并全局
+                    对象。
+
+
+示例:     bcdboot c:\windows /l en-us
+          bcdboot c:\windows /s h:
+          bcdboot c:\windows /m {d58d10c6-df53-11dc-878f-00064f4f4e08}
+          

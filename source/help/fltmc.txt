@@ -1,0 +1,12 @@
+
+** 无效命令
+有效命令:
+    load        加载筛选器驱动程序
+    unload      卸载筛选器驱动程序
+    filters     列出系统中当前注册的筛选器
+    instances   列出系统中当前注册的筛选器或卷的实例
+    volumes     列出系统中所有卷/RDR
+    attach      为卷创建筛选器实例
+    detach      从卷删除筛选器实例
+
+    使用 fltmc help [ 命令 ] 获取特定命令的帮助

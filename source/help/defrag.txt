@@ -1,0 +1,43 @@
+Microsoft 磁盘碎片整理程序
+版权所有 (c) 2007 Microsoft Corp.
+
+描述:
+
+	定位并合并本地卷中的碎片文件
+	以提高系统性能。
+
+语法:
+
+	defrag <volumes> | /C | /E <volumes>    [/H] [/M | [/U] [/V]]
+	defrag <volumes> | /C | /E <volumes> /A [/H] [/M | [/U] [/V]]
+	defrag <volumes> | /C | /E <volumes> /X [/H] [/M | [/U] [/V]]
+	defrag <volume>                      /T [/H]       [/U] [/V]
+
+参数:
+
+	值	描述
+
+	/A	在指定的卷上执行分析。
+
+	/C	在所有卷上执行该操作。
+
+	/E	在除了指定卷以外的所有卷上执行该操作。
+
+	/H	以标准优先级运行该操作(默认值低)。
+
+	/M	在后台并行运行每个卷上的该操作。
+
+	/T	跟踪已在指定卷上执行的操作。
+
+	/U	将操作过程打印到屏幕。
+
+	/V	打印包含碎片统计信息的详细输出。
+
+	/X	在指定卷上执行可用空间合并。
+
+示例:
+
+	defrag C: /U /V
+	defrag C: D: /M
+	defrag C:\mountpoint /A /U
+	defrag /C /H /V

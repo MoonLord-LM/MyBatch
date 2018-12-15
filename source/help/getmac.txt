@@ -1,0 +1,32 @@
+
+GETMAC [/S system [/U username [/P [password]]]] [/FO format] [/NH] [/V]
+
+描述:
+    此工具使管理员能够显示系统上网络适配器的 MAC 地址。
+
+参数列表: 
+    /S     system            指定要连接的远程系统。
+
+    /U     [domain\]user     指定用户上下文，命令在此上下文执行。
+
+    /P     [password]        指定给定用户上下文密码。如果省略则
+                             提示输入。
+
+    /FO    format            指定输出显示的格式。
+                             有效值: "TABLE"、"LIST"、"CSV"。
+
+    /NH                      指定在输出中不显示“列标题”。
+                             只对 TABLE 和 CSV 格式有效。
+                             
+
+    /V                       指定显示详细输出。
+
+    /?                       显示此帮助消息。
+
+示例: 
+    GETMAC /? 
+    GETMAC /FO csv 
+    GETMAC /S system /NH /V
+    GETMAC /S system /U user
+    GETMAC /S system /U domain\user /P password /FO list /V
+    GETMAC /S system /U domain\user /P password /FO table /NH
