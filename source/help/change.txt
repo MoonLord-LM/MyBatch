@@ -1,1 +1,26 @@
 CHANGE { LOGON | PORT | USER }
+启用、禁用或排除会话登录。
+
+CHANGE LOGON {/QUERY | /ENABLE | /DISABLE | /DRAIN | /DRAINUNTILRESTART}
+
+  /QUERY    查询当前会话登录模式。
+  /ENABLE   从会话启用用户登录。
+  /DISABLE 禁止用户从会话登录。
+  /DRAIN    禁止新的用户登录，但允许重新连接到现有会话。
+  /DRAINUNTILRESTART    重新启动服务器之前，禁止新的用户登录，但允许重新连接到现有会话。
+为 DOS 应用程序兼容性列出或改变 COM 端口映射。
+
+CHANGE PORT [portx=porty | /D portx | /QUERY]
+
+  portx=porty  将端口 x 映射到端口 y。
+  /D portx    删除端口 x 的映射。
+  /QUERY      显示当前映射端口。
+
+改变安装模式。
+
+CHANGE USER {/EXECUTE | /INSTALL | /QUERY}
+
+  /EXECUTE  启用执行模式(默认)。
+  /INSTALL  启用安装模式。
+  /QUERY    显示当前设置。
+

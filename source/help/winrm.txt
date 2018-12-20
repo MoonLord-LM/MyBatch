@@ -1,0 +1,34 @@
+Windows 远程管理命令行工具
+
+Windows 远程管理(WinRM)是 WS-Management 协议的 Microsoft 实现， 
+该协议为使用 Web 服务的本地计算机和远程计算机
+之间的通信提供了一种安全的方式。
+
+使用情况:
+  winrm OPERATION RESOURCE_URI [-SWITCH:VALUE [-SWITCH:VALUE] ...]
+        [@{KEY=VALUE[;KEY=VALUE]...}]
+
+有关特定操作的帮助:
+  winrm g[et] -?        检索管理信息。
+  winrm s[et] -?        修改管理信息。
+  winrm c[reate] -?     创建管理资源的新实例。
+  winrm d[elete] -?     删除管理资源的实例。
+  winrm e[numerate] -?  列出管理资源的所有实例。
+  winrm i[nvoke] -?     执行管理资源上的方法。
+  winrm id[entify] -?   确定 WS-Management 实现是否
+                        正在远程计算机上运行。
+  winrm quickconfig -?  对该计算机进行配置以接受其他计算机的
+                          WS-Management　的请求。
+  winrm configSDDL -?   修改 URI 的现有安全描述符。
+  winrm helpmsg -?      显示错误消息的错误代码。
+
+有关相关主题的帮助:
+  winrm help uris       创建资源 URI 的方式。
+  winrm help aliases    URI 的缩写。
+  winrm help config     配置 WinRM 客户端和服务设置。
+  winrm help certmapping 配置客户端证书访问。
+  winrm help remoting   访问远程计算机的方式。
+  winrm help auth       提供远程访问的凭据。
+  winrm help input      提供输入以进行创建、设置和调用。
+  winrm help switches   其他开关，例如格式化、选项等等。
+  winrm help proxy      提供代理信息。
