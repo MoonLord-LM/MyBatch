@@ -40,6 +40,6 @@ exit
     echo Args = Args ^& Argument ^& " ">>%vbs%
     echo Next>>%vbs%
     echo UAC.ShellExecute "%~1", Args, "", "runas", 1 >>%vbs%
-    "%SystemRoot%\System32\WScript.exe" %vbs% "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
+    wscript %vbs% "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
     exit
 goto :eof
