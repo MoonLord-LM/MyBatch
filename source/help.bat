@@ -22,7 +22,7 @@ attrib change chkdsk choice cipher defrag doskey expand format fsutil getmac ica
 bcdboot bcdedit certreq chkntfs compact convert findstr makecab nbtstat netstat qappsrv qwinsta recover replace takeown timeout tracert waitfor wbadmin wecutil
 certutil endlocal diskcomp diskcopy forfiles gpresult gpupdate hostname ipconfig mountvol nslookup pathping powercfg qprocess schtasks setlocal shutdown tasklist taskkill tsdiscon typeperf vssadmin wevtutil
 openfiles
-systeminfo
+powershell systeminfo
 eventcreate
 
 ) do (

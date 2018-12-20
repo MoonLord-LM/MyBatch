@@ -1,0 +1,94 @@
+
+PowerShell[.exe] [-PSConsoleFile <file> | -Version <version>]
+    [-NoLogo] [-NoExit] [-Sta] [-NoProfile] [-NonInteractive]
+    [-InputFormat {Text | XML}] [-OutputFormat {Text | XML}] 
+    [-WindowStyle <style>] [-EncodedCommand <Base64EncodedCommand>] 
+    [-File <filePath> <args>] [-ExecutionPolicy <ExecutionPolicy>]
+    [-Command { - | <script-block> [-args <arg-array>]
+                  | <string> [<CommandParameters>] } ]
+
+PowerShell[.exe] -Help | -? | /?
+
+-PSConsoleFile
+    加载指定的 Windows PowerShell 控制台文件。若要创建控制台
+    文件，请使用 Windows PowerShell 的 Export-Console。
+
+-Version
+    启动 Windows PowerShell 的指定版本。
+
+-NoLogo
+    启动时隐藏版权标志。
+
+-NoExit
+    运行完启动命令后不退出。
+
+-Sta
+    使用单线程单元启动 shell。
+
+-NoProfile
+    不使用用户配置文件。
+
+-NonInteractive
+    不向用户显示交互式提示。
+
+-InputFormat
+    说明发送到 Windows PowerShell 的数据的格式。有效值可以为
+    "Text"(文本字符串)，也可以为"XML"(序列化 CLIXML 格式)。
+
+-OutputFormat
+    确定 Windows PowerShell 输出内容的格式。有效值可以为
+    "Text"(文本字符串)，也可以为"XML"(序列化 CLIXML 格式)。
+
+-WindowStyle
+    将窗口样式设置为 Normal、Minimized、Maximized 或 Hidden。
+
+-EncodedCommand
+    接受命令的 Base 64 编码字符串版本。使用此参数向
+    Windows PowerShell 提交需要复杂引号或
+    大括号的命令。
+
+-File
+    执行脚本文件。
+
+-ExecutionPolicy
+    设置会话的默认执行策略。
+
+-Command
+    以执行好像从 Windows PowerShell 命令提示符下键入的命令那样
+    执行指定的命令和所有参数，如果未指定 NoExit，则随后将
+    退出。Command 的值可以为"-"、字符串或
+    脚本块。
+
+    如果 Command 的值为"-"，则将从标准输入设备读取命令
+    文本。
+
+    如果 Command 的值为脚本块，则脚本块必须括在
+    大括号({})中。只有在 Windows PowerShell 中运行 PowerShell.exe 时才能指定
+    脚本块。脚本块的结果作为反序列化 XML 对象(而非活动对象)返回到
+    父 shell。
+
+    如果 Command 的值为字符串，则 Command 必须是该命令的
+    最后一个形式参数，因为其后键入的所有字符都会被解释为
+    它的实际参数。
+
+    若要写运行 Windows PowerShell 命令的字符串，请使用以下格式:
+	"& {<command>}"
+    其中，引号指示一个字符串，调用运算符(&)
+    用于执行命令。
+
+-Help、-?、/?
+    显示此消息。如果要在 Windows PowerShell 中键入
+ PowerShell.exe 命令，    请以连字符(-)作为命令参数的前缀，不要使用
+    正斜杠(/)。连字符和正斜杠均可用于 Cmd.exe。
+
+示例
+    PowerShell -PSConsoleFile SqlSnapIn.Psc1
+    PowerShell -version 1.0 -NoLogo -InputFormat text -OutputFormat XML
+    PowerShell -Command {Get-EventLog -LogName security}
+    PowerShell -Command "& {Get-EventLog -LogName security}"
+
+    # To use the -EncodedCommand parameter:
+    $command = 'dir "c:\program files" '
+    $bytes = [System.Text.Encoding]::Unicode.GetBytes($command)
+    $encodedCommand = [Convert]::ToBase64String($bytes)
+    powershell.exe -encodedCommand $encodedCommand
