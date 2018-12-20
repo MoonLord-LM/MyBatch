@@ -1,8 +1,11 @@
 @echo off
+
 call :AdministratorPrivileges "%~0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
 pushd %~dp0
 
-cmd
+echo 提示：使用 VBScript 尝试获取管理员权限，获取失败时直接退出
+pause
+exit
 
 :AdministratorPrivileges - "获取管理员权限"
     net file 1>nul 2>nul
@@ -14,6 +17,6 @@ cmd
     echo Args = Args ^& Argument ^& " ">>%vbs%
     echo Next>>%vbs%
     echo UAC.ShellExecute "%~1", Args, "", "runas", 1 >>%vbs%
-    "%SystemRoot%\System32\WScript.exe" %vbs% "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
+    wscript %vbs% "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
     exit
 goto :eof
