@@ -1,0 +1,23 @@
+
+Microsoft (R) Windows (R) Resource Checker 版本 6.0
+版权所有(C) 2006 Microsoft Corporation。保留所有权利。
+
+扫描所有受保护的系统文件的完整性，并用正确的 Microsoft 版本替换不正确的版本。
+
+SFC [/SCANNOW] [/VERIFYONLY] [/SCANFILE=<file>] [/VERIFYFILE=<file>]
+    [/OFFWINDIR=<offline windows directory> /OFFBOOTDIR=<offline boot directory>]
+
+/SCANNOW        扫描所有受保护的系统文件的完整性，并修复出问题的文件(如果出现问题)。
+/VERIFYONLY     扫描所有受保护的系统文件的完整性。不执行修复操作。
+/SCANFILE       扫描参考文件的完整性，如果找到问题，则修复文件。
+                指定完整路径 <文件>
+/VERIFYFILE     验证带有完整路径 <文件> 的文件的完整性。不执行修复。
+/OFFBOOTDIR     用于脱机修复指定脱机启动目录的位置
+/OFFWINDIR      用于脱机修复指定脱机 Windows 目录的位置
+
+例如
+
+        sfc /SCANNOW
+        sfc /VERIFYFILE=c:\windows\system32\kernel32.dll
+        sfc /SCANFILE=d:\windows\system32\kernel32.dll /OFFBOOTDIR=d:\ /OFFWINDIR=d:\windows
+        sfc /VERIFYONLY

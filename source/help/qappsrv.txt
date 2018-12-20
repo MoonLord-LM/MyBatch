@@ -1,0 +1,9 @@
+显示网络上可用的远程桌面会话主机服务器。
+
+QUERY TERMSERVER [servername] [/DOMAIN:domain] [/ADDRESS] [/CONTINUE]
+
+  servername      标识远程桌面会话主机服务器。
+  /DOMAIN:domain  显示指定域的信息(默认值是当前域)。
+  /ADDRESS        显示网络和节点地址。
+  /CONTINUE       在每个信息屏幕后不暂停。
+

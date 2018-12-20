@@ -1,0 +1,94 @@
+
+SetX 有三种使用方式: 
+
+语法 1:
+    SETX [/S system [/U [domain\]user [/P [password]]]] var value [/M]
+
+语法 2:
+    SETX [/S system [/U [domain\]user [/P [password]]]] var /K regpath [/M]
+
+语法 3:
+    SETX [/S system [/U [domain\]user [/P [password]]]]
+         /F file {var {/A x,y | /R x,y string}[/M] | /X} [/D delimiters]
+
+描述:
+    在用户或系统环境创建或修改环境变量。能基于参数、注册表项或文件输
+    入设置变量。
+
+参数列表:
+    /S     system          指定要连接到的远程系统。
+
+    /U     [domain\]user   指定应该在哪个用户上下文执行命令。
+
+    /P     [password]      指定给定用户上下文的密码。如果省略则
+                           提示输入。
+
+    var                    指定要设置的环境变量。
+
+    value                  指定分配给环境变量的值。
+
+    /K     regpath         指定变量是基于注册表项的信息而设置的。
+
+                           路径的格式应该是 hive\key\...\value。例如
+                           HKEY_LOCAL_MACHINE\System\CurrentControlSet\
+                           Control\TimeZoneInformation\StandardName。
+
+    /F     file            指定要使用的文本文件的文件名。
+
+    /A     x,y             指定绝对文件坐标(线 X，项目 Y)作为在此文件
+                           里搜索的参数。
+
+    /R     x,y string      指定有关“字符串”作为搜索参数的相对文件坐标。
+
+    /M                     指定应该在系统 (HKEY_LOCAL_MACHINE) 环境中设
+                           置此变量。在 HKEY_CURRENT_USER 环境下，默认
+                           将设置此变量。
+
+    /X                     用 x，y 坐标显示文件内容。
+
+    /D     delimiters      指定其他限定符，如 "," 或 "\"。
+                           内置分隔符是空格、制表符、回车和换行符。所有
+                           ASCII 字符都可作为限定符。限定符的最大数量，
+                           包括内置分隔符，是 15。
+
+    /?                     显示此帮助消息。
+
+注意: 1) SETX 在注册表中将变量写入主机环境。
+
+      2) 在本地系统，用此工具创建或修改的变量将在以后的命令窗口可用，但
+         在当前的 CMD.exe 命令窗口。
+
+      3) 在远程系统，用此工具创建或修改的变量在下次登录会话可用。
+
+      4) 有效的注册表项数据类型是 REG_DWORD，REG_EXPAND_SZ，REG_SZ
+         和 REG_MULTI_SZ。
+
+      5) 受支持的配置单元:  HKEY_LOCAL_MACHINE (HKLM)，
+         HKEY_CURRENT_USER (HKCU)。
+
+      6) 限定符区分大小写。
+
+      7) REG_DWORD 的值是从注册表里以十进制格式提取出来的。
+
+示例:
+    SETX MACHINE COMPAQ 
+    SETX MACHINE "COMPAQ COMPUTER" /M
+    SETX MYPATH "%PATH%"
+    SETX MYPATH ~PATH~
+    SETX /S system /U user /P password  MACHINE COMPAQ 
+    SETX /S system /U user /P password MYPATH ^%PATH^% 
+    SETX TZONE /K HKEY_LOCAL_MACHINE\System\CurrentControlSet\
+         Control\TimeZoneInformation\StandardName
+    SETX BUILD /K "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows
+         NT\CurrentVersion\CurrentBuildNumber" /M
+    SETX /S system /U user /P password TZONE /K HKEY_LOCAL_MACHINE\
+         System\CurrentControlSet\Control\TimeZoneInformation\
+         StandardName
+    SETX /S system /U user /P password  BUILD /K 
+         "HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\
+         CurrentVersion\CurrentBuildNumber" /M
+    SETX /F ipconfig.out /X 
+    SETX IPADDR /F ipconfig.out /A 5,11 
+    SETX OCTET1 /F ipconfig.out /A 5,3 /D "#$*." 
+    SETX IPGATEWAY /F ipconfig.out /R 0,7 Gateway
+    SETX /S system /U user /P password  /F c:\ipconfig.out /X

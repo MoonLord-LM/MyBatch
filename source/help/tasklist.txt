@@ -1,0 +1,65 @@
+
+TASKLIST [/S system [/U username [/P [password]]]]
+         [/M [module] | /SVC | /V] [/FI filter] [/FO format] [/NH]
+
+描述:
+    该工具显示在本地或远程机器上当前运行的进程列表。
+
+参数列表:
+   /S     system           指定连接到的远程系统。
+
+   /U     [domain\]user    指定应该在哪个用户上下文执行这个命令。
+
+   /P     [password]       为提供的用户上下文指定密码。如果省略，则
+                           提示输入。
+
+   /M     [module]         列出当前使用所给 exe/dll 名称的所有任务。
+                           如果没有指定模块名称，显示所有加载的模块。
+
+   /SVC                    显示每个进程中主持的服务。
+
+   /V                      显示详述任务信息。
+
+   /FI    filter           显示一系列符合筛选器指定的标准的任务。
+
+   /FO    format           指定输出格式。
+                           有效值: "TABLE"、"LIST"、"CSV"。
+
+   /NH                     指定列标题不应该在输出中显示。
+                           只对 "TABLE" 和 "CSV" 格式有效。
+
+   /?                      显示帮助消息。
+
+
+筛选器:
+    筛选器名        有效操作符                有效值
+    -----------     ---------------           --------------------------
+    STATUS          eq, ne                    RUNNING | 
+                                              NOT RESPONDING | UNKNOWN
+    IMAGENAME       eq, ne                    映像名称
+    PID             eq, ne, gt, lt, ge, le    PID 值
+    SESSION         eq, ne, gt, lt, ge, le    会话编号
+    SESSIONNAME     eq, ne                    会话名
+    CPUTIME         eq, ne, gt, lt, ge, le    CPU 时间，格式为
+                                              hh:mm:ss。
+                                              hh - 时，
+                                              mm - 分，ss - 秒
+    MEMUSAGE        eq, ne, gt, lt, ge, le    内存使用量，单位为 KB
+    USERNAME        eq, ne                    用户名，格式为 [domain\]user
+    SERVICES        eq, ne                    服务名称
+    WINDOWTITLE     eq, ne                    窗口标题
+    MODULES         eq, ne                    DLL 名称
+
+说明: 当查询远程机器时，不支持 "WINDOWTITLE" 和 "STATUS"
+      筛选器。
+
+示例:
+    TASKLIST
+    TASKLIST /M
+    TASKLIST /V /FO CSV
+    TASKLIST /SVC /FO LIST
+    TASKLIST /M wbem*
+    TASKLIST /S system /FO LIST
+    TASKLIST /S system /U domain\username /FO CSV /NH
+    TASKLIST /S system /U username /P password /FO TABLE /NH
+    TASKLIST /FI "USERNAME ne NT AUTHORITY\SYSTEM" /FI "STATUS eq running"

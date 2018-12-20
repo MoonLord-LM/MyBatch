@@ -1,0 +1,123 @@
+w32tm [/? | /register | /unregister ]
+  ? - 此帮助屏幕。
+  register - 注册为作为服务运行并且添加默认
+    配置到注册表。
+  unregister - 解除服务注册并删除所有配置
+    来自注册表的信息。
+
+w32tm /monitor [/domain:<domain name>]
+               [/computers:<name>[,<name>[,<name>...]]]
+               [/threads:<num>] [/ipprotocol:<4|6>] [/nowarn]
+  domain - 指定要监视的域。如果没有指定
+    域名，或者没有指定域或者计算机
+    选项，将使用默认域。此选项
+    可以多次使用。
+  computers - 监视给定的计算机列表。计算机
+   名称由逗号分隔，没有空格。如果名称
+    有前缀 '*'，它将被视为一个 AD PDC。此选项
+    可以多次使用。
+  threads - 同时分析的计算机数量。默认
+    值为 3。允许的范围是 1-50。
+  ipprotocol - 指定要使用的 IP 协议。默认为
+    使用任何可用的。
+  nowarn - 跳过警告消息。
+
+w32tm /ntte <NT time epoch>
+  转换 NT 系统时间，以 (10^-7) 秒为间隔，从 1601 年 1 月 1 日
+  零时起，将其转换为可读的格式。
+
+w32tm /ntpte <NTP time epoch>
+  转换 NTP 时间，以 (2^-32)s 为间隔，从 1900 年 1 月 1 日
+  零时起，将其转换为可读的格式。
+
+w32tm /resync [/computer:<computer>] [/nowait] [/rediscover] [/soft]
+  告诉计算机它应该尽快重新同步它的时钟，丢弃
+  所有累计的错误统计。
+  computer:<computer> - 应该重新同步的计算机。
+    如果没有指定，本地计算机将重新同步。
+  nowait - 不等待重新同步发生；立即返回。
+    否则，在返回前等待重新同步完成。
+  rediscover - 重新检测网络配置并重新发现
+    网络源，然后重新同步。
+  soft - 用现有的错误统计重新同步。这并不是
+    很有用，只是为了兼容性而提供。
+
+w32tm /stripchart /computer:<target> [/period:<refresh>]
+    [/dataonly] [/samples:<count>] [/packetinfo] [/ipprotocol:<4|6>]
+  显示此计算机和另一台计算机之间偏移量的
+  带状图。
+  computer:<target> - 要以其为参照来测量偏移量的计算机。
+  period:<refresh> - 样本之间的时间(秒)。
+    默认为 2 秒
+  dataonly - 只显示数据，不显示图形。
+  samples:<count> - 收集 <count> 个样本，然后停止。
+  如果没有指定，将一直收集样本，直到按下了
+  Ctrl-C。
+  packetinfo - 打印 NTP 数据包响应消息。
+  ipprotocol - 指定要使用的 IP 协议。默认为
+    使用任何可用的协议。
+
+w32tm /config [/computer:<target>] [/update]
+    [/manualpeerlist:<peers>] [/syncfromflags:<source>]
+    [/LocalClockDispersion:<seconds>]
+    [/reliable:(YES|NO)]
+    [/largephaseoffset:<milliseconds>]
+  computer:<target> - 调整 <target> 的配置。如果
+    没有指定，默认为本地计算机。
+  update - 向时间服务发出配置已更改的通知，
+    使更改生效。
+  manualpeerlist:<peers> - 手动设置对等列表为
+    <peers>，它是一个空格分隔的 DNS 和/或 IP 地址的
+    列表。如果指定多个对等机，此开关必须用引号引起来。
+  syncfromflags:<source> - 设置 NTP 客户端应该
+    同步的源。<source> 应该是一个用逗号分隔的这些
+    关键字的列表(不区分大小写):
+      MANUAL - 从手动对等列表中的对等机同步
+      DOMHIER - 从域层次中的一个 AD DC 同步
+      NO - 不从任何对等机同步
+      ALL - 从手动和域对等机同步
+  LocalClockDispersion:<seconds> - 配置内部时钟的
+    精确性。如果 w32time 不能从它配置的源获得时间，
+    它将假定内部时钟的精确性。
+  reliable:(YES|NO) - 设置此计算机是否是一个可靠的
+    时间源。此设置只对域控制器有意义。
+      YES - 此计算机提供可靠的时间服务
+      NO - 此计算机不提供可靠的时间服务
+  largephaseoffset:<milliseconds> - 设置本地和网络
+    时间之间的差别，w32time 将视之为一个峰值信号。
+
+w32tm /tz
+  显示当前时区设置。
+
+w32tm /dumpreg [/subkey:<key>] [/computer:<target>]
+  显示与给定注册表项相关联的值。
+  默认注册表项为 HKLM\System\CurrentControlSet\Services\W32Time
+    (时间服务的根注册表项)。
+  subkey:<key> - 显示与默认项的子项 <key>
+    相关联的值。
+  computer:<target> - 查询计算机 <target> 的注册表设置。
+
+w32tm /query [/computer:<target>]
+    {/source | /configuration | /peers | /status}
+    [/verbose]
+  显示计算机的 Windows 时间服务信息。
+  computer:<target> - 查询 <target> 的信息。如果没有
+    指定，默认为本地计算机。
+  source: 显示时间源。
+  configuration: 显示运行时间的配置及设置的来源。
+    在详细模式中，还显示未定义或未使用的设置。
+  peers: 显示对等机的列表及其状态。
+  status: 显示 Windows 时间服务状态。
+  verbose: 设置详细模式以显示详细信息。
+
+w32tm /debug {/disable | {/enable /file:<name> /size:<value> /entries:<value>
+    [/truncate]}}
+  启用或禁用本地计算机的 Windows 时间服务专用日志。
+  disable: 禁用专用日志。
+  enable: 启用专用日志。
+    file:<name> -  指定绝对文件名。
+    size:<bytes> - 指定循环日志记录的最大值。
+    entries: <value> - 包含指定应记录的信息类型的标志列表，这些标志使用数字指定，
+      用逗号分隔。有效数字为 0 到 300。除单个数字外，数字范围也有效，如 0-100、
+      103、106。值 0-300 表示记录所有信息。
+  truncate: 如果文件存在，截断文件。

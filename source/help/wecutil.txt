@@ -1,0 +1,36 @@
+Windows 事件收集器实用程序
+
+使您可以创建和管理对从支持 WS-Management 
+协议的远程事件源转发的事件的订阅。
+
+用法:
+
+可以使用短形式(如 es、/f)或长形式(如 enum-subscription、/format)
+的命令和选项名称。命令、选项和选项值不
+区分大小写。
+
+(字符全部大写表示变量)
+
+wecutil COMMAND [ARGUMENT [ARGUMENT] ...] [/OPTION:VALUE [/OPTION:VALUE] ...]
+
+命令:
+
+es (enum-subscription)               列出现有订阅。
+gs (get-subscription)                获取订阅配置。
+gr (get-subscriptionruntimestatus)   获取订阅运行时状态。
+ss (set-subscription)                设置订阅配置。
+cs (create-subscription)             创建新的订阅。
+ds (delete-subscription)             删除订阅。
+rs (retry-subscription)              重试订阅。
+qc (quick-config)                    配置 Windows 事件收集器服务。
+
+常用选项:
+
+/h|? (help)
+获取 wecutil 程序的常规帮助。
+
+wecutil { -help | -h | -? }
+
+有关参数和选项的信息，请参阅特定命令的用法:
+
+wecutil COMMAND -?

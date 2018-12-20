@@ -1,0 +1,10 @@
+中断远程桌面会话的连接。
+
+TSDISCON [sessionid | sessionname] [/SERVER:servername] [/V] [/VM]
+
+  sessionid           会话 ID。
+  sessionname         会话名。
+  /SERVER:servername  指定远程桌面会话主机服务器(默认值是当前值)。
+  /V                  显示有关所执行操作的信息。
+  /VM                 断开服务器上或虚拟机中的会话连接。需要指定该会话的唯一 ID。
+

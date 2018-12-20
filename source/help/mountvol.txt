@@ -1,0 +1,45 @@
+创建、删除或列出卷装入点。
+
+MOUNTVOL [drive:]path VolumeName
+MOUNTVOL [drive:]path /D
+MOUNTVOL [drive:]path /L
+MOUNTVOL [drive:]path /P
+MOUNTVOL /R
+MOUNTVOL /N
+MOUNTVOL /E
+MOUNTVOL drive: /S
+
+    path        指定装入点将驻留的现有 NTFS 目录。
+    VolumeName  指定装入点的目标的卷名称。
+    /D          从指定的目录中删除卷装入点。
+    /L          列出指定目录的已装入的卷名称。
+    /P          从指定目录删除卷装入点，卸下此卷并使此卷无法装入。您可以创建
+                一个卷来再次使此卷可以装入。
+    /R          删除不在系统中的、卷的装入点目录和注册表设置。
+    /N          禁用新卷的自动装入。
+    /E          再次启用新卷的自动装入。
+    /S          将 EFI 系统分区装载到提供的驱动器。
+
+当前装入点的 VolumeName 可能值为:
+
+    \\?\Volume{1f2c4ada-b335-43e2-96c2-86a20d3a123e}\
+        C:\
+
+    \\?\Volume{d57ffda3-bfbc-4b73-979f-eb4ec211db11}\
+        F:\
+
+    \\?\Volume{507edbfb-c281-4c32-97d3-7b86021f290c}\
+        V:\
+
+    \\?\Volume{5f67ecd7-b4d4-4006-b311-115d4a11b6f9}\
+        S:\
+
+    \\?\Volume{b7973d2d-10f6-4fc9-8099-6267c6ce1913}\
+        W:\
+
+    \\?\Volume{23cc1451-b0c8-4ffa-bfee-9a6b4191ea4c}\
+        Y:\
+
+    \\?\Volume{2730dce1-f855-43cc-b321-711c4c5a7ab8}\
+        Z:\
+

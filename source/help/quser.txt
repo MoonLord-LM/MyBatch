@@ -1,0 +1,9 @@
+显示有关登录到该系统的用户的信息。
+
+QUERY USER [username | sessionname | sessionid] [/SERVER:servername]
+
+  username            标识用户名。
+  sessionname         用名称 sessionname 识别会话。
+  sessionid           用 ID sessionid 识别会话。
+  /SERVER:servername  要查询的服务器(默认值是当前值)。
+

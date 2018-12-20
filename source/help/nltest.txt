@@ -1,0 +1,56 @@
+用法: nltest [/OPTIONS]
+
+
+    /SERVER:<ServerName> - 指定 <ServerName>
+
+    /QUERY - 查询 <ServerName> 的 netlogon 服务
+    /REPL - 强制在 <ServerName> BDC 上部分同步
+    /SYNC - 强制在 <ServerName> BDC 上完全同步
+    /PDC_REPL - 强制从 <ServerName> PDC 执行 UAS 更改消息
+
+    /SC_QUERY:<DomainName> - 查询 <ServerName> 上 <Domain> 的安全通道
+    /SC_RESET:<DomainName>[\<DcName>] - 将<ServerName> 上 <Domain> 的安全通道
+                                        重置为 <DcName>
+    /SC_VERIFY:<DomainName> - 验证 <ServerName> 上 <Domain> 的安全通道
+    /SC_CHANGE_PWD:<DomainName> - 更改 <ServerName> 上 <Domain> 的安全通道密码
+    /DCLIST:<DomainName> - 获取 <DomainName> 的 DC 列表
+    /DCNAME:<DomainName> - 获取 <DomainName> 的 PDC 名称
+    /DSGETDC:<DomainName> - 调用 DsGetDcName /PDC /DS /DSP /GC /KDC
+        /TIMESERV /GTIMESERV /WS /NETBIOS /DNS /IP /FORCE /WRITABLE /AVOIDSELF /LDAPONLY /BACKG /DS_6
+        /TRY_NEXT_CLOSEST_SITE /SITE:<SiteName> /ACCOUNT:<AccountName> /RET_DNS /RET_NETBIOS
+    /DNSGETDC:<DomainName> - 调用 DsGetDcOpen/Next/Close /PDC /GC
+        /KDC /WRITABLE /LDAPONLY /FORCE /SITESPEC
+    /DSGETFTI:<DomainName> - 调用 DsGetForestTrustInformation
+        /UPDATE_TDO
+    /DSGETSITE - 调用 DsGetSiteName
+    /DSGETSITECOV - 调用 DsGetDcSiteCoverage
+    /DSADDRESSTOSITE:[MachineName] - 调用 DsAddressToSiteNamesEx
+        /ADDRESSES:<Address1,Address2,...>
+    /PARENTDOMAIN - 获取此计算机的父级域名
+    /WHOWILL:<Domain>* <User> [<Iteration>] - 查看 <Domain> 是否将登录到 <User>
+    /FINDUSER:<User> - 查看哪个受信域将登录到 <User>
+    /TRANSPORT_NOTIFY - 向 netlogon 通知新传输
+
+    /DBFLAG:<HexFlags> - 新的调试标志
+
+    /USER:<UserName> - 查询 <ServerName> 上的用户信息
+
+    /TIME:<Hex LSL> <Hex MSL> - 将 NT GMT 时间转换为 ASCII
+    /LOGON_QUERY - 查询累计登录尝试次数
+    /DOMAIN_TRUSTS - 查询 <ServerName> 上的域信任
+        /PRIMARY /FOREST /DIRECT_OUT /DIRECT_IN /ALL_TRUSTS /V
+    /DSREGDNS - 强制注册所有特定于 DC 的 DNS 记录
+    /DSDEREGDNS:<DnsHostName> - 对于指定的 DC，取消注册特定于 DC 的 DNS 记录
+        /DOM:<DnsDomainName> /DOMGUID:<DomainGuid> /DSAGUID:<DsaGuid>
+    /DSQUERYDNS - 查询所有特定于 DC 的 DNS 记录的最近更新状态
+
+    /BDC_QUERY:<DomainName> - 查询 <DomainName> 的 BDC 的复制状态
+
+    /LIST_DELTAS:<FileName> - 显示给定更改日志文件的内容
+
+    /CDIGEST:<Message> /DOMAIN:<DomainName> - 获取客户机摘要
+    /SDIGEST:<Message> /RID:<RID in hex> - 获取服务器摘要
+
+    /SHUTDOWN:<Reason> [<Seconds>] - 由于 <Reason> 关闭 <ServerName>
+    /SHUTDOWN_ABORT - 中止系统关闭
+

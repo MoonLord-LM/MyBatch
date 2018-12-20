@@ -1,0 +1,41 @@
+
+Microsoft _ TypePerf.exe (6.1.7600.16385)
+
+Typeperf 将性能数据写入命令窗口或日志文件。要停止 Typeperf，请按 CTRL+C.
+
+用法:
+typeperf { <counter [counter ...]> 
+                                | -cf <filename> 
+                                | -q [object] 
+                                | -qx [object] 
+                                } [options]
+
+参数:
+  <counter [counter ...]>       要监视的性能计数器。
+
+选项:
+  -?                            显示跟上下文相关的帮助。
+  -f <CSV|TSV|BIN|SQL>          输出文件格式。默认值是 CSV。
+  -cf <filename>                含有监视的性能计数器的文件，一个计数器一行。
+  -si <[[hh:]mm:]ss>            示例间的时间。默认值是 1 秒。
+  -o <filename>                 输出文件或 SQL 数据库的路径。默认值为 STDOUT。
+  -q [object]                   列出已安装的计数器(无实例)。要列出某个对象的计
+                                数器，包括对象名，如 Processor。
+  -qx [object]                  列出已安装的计数器(带实例)。要列出某个对象的计
+                                数器，包括对象名，如 Processor。
+  -sc <samples>                 要收集的示例数量。默认值为，在 CTRL+C 之前都进
+                                行采样。
+  -config <filename>            含有命令选项的设置文件。
+  -s <computer_name>            在计数器路径中没有指定服务器的情况下要监视的服
+                                务器。
+  -y                            不用提示对所有问题都回答 yes。
+
+注意:
+  Counter 是性能计数器的全名，格式为
+  "\\<Computer>\<Object>(<Instance>)\<Counter>"；
+  例如 "\\Server1\Processor(0)\% User Time"。
+
+示例:
+  typeperf "\Processor(_Total)\% Processor Time"
+  typeperf -cf counters.txt -si 5 -sc 50 -f TSV -o domain2.tsv
+  typeperf -qx PhysicalDisk -o counters.txt

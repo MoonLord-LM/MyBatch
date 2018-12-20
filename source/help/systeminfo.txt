@@ -1,0 +1,32 @@
+
+SYSTEMINFO [/S system [/U username [/P [password]]]] [/FO format] [/NH]
+
+描述:
+    该工具显示本地或远程机器(包括服务包级别)的操作系统配置的信息。
+
+参数列表:
+    /S      system           指定要连接的远程系统。
+
+    /U      [domain\]user    指定应该在哪个用户上下文执行命令。
+
+
+    /P      [password]       指定给定用户上下文的密码。如果省略则
+                             提示输入。
+
+    /FO     format           指定显示结果的格式。
+                             有效值: "TABLE"、"LIST"、"CSV"。
+
+    /NH                      指定“列标题”不应该在输出中显示。
+                             只对 "TABLE" 和 "CSV" 格式有效。
+
+    /?                       显示帮助消息。
+
+
+例如:
+    SYSTEMINFO
+    SYSTEMINFO /?
+    SYSTEMINFO /S system
+    SYSTEMINFO /S system /U user
+    SYSTEMINFO /S system /U domain\user /P password /FO TABLE
+    SYSTEMINFO /S system /FO LIST
+    SYSTEMINFO /S system /FO CSV /NH

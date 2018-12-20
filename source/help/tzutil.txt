@@ -1,0 +1,25 @@
+Windows 时区工具
+
+用法:
+TZUTIL </? | /g | /s TimeZoneID[_dstoff] | /l>
+
+参数:
+    /? 显示用法信息。
+
+    /g 显示当前时区 ID。
+
+    /s TimeZoneID[_dstoff]
+       使用指定的时区 ID 设置当前时区。
+       该 _dstoff 后缀将禁用时区的夏令时调整(如果适用)。
+
+    /l 列出所有有效的时区 ID 和显示名称。输出将为:
+           <显示名称>
+           <时区 ID>
+
+示例:
+    TZUTIL /g
+    TZUTIL /s "Pacific Standard Time"
+    TZUTIL /s "Pacific Standard Time_dstoff"
+
+备注:
+    退出代码 0 表明命令已成功完成。

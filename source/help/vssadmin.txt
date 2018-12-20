@@ -1,0 +1,12 @@
+vssadmin 1.1 - 卷影复制服务管理命令行工具
+(C) 版权所有 2001-2005 Microsoft Corp.
+
+---- 支持的命令 ----
+
+Delete Shadows        - 删除卷影副本
+List Providers        - 列出已注册的卷影副本提供程序
+List Shadows          - 列出现有卷影副本
+List ShadowStorage    - 列出卷影副本存储关联
+List Volumes          - 列出可以进行卷影副本处理的卷
+List Writers          - 列出订阅的卷影副本写入程序
+Resize ShadowStorage  - 重新调整卷影副本存储关联的大小

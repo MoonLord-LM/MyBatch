@@ -1,0 +1,63 @@
+
+WhoAmI 有三种使用方法: 
+
+语法 1:
+    WHOAMI [/UPN | /FQDN | /LOGONID]
+
+语法 2:
+    WHOAMI { [/USER] [/GROUPS] [/PRIV] } [/FO format] [/NH]
+
+语法 3:
+    WHOAMI /ALL [/FO format] [/NH]
+
+描述:
+    这个工具可以用来获取本地系统上当前用户(访问令牌)的用户名和组信息，
+    以及相应的安全标识符(SID)、特权和登录标识符(logon ID)。例如，谁是
+    当前登录的用户? 如果没有指定开关，工具用 NTLM 格式(域\用户名)显示
+    用户名。
+
+参数列表:
+    /UPN                    用用户主体 (User Principal) 格式显示用户名
+                            名称 (UPN)格式。
+
+    /FQDN                   用完全合格的 (Fully Qualified) 格式显示用户名
+                            可分辨名称(FQDN) 格式。
+
+    /USER                   显示当前用户的信息以及安全标识符 (SID)。
+
+    /GROUPS                 显示当前用户的组成员信息、帐户类型和安全
+                            标识符 (SID) 和属性。
+
+    /PRIV                   显示当前用户的安全特权。
+
+    /LOGONID                显示当前用户的登录 ID。
+
+    /ALL                    显示当前用户名、属于的组以及安全标识符
+                            (SID) 和当前用户访问令牌的特权。
+                            
+    /FO       format        指定要显示的输出格式。有效值为 TABLE、LIST、
+                            CSV。CSV 格式不显示列标题。默认格式是 TABLE。
+
+    /NH                     指定在输出中不显示列标题。只对 TABLE 和 CSV 
+                            格式有效。
+
+    /?                      显示此帮助消息。
+
+示例:
+    WHOAMI
+    WHOAMI /UPN
+    WHOAMI /FQDN 
+    WHOAMI /LOGONID
+    WHOAMI /USER
+    WHOAMI /USER /FO LIST
+    WHOAMI /USER /FO CSV
+    WHOAMI /GROUPS
+    WHOAMI /GROUPS /FO CSV /NH
+    WHOAMI /PRIV
+    WHOAMI /PRIV /FO TABLE
+    WHOAMI /USER /GROUPS
+    WHOAMI /USER /GROUPS /PRIV
+    WHOAMI /ALL
+    WHOAMI /ALL /FO LIST
+    WHOAMI /ALL /FO CSV /NH
+    WHOAMI /?

@@ -1,0 +1,29 @@
+逐屏显示输出。
+
+MORE [/E [/C] [/P] [/S] [/Tn] [+n]] < [drive:][path]filename
+command-name | MORE [/E [/C] [/P] [/S] [/Tn] [+n]]
+MORE /E [/C] [/P] [/S] [/Tn] [+n] [files]
+
+    [drive:][path]filename  指定要逐屏显示的文件。
+
+    command-name            指定要显示其输出的命令。
+
+    /E      启用扩展功能
+    /C      显示页面前先清除屏幕
+    /P      扩展 FormFeed 字符
+    /S      将多个空白行缩成一行
+    /Tn     将制表符扩展为 n 个空格(默认值为 8)
+
+            开关可以出现在 MORE 环境变量中。
+    +n      从第 n 行开始显示第一个文件
+
+    files   要显示的文件列表。使用空格分隔列表中的文件。
+            如果已启用扩展功能，则在 -- More -- 提示处 接受下列命令:
+    P n 显示下 n 行
+    S n 跳过下 n 行
+    F 显示下个文件
+    Q 退出
+    = 显示行号
+    ? 显示帮助行
+    <space> 显示下一页
+    <ret> 显示下一行

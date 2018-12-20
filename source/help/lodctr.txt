@@ -1,0 +1,40 @@
+
+
+LODCTR
+    更新与性能计数器相关的注册表值。
+
+用法:
+    LODCTR <INI-FileName>
+        INI-FileName 是所包含的的初始文件的名称
+            计数器 DLL 的计数器名称定义和说明文字。
+
+    LODCTR /S:<Backup-FileName>
+        将当前的 perf 注册表字符串和信息保存到 <Backup-FileName>
+
+    LODCTR /R:<Backup-FileName>
+        使用 <Backup-FileName> 还原 perf 注册表字符串和信息
+
+    LODCTR /R
+        基于当前情况从头开始重建 perf 注册表字符串和信息
+            注册表设置和备份 INI 文件。
+
+    LODCTR /T:<Service-Name>
+       将性能计数器服务设置为受信任。
+
+    LODCTR /E:<Service-Name>
+        启用性能计数器服务。
+
+    LODCTR /D:<Service-Name>
+        禁用性能计数器服务。
+
+    LODCTR /Q
+
+    LODCTR /Q:<Service-Name>
+        通过查询全部计数器或者查询指定的一个计数器，查询性能计数器服务信息。
+
+    LODCTR /M:<Counter-Manifest>
+        安装 Windows Vista 性能计数器提供程序定义 XML 文件
+            到系统知识库。
+
+注意: 任何名称中带空格的参数都必须外加
+双引号。

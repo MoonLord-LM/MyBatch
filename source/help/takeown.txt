@@ -1,0 +1,53 @@
+
+TAKEOWN [/S system [/U username [/P [password]]]]
+        /F filename [/A] [/R [/D prompt]]
+
+描述:
+    该工具以重新分配文件所有权的方式允许管理员重新获取先前被拒绝访问
+    的文件访问权。
+
+参数列表: 
+    /S           system          指定要连接到的远程系统。
+
+    /U           [domain\]user   指定用户上下文，命令在此上下文中执行。
+
+    /P           [password]      指定给定用户上下文的密码。如果省略，
+                                 提示输入。
+
+    /F           filename        指定文件名或目录名模式。可以用通配符 "*" 
+                                 指定模式。允许共享名\文件名。
+
+    /A                           将所有权给于管理员组，而不是当前用户。
+
+    /R                           递归: 指示工具运行于指定的目录和子目录
+                                 里的文件上。
+
+    /D           prompt          当前用户在一个目录里没有“列出文件夹”
+                                 权限时，使用默认答案。当在子目录里进行
+                                 递归 (/R) 操作时会发生这种情况。用有效
+                                 值 "Y" 获取所有权或用 "N" 跳过。
+
+    /?                           显示此帮助消息。
+
+    注意: 1) 如果指定了 /A，文件所有权会给与当前登录的用户。
+
+          2) 不支持用 "?" 和 "*" 混合的模式。
+
+          3) /D 用于抑制确认提示。
+
+示例: 
+    TAKEOWN /?
+    TAKEOWN /F lostfile
+    TAKEOWN /F \\system\share\lostfile /A
+    TAKEOWN /F directory /R /D N
+    TAKEOWN /F directory /R /A
+    TAKEOWN /F *
+    TAKEOWN /F C:\Windows\System32\acme.exe
+    TAKEOWN /F %windir%\*.txt
+    TAKEOWN /S system /F MyShare\Acme*.doc
+    TAKEOWN /S system /U user /F MyShare\foo.dll
+    TAKEOWN /S system /U domain\user /P password /F share\filename
+    TAKEOWN /S system /U user /P password /F Doc\Report.doc /A
+    TAKEOWN /S system /U user /P password /F Myshare\* 
+    TAKEOWN /S system /U user /P password /F Home\Logon /R
+    TAKEOWN /S system /U user /P password /F Myshare\directory /R /A

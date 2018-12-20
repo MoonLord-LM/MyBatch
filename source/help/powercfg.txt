@@ -1,0 +1,296 @@
+
+POWERCFG <命令行选项>
+描述:
+  此命令行工具使用户能够控制系统上的
+  电源设置。
+
+参数列表:
+  -LIST, -L   列出当前用户环境中的所有电源方案。
+
+              用法: POWERCFG -LIST
+
+  -QUERY, -Q  显示指定电源方案的内容。
+
+              用法: POWERCFG -QUERY <SCHEME_GUID> <SUB_GUID>
+
+              <SCHEME_GUID>  (可选)指定要显示的电源
+                             方案的 GUID，可以使用 powercfg -l 获得它。
+              <SUB_GUID>     (可选)指定要显示的子组 GUID。
+                            要求提供一个 SCHEME_GUID。
+
+              如果 SCHEME_GUID 或 SUB_GUID 均未提供，则会显示
+              当前用户的活动电源方案的设置。
+              如果未指定 SUB_GUID，则会显示指定的
+              电源方案中的所有设置。
+
+  -CHANGE, -X 修改当前电源方案中的一个设置值。
+
+              用法: POWERCFG -X <SETTING> <VALUE>
+
+              <SETTING>   指定下列选项之一:
+                          -monitor-timeout-ac <分钟>
+                          -monitor-timeout-dc <分钟>
+                          -disk-timeout-ac <分钟>
+                          -disk-timeout-dc <分钟>
+                          -standby-timeout-ac <分钟>
+                          -standby-timeout-dc <分钟>
+                          -hibernate-timeout-ac <分钟>
+                          -hibernate-timeout-dc <分钟>
+
+              示例:
+              POWERCFG -Change -monitor-timeout-ac 5
+              当使用交流电源时，这会将监视器空闲超时值
+              设置为 5 分钟。
+
+  -CHANGENAME 修改电源方案的名称并可选择修改其
+              描述。
+
+              用法: POWERCFG -CHANGENAME <GUID> <name> <scheme description> 
+
+              如果该描述被忽略，则仅修改该名称。
+
+  -DUPLICATESCHEME 
+               复制指定的电源方案。将会
+              显示代表新方案的结果 GUID。
+
+              用法: POWERCFG -DUPLICATESCHEME <GUID> <destination GUID>
+
+              <GUID>  指定通过使用 powercfg -l 获得的方案 GUID。
+
+              如果忽略 <destination GUID>，将为
+              重复的方案创建新 GUID。
+
+  -DELETE, -D 删除具有指定 GUID 的电源方案。
+
+              用法: POWERCFG -DELETE <GUID>
+
+              其中 <GUID> 是通过使用 LIST 参数获得的。
+
+  -DELETESETTING 
+              删除电源设置。
+
+              用法: POWERCFG -DELETESETTING <SUB_GUID> <SETTING_GUID> 
+
+              <SUB_GUID>      指定子组 GUID。
+              <SETTING_GUID>  指定电源设置 GUID。
+
+  -SETACTIVE, -S 
+              使指定的电源方案在系统上成为活动的。
+
+              用法: POWERCFG -SETACTIVE <SCHEME_GUID>
+
+              <SCHEME_GUID>  指定方案 GUID。
+
+  -GETACTIVESCHEME 
+              检索当前活动的电源方案。
+
+              用法: POWERCFG -GETACTIVESCHEME 
+
+  -SETACVALUEINDEX
+              当系统是由交流电源供电时，设置一个
+              与指定的电源设置相关联的值。
+
+              用法: POWERCFG -SETACVALUEINDEX <SCHEME_GUID> <SUB_GUID>
+                                               <SETTING_GUID> <SettingIndex>
+
+              <SCHEME_GUID>   指定一个电源方案 GUID，并可以
+                              通过使用 PowerCfg /L 获得它。
+              <SUB_GUID>      指定电源设置 GUID 的一个子组，并可以
+                              通过使用 "PowerCfg /Q" 获得它。
+              <SETTING_GUID>  指定一个单独的电源设置 GUID，并可以
+                              通过使用 "PowerCfg /Q" 获得它。
+              <SettingIndex>  指定此电源设置
+                              将被设置为可能值列表中的哪个值。
+
+              示例:
+                  POWERCFG -SetAcValueIndex <GUID> <GUID> <GUID> 5
+                  这会将该电源设置的交流值设置为此电源设置
+                  的可能值列表中的第 5 项。
+
+  -SETDCVALUEINDEX 
+              当系统是由直流电源供电时，设置一个
+              与指定的电源设置相关联的值。
+
+              用法: POWERCFG -SETDCVALUEINDEX <SCHEME_GUID> <SUB_GUID>
+                                               <SETTING_GUID> <SettingIndex>
+              <SCHEME_GUID>   指定一个电源方案 GUID，并可以
+                              通过使用 PowerCfg /L 获得它。
+              <SUB_GUID>      指定电源设置 GUID 的一个子组，并可以
+                              通过使用 "PowerCfg /Q" 获得它。
+              <SETTING_GUID>  指定一个单独的电源设置 GUID，并可以
+                              通过使用 "PowerCfg /Q" 获得它。
+              <SettingIndex>  指定此设置
+                              将被设置为可能值列表中的哪个值。
+
+              示例:
+                  POWERCFG -SetDcValueIndex <GUID> <GUID> <GUID> 5
+                  这会将电源设置的直流值设置为此电源设置
+                  的可能值列表中的第 5 项。
+
+  -HIBERNATE, -H
+              启用-禁用休眠功能。所有
+              所有系统上都支持。
+
+              用法: POWERCFG -H <ON|OFF>
+                     POWERCFG -H -Size <PercentSize>
+              -Size  以总内存百分比指定所需的休眠文件大小。
+                     默认大小不得小于 50。
+                     此开关还自动启用休眠文件。
+
+  -AVAILABLESLEEPSTATES, -A  
+              报告系统上可用的睡眠状态
+              尝试报告睡眠状态不可用的原因。
+
+  -DEVICEQUERY
+              返回符合指定标准的设备列表。
+
+              用法: POWERCFG -DEVICEQUERY <queryflags>
+
+              <queryflags>  指定以下标准之一:
+
+              wake_from_S1_supported  返回支持从浅睡眠状态
+                                      唤醒系统的所有设备。
+              wake_from_S2_supported  返回支持从深睡眠状态
+                                      唤醒系统的所有设备。
+              wake_from_S3_supported  返回支持从最深睡眠状态
+                                      唤醒系统的所有设备。
+              wake_from_any           返回支持从任何睡眠状态
+                                      唤醒系统的所有设备。
+              S1_supported            列出支持浅睡眠的设备。
+              S2_supported            列出支持较深睡眠的设备。
+              S3_supported            列出支持最深睡眠的设备。
+              S4_supported            列出支持休眠的设备。
+              wake_programmable       列出用户可配置的从某个睡眠状态
+                                      唤醒系统的设备。
+              wake_armed              列出当前配置为从任何
+                                      睡眠状态唤醒系统的设备。
+              all_devices             返回系统中现有的所有设备。
+              all_devices_verbose     返回详细的设备列表。
+              示例:
+                  POWERCFG -DEVICEQUERY wake_armed
+
+  -DEVICEENABLEWAKE
+              使设备能够从睡眠状态唤醒系统。
+
+              用法: POWERCFG -DEVICEENABLEWAKE <devicename>
+
+              <devicename>  指定使用以下命令检索的设备:
+                            "PowerCfg -DEVICEQUERY wake_programmable"
+
+              示例:
+                  POWERCFG -DEVICEENABLEWAKE
+                                       "Microsoft USB IntelliMouse Explorer"
+
+  -DEVICEDISABLEWAKE <devicename> 禁止该设备从睡眠状态
+              禁止该设备从睡眠状态唤醒系统
+
+              用法: POWERCFG -DEVICEDISABLEWAKE 
+
+              <devicename>  指定使用
+                            "PowerCfg -DEVICEQUERY wake_armed" 检索的设备。
+
+  -IMPORT     从指定的文件导入所有电源设置。
+
+              用法: POWERCFG -IMPORT <filename> <GUID> 
+
+              <filename>  指定到由以下内容生成的文件的完全限定路径
+                          "PowerCfg -EXPORT"  参数生成的文件的完全限定路径。
+              <GUID>      (可选)将设置加载到此 GUID 所代表
+                           的电源方案中。如果未提供，powercfg
+                          将生成并使用新 GUID
+
+              示例:
+                  POWERCFG -IMPORT c:\scheme.pow
+
+  -EXPORT     将指定的 GUID 代表的电源方案导出到
+              指定的文件。
+
+              用法: POWERCFG -EXPORT <filename> <GUID> 
+
+              <filename>  指定到目标文件的完全限定路径。
+              <GUID>      指定一个电源方案 GUID，并可以通过
+                          使用 "PowerCfg /L" 获得它。
+
+              示例:
+                  POWERCFG -EXPORT c:\scheme.pow
+                                   381b4222-f694-41f0-9685-ff5bb260df2e
+
+  -LASTWAKE   报告关于哪些设备从上次睡眠中唤醒系统的信息
+              转换
+
+  -HELP, -?   显示关于命令行参数的信息。
+
+  -ALIASES    显示所有别名及其相应的 GUID。
+              用户可以使用这些别名代替命令行
+              上的任何 GUID。
+
+  -SETSECURITYDESCRIPTOR
+              设置与指定的电源设置、电源方案、操作相关联的安全描述符。
+
+
+              用法: POWERCFG -SETSECURITYDESCRIPTOR <GUID|ACTION> <SDDL>
+
+              <GUID>       指定电源方案或电源设置 GUID。
+              <ACTION>     可以是下列字符串之一:
+                           ActionSetActive、ActionCreate、ActionDefault
+              <SDDL>       以 SDDL 格式指定一个有效的安全描述符
+                           字符串。调用 POWERCFG -GETSECURITYDESCRIPTOR 以查看
+                           SDDL 字符串示例。
+
+  -GETSECURITYDESCRIPTOR
+              获取与指定的电源设置、电源方案或操作相关联的安全描述符。
+
+
+              用法: POWERCFG -GETSECURITYDESCRIPTOR <GUID|ACTION> 
+              <GUID>       指定电源方案或电源设置 GUID。
+              <ACTION>     可以是下列字符串之一:
+                           ActionSetActive, ActionCreate, ActionDefault
+
+  -REQUESTS
+              枚举应用程序和驱动程序电源请求。
+              电源请求阻止计算机自动关闭显示器电源，
+              或者阻止进入低能量睡眠模式。 
+
+  -REQUESTSOVERRIDE
+              为特定进程、服务或驱动程序设置电源请求替代。
+              如果未指定任何参数，则该命令显示
+              当前的电源请求替代列表。
+
+              用法: POWERCFG -REQUESTSOVERRIDE <CALLER_TYPE> <NAME> <REQUEST> 
+              <CALLER_TYPE>    指定以下调用程序类型之一:
+                               PROCESS、SERVICE、DRIVER。这通过
+                               调用 POWERCFG -REQUESTS 命令获得。
+              <NAME>           指定调用程序名称。这是通过
+                               调用 POWERCFG -REQUESTS 命令返回的名称。
+              <REQUEST>        指定以下一个或多个电源
+                               请求类型: Display、System、Awaymode。
+              示例:
+                  POWERCFG -REQUESTSOVERRIDE PROCESS wmplayer.exe Display System
+
+  -ENERGY
+              分析系统中常见的能量效率和电池寿命问题。
+              当计算机空闲且没有打开的程序或文档时应该使用 ENERGY 
+              命令。ENERGY 命令
+              将在当前路径中生成一个 HTML 报告文件。ENERGY
+              命令支持以下可选参数:
+
+              用法: POWERCFG -ENERGY [-OUTPUT <FILENAME>] [-XML]
+                                      [-DURATION <SECONDS>]
+                     POWERCFG -ENERGY -TRACE [-D <FILEPATH>]
+                                             [-DURATION <SECONDS>]
+              -OUTPUT <FILENAME>  – 指定存储能量报告
+                                      HTML 文件的路径和文件名。
+              -XML                 - 将报告文件格式化为 XML 文件。
+              -TRACE               - 记录系统行为，但不执行分析。
+                                     除非指定
+                                      -D 参数，否则将在当前路径中
+                                     生成跟踪文件。
+              -D <FILEPATH>       - 指定存储跟踪数据的目录。
+                                     只能与 -TRACE 参数一起使用。
+              -DURATION <SECONDS> – 指定观察系统行为的秒数。
+                                     默认值为 60 秒。
+  -WAKETIMERS
+              枚举活动唤醒计时器。如果启用，
+              唤醒计时器可以将系统从睡眠状态和休眠状态唤醒。
+
+

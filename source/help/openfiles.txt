@@ -1,0 +1,19 @@
+
+OPENFILES /parameter [arguments]
+
+描述:
+    允许管理员列出或中断系统上已打开的文件和文件夹。
+
+参数列表:
+    /Disconnect      中断至少一个打开的文件的连接。
+
+    /Query           显示所有从本地或从共享文件夹打开的文件。
+
+    /Local           启用 / 禁用本地打开文件的显示。
+
+    /?               显示此帮助消息。
+
+示例:
+    OPENFILES /Disconnect /?
+    OPENFILES /Query /?
+    OPENFILES /Local /?

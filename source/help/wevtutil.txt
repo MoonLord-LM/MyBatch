@@ -1,0 +1,54 @@
+Windows Events Command Line Utility.
+
+Enables you to retrieve information about event logs and publishers, install
+and uninstall event manifests, run queries, and export, archive, and clear logs.
+
+Usage:
+
+You can use either the short (for example, ep /uni) or long (for example, 
+enum-publishers /unicode) version of the command and option names. Commands, 
+options and option values are not case-sensitive.
+
+Variables are noted in all upper-case.
+
+wevtutil COMMAND [ARGUMENT [ARGUMENT] ...] [/OPTION:VALUE [/OPTION:VALUE] ...]
+
+Commands:
+
+el | enum-logs          List log names.
+gl | get-log            Get log configuration information.
+sl | set-log            Modify configuration of a log.
+ep | enum-publishers    List event publishers.
+gp | get-publisher      Get publisher configuration information.
+im | install-manifest   Install event publishers and logs from manifest.
+um | uninstall-manifest Uninstall event publishers and logs from manifest.
+qe | query-events       Query events from a log or log file.
+gli | get-log-info      Get log status information.
+epl | export-log        Export a log.
+al | archive-log        Archive an exported log.
+cl | clear-log          Clear a log.
+
+Common options:
+
+/{r | remote}:VALUE
+If specified, run the command on a remote computer. VALUE is the remote computer 
+name. Options /im and /um do not support remote operations.
+
+/{u | username}:VALUE
+Specify a different user to log on to the remote computer. VALUE is a user name
+in the form domain\user or user. Only applicable when option /r is specified.
+
+/{p | password}:VALUE
+Password for the specified user. If not specified, or if VALUE is "*", the user 
+will be prompted to enter a password. Only applicable when the /u option is
+specified.
+
+/{a | authentication}:[Default|Negotiate|Kerberos|NTLM]
+Authentication type for connecting to remote computer. The default is Negotiate.
+
+/{uni | unicode}:[true|false]
+Display output in Unicode. If true, then output is in Unicode. 
+
+To learn more about a specific command, type the following:
+
+wevtutil COMMAND /?

@@ -1,0 +1,54 @@
+
+部署映像服务和管理工具
+版本: 6.1.7600.16385
+
+
+DISM.exe [dism_options] {WIM_command} [<WIM_arguments>]
+DISM.exe {/Image:<path_to_offline_image> | /Online} [dism_options]
+         {servicing_command} [<servicing_arguments>]
+
+描述:
+
+  DISM 枚举、安装、卸载、配置和更新 Windows 映像
+  中的功能和程序包。可以使用的命令取决于提供的
+  映像以及映像处于脱机状态还是正在运行。
+
+WIM 命令:
+
+  /Get-MountedWimInfo     - 显示有关安装的 WIM 映像的信息。
+  /Get-WimInfo            - 显示有关 WIM 文件中的映像的信息。
+  /Commit-Wim             - 保存对安装的 WIM 映像的更改。
+  /Unmount-Wim            - 卸载安装的 WIM 映像。
+  /Mount-Wim              - 从 WIM 文件安装映像。
+  /Remount-Wim            - 恢复孤立的 WIM 安装目录。
+  /Cleanup-Wim            - 删除与损坏的安装的 WIM 映像关联的资源。
+
+
+映像规格:
+
+  /Online                 - 以正在运行的操作系统为目标。
+  /Image                  - 指定脱机 Windows 映像的根目录的路径。
+
+
+DISM 选项:
+
+  /English                - 用英文显示命令行输出。
+  /Format                 - 指定报告输出格式。
+  /WinDir                 - 指定 Windows 目录的路径。
+  /SysDriveDir            - 指定名为 BootMgr 的系统加载程序文件的路径。
+
+  /LogPath                - 指定日志文件路径。
+  /LogLevel               - 指定日志(1-4)中所示的输出级别。
+  /NoRestart              - 取消自动重新启动和重新启动提示。
+  /Quiet                  - 取消除错误消息之外的所有输出。
+  /ScratchDir             - 指定暂存目录的路径。
+
+若要获得有关这些 DISM 选项及其参数的详细信息，请在紧挨着 /? 之前指定一个选项。
+
+  示例:
+    DISM.exe /Mount-Wim /?
+    DISM.exe /ScratchDir /?
+    DISM.exe /Image:C:\test\offline /?
+    DISM.exe /Online /?
+
+

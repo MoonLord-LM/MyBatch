@@ -1,0 +1,66 @@
+用法: setspn [modifiers switch] [accountname]
+      其中 accountname 可以是目标计算机或用户帐户的名称或域名
+
+  编辑模式开关:
+   -R = 重置 HOST ServicePrincipalName
+    用法:   setspn -R accountname
+   -A = 添加任意 SPN
+    用法:   setspn -A SPN accountname
+   -S = 验证不存在重复项之后，添加任意 SPN
+    用法:   setspn -S SPN accountname
+   -D = 删除任意 SPN
+    用法:   setspn -D SPN accountname
+   -L = 列出注册到目标帐户的 SPN
+    用法:   setspn [-L] accountname
+
+  编辑模式修饰符:
+   -C = 指定 accountname 是计算机帐户
+   -U = 指定 accountname 是用户帐户
+
+    注意: -C 和 -U 具有排他性。如果两者均未指定，
+          则工具会在存在此类计算机时将 accountname
+          解释为计算机名称，不存在时则解释为用户名。
+
+  查询模式开关:
+   -Q = 查询是否存在 SPN
+    用法:   setspn -Q SPN
+   -X = 搜索重复的 SPN
+    用法:   setspn -X
+
+    注意: 搜索重复项(尤其在林范围)可能会花费较长的
+          时间，并占用大量内存。
+          -Q 将在每个目标域/林上执行。
+          -X 将返回存在于所有目标中的重复项。
+          不要求 SPN 在各个林之间唯一，但重复项可能会导致在跨林
+          进行身份验证时出现身份验证问题。
+
+  查询模式修饰符:
+   -P = 抑制控制台的进度，可在将输出重定向到
+    文件时或在无人参与脚本中使用时使用。直到命令完成
+    时才有输出。
+   -F = 在林级别而不是域级别执行查询
+   -T = 在指定的域或林(同时使用 -F 时)中执行查询
+    用法:   setspn -T domain (开关和其他参数)
+            可以使用 "" 或 * 表示当前域或林。
+
+    注意: 可以与 -S 开关一起使用这些修饰符，以便在添加 SPN
+          之前指定应在何处执行重复检查。
+    注意: -T 可以指定多次。
+
+示例:
+setspn -R daserver1
+   它将注册 SPN "HOST/daserver1" 和 "HOST/{DNS of daserver1}"
+setspn -A http/daserver daserver1
+   它将为计算机 "daserver1" 注册 SPN "http/daserver"
+setspn -D http/daserver daserver1
+   它将删除计算机 "daserver1" 的 SPN "http/daserver"
+setspn -F -S http/daserver daserver1
+   它将为计算机 "daserver1" 注册 SPN "http/daserver"
+    如果林中不存在此类 SPN
+setspn -U -A http/daserver dauser
+   它将为用户帐户 "dauser" 注册 SPN "http/daserver"
+setspn -T * -T foo -X
+   它将报告此域和 foo 中 SPN 的所有重复的注册
+setspn -T foo -F -Q */daserver
+   它将查找在 foo 所属的林中注册的
+    表单 */daserver 的所有 SPN

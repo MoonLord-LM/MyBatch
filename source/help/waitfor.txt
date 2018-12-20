@@ -1,0 +1,39 @@
+
+WaitFor 有两种运行方式: 
+
+语法 1: 发送信号
+    WAITFOR [/S system [/U user [/P [password]]]] /SI signal
+
+语法 2: 等候信号
+    WAITFOR [/T timeout] signal 
+
+描述:
+    此工具在系统上发送或等待信号。当没有指定 /S 时，信号会被广播到一个
+    域的所有系统上。如果指定了/S，信号只发送到指定的系统上。
+
+参数列表:
+    /S     system         指定远程系统以便发送信号。
+
+    /U     [domain\]user  指定用户上下文，命令在此上下文中执行。
+
+    /P     [password]     指定给定用户上下文的密码。
+
+    /SI                   把信号发送到网络上正在等待的机器。
+
+    /T     timeout        等待信号的秒数。有效范围是 1 - 99999。默认值
+                          是永远等待信号。
+
+    signal                等待或发送的信号名称。
+
+    /?                    显示此帮助消息。
+
+    注意: 系统可以等待多个唯一的信号名称。信号名不能超过 225 个字符，
+    而且不能含有 a-z、A-Z、0-9 和范围为 128-255 的 ASCII 字符之外的
+    字符。
+
+示例:
+    WAITFOR /?
+    WAITFOR SetupReady 
+    WAITFOR CopyDone /T 100 
+    WAITFOR /SI SetupReady 
+    WAITFOR /S system  /U user /P password /SI CopyDone

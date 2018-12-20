@@ -1,0 +1,12 @@
+显示有关进程的信息。
+
+QUERY PROCESS [* | processid | username | sessionname | /ID:nn | programname]
+  [/SERVER:servername]
+
+  *                  显示所有可见进程。
+  processid          显示 processid 指定的进程。
+  username           显示所有属于 username 的进程。
+  sessionname        显示所有在 sessionname 运行的进程。
+  /ID:nn             显示所有在会话 nn 运行的进程。
+  programname        显示所有跟 programname 相关进程。
+  /SERVER:servername 要查询的远程桌面会话主机服务器。

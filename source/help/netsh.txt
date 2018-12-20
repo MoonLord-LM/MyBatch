@@ -1,0 +1,44 @@
+
+用法: netsh [-a AliasFile] [-c Context] [-r RemoteMachine] [-u [DomainName\]UserName] [-p Password | *]
+             [Command | -f ScriptFile]
+
+下列指令有效:
+
+此上下文中的命令:
+?              - 显示命令列表。
+add            - 在项目列表上添加一个配置项目。
+advfirewall    - 更改到 `netsh advfirewall' 上下文。
+branchcache    - 更改到 `netsh branchcache' 上下文。
+bridge         - 更改到 `netsh bridge' 上下文。
+delete         - 在项目列表上删除一个配置项目。
+dhcpclient     - 更改到 `netsh dhcpclient' 上下文。
+dnsclient      - 更改到 `netsh dnsclient' 上下文。
+dump           - 显示一个配置脚本。
+exec           - 运行一个脚本文件。
+firewall       - 更改到 `netsh firewall' 上下文。
+help           - 显示命令列表。
+http           - 更改到 `netsh http' 上下文。
+interface      - 更改到 `netsh interface' 上下文。
+ipsec          - 更改到 `netsh ipsec' 上下文。
+lan            - 更改到 `netsh lan' 上下文。
+mbn            - 更改到 `netsh mbn' 上下文。
+namespace      - 更改到 `netsh namespace' 上下文。
+nap            - 更改到 `netsh nap' 上下文。
+netio          - 更改到 `netsh netio' 上下文。
+p2p            - 更改到 `netsh p2p' 上下文。
+ras            - 更改到 `netsh ras' 上下文。
+rpc            - 更改到 `netsh rpc' 上下文。
+set            - 更新配置设置。
+show           - 显示信息。
+trace          - 更改到 `netsh trace' 上下文。
+wcn            - 更改到 `netsh wcn' 上下文。
+wfp            - 更改到 `netsh wfp' 上下文。
+winhttp        - 更改到 `netsh winhttp' 上下文。
+winsock        - 更改到 `netsh winsock' 上下文。
+wlan           - 更改到 `netsh wlan' 上下文。
+
+下列的子上下文可用:
+ advfirewall branchcache bridge dhcpclient dnsclient firewall http interface ipsec lan mbn namespace nap netio p2p ras rpc trace wcn wfp winhttp winsock wlan
+
+若需要命令的更多帮助信息，请键入命令，接着是空格，
+后面跟 ?。

@@ -1,0 +1,15 @@
+
+用法: pathping [-g host-list] [-h maximum_hops] [-i address] [-n] 
+                [-p period] [-q num_queries] [-w timeout] 
+                [-4] [-6] target_name
+
+选项:
+    -g host-list     与主机列表一起的松散源路由。
+    -h maximum_hops  搜索目标的最大跃点数。
+    -i address       使用指定的源地址。
+    -n               不将地址解析成主机名。
+    -p period        两次 Ping 之间等待的时间(以毫秒为单位)。
+    -q num_queries   每个跃点的查询数。
+    -w timeout       每次回复等待的超时时间(以毫秒为单位)。
+    -4               强制使用 IPv4。
+    -6               强制使用 IPv6。

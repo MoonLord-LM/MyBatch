@@ -1,0 +1,13 @@
+wbadmin 1.0 - 备份命令行工具
+(C) 版权所有 2004 Microsoft Corp.
+
+---- 支持的命令 ----
+
+START BACKUP              -- 运行一次性备份。
+STOP JOB                  -- 停止当前正在运行的备份或恢复 
+                              操作。
+GET VERSIONS              -- 列出可从指定位置恢复的
+                             备份的详细信息。
+GET ITEMS                 -- 列出备份中包含的项目。
+GET STATUS                -- 报告当前正在运行的
+                              操作状态。
