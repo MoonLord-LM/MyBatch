@@ -11,6 +11,7 @@ echo Windows Registry Editor Version 5.00>%tmp%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Background]>>%tmp%
 echo "OEMBackground"=dword:00000001>>%tmp%
 reg import %tmp%
+del /F /S /Q "%tmp%"
 set bg="%~1"
 if "%~2" neq "" ( set bg="%~1 %~2" )
 if "%~3" neq "" ( set bg="%~1 %~2 %~3" )

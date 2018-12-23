@@ -79,6 +79,9 @@ setlocal enabledelayedexpansion
 echo 正在打包文件……
 copy /b !SevenZipSelfExtract! + !ExeConfig! + !TmpFile! !ExeFilePack!
 
+del /F /S /Q "!TmpFile!"
+del /F /S /Q "!ExeConfig!"
+
 echo 完成压缩打包，已输出到：!ExeFilePack!
 pause
 exit

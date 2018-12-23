@@ -18,5 +18,6 @@ for /f "delims=" %%i in (%windir%\Temp\adb_restart.log) do (
     )
 )
 adb shell
+del /F /S /Q "%windir%\Temp\adb_restart.log"
 pause
 exit

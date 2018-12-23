@@ -58,6 +58,7 @@ echo 请确认重命名脚本，请按任意键继续执行. . .
 echo.
 pause
 call "%windir%\Temp\file_batch_rename.bat"
+del /F /S /Q "%windir%\Temp\file_batch_rename.bat"
 exit
 
 :filepath_to_filename - "将完整的文件路径(file_path)转换为文件名(file_name)"
