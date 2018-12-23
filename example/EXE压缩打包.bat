@@ -60,7 +60,7 @@ for /f "usebackq delims=" %%i in (`dir !ExeFilePath! /b /a-d`) do (
 )
 
 echo 正在压缩文件……
-set TmpFile="C:\Windows\Temp\EXE_Compress_Pack_Tmp_%random%.tmp"
+set TmpFile="%windir%\Temp\EXE_Compress_Pack_Tmp_%random%.tmp"
 !SevenZip! a -t7z -mx9 !TmpFile! !ExeFilePath!
 
 echo 正在生成配置……
@@ -69,7 +69,7 @@ echo 正在生成配置……
 ::   ;!@InstallEnd@!
 setlocal disabledelayedexpansion
 ::
-set ExeConfig="C:\Windows\Temp\EXE_Compress_Pack_Config_%random%.txt"
+set ExeConfig="%windir%\Temp\EXE_Compress_Pack_Config_%random%.txt"
 echo ;!@Install@!UTF-8!>%ExeConfig%
 echo RunProgram=%ExeFileName%>>%ExeConfig%
 echo ;!@InstallEnd@!>>%ExeConfig%

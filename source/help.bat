@@ -54,7 +54,7 @@ exit
 :AdministratorPrivileges - "获取管理员权限"
     net file 1>nul 2>nul
     if %errorlevel% equ 0 ( echo 已获取管理员权限 && goto :eof ) else ( echo 需要获取管理员权限，请确认…… )
-    set vbs="C:\Windows\Temp\Get_Privileges_%random%.vbs"
+    set vbs="%windir%\Temp\Get_Privileges_%random%.vbs"
     echo Set UAC = CreateObject^("Shell.Application"^)>%vbs%
     echo Args = "">>%vbs%
     echo For Each Argument In WScript.Arguments>>%vbs%

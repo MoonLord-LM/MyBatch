@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 REM //处理的文件后缀
 set "extension=*.mp4,*.wmv,*.mkv,*.avi"
-echo.>C:\Windows\Temp\file_batch_rename.bat
+echo.>"%windir%\Temp\file_batch_rename.bat"
 
 for /r "%cd%" %%i in (%extension%) do (
 
@@ -45,19 +45,19 @@ for /r "%cd%" %%i in (%extension%) do (
 
     REM //重命名脚本
     if not "!file_name!"=="!new_name!" (
-        echo rename "!file_path!" "!new_name!" >>C:\Windows\Temp\file_batch_rename.bat
+        echo rename "!file_path!" "!new_name!" >>"%windir%\Temp\file_batch_rename.bat"
         echo !file_name! ---^> !new_name!
     )
 )
 
 echo.
-echo type "C:\Windows\Temp\file_batch_rename.bat"
-type "C:\Windows\Temp\file_batch_rename.bat"
+echo type "%windir%\Temp\file_batch_rename.bat"
+type "%windir%\Temp\file_batch_rename.bat"
 echo.
 echo 请确认重命名脚本，请按任意键继续执行. . .
 echo.
 pause
-call "C:\Windows\Temp\file_batch_rename.bat"
+call "%windir%\Temp\file_batch_rename.bat"
 exit
 
 :filepath_to_filename - "将完整的文件路径(file_path)转换为文件名(file_name)"

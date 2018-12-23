@@ -6,7 +6,7 @@ if "%~1"=="" (
     exit
 )
 call :AdministratorPrivileges "%~0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
-set tmp="C:\Windows\Temp\LogonUI_Background_%random%.reg"
+set tmp="%windir%\Temp\LogonUI_Background_%random%.reg"
 echo Windows Registry Editor Version 5.00>%tmp%
 echo [HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Authentication\LogonUI\Background]>>%tmp%
 echo "OEMBackground"=dword:00000001>>%tmp%
@@ -25,7 +25,7 @@ if not exist %bg% (
     pause
     exit
 )
-copy %bg% "C:\Windows\System32\oobe\info\backgrounds\backgroundDefault.jpg" /y
+copy %bg% "%windir%\System32\oobe\info\backgrounds\backgroundDefault.jpg" /y
 if %errorlevel% equ 0 ( echo Win7锁屏界面背景修改成功，图片文件为：%bg% ) else ( echo Win7锁屏界面背景修改失败，图片文件为：%bg% )
 pause
 exit
@@ -33,7 +33,7 @@ exit
 :AdministratorPrivileges - "获取管理员权限"
     net file 1>nul 2>nul
     if %errorlevel% equ 0 ( echo 已获取管理员权限 && goto :eof ) else ( echo 需要获取管理员权限，请确认…… )
-    set vbs="C:\Windows\Temp\Get_Privileges_%random%.vbs"
+    set vbs="%windir%\Temp\Get_Privileges_%random%.vbs"
     echo Set UAC = CreateObject^("Shell.Application"^)>%vbs%
     echo Args = "">>%vbs%
     echo For Each Argument In WScript.Arguments>>%vbs%
