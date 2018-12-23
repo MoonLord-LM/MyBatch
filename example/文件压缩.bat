@@ -7,6 +7,7 @@ if "%~1"=="" (
 )
 
 :: https://ss64.com/nt/makecab-directives.html
+:: https://msdn.microsoft.com/en-us/library/bb417343.aspx
 echo 调用系统自带的 makecab.exe 压缩文件
 
 set tmp_file="%windir%\Temp\makecab_directives_%random%.reg"
@@ -17,7 +18,6 @@ set tmp_file="%windir%\Temp\makecab_directives_%random%.reg"
 >>"%tmp_file%" echo .Set Compress=ON
 :: 压缩类型：MSZIP、LZX
 >>"%tmp_file%" echo .set CompressionType=LZX
->>"%tmp_file%" echo .set CompressionLevel=7
 :: 用于 LZX 类型的压缩等级：15-21
 >>"%tmp_file%" echo .set CompressionMemory=21
 >>"%tmp_file%" echo .set FolderFileCountThreshold=0
@@ -34,10 +34,6 @@ set tmp_file="%windir%\Temp\makecab_directives_%random%.reg"
 set "target_path=%~1"
 for %%i in ("%target_path%") do (
 
-    set "target_name=%%~ni%%~xi"
-    >>"%tmp_file%" echo .set CabinetNameTemplate="!target_name!.zip"
-    echo 保存名称：!target_name!
-
     set "target_parent_path=%%~dpi"
     >>"%tmp_file%" echo .set DiskDirectoryTemplate="!target_parent_path!"
     echo 保存位置：!target_parent_path!
@@ -45,6 +41,14 @@ for %%i in ("%target_path%") do (
     set "target_attribute=%%~ai"
     >>"%tmp_file%" echo ;
     echo 目标属性：!target_attribute!
+
+    if "!target_attribute:~0,1!"=="d" (
+        set "target_name=%%~ni%%~xi"
+    ) else (
+        set "target_name=%%~ni"
+    )
+    >>"%tmp_file%" echo .set CabinetNameTemplate="!target_name!.zip"
+    echo 保存名称：!target_name!
 
     if "!target_attribute:~0,1!"=="d" (
         echo 压缩文件夹："%target_path%"
