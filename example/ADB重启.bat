@@ -2,7 +2,7 @@
 adb nodaemon server
 netstat -ano | findstr "5037"
 netstat -ano | findstr "5037" >"%windir%\Temp\adb_restart.log"
-for /f "delims=" %%i in ("%windir%\Temp\adb_restart.log") do (
+for /f "delims=" %%i in (%windir%\Temp\adb_restart.log) do (
     REM echo %%i
     set line=%%i
     setlocal enabledelayedexpansion
