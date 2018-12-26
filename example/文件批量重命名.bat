@@ -9,7 +9,8 @@ for /r "%cd%" %%i in (%extension%) do (
 
     REM //遍历文件名
     set file_path=%%~i
-    call :filepath_to_filename
+    :: call :filepath_to_filename
+    call :filepath_to_filename_fast
     REM echo file_name : !file_name!
 
     REM //替换字符串
@@ -74,6 +75,17 @@ exit
     )
     set /a tmp_offset-=1
     call set "file_name=%%file_path:~-!tmp_offset!%%%"
+goto :eof
+
+:filepath_to_filename_fast - "将完整的文件路径(file_path)转换为文件名(file_name)"
+    for %%i in ("%file_path%") do (
+        set "file_path_attribute=%%~ai"
+        if "!file_path_attribute:~0,1!"=="d" (
+            set "file_name=%%~ni%%~xi"
+        ) else (
+            set "file_name=%%~ni"
+        )
+    )
 goto :eof
 
 :new_name_replace - "将新的文件名(new_name)中的字符串(参数1)替换为字符串(参数2)"
