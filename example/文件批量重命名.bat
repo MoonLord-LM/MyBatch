@@ -30,6 +30,9 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-kan224.com"
     call :new_name_replace "-1080p"
     call :new_name_replace "-h264"
+    call :new_name_replace "-whole"
+    call :new_name_replace "-whole1"
+    call :new_name_replace "-WMV"
 
     call :new_name_replace "FHD." "."
     call :new_name_replace "hhb." "."
@@ -37,6 +40,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-high." "."
     call :new_name_replace "_HD." "."
     call :new_name_replace "_hd." "."
+    call :new_name_replace "_hd1." "."
     call :new_name_replace "_postree." "."
 
     call :new_name_replace ".HD." "."
@@ -79,12 +83,7 @@ goto :eof
 
 :filepath_to_filename_fast - "将完整的文件路径(file_path)转换为文件名(file_name)"
     for %%i in ("%file_path%") do (
-        set "file_path_attribute=%%~ai"
-        if "!file_path_attribute:~0,1!"=="d" (
-            set "file_name=%%~ni%%~xi"
-        ) else (
-            set "file_name=%%~ni"
-        )
+        set "file_name=%%~ni%%~xi"
     )
 goto :eof
 
