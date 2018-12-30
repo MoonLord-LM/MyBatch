@@ -33,14 +33,15 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-whole"
     call :new_name_replace "-whole1"
     call :new_name_replace "-WMV"
+    call :new_name_replace "_HD"
+    call :new_name_replace "_hd"
+    call :new_name_replace "_hd1"
 
     call :new_name_replace "FHD." "."
     call :new_name_replace "hhb." "."
     call :new_name_replace "-C." "."
     call :new_name_replace "-high." "."
-    call :new_name_replace "_HD." "."
-    call :new_name_replace "_hd." "."
-    call :new_name_replace "_hd1." "."
+    call :new_name_replace "_full." "."
     call :new_name_replace "_postree." "."
 
     call :new_name_replace ".HD." "."
