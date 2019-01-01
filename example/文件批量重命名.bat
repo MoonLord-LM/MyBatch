@@ -26,6 +26,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ")" " "
 
     call :new_name_replace "hjd2048.com-"
+    call :new_name_replace "hjd2048.com_"
     call :new_name_replace "-javbo.net_"
     call :new_name_replace "-kan224.com"
     call :new_name_replace "-1080p"
@@ -46,6 +47,7 @@ for /r "%cd%" %%i in (%extension%) do (
 
     call :new_name_replace ".HD." "."
     call :new_name_replace ".HDx." "."
+    call :new_name_replace ".RI." "."
 
     REM echo new_name : !new_name!
 
