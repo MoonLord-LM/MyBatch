@@ -19,9 +19,12 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "[Thz.la]"
     call :new_name_replace "[ThZu.Cc]"
     call :new_name_replace "[44x.me]"
+    call :new_name_replace "[88q.me]"
     call :new_name_replace "[HD]"
 
     call :new_name_replace "(S1)("
+    call :new_name_replace "(SOD)("
+    call :new_name_replace "(Madonna)("
     call :new_name_replace "(НэПлЧе)("
     call :new_name_replace ")" " "
 
