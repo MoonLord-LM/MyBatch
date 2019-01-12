@@ -19,7 +19,7 @@ echo 读取文件：%bc_session_file%
 for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %%i in ("%bc_session_file%") do (
     REM echo %%i
     REM echo %%j
-    REM echo %%K
+    REM echo %%k
     if "%%i"=="<BCSessions Flags=" (
         set "bc_Flags=%%j"
         echo Flags: %%j
@@ -32,7 +32,7 @@ echo 读取文件：%bc_state_file%
 for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %%i in ("%bc_state_file%") do (
     REM echo %%i
     REM echo %%j
-    REM echo %%K
+    REM echo %%k
     for /f "tokens=*" %%i in ("%%i") do (
         REM echo %%i
         if "%%i"=="<CheckID Value=" (
