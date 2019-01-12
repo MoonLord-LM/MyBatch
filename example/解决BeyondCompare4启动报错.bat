@@ -49,12 +49,11 @@ if "%bc_Flags%" neq "%bc_CheckID%" (
     type nul>"%bc_state_file%.bak"
     for /f "usebackq tokens=* delims=" %%i in ("%bc_state_file%") do (
         REM echo %%i
-        echo %%i
         set "line=%%i"
         setlocal enabledelayedexpansion
         REM echo !line!
         call set "line=!line:%bc_CheckID%=%bc_Flags%!"
-        if "%line%" neq "%%i" (
+        if "!line!" neq "%%i" (
             echo !line!
         )
         echo !line!>>"%bc_state_file%.bak"
