@@ -88,5 +88,5 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     for /f "usebackq tokens=1,2 delims==" %i in (\`set\`) do echo %i = %j  
     for /f "usebackq tokens=1,2* delims==;" %i in (\`set\`) do echo %i = %j;%k  
     如果要将引号作为分割位置，需要：  
-    for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %i in (`set`) do echo %i = %j  
+    for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %i in (\`set\`) do echo %i = %j  
 17. 命令 runas 的输出，为标准输出 STDOUT，但是无法被重定向到文件  
