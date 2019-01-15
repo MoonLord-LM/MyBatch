@@ -75,7 +75,7 @@ makecab /F "%tmp_file%" /V3
 del /F /S /Q "%tmp_file%"
 
 cd "!target_parent_path!"
-copy /b "%windir%\System32\extrac32.exe" + "!target_parent_path!\!target_name!.zip" "!target_parent_path!\!target_name!.exe"
+copy /B "%windir%\System32\extrac32.exe" + "!target_parent_path!\!target_name!.zip" "!target_parent_path!\!target_name!.exe"
 
 pause
 exit

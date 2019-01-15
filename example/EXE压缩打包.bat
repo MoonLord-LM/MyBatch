@@ -77,7 +77,7 @@ echo ;!@InstallEnd@!>>%ExeConfig%
 setlocal enabledelayedexpansion
 
 echo 正在打包文件……
-copy /b !SevenZipSelfExtract! + !ExeConfig! + !TmpFile! !ExeFilePack!
+copy /B !SevenZipSelfExtract! + !ExeConfig! + !TmpFile! !ExeFilePack!
 
 del /F /S /Q "!TmpFile!"
 del /F /S /Q "!ExeConfig!"

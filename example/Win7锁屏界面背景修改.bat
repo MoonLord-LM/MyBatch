@@ -26,7 +26,7 @@ if not exist %bg% (
     pause
     exit
 )
-copy %bg% "%windir%\System32\oobe\info\backgrounds\backgroundDefault.jpg" /y
+copy /Y %bg% "%windir%\System32\oobe\info\backgrounds\backgroundDefault.jpg"
 if %errorlevel% equ 0 ( echo Win7锁屏界面背景修改成功，图片文件为：%bg% ) else ( echo Win7锁屏界面背景修改失败，图片文件为：%bg% )
 pause
 exit
