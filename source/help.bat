@@ -8,7 +8,7 @@ setlocal enabledelayedexpansion
 call :AdministratorPrivileges "%~0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
 pushd %~dp0
 
-del /q "help\*"
+del /F /S /Q "help\*"
 if not exist "tmp\" ( mkdir "tmp\" )
 echo :: ÁÙÊ±½Å±¾>"tmp\help.tmp.bat"
 
