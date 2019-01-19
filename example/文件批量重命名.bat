@@ -45,12 +45,17 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "hhb." "."
     call :new_name_replace "-C." "."
     call :new_name_replace "-high." "."
+    call :new_name_replace "-人人影视." "."
     call :new_name_replace "_full." "."
     call :new_name_replace "_postree." "."
 
+    call :new_name_replace ".720P." "."
     call :new_name_replace ".HD." "."
     call :new_name_replace ".HDx." "."
     call :new_name_replace ".RI." "."
+    call :new_name_replace ".WEBrip." "."
+    call :new_name_replace ".中英字幕." "."
+
 
     REM echo new_name : !new_name!
 
