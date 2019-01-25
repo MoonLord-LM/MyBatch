@@ -25,6 +25,12 @@ for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %%i in ("%bc_session_file%") do (
         echo Flags: %%j
     )
 )
+if "%bc_Flags%"=="" (
+    echo.
+    echo Flags 的值为空，无需修改
+    echo.
+    goto :final
+)
 
 set "bc_state_file=%appdata_roaming_dir%\Scooter Software\Beyond Compare 4\BCState.xml"
 echo 读取文件：%bc_state_file%
@@ -41,6 +47,12 @@ for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %%i in ("%bc_state_file%") do (
         )
     )
 )
+if "%bc_CheckID%"=="" (
+    echo.
+    echo CheckID 的值为空，无需修改
+    echo.
+    goto :final
+)
 
 echo.
 if "%bc_Flags%" neq "%bc_CheckID%" (
@@ -49,12 +61,19 @@ if "%bc_Flags%" neq "%bc_CheckID%" (
     type nul>"%bc_state_file%.bak"
     for /f "usebackq tokens=* delims=" %%i in ("%bc_state_file%") do (
         REM echo %%i
+        set "line_saved=%%i"
         set "line=%%i"
         setlocal enabledelayedexpansion
-        REM echo !line!
-        call set "line=!line:%bc_CheckID%=%bc_Flags%!"
-        if "!line!" neq "%%i" (
-            echo !line!
+        if "!line!" neq "" (
+            call set "line=!line:%bc_CheckID%=%bc_Flags%!"
+            REM echo !line!
+            if "!line!" neq "!line_saved!" (
+                REM echo !line_saved!
+                echo "!line_saved!" | findstr "^!" 1>nul 2>nul
+                if !errorlevel! neq 0 (
+                    echo !line!
+                )
+            )
         )
         echo !line!>>"%bc_state_file%.bak"
         endlocal
@@ -65,5 +84,6 @@ if "%bc_Flags%" neq "%bc_CheckID%" (
 )
 echo.
 
+:final
 pause
 exit
