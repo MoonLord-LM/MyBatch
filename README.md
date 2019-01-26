@@ -81,12 +81,19 @@ Windows 批处理函数库，对常用的批处理代码进行了收集整理
     其中，["options"]参数：  
     usebackq 将后引号 \` 包括的字符串视为命令，将单引号 ' 包括的字符串视为文本，并将双引号 " 包括的字符串视为文件  
     tokens=2,3* 使用 %i 指代第2个分割单元，%j 指代第3个分割单元，%k 指代之后的所有剩余单元（剩余单元不再分割）  
-    delims=, 使用逗号作为分割位置（使用空格时，要将此参数放在最后一个，并且空格放在最后的位置）  
+    delims=, 使用逗号作为分割符号（使用空格时，要将此参数放在最后一个，并且空格放在最后的位置）  
     eol=; 忽略分号开头的行  
     skip=n 跳过前 n 行  
     例如，遍历环境变量：  
     for /f "usebackq tokens=1,2 delims==" %i in (\`set\`) do echo %i = %j  
     for /f "usebackq tokens=1,2* delims==;" %i in (\`set\`) do echo %i = %j;%k  
-    如果要将引号作为分割位置，需要：  
+    如果要将引号作为分割符号，需要：  
     for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %i in (\`set\`) do echo %i = %j  
 17. 命令 runas 的输出，为标准输出 STDOUT，但是无法被重定向到文件  
+18. 在 Win 10 中，for 的分割与 Win 7 不同，空字符串不再分配分割单元  
+    例如，在 Win 10 中，delims=, 使用逗号作为分割符号，则连续的 2 个逗号，中间的内容将会被忽略  
+    而在 Win 7 中，连续的 2 个分割符号，中间的内容不会被忽略  
+    for /f "delims=, tokens=1,2,*" %%i in (",,A,,B,,C,,") do (  
+        echo [%%i][%%j][%%k]  
+    )  
+    以上代码在 Win 10 中，结果为 [A][B][C,,]  
