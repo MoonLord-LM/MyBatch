@@ -1,5 +1,7 @@
 @echo off
 
+Code "%cd%" 1>nul 2>nul
+
 for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %%i ^
 in (`reg query "HKCU\Software\Classes\VSCodeSourceFile\shell\open\command" /ve`) ^
 do set "vscode_exe=%%j"
