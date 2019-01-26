@@ -7,6 +7,8 @@ echo — 错误：                                                                  
 echo — 这个授权密钥已被吊销：1822-9597 要了解更多细节，联系 sales@scootersoftware.com —
 echo ——————————————————————————————————————————
 echo.
+echo 需要将 BCState.xml 文件中 CheckID 的值，与 BCSessions.xml 文件中 Flags 的值，设为一致
+echo.
 
 for /f "usebackq tokens=3,*" %%i ^
 in (`reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "AppData"`) ^
