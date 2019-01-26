@@ -13,7 +13,7 @@ if "%vscode_exe%" neq "" goto :start
 pause & exit
 
 :start - 启动 Visual Studio Code
-echo Visual Studio Code 可执行程序路径："%vscode_exe%"
+echo Visual Studio Code 程序路径："%vscode_exe%"
 echo Visual Studio Code 启动参数："%vscode_exe%" "%cd%"
 start "" "%vscode_exe%" "%cd%"
 
