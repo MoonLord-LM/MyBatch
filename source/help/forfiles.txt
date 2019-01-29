@@ -69,7 +69,7 @@ FORFILES [/P pathname] [/M searchmask] [/S]
              /C "cmd /c echo @path 0x09 在 30 前就被更改。"
     FORFILES /D 2001/01/01
              /C "cmd /c echo @fname 在 2001年1月1日就是新的。"
-    FORFILES /D +2018/12/21 /C "cmd /c echo @fname 今天是新的。"
+    FORFILES /D +2019/1/29 /C "cmd /c echo @fname 今天是新的。"
     FORFILES /M *.exe /D +1
     FORFILES /S /M *.doc /C "cmd /c echo @fsize" 
     FORFILES /M *.txt /C "cmd /c if @isdir==FALSE notepad.exe @file"

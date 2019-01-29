@@ -21,7 +21,7 @@ assoc cacls color erase fltmc ftype label mkdir netsh pause print pushd quser rm
 attrib change chkdsk choice cipher defrag doskey expand format fsutil getmac icacls lodctr logman logoff mklink nltest prompt rename setspn tskill tzutil verify whoami
 bcdboot bcdedit certreq chkntfs compact convert findstr makecab nbtstat netstat qappsrv qwinsta recover replace takeown timeout tracert waitfor wbadmin wecutil
 certutil endlocal diskcomp diskcopy forfiles gpresult gpupdate hostname ipconfig mountvol nslookup pathping powercfg qprocess schtasks setlocal shutdown tasklist taskkill tsdiscon typeperf vssadmin wevtutil
-openfiles
+bitsadmin openfiles
 powershell systeminfo
 eventcreate
 
