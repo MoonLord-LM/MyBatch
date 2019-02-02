@@ -55,7 +55,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".RI." "."
     call :new_name_replace ".WEBrip." "."
     call :new_name_replace ".中英字幕." "."
-
+    call :new_name_replace ".1080p.HD国语中字无水印[最新电影www.66ys.tv]." "."
 
     REM echo new_name : !new_name!
 
