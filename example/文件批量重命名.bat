@@ -22,6 +22,8 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "[88q.me]"
     call :new_name_replace "[HD]"
 
+    call :new_name_replace "¡¾ses23.com¡¿"
+
     call :new_name_replace "(S1)("
     call :new_name_replace "(SOD)("
     call :new_name_replace "(Madonna)("
@@ -49,6 +51,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "_full." "."
     call :new_name_replace "_postree." "."
 
+    call :new_name_replace ".1080p." "."
     call :new_name_replace ".720P." "."
     call :new_name_replace ".HD." "."
     call :new_name_replace ".HDx." "."
