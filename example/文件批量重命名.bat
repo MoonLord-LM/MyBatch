@@ -40,9 +40,11 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-whole"
     call :new_name_replace "-whole1"
     call :new_name_replace "-WMV"
+    call :new_name_replace "_1080P"
     call :new_name_replace "_HD"
     call :new_name_replace "_hd"
     call :new_name_replace "_hd1"
+    call :new_name_replace "_RAW"
 
     call :new_name_replace "FHD." "."
     call :new_name_replace "hhb." "."
