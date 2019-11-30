@@ -9,17 +9,23 @@ for /r "%cd%" %%i in (%extension%) do (
 
     REM //遍历文件名
     set file_path=%%~i
-    :: call :filepath_to_filename
-    call :filepath_to_filename_fast
+
+    call :filepath_to_filename
     REM echo file_name : !file_name!
+    set "new_name=!file_name!"
+
+    call :filepath_to_filedir
+    REM echo file_dir : !file_dir!
+    set "file_dir=!file_dir!"
 
     REM //替换字符串
-    set "new_name=!file_name!"
 
     call :new_name_replace "[Thz.la]"
     call :new_name_replace "[ThZu.Cc]"
+    call :new_name_replace "[22y.me]"
     call :new_name_replace "[44x.me]"
     call :new_name_replace "[88q.me]"
+    call :new_name_replace "[99u.me]"
     call :new_name_replace "[HD]"
 
     call :new_name_replace "【ses23.com】"
@@ -66,24 +72,41 @@ for /r "%cd%" %%i in (%extension%) do (
     REM echo new_name : !new_name!
 
     REM //重命名脚本
+
     if not "!file_name!"=="!new_name!" (
-        echo rename "!file_path!" "!new_name!" >>"%windir%\Temp\file_batch_rename.bat"
-        echo !file_name! ---^> !new_name!
+        if exist "!file_dir!\!new_name!" (
+            echo !file_name! ---^> !new_name!  --  文件重名，无法重命名
+        ) else (
+            echo rename "!file_path!" "!new_name!" >>"%windir%\Temp\file_batch_rename.bat"
+            echo !file_name! ---^> !new_name!
+        )
     )
+
 )
 
 echo.
 echo type "%windir%\Temp\file_batch_rename.bat"
 type "%windir%\Temp\file_batch_rename.bat"
+
+set file_path="%windir%\Temp\file_batch_rename.bat"
+call :filepath_to_filesize
+rem echo file_size : !file_size!
+set "file_size=!file_size!"
+
 echo.
-echo 请确认重命名脚本，请按任意键继续执行. . .
+if "!file_size!" gtr "2" (
+    echo 确认要执行重命名脚本，请按任意键继续. . .
+) else (
+    echo 没有需要重命名的文件，请按任意键继续. . .
+)
 echo.
+
 pause
 call "%windir%\Temp\file_batch_rename.bat"
 del /F /S /Q "%windir%\Temp\file_batch_rename.bat"
 exit
 
-:filepath_to_filename - "将完整的文件路径(file_path)转换为文件名(file_name)"
+:filepath_to_filename_sample - "将完整的文件路径(file_path)转换为文件名(file_name)"
     set /a tmp_offset=1
     :loop
     call set "tmp_mark=%%file_path:~-!tmp_offset!,1%%%"
@@ -98,9 +121,21 @@ exit
     call set "file_name=%%file_path:~-!tmp_offset!%%%"
 goto :eof
 
-:filepath_to_filename_fast - "将完整的文件路径(file_path)转换为文件名(file_name)"
+:filepath_to_filename - "将完整的文件路径(file_path)转换为文件名(file_name)"
     for %%i in ("%file_path%") do (
         set "file_name=%%~ni%%~xi"
+    )
+goto :eof
+
+:filepath_to_filedir - "将完整的文件路径(file_path)转换为文件夹路径(file_dir)"
+    for %%i in ("%file_path%") do (
+        set "file_dir=%%~di%%~pi"
+    )
+goto :eof
+
+:filepath_to_filesize - "将完整的文件路径(file_path)转换为文件大小(file_size)"
+    for %%i in ("%file_path%") do (
+        set "file_size=%%~zi"
     )
 goto :eof
 
