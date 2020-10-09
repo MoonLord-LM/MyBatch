@@ -8,7 +8,7 @@ echo.>"%windir%\Temp\file_batch_rename.bat"
 for /r "%cd%" %%i in (%extension%) do (
 
     REM //遍历文件名
-    set file_path=%%~i
+    set "file_path=%%~i"
 
     call :filepath_to_filename
     REM echo file_name : !file_name!
@@ -88,7 +88,7 @@ echo.
 echo type "%windir%\Temp\file_batch_rename.bat"
 type "%windir%\Temp\file_batch_rename.bat"
 
-set file_path="%windir%\Temp\file_batch_rename.bat"
+set "file_path=%windir%\Temp\file_batch_rename.bat"
 call :filepath_to_filesize
 rem echo file_size : !file_size!
 set "file_size=!file_size!"
