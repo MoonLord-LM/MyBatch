@@ -74,6 +74,11 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".中英字幕." "."
     call :new_name_replace ".HD国语中字无水印[最新电影www.66ys.tv]." "."
 
+    call :new_name_replace "[Dou Luo Da Lu][Douro Mainland][2019]" "斗罗大陆"
+
+    call :new_name_replace "["
+    call :new_name_replace "]"
+
     REM echo new_name : !new_name!
 
     REM //重命名脚本
