@@ -8,7 +8,7 @@ echo.>"%windir%\Temp\file_batch_rename.bat"
 for /r "%cd%" %%i in (%extension%) do (
 
     REM //遍历文件名
-    set file_path=%%~i
+    set "file_path=%%~i"
 
     call :filepath_to_filename
     REM echo file_name : !file_name!
@@ -20,13 +20,18 @@ for /r "%cd%" %%i in (%extension%) do (
 
     REM //替换字符串
 
-    call :new_name_replace "[Thz.la]"
-    call :new_name_replace "[ThZu.Cc]"
+    call :new_name_replace "[1080P]"
     call :new_name_replace "[22y.me]"
     call :new_name_replace "[44x.me]"
     call :new_name_replace "[88q.me]"
     call :new_name_replace "[99u.me]"
+    call :new_name_replace "[AVC]"
+    call :new_name_replace "[GB]"
+    call :new_name_replace "[GM-Team]"
     call :new_name_replace "[HD]"
+    call :new_name_replace "[Thz.la]"
+    call :new_name_replace "[ThZu.Cc]"
+    call :new_name_replace "[国漫]"
 
     call :new_name_replace "【ses23.com】"
 
@@ -67,7 +72,12 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".RI." "."
     call :new_name_replace ".WEBrip." "."
     call :new_name_replace ".中英字幕." "."
-    call :new_name_replace ".1080p.HD国语中字无水印[最新电影www.66ys.tv]." "."
+    call :new_name_replace ".HD国语中字无水印[最新电影www.66ys.tv]." "."
+
+    call :new_name_replace "[Dou Luo Da Lu][Douro Mainland][2019]" "斗罗大陆"
+
+    call :new_name_replace "["
+    call :new_name_replace "]"
 
     REM echo new_name : !new_name!
 
@@ -88,7 +98,7 @@ echo.
 echo type "%windir%\Temp\file_batch_rename.bat"
 type "%windir%\Temp\file_batch_rename.bat"
 
-set file_path="%windir%\Temp\file_batch_rename.bat"
+set "file_path=%windir%\Temp\file_batch_rename.bat"
 call :filepath_to_filesize
 rem echo file_size : !file_size!
 set "file_size=!file_size!"
