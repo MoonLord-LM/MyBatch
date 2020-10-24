@@ -9,7 +9,7 @@ call :AdministratorPrivileges "%~0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%
 pushd %~dp0
 
 del /F /S /Q "help\*"
-if not exist "tmp\" ( mkdir "tmp\" )
+if not exist "tmp" ( mkdir "tmp" )
 echo :: ÁÙÊ±½Å±¾>"tmp\help.tmp.bat"
 
 for %%i in (

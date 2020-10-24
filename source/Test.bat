@@ -7,7 +7,7 @@ setlocal disabledelayedexpansion
 ::
 ::
 ::
-mkdir "tmp\"
+mkdir "tmp"
 cls
 echo ‐！！！！！！Test！！！！！！／My
 call My
