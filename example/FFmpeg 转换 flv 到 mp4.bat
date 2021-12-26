@@ -7,7 +7,7 @@ if "%~1"=="" (
     exit
 )
 
-set "ffmpeg=S:\Common\DouyuPCClient\Client\8.5.2.2\ffmpeg.exe"
+set "ffmpeg=S:\Common\DouyuPCClient\Client\8.5.3.1\ffmpeg.exe"
 echo "%ffmpeg%" -i "%~1" -c copy "%~1.mp4"
 
 "%ffmpeg%" -i "%~1" -c copy "%~1.mp4"
