@@ -41,10 +41,13 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "(妄想族)("
     call :new_name_replace ")" " "
 
+    call :new_name_replace "2048社区 - big2048.com@"
+    call :new_name_replace "HD-"
     call :new_name_replace "hhd800.com@"
     call :new_name_replace "hjd2048.com-"
     call :new_name_replace "hjd2048.com_"
     call :new_name_replace "jpsao.com-"
+
     call :new_name_replace "-javbo.net_"
     call :new_name_replace "-kan224.com"
     call :new_name_replace "-1080p"
