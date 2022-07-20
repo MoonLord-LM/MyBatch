@@ -1,6 +1,10 @@
 @echo off
 
 
+:: Windows 系统休眠保存文件
+powercfg -h off
+
+
 :: Intel Extreme Tuning Utility 日志文件
 echo del /F /S /Q "C:\ProgramData\Intel\Intel Extreme Tuning Utility\Logs\*"
 del /F /S /Q "C:\ProgramData\Intel\Intel Extreme Tuning Utility\Logs\*" 1>nul 2>nul
