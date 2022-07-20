@@ -47,5 +47,5 @@ echo del /F /S /Q "%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*"
 del /F /S /Q "%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*" 1>nul 2>nul
 
 
-: pause
+pause
 exit
