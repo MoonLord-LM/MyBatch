@@ -34,5 +34,14 @@ for /d %%i in (%USERPROFILE%\AppData\Local\JetBrains\*) do (
 )
 
 
+:: Unity Web Player ä¯ÀÀÆ÷²å¼þ»º´æ
+for /d %%i in (%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*) do (
+    echo rmdir /S /Q ^"%%i^"
+    rmdir /S /Q "%%i" 1>nul 2>nul
+)
+echo del /F /S /Q "%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*"
+del /F /S /Q "%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*" 1>nul 2>nul
+
+
 : pause
 exit
