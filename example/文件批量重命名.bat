@@ -43,6 +43,7 @@ for /r "%cd%" %%i in (%extension%) do (
 
     call :new_name_replace "2048社区 - big2048.com@"
     call :new_name_replace "HD-"
+    call :new_name_replace "gg5.co@"
     call :new_name_replace "hhd800.com@"
     call :new_name_replace "hjd2048.com-"
     call :new_name_replace "hjd2048.com_"
@@ -64,6 +65,10 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "FHD." "."
     call :new_name_replace "hhb." "."
     call :new_name_replace "-C." "."
+    call :new_name_replace "-C_X1080X." "."
+    call :new_name_replace "-C_60FPS_X1080X." "."
+    call :new_name_replace "-C_GG5." "."
+    call :new_name_replace "-C_GG5-C_GG5." "."
     call :new_name_replace "-high." "."
     call :new_name_replace "-人人影视." "."
     call :new_name_replace "_full." "."
