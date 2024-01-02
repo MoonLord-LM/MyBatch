@@ -9,6 +9,7 @@ for /r "%cd%" %%i in (%extension%) do (
 
     REM //遍历文件名
     set "file_path=%%~i"
+    REM echo file_path : !file_path!
 
     call :filepath_to_filename
     REM echo file_name : !file_name!
@@ -79,9 +80,6 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "_postree." "."
     call :new_name_replace "-nyap2p.com." "."
 
-    :: 特殊字符存在 Bug：~
-    :: call :new_name_replace "~nyap2p.com." "."
-
     call :new_name_replace ".1080p." "."
     call :new_name_replace ".720P." "."
     call :new_name_replace ".HD." "."
@@ -96,7 +94,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "["
     call :new_name_replace "]"
 
-    call :new_name_replace ".." "."
+    REM call :new_name_replace ".." "."
 
     REM echo new_name : !new_name!
 
@@ -172,7 +170,8 @@ goto :eof
     if not "%~1"=="" (
         set "old_tag=%~1"
         set "new_tag=%~2"
-        echo "!old_tag!" ---^> "!new_tag!"
+        REM echo old_tag : !old_tag!
+        REM echo new_tag : !new_tag!
         call set "new_name=%%new_name:!old_tag!=!new_tag!%%"
     )
 goto :eof
