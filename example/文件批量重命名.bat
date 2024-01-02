@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 REM //处理的文件后缀
 set "extension=*.mp4,*.wmv,*.mkv,*.avi"
-echo.>"%windir%\Temp\file_batch_rename.bat"
+echo.>"%tmp%\file_batch_rename.bat"
 
 for /r "%cd%" %%i in (%extension%) do (
 
@@ -20,10 +20,12 @@ for /r "%cd%" %%i in (%extension%) do (
 
     REM //替换字符串
 
+    call :new_name_replace "[4K]"
     call :new_name_replace "[1080P]"
     call :new_name_replace "[22y.me]"
     call :new_name_replace "[44x.me]"
     call :new_name_replace "[88q.me]"
+    call :new_name_replace "[98t.tv]"
     call :new_name_replace "[99u.me]"
     call :new_name_replace "[AVC]"
     call :new_name_replace "[GB]"
@@ -48,6 +50,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "hjd2048.com-"
     call :new_name_replace "hjd2048.com_"
     call :new_name_replace "jpsao.com-"
+    call :new_name_replace "PP168.CC-"
 
     call :new_name_replace "-javbo.net_"
     call :new_name_replace "-kan224.com"
@@ -61,6 +64,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "_hd"
     call :new_name_replace "_hd1"
     call :new_name_replace "_RAW"
+    call :new_name_replace "-uncensored"
 
     call :new_name_replace "FHD." "."
     call :new_name_replace "hhb." "."
@@ -73,6 +77,10 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-人人影视." "."
     call :new_name_replace "_full." "."
     call :new_name_replace "_postree." "."
+    call :new_name_replace "-nyap2p.com." "."
+
+    :: 特殊字符存在 Bug：~
+    :: call :new_name_replace "~nyap2p.com." "."
 
     call :new_name_replace ".1080p." "."
     call :new_name_replace ".720P." "."
@@ -88,6 +96,8 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "["
     call :new_name_replace "]"
 
+    call :new_name_replace ".." "."
+
     REM echo new_name : !new_name!
 
     REM //重命名脚本
@@ -96,7 +106,7 @@ for /r "%cd%" %%i in (%extension%) do (
         if exist "!file_dir!\!new_name!" (
             echo !file_name! ---^> !new_name!  --  文件重名，无法重命名
         ) else (
-            echo rename "!file_path!" "!new_name!" >>"%windir%\Temp\file_batch_rename.bat"
+            echo rename "!file_path!" "!new_name!" >>"%tmp%\file_batch_rename.bat"
             echo !file_name! ---^> !new_name!
         )
     )
@@ -104,10 +114,10 @@ for /r "%cd%" %%i in (%extension%) do (
 )
 
 echo.
-echo type "%windir%\Temp\file_batch_rename.bat"
-type "%windir%\Temp\file_batch_rename.bat"
+echo type "%tmp%\file_batch_rename.bat"
+type "%tmp%\file_batch_rename.bat"
 
-set "file_path=%windir%\Temp\file_batch_rename.bat"
+set "file_path=%tmp%\file_batch_rename.bat"
 call :filepath_to_filesize
 rem echo file_size : !file_size!
 set "file_size=!file_size!"
@@ -121,8 +131,8 @@ if "!file_size!" gtr "2" (
 echo.
 
 pause
-call "%windir%\Temp\file_batch_rename.bat"
-del /F /S /Q "%windir%\Temp\file_batch_rename.bat"
+call "%tmp%\file_batch_rename.bat"
+del /F /S /Q "%tmp%\file_batch_rename.bat"
 exit
 
 :filepath_to_filename_sample - "将完整的文件路径(file_path)转换为文件名(file_name)"
@@ -162,6 +172,7 @@ goto :eof
     if not "%~1"=="" (
         set "old_tag=%~1"
         set "new_tag=%~2"
+        echo "!old_tag!" ---^> "!new_tag!"
         call set "new_name=%%new_name:!old_tag!=!new_tag!%%"
     )
 goto :eof
