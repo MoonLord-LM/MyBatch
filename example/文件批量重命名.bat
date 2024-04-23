@@ -22,6 +22,7 @@ for /r "%cd%" %%i in (%extension%) do (
     REM //替换字符串
 
     call :new_name_replace "[4K]"
+    call :new_name_replace "[2K]"
     call :new_name_replace "[1080P]"
     call :new_name_replace "[22y.me]"
     call :new_name_replace "[44x.me]"
@@ -76,10 +77,14 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-C_GG5-C_GG5." "."
     call :new_name_replace "-high." "."
     call :new_name_replace "-人人影视." "."
+    call :new_name_replace "_4K." "."
+    call :new_name_replace "_2K." "."
     call :new_name_replace "_full." "."
     call :new_name_replace "_postree." "."
     call :new_name_replace "-nyap2p.com." "."
 
+    call :new_name_replace ".4K." "."
+    call :new_name_replace ".2K." "."
     call :new_name_replace ".1080p." "."
     call :new_name_replace ".720P." "."
     call :new_name_replace ".HD." "."
