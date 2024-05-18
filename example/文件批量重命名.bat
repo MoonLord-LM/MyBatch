@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM //处理的文件后缀
-set "extension=*.mp4,*.wmv,*.mkv,*.avi"
+set "extension=*.mp4,*.wmv,*.mkv,*.avi,*.rar"
 echo.>"%tmp%\file_batch_rename.bat"
 
 for /r "%cd%" %%i in (%extension%) do (
@@ -71,8 +71,9 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "_RAW"
     call :new_name_replace "_uncensored"
     call :new_name_replace "-uncensored"
-    call :new_name_replace "_UNCENSORED_LEAKED"
-    call :new_name_replace "_UNCENSORED_LEAKED_NOWATERMARK"
+    call :new_name_replace "_UNCENSORED"
+    call :new_name_replace "_LEAKED"
+    call :new_name_replace "_NOWATERMARK"
 
     call :new_name_replace "FHD." "."
     call :new_name_replace "hhb." "."
@@ -96,6 +97,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".HD." "."
     call :new_name_replace ".HDx." "."
     call :new_name_replace ".RI." "."
+    call :new_name_replace ".H265." "."
     call :new_name_replace ".WEBrip." "."
     call :new_name_replace ".中英字幕." "."
     call :new_name_replace ".HD国语中字无水印[最新电影www.66ys.tv]." "."
