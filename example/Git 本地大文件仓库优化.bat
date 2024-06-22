@@ -10,9 +10,9 @@ git config --local core.ignorecase false
 :: 将 100MB 以上的文件视为大文件
 git config --local core.bigFileThreshold 100m
 
-:: 压缩算法级别设置为最快速度
-git config --local core.compression 1
-git config --local pack.compression 1
+:: 压缩算法级别设置为无压缩
+git config --local core.compression 0
+git config --local pack.compression 0
 
 
 :: 查看设置
