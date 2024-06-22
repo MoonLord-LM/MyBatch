@@ -14,7 +14,7 @@ git config --local core.bigFileThreshold 100m
 git config --local core.compression 0
 git config --local pack.compression 0
 
-:: 文件打包大小限制
+:: 文件打包大小限制（如果单个文件大小超出限制，仍然会生成很大的 pack 文件）
 git config --local pack.packSizeLimit 2g
 
 
