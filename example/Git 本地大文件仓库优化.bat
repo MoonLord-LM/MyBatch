@@ -14,6 +14,10 @@ git config --local core.bigFileThreshold 100m
 git config --local core.compression 0
 git config --local pack.compression 0
 
+:: 文件打包优化
+git config --local pack.packSizeLimit 4g
+git config --local pack.threads 4
+
 
 :: 查看设置
 git config --list --local
