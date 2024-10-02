@@ -30,6 +30,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "[98t.tv]"
     call :new_name_replace "[99u.me]"
     call :new_name_replace "[AVC]"
+    call :new_name_replace "[fbzip.com]"
     call :new_name_replace "[GB]"
     call :new_name_replace "[GM-Team]"
     call :new_name_replace "[HD]"
