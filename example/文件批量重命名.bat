@@ -46,6 +46,8 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "(妄想族)("
     call :new_name_replace ")" " "
 
+    call :new_name_replace "0222223.com@"
+    call :new_name_replace "0333332.com@"
     call :new_name_replace "1024核工厂-"
     call :new_name_replace "2048社区 - big2048.com@"
     call :new_name_replace "HD-"
@@ -89,11 +91,13 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-C_GG5-C_GG5." "."
     call :new_name_replace "-high." "."
     call :new_name_replace "-人人影视." "."
+    call :new_name_replace "-4k." "."
     call :new_name_replace "_4K." "."
     call :new_name_replace "_2K." "."
     call :new_name_replace "_full." "."
     call :new_name_replace "_postree." "."
     call :new_name_replace "-nyap2p.com." "."
+    call :new_name_replace "_.mkv" ".mkv"
 
     call :new_name_replace ".4K." "."
     call :new_name_replace ".2K." "."
