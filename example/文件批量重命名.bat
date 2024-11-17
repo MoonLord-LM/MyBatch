@@ -98,6 +98,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "_postree." "."
     call :new_name_replace "-nyap2p.com." "."
     call :new_name_replace "_.mkv" ".mkv"
+    call :new_name_replace "_.mp4" ".mp4"
 
     call :new_name_replace ".4K." "."
     call :new_name_replace ".2K." "."
