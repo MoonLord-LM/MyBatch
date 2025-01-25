@@ -40,6 +40,8 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "[Thz.la]"
     call :new_name_replace "[ThZu.Cc]"
     call :new_name_replace "[国漫]"
+    call :new_name_replace "[最新电影www.5266ys.com]"
+    call :new_name_replace "[最新电影www.66ys.tv]"
 
     call :new_name_replace "【ses23.com】"
 
@@ -108,16 +110,19 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".4K." "."
     call :new_name_replace ".2K." "."
     call :new_name_replace ".1080p." "."
+    call :new_name_replace ".2160p." "."
     call :new_name_replace ".1080P约战竞技场." "."
     call :new_name_replace ".720P." "."
     call :new_name_replace ".HD." "."
     call :new_name_replace ".HD1080p." "."
+    call :new_name_replace ".HD1080p." "."
+    call :new_name_replace ".HD国语中字无水印." "."
     call :new_name_replace ".HDx." "."
     call :new_name_replace ".RI." "."
+    call :new_name_replace ".60fps." "."
     call :new_name_replace ".H265." "."
     call :new_name_replace ".WEBrip." "."
     call :new_name_replace ".中英字幕." "."
-    call :new_name_replace ".HD国语中字无水印[最新电影www.66ys.tv]." "."
 
     call :new_name_replace "[Dou Luo Da Lu][Douro Mainland][2019]" "斗罗大陆"
 
