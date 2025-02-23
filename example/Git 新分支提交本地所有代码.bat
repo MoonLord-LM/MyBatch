@@ -1,9 +1,9 @@
 @echo off
 
 :: MoonLord 2022.02.22  
-:: 根据文件夹后缀（-master、-develop），判断当前是哪个分支  
-:: 提交文件夹内的全部修改  
-:: 提交到 xx-auto-xxxxxxxx-xxxxxxxx 形式的新分支里  
+:: �����ļ��к�׺��-master��-develop�����жϵ�ǰ���ĸ���֧  
+:: �ύ�ļ����ڵ�ȫ���޸�  
+:: �ύ�� xx-auto-xxxxxxxx-xxxxxxxx ��ʽ���·�֧��  
 
 set "id=%date:~0,4%%date:~5,2%%date:~8,2%-%random%%random%"
 

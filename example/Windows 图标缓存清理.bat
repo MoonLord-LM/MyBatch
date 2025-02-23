@@ -1,20 +1,20 @@
 @echo off
 
-:: 鍏抽棴 Windows 澶栧３绋嬪簭 Explorer
+:: 关闭 Windows 外壳程序 Explorer
 taskkill /f /im explorer.exe
 
-:: 娓呯悊鏂囦欢鍥炬爣缂撳瓨
+:: 清理文件图标缓存
 attrib -h -s -r "%userprofile%\AppData\Local\IconCache.db"
 del /f "%userprofile%\AppData\Local\IconCache.db"
 
 attrib /s /d -h -s -r "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db"
 del /f "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db"
 
-:: 娓呯悊绯荤粺鎵樼洏鍥炬爣缂撳瓨
+:: 清理系统托盘图标缓存
 echo y | reg delete "HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\TrayNotify" /v IconStreams
 echo y | reg delete "HKEY_CLASSES_ROOT\Local Settings\Software\Microsoft\Windows\CurrentVersion\TrayNotify" /v PastIconsStream
 
-:: 閲嶅惎 Windows 澶栧３绋嬪簭 Explorer
+:: 重启 Windows 外壳程序 Explorer
 start explorer
 
 pause

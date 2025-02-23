@@ -1,7 +1,7 @@
 @echo off
 
 :: MoonLord 2023.07.29  
-:: 鍒犻櫎 master 鍒嗘敮鐨勫浣欑殑鏈湴鏂囦欢  
+:: 删除 master 分支的多余的本地文件  
 
 echo ---- > "%tmp%\branch.txt"
 for /f usebackq %%i in ( `dir /AD /B` ) do (

@@ -1,24 +1,24 @@
 @echo off
 
-:: æ¢è¡Œç¬¦ä¿æŒåŸæ ·
+:: »»ĞĞ·û±£³ÖÔ­Ñù
 git config --local core.autocrlf false
 git config --local core.safecrlf false
 
-:: æ–‡ä»¶åå¤§å°å†™æ•æ„Ÿ
+:: ÎÄ¼şÃû´óĞ¡Ğ´Ãô¸Ğ
 git config --local core.ignorecase false
 
-:: å°† 100MB ä»¥ä¸Šçš„æ–‡ä»¶è§†ä¸ºå¤§æ–‡ä»¶
+:: ½« 100MB ÒÔÉÏµÄÎÄ¼şÊÓÎª´óÎÄ¼ş
 git config --local core.bigFileThreshold 100m
 
-:: å‹ç¼©ç®—æ³•çº§åˆ«è®¾ç½®ä¸ºæ— å‹ç¼©
+:: Ñ¹ËõËã·¨¼¶±ğÉèÖÃÎªÎŞÑ¹Ëõ
 git config --local core.compression 0
 git config --local pack.compression 0
 
-:: æ–‡ä»¶æ‰“åŒ…å¤§å°é™åˆ¶ï¼ˆå¦‚æœå•ä¸ªæ–‡ä»¶å¤§å°è¶…å‡ºé™åˆ¶ï¼Œä»ç„¶ä¼šç”Ÿæˆå¾ˆå¤§çš„ pack æ–‡ä»¶ï¼‰
+:: ÎÄ¼ş´ò°ü´óĞ¡ÏŞÖÆ£¨Èç¹ûµ¥¸öÎÄ¼ş´óĞ¡³¬³öÏŞÖÆ£¬ÈÔÈ»»áÉú³ÉºÜ´óµÄ pack ÎÄ¼ş£©
 git config --local pack.packSizeLimit 2g
 
 
-:: æŸ¥çœ‹è®¾ç½®
+:: ²é¿´ÉèÖÃ
 git config --list --local
 
 
