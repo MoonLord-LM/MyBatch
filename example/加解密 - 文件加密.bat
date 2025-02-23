@@ -10,10 +10,15 @@ if "%input_file%"=="" (
     pause
     exit /b
 )
+if exist "%input_file%\" (
+    echo 请不要将文件夹拖动到此脚本上
+    pause
+    exit /b
+)
 
 :: 获取用户输入的密码并计算其 SHA-256 哈希值作为密钥
-set /p password="请输入密码: "
-for /f %%i in ('powershell -NoProfile -ExecutionPolicy Bypass -Command "([System.BitConverter]::ToString([System.Security.Cryptography.SHA256]::Create().ComputeHash([System.Text.Encoding]::UTF8.GetBytes('%password%')))).Replace('-','')"') do set key=%%i
+set "psCommand=powershell -Command "$p=Read-Host '请输入密码' -AsSecureString; [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($p))""
+for /f "usebackq delims=" %%p in (`%psCommand%`) do set "password=%%p"
 
 :: 将哈希值转换为字节数组格式（64个十六进制字符）
 set key=%key:~0,64%
@@ -44,7 +49,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "[System.IO.File]::WriteAllBytes($outputFile, $bytes);"
 
 :: 使用 OpenSSL 执行 AES-256-CBC 加密
-openssl enc -aes-256-cbc -in "%temp_file_1%" -out "%temp_file_2%" -pbkdf2 -iter 1000000 -pass "pass:%password%"
+openssl enc -aes-256-cbc -in "%temp_file_1%" -out "%temp_file_2%" -pbkdf2 -iter 10000000 -pass "pass:%password%"
 
 :: 使用 certutil 进行 Base64 编码
 if exist "%output_file%" del "%output_file%"
