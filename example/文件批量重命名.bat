@@ -45,6 +45,7 @@ for /r "%cd%" %%i in (%extension%) do (
 
     call :new_name_replace "¡¾ses23.com¡¿"
 
+    call :new_name_replace "(4K)"
     call :new_name_replace "(S1)("
     call :new_name_replace "(SOD)("
     call :new_name_replace "(Madonna)("
