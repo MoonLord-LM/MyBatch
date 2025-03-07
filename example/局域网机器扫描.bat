@@ -9,7 +9,7 @@ for /l %%i in (1, 1, 10) do (
     set ip=192.168.1.%%i
 
     echo ÕýÔÚ¼ì²é !ip!...
-    ping -n 1 -w 300 !ip! >nul
+    ping -n 1 -w 1000 !ip! >nul
 
     if !errorlevel! equ 0 (
         ping -n 1 -a !ip! | findstr /i "!ip!"
