@@ -7,6 +7,9 @@ setlocal enabledelayedexpansion
 
 
 
+yt-dlp --update
+yt-dlp --version
+
 :loop
 echo 请输入 YouTube 视频链接
 set /p "url="
@@ -30,9 +33,12 @@ if "!url!" neq "!url:&=!" (
 
 :: 启动一个新的命令行窗口执行下载任务
 echo 在新窗口中下载: "!url!"
-set command=yt-dlp.exe ^
- --cookies ""cookies.txt"" ^
- --concurrent-fragments 100 ^
+set command1=yt-dlp.exe ^
+ --list-formats ^
+ --verbose ^
+ ""!url!""
+set command2=yt-dlp.exe ^
+ --concurrent-fragments 20 ^
  -f ""bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"" ^
  --merge-output-format mp4 ^
  --embed-subs ^
@@ -40,8 +46,9 @@ set command=yt-dlp.exe ^
  --embed-metadata ^
  --embed-chapters ^
  --embed-info-json ^
+ --verbose ^
  ""!url!""
-start "" cmd /c "%command%"
+start "" cmd /c "%command1% & pause & %command2% & pause"
 echo.
 
 goto loop
