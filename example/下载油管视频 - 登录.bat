@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 :: 依赖的软件如下
 :: https://github.com/yt-dlp/yt-dlp
 :: https://github.com/FFmpeg/FFmpeg
-
+:: https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc
 
 
 yt-dlp --update
