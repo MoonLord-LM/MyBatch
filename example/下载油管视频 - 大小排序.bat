@@ -40,6 +40,7 @@ set command1=yt-dlp.exe ^
 set command2=yt-dlp.exe ^
  --concurrent-fragments 20 ^
  -f ""bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"" ^
+ --format-sort ""+quality,+resolution,+fps,+size"" ^
  --merge-output-format mp4 ^
  --embed-subs ^
  --embed-thumbnail ^
