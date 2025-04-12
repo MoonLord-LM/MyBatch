@@ -43,7 +43,7 @@ exit /b
      --verbose ^
      "!url!"
     start "" cmd /c "%command1% & %command2%"
-    timeout /t 10
+    timeout /t 30
 exit /b
 
 
