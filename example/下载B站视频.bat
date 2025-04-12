@@ -57,7 +57,7 @@ set command2=yt-dlp.exe ^
  --embed-info-json ^
  --verbose ^
  ""!url!""
-start "" cmd /c "%command1% & pause & %command2% & pause"
+start "" cmd /c "%command1% & %command2%"
 echo.
 
 goto loop
