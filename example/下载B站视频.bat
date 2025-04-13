@@ -103,7 +103,7 @@ exit /b
         call :download_video_list "!input!"
     ) else (
         :: 如果不是文件路径，则视为URL
-        echo "!url!" | findstr /C:"https://www.bilibili.com/" >nul
+        echo "!input!" | findstr /C:"https://www.bilibili.com/" >nul
         if !errorlevel! == 1 (
             echo 输入的不是有效的 Bilibili 链接，请重新输入
             goto main_loop
