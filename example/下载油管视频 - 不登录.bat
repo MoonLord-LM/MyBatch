@@ -49,8 +49,29 @@ exit /b
 
 :download_video_list
     set "file_path=%~1"
-    for /f "tokens=*" %%a in (!file_path!) do (
-        call :download_video "%%a"
+
+    :: 计算总行数（即总有效链接数）
+    set /a total_count=0
+    for /f "usebackq tokens=*" %%a in ("!file_path!") do (
+        set "line=%%a"
+        :: 删除前后空白
+        set "line=!line: =!"
+        if not "!line!"=="" (
+            set /a total_count+=1
+        )
+    )
+
+    :: 初始化当前进度
+    set /a current_count=0
+    for /f "usebackq tokens=*" %%a in ("!file_path!") do (
+        set "line=%%a"
+        :: 删除前后空白
+        set "line=!line: =!"
+        if not "!line!"=="" (
+            set /a current_count+=1
+            echo 正在处理第 !current_count!/%total_count% 个链接...
+            call :download_video "!line!"
+        )
     )
 exit /b
 
@@ -63,6 +84,9 @@ exit /b
         echo 输入不能为空，请重新输入
         goto main_loop
     )
+
+    :: 删除多余的引号
+    set "input=!input:"=!"
 
     :: 检查是否是有效的文件路径
     if exist "!input!" (
