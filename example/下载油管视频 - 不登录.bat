@@ -2,6 +2,7 @@
 setlocal enabledelayedexpansion
 
 :: 支持输入视频链接单个下载，或者输入包含视频链接的 txt 文件路径批量下载
+
 :: 依赖的软件如下
 :: https://github.com/yt-dlp/yt-dlp
 :: https://github.com/FFmpeg/FFmpeg
@@ -20,7 +21,7 @@ exit /b
 
 :download_video
     set "url=%~1"
-    
+
     :: 删除 & 和后面的内容
     if "!url!" neq "!url:&=!" (
         for /f "tokens=1 delims=&" %%i in ("!url!") do set "url=%%i"
@@ -30,7 +31,7 @@ exit /b
     set command1=yt-dlp.exe ^
      --list-formats ^
      --verbose ^
-     "!url!"
+     ""!url!""
     set command2=yt-dlp.exe ^
      --concurrent-fragments 20 ^
      -f ""bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"" ^
@@ -41,9 +42,10 @@ exit /b
      --embed-chapters ^
      --embed-info-json ^
      --verbose ^
-     "!url!"
+     ""!url!""
     start "" cmd /c "%command1% & %command2%"
     timeout /t 30
+    echo.
 exit /b
 
 
@@ -60,6 +62,7 @@ exit /b
             set /a total_count+=1
         )
     )
+    echo 视频总个数: !total_count!
 
     :: 初始化当前进度
     set /a current_count=0
