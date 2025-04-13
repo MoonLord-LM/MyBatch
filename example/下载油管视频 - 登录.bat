@@ -36,7 +36,7 @@ exit /b
     set command2=yt-dlp.exe ^
      --cookies ""www.youtube.com_cookies.txt"" ^
      --concurrent-fragments 20 ^
-     -f "bestvideo+bestaudio/best" ^
+     -f ""bestvideo+bestaudio/best"" ^
      --merge-output-format mp4 ^
      --embed-subs ^
      --embed-thumbnail ^
