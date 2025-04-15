@@ -15,7 +15,7 @@ for %%f in (*.mp4) do (
     echo 文件名 "!filename!"
 
     :: 使用 ffprobe 获取 date 标签
-    for /f "delims=" %%x in ('ffprobe.exe -v quiet -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!filename!" 2^>^&1') do (
+    for /f "delims=" %%x in ('ffprobe.exe -v quiet -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "%cd%\!filename!" 2^>^&1') do (
         echo 创建时间 "%%x"
         set "filedate=%%x"
     )
