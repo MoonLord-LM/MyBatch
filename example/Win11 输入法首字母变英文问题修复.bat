@@ -3,6 +3,7 @@
 set "RegPath=HKEY_CURRENT_USER\Software\Microsoft\InputMethod\Settings\Common"
 
 :: 检查当前注册表项是否存在
+reg query "%RegPath%" | findstr /i "TouchKeyboardHasEverShown"
 reg query "%RegPath%" | findstr /i "TouchKeyboardHasEverShown" >nul 2>&1
 
 if %errorlevel% equ 0 (
