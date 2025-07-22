@@ -14,8 +14,8 @@ if "%input_dir%"=="" (
     pause
     exit /b
 )
-if not exist "%input_file%\" (
-    echo 请不要将单个文件拖动到此脚本上
+if not exist "%input_dir%\" (
+    echo 指定的文件夹路径不存在，请不要将单个文件拖动到此脚本上
     pause
     exit /b
 )
