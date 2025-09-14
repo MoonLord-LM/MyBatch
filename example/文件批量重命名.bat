@@ -105,6 +105,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "_UNCENSORED"
     call :new_name_replace "_LEAKED"
     call :new_name_replace "_NOWATERMARK"
+    call :new_name_replace "_youiv4K.com"
     call :new_name_replace "_youivtv.com"
 
     call :new_name_replace "FHD." "."
