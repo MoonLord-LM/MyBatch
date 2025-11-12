@@ -1,12 +1,14 @@
 @echo off
+setlocal enabledelayedexpansion
+
 REM =======================================
 REM 分别去掉当前目录下所有 .jpg / .mp4 文件的公共前缀和后缀
 REM =======================================
 
-echo 当前目录: '%cd%'
+echo 当前目录: '!cd!'
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
- "Set-Location -LiteralPath '%cd%';" ^
+ "Set-Location -LiteralPath '!cd!';" ^
  "function Process-Files([string[]]$patterns) {" ^
  "    if ($patterns.Length -eq 1) {" ^
  "        $files = @(Get-ChildItem -Path . -Filter $patterns[0] -File);" ^
