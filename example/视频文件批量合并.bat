@@ -29,22 +29,27 @@ echo 正在合并视频...
 ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy "merged.mp4"
 
 if exist "merged.mp4" (
-    if exist "0.jpg" (
-        echo 正在添加封面...
-        ffmpeg -i "merged.mp4" -i "0.jpg" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "final.mp4"
+    :: 查找封面文件，优先使用 PNG 格式
+    set "cover_file="
+    if exist "0.png" (
+        set "cover_file=0.png"
+    ) else if exist "00.png" (
+        set "cover_file=00.png"
+    ) else if exist "000.png" (
+        set "cover_file=000.png"
+    ) else if exist "0.jpg" (
+        set "cover_file=0.jpg"
+    ) else if exist "00.jpg" (
+        set "cover_file=00.jpg"
+    ) else if exist "000.jpg" (
+        set "cover_file=000.jpg"
+    )
+    if defined cover_file (
+        echo 正在添加封面 [!cover_file!]...
+        ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "final.mp4"
     ) else (
-        if exist "00.jpg" (
-            echo 正在添加封面...
-            ffmpeg -i "merged.mp4" -i "00.jpg" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "final.mp4"
-        ) else (
-            if exist "000.jpg" (
-                echo 正在添加封面...
-                ffmpeg -i "merged.mp4" -i "000.jpg" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "final.mp4"
-            ) else (
-                echo 封面文件 0.jpg 不存在，不添加封面
-                move /Y "merged.mp4" "final.mp4"
-            )
-        )
+        echo 封面文件（0.png/0.jpg 等）不存在，不添加封面
+        move /Y "merged.mp4" "final.mp4"
     )
     echo 合并完成，已生成 final.mp4 文件
 ) else (
