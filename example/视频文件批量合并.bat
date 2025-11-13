@@ -6,8 +6,11 @@ setlocal enabledelayedexpansion
 
 
 
-echo 本脚本用于将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4... 最多到 200.mp4 合并为 final.mp4 文件
+echo 本脚本用于将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4... 最多到 200.mp4 拼接合并为 final.mp4 文件
+echo 会尽可能保留原始视频质量，必要的时候进行转码
+echo 转码过程使用单线程运行，防止占用过多 CPU 资源
 
+echo.
 echo 正在生成文件列表...
 set "file_count=0"
 set "first_file_fps="
@@ -56,7 +59,7 @@ if "!fps_consistent!"=="0" (
                 set "temp_file=%%~nf_fps_!fps_safe!.mp4"
                 echo 重新编码视频: %%~f - !temp_file!
                 if not exist "!temp_file!" (
-                    ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy "!temp_file!"
+                    ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -threads 1 "!temp_file!"
                 )
                 echo file '!temp_file!' >> file_list.txt
             )
@@ -65,7 +68,7 @@ if "!fps_consistent!"=="0" (
 )
 
 echo 正在合并视频...
-ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy "merged.mp4"
+ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
 
 if exist "merged.mp4" (
     :: 查找封面文件，优先使用 PNG 格式
@@ -85,7 +88,7 @@ if exist "merged.mp4" (
     )
     if defined cover_file (
         echo 正在添加封面 [!cover_file!]...
-        ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "final.mp4"
+        ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "final.mp4"
     ) else (
         echo 封面文件（0.png、0.jpg 等）不存在，不添加封面
         move /Y "merged.mp4" "final.mp4"
