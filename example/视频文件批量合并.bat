@@ -25,6 +25,8 @@ for /l %%i in (1,1,200) do (
                 set "current_fps=%%r"
                 echo 第 !file_count! 个视频帧率: !current_fps!
             )
+            :: 帧率只做近似比较即可，把 2997/100 替换成 30/1
+            set "current_fps=!current_fps:2997/100=30/1!"
             if not defined first_file_fps (
                 set "first_file_fps=!current_fps!"
             ) else (
