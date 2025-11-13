@@ -25,8 +25,6 @@ for /l %%i in (1,1,200) do (
                 set "current_fps=%%r"
                 echo 第 !file_count! 个视频帧率: !current_fps!
             )
-            :: 帧率只做近似比较即可，把 2997/100 替换成 30/1
-            set "current_fps=!current_fps:2997/100=30/1!"
             if not defined first_file_fps (
                 set "first_file_fps=!current_fps!"
             ) else (
@@ -70,7 +68,7 @@ if "!fps_consistent!"=="0" (
 )
 
 echo 正在合并视频...
-ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
+ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -vsync cfr -r 30 -threads 1 "merged.mp4"
 
 if exist "merged.mp4" (
     :: 查找封面文件，优先使用 PNG 格式
