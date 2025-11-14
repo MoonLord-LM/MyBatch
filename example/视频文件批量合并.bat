@@ -11,6 +11,10 @@ echo 会尽可能保留原始视频质量，必要的时候进行转码
 echo 转码过程使用单线程运行，防止占用过多 CPU 资源
 
 echo.
+echo 合并视频时，需要保证每段视频的帧率一致，避免音画不一致等问题，本脚本会进行自动转码
+echo 合并视频时，需要清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致等问题，本脚本使用 -map_metadata -1 参数执行清理
+
+echo.
 echo 正在生成文件列表...
 set "file_count=0"
 set "first_file_fps="
@@ -56,12 +60,21 @@ if "!fps_consistent!"=="0" (
     for /l %%i in (1,1,200) do (
         for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
             if exist %%f (
-                set "temp_file=%%~nf_fps_!fps_safe!.mp4"
-                echo 重新编码视频: %%~f - !temp_file!
-                if not exist "!temp_file!" (
-                    ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
+                for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
+                    set "current_fps=%%r"
+                    if "!current_fps!"=="!first_file_fps!" (
+                            echo file %%~f >> file_list.txt
+                    ) else (
+                        if not "!current_fps!"=="!first_file_fps!" (
+                            set "temp_file=%%~nf_fps_!fps_safe!.mp4"
+                            echo 重新编码视频: %%~f - !temp_file!
+                            if not exist "!temp_file!" (
+                                ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
+                            )
+                            echo file '!temp_file!' >> file_list.txt
+                        )
+                    )
                 )
-                echo file '!temp_file!' >> file_list.txt
             )
         )
     )
