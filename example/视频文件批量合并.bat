@@ -23,7 +23,7 @@ echo. > file_list.txt
 for /l %%i in (1,1,200) do (
     for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
         if exist %%f (
-            echo file %%~f >> file_list.txt
+            echo file "%%~f" >> file_list.txt
             set /a "file_count+=1"
             for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
                 set "current_fps=%%r"
@@ -63,16 +63,14 @@ if "!fps_consistent!"=="0" (
                 for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
                     set "current_fps=%%r"
                     if "!current_fps!"=="!first_file_fps!" (
-                            echo file %%~f >> file_list.txt
+                        echo file "%%~f" >> file_list.txt
                     ) else (
-                        if not "!current_fps!"=="!first_file_fps!" (
-                            set "temp_file=%%~nf_fps_!fps_safe!.mp4"
-                            echo 重新编码视频: %%~f - !temp_file!
-                            if not exist "!temp_file!" (
-                                ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
-                            )
-                            echo file '!temp_file!' >> file_list.txt
+                        set "temp_file=%%~nf_fps_!fps_safe!.mp4"
+                        echo 重新编码视频: %%~f - !temp_file!
+                        if not exist "!temp_file!" (
+                            ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
                         )
+                        echo file "!temp_file!" >> file_list.txt
                     )
                 )
             )
