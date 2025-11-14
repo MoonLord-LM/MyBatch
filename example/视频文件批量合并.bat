@@ -59,7 +59,7 @@ if "!fps_consistent!"=="0" (
                 set "temp_file=%%~nf_fps_!fps_safe!.mp4"
                 echo 重新编码视频: %%~f - !temp_file!
                 if not exist "!temp_file!" (
-                    ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -threads 1 "!temp_file!"
+                    ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
                 )
                 echo file '!temp_file!' >> file_list.txt
             )
@@ -68,7 +68,7 @@ if "!fps_consistent!"=="0" (
 )
 
 echo 正在合并视频...
-ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -vsync cfr -r 30 -threads 1 "merged.mp4"
+ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
 
 if exist "merged.mp4" (
     :: 查找封面文件，优先使用 PNG 格式
