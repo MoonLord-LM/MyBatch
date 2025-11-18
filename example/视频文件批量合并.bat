@@ -9,33 +9,46 @@ setlocal enabledelayedexpansion
 echo 本脚本用于将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4... 最多到 200.mp4 拼接合并为 final.mp4 文件
 echo 会尽可能保留原始视频质量，必要的时候进行转码
 echo 转码过程使用单线程运行，防止占用过多 CPU 资源
-
 echo.
-echo 合并视频时，需要保证每段视频的帧率一致，避免音画不一致等问题，本脚本会进行自动转码
-echo 合并视频时，需要清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致等问题，本脚本使用 -map_metadata -1 参数执行清理
 
+echo 合并视频时，需要保证每段视频的帧率、每段音频的采样率一致，避免音画不一致问题
+echo 合并视频时，需要使用 -map_metadata -1 参数，清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致问题
 echo.
-echo 正在生成文件列表...
+
 set "file_count=0"
-set "first_file_fps="
-set "fps_consistent=1"
+set "file_consistent=1"
+set "first_video_fps="
+set "first_audio_sample_rate="
+
+echo 正在生成文件列表...
 echo. > file_list.txt
 for /l %%i in (1,1,200) do (
     for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
         if exist %%f (
-            echo file "%%~f" >> file_list.txt
+            echo file '%%~f' >> file_list.txt
             set /a "file_count+=1"
+            :: 解析参数
             for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
-                set "current_fps=%%r"
-                echo 第 !file_count! 个视频帧率: !current_fps!
+                set "current_video_fps=%%r"
             )
-            if not defined first_file_fps (
-                set "first_file_fps=!current_fps!"
-            ) else (
-                if not "!current_fps!"=="!first_file_fps!" (
-                    echo 警告：文件 %%~f 的帧率 !current_fps! 与第一个视频的帧率 !first_file_fps! 不一致！
-                    set "fps_consistent=0"
-                )
+            for /f "delims=" %%r in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
+                set "current_audio_sample_rate=%%r"
+            )
+            echo 第 !file_count! 个视频，帧率: !current_video_fps!，音频采样率: !current_audio_sample_rate!
+            :: 对比参数
+            if not defined first_video_fps (
+                set "first_video_fps=!current_video_fps!"
+            )
+            if not defined first_audio_sample_rate (
+                set "first_audio_sample_rate=!current_audio_sample_rate!"
+            )
+            if not "!current_video_fps!"=="!first_video_fps!" (
+                echo 警告：文件 %%~f 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致！
+                set "file_consistent=0"
+            )
+            if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
+                echo 警告：文件 %%~f 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致！
+                set "file_consistent=0"
             )
         )
     )
@@ -47,31 +60,62 @@ if "!file_count!"=="0" (
     exit
 )
 
-if "!fps_consistent!"=="0" (
+:: 参数不一致进行转码
+if "!file_consistent!"=="0" (
     echo.
-    echo 帧率不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行！
+    echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行！
     echo.
     pause
-    echo 正在转码视频，目标帧率为 !first_file_fps!...
+    echo 正在转码视频，目标帧率为 !first_video_fps!，目标音频采样率为 !first_audio_sample_rate!...
+
     rem 为了做文件名安全，把 '/' 和 '\' 替换为 '_' 用于临时文件名
-    set "fps_safe=!first_file_fps:/=_!"
-    set "fps_safe=!fps_safe:\=_!"
+    set "suffix_safe=!first_video_fps!_!first_audio_sample_rate!"
+    set "suffix_safe=!suffix_safe:/=_!"
+    set "suffix_safe=!suffix_safe:\=_!"
     echo. > file_list.txt
+
     for /l %%i in (1,1,200) do (
         for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
             if exist %%f (
+                :: 解析参数
                 for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
-                    set "current_fps=%%r"
-                    if "!current_fps!"=="!first_file_fps!" (
-                        echo file "%%~f" >> file_list.txt
-                    ) else (
-                        set "temp_file=%%~nf_fps_!fps_safe!.mp4"
-                        echo 重新编码视频: %%~f - !temp_file!
+                    set "current_video_fps=%%r"
+                )
+                for /f "delims=" %%r in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
+                    set "current_audio_sample_rate=%%r"
+                )
+                echo 第 !file_count! 个视频，帧率: !current_video_fps!，音频采样率: !current_audio_sample_rate!
+                :: 对比参数
+                if not defined first_video_fps (
+                    set "first_video_fps=!current_video_fps!"
+                )
+                if not defined first_audio_sample_rate (
+                    set "first_audio_sample_rate=!current_audio_sample_rate!"
+                )
+                set "temp_file=%%~nf_!suffix_safe!.mp4"
+                if not "!current_video_fps!"=="!first_video_fps!" (
+                    echo 重新编码视频: %%~f - !temp_file!
+                    if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
                         if not exist "!temp_file!" (
-                            ffmpeg -i "%%~f" -r "!first_file_fps!" -c:v libx264 -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
+                            :: 视频和音频都重新转码
+                            ffmpeg -i "%%~f" -c:v libx264 -r "!first_video_fps!" -c:a aac -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
                         )
-                        echo file "!temp_file!" >> file_list.txt
+                    ) else (
+                        if not exist "!temp_file!" (
+                            :: 仅转码视频
+                            ffmpeg -i "%%~f" -c:v libx264 -r "!first_video_fps!" -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
+                        )
                     )
+                    echo file '!temp_file!' >> file_list.txt
+                ) else if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
+                    echo 重新编码视频: %%~f - !temp_file!
+                    if not exist "!temp_file!" (
+                        :: 仅转码音频
+                        ffmpeg -i "%%~f" -c:v copy -c:a aac -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
+                    )
+                    echo file '!temp_file!' >> file_list.txt
+                ) else (
+                    echo file '%%~f' >> file_list.txt
                 )
             )
         )
