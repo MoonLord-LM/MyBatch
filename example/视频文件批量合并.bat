@@ -82,6 +82,7 @@ if "!file_count!"=="0" (
     exit
 )
 
+set "file_count=0"
 set "target_video_encoder=libx264"
 set "target_audio_encoder=aac"
 
@@ -121,6 +122,7 @@ if "!file_consistent!"=="0" (
     for /l %%i in (1,1,200) do (
         for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
             if exist %%f (
+                set /a "file_count+=1"
                 :: ½âÎö²ÎÊý
                 for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 %%f 2^>^&1') do (
                     set "current_video_codec=%%v"
