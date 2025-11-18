@@ -11,12 +11,14 @@ echo 会尽可能保留原始视频质量，必要的时候进行转码
 echo 转码过程使用单线程运行，防止占用过多 CPU 资源
 echo.
 
-echo 合并视频时，需要保证每段视频的帧率、每段音频的采样率一致，避免音画不一致问题
+echo 合并视频时，需要保证每段视频的视频编码、视频帧率、音频编码、音频采样率参数一致，避免音画不一致问题
 echo 合并视频时，需要使用 -map_metadata -1 参数，清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致问题
 echo.
 
 set "file_count=0"
 set "file_consistent=1"
+set "first_video_codec="
+set "first_audio_codec="
 set "first_video_fps="
 set "first_audio_sample_rate="
 
@@ -28,19 +30,39 @@ for /l %%i in (1,1,200) do (
             echo file '%%~f' >> file_list.txt
             set /a "file_count+=1"
             :: 解析参数
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 %%f 2^>^&1') do (
+                set "current_video_codec=%%v"
+            )
+            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name -of csv^=p^=0 %%f 2^>^&1') do (
+                set "current_audio_codec=%%a"
+            )
             for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
                 set "current_video_fps=%%r"
             )
             for /f "delims=" %%r in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
                 set "current_audio_sample_rate=%%r"
             )
-            echo 第 !file_count! 个视频，帧率: !current_video_fps!，音频采样率: !current_audio_sample_rate!
+            echo 第 !file_count! 个视频，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!
             :: 对比参数
+            if not defined first_video_codec (
+                set "first_video_codec=!current_video_codec!"
+            )
+            if not defined first_audio_codec (
+                set "first_audio_codec=!current_audio_codec!"
+            )
             if not defined first_video_fps (
                 set "first_video_fps=!current_video_fps!"
             )
             if not defined first_audio_sample_rate (
                 set "first_audio_sample_rate=!current_audio_sample_rate!"
+            )
+            if not "!current_video_codec!"=="!first_video_codec!" (
+                echo 警告：文件 %%~f 的视频编码 !current_video_codec! 与第一个视频的视频编码 !first_video_codec! 不一致！
+                set "file_consistent=0"
+            )
+            if not "!current_audio_codec!"=="!first_audio_codec!" (
+                echo 警告：文件 %%~f 的音频编码 !current_audio_codec! 与第一个视频的音频编码 !first_audio_codec! 不一致！
+                set "file_consistent=0"
             )
             if not "!current_video_fps!"=="!first_video_fps!" (
                 echo 警告：文件 %%~f 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致！
@@ -60,13 +82,35 @@ if "!file_count!"=="0" (
     exit
 )
 
+set "target_video_encoder=libx264"
+set "target_audio_encoder=aac"
+
+if /i "!first_video_codec!"=="HEVC" (
+    set "target_video_encoder=libx265"
+) else if /i "!first_video_codec!"=="H265" (
+    set "target_video_encoder=libx265"
+) else if /i "!first_video_codec!"=="AVC" (
+    set "target_video_encoder=libx264"
+) else if /i "!first_video_codec!"=="H264" (
+    set "target_video_encoder=libx264"
+) else (
+    echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
+    pause
+)
+if /i "!first_audio_codec!"=="AAC" (
+    set "target_audio_encoder=aac"
+) else (
+    echo 警告：未知音频编码 "!first_audio_codec!"，使用默认 aac
+    pause
+)
+
 :: 参数不一致进行转码
 if "!file_consistent!"=="0" (
     echo.
     echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行！
     echo.
     pause
-    echo 正在转码视频，目标帧率为 !first_video_fps!，目标音频采样率为 !first_audio_sample_rate!...
+    echo 正在转码视频，目标视频编码：!first_video_codec!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec!，目标音频采样率: !first_audio_sample_rate!...
 
     rem 为了做文件名安全，把 '/' 和 '\' 替换为 '_' 用于临时文件名
     set "suffix_safe=!first_video_fps!_!first_audio_sample_rate!"
@@ -78,40 +122,65 @@ if "!file_consistent!"=="0" (
         for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
             if exist %%f (
                 :: 解析参数
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 %%f 2^>^&1') do (
+                    set "current_video_codec=%%v"
+                )
+                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name -of csv^=p^=0 %%f 2^>^&1') do (
+                    set "current_audio_codec=%%a"
+                )
                 for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
                     set "current_video_fps=%%r"
                 )
                 for /f "delims=" %%r in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
                     set "current_audio_sample_rate=%%r"
                 )
-                echo 第 !file_count! 个视频，帧率: !current_video_fps!，音频采样率: !current_audio_sample_rate!
+                echo 第 !file_count! 个视频，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!
                 :: 对比参数
-                if not defined first_video_fps (
-                    set "first_video_fps=!current_video_fps!"
-                )
-                if not defined first_audio_sample_rate (
-                    set "first_audio_sample_rate=!current_audio_sample_rate!"
-                )
                 set "temp_file=%%~nf_!suffix_safe!.mp4"
-                if not "!current_video_fps!"=="!first_video_fps!" (
+                if not "!current_video_codec!"=="!first_video_codec!" (
                     echo 重新编码视频: %%~f - !temp_file!
-                    if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
+                    if not "!current_audio_codec!"=="!first_audio_codec!" (
                         if not exist "!temp_file!" (
-                            :: 视频和音频都重新转码
-                            ffmpeg -i "%%~f" -c:v libx264 -r "!first_video_fps!" -c:a aac -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
+                            ffmpeg -i "%%~f" -c:v "!target_video_encoder!" -r "!first_video_fps!" -c:a "!target_audio_encoder!" -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
+                        )
+                    ) else if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
+                        if not exist "!temp_file!" (
+                            ffmpeg -i "%%~f" -c:v "!target_video_encoder!" -r "!first_video_fps!" -c:a "!target_audio_encoder!" -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
                         )
                     ) else (
                         if not exist "!temp_file!" (
-                            :: 仅转码视频
-                            ffmpeg -i "%%~f" -c:v libx264 -r "!first_video_fps!" -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
+                            ffmpeg -i "%%~f" -c:v "!target_video_encoder!" -r "!first_video_fps!" -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
+                        )
+                    )
+                    echo file '!temp_file!' >> file_list.txt
+                ) else if not "!current_audio_codec!"=="!first_audio_codec!" (
+                    echo 重新编码视频: %%~f - !temp_file!
+                    if not "!current_video_fps!"=="!first_video_fps!" (
+                        if not exist "!temp_file!" (
+                            ffmpeg -i "%%~f" -c:v "!target_video_encoder!" -r "!first_video_fps!" -c:a "!target_audio_encoder!" -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
+                        )
+                    ) else (
+                        if not exist "!temp_file!" (
+                            ffmpeg -i "%%~f" -c:v copy -c:a "!target_audio_encoder!" -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
+                        )
+                    )
+                    echo file '!temp_file!' >> file_list.txt
+                ) else if not "!current_video_fps!"=="!first_video_fps!" (
+                    echo 重新编码视频: %%~f - !temp_file!
+                    if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
+                        if not exist "!temp_file!" (
+                            ffmpeg -i "%%~f" -c:v "!target_video_encoder!" -r "!first_video_fps!" -c:a "!target_audio_encoder!" -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
+                        )
+                    ) else (
+                        if not exist "!temp_file!" (
+                            ffmpeg -i "%%~f" -c:v "!target_video_encoder!" -r "!first_video_fps!" -c:a copy -map_metadata -1 -threads 1 "!temp_file!"
                         )
                     )
                     echo file '!temp_file!' >> file_list.txt
                 ) else if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
                     echo 重新编码视频: %%~f - !temp_file!
                     if not exist "!temp_file!" (
-                        :: 仅转码音频
-                        ffmpeg -i "%%~f" -c:v copy -c:a aac -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
+                        ffmpeg -i "%%~f" -c:v copy -c:a "!target_audio_encoder!" -ar "!first_audio_sample_rate!" -map_metadata -1 -threads 1 "!temp_file!"
                     )
                     echo file '!temp_file!' >> file_list.txt
                 ) else (
