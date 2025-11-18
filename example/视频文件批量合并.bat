@@ -23,19 +23,10 @@ set "first_video_codec="
 set "first_audio_codec="
 set "first_video_fps="
 set "first_audio_sample_rate="
+set "first_video_time_base="
 
 :: 将 mkv 格式转为 mp4 格式
 for /l %%i in (1,1,200) do (
-    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
-        if exist %%f (
-            set "temp_file=%%~nf_tmp.mp4"
-            if not exist "!temp_file!" (
-                ffmpeg -i "%%~f" -c copy -map_metadata -1 -threads 1 "!temp_file!"
-            )
-            if exist "%%f" ( del "%%f" )
-            ren "!temp_file!" "%%f"
-        )
-    )
     for %%f in ("%%i.mkv" "0%%i.mkv" "00%%i.mkv") do (
         if exist %%f (
             set "temp_file=%%~nf.mp4"
@@ -72,7 +63,10 @@ for /l %%i in (1,1,200) do (
             for /f "delims=" %%r in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
                 set "current_audio_sample_rate=%%r"
             )
-            echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!
+            for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 %%f 2^>^&1') do (
+                set "current_video_time_base=%%r"
+            )
+            echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
             :: 对比参数
             if not defined first_video_width (
                 set "first_video_width=!current_video_width!"
@@ -91,6 +85,9 @@ for /l %%i in (1,1,200) do (
             )
             if not defined first_audio_sample_rate (
                 set "first_audio_sample_rate=!current_audio_sample_rate!"
+            )
+            if not defined first_video_time_base (
+                set "first_video_time_base=!current_video_time_base!"
             )
             if not "!current_video_width!"=="!first_video_width!" (
                 echo 警告：文件 %%~f 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致！
@@ -114,6 +111,10 @@ for /l %%i in (1,1,200) do (
             )
             if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
                 echo 警告：文件 %%~f 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致！
+                set "file_consistent=0"
+            )
+            if not "!current_video_time_base!"=="!first_video_time_base!" (
+                echo 警告：文件 %%~f 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致！
                 set "file_consistent=0"
             )
         )
@@ -157,7 +158,7 @@ if "!file_consistent!"=="0" (
     echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行！
     echo.
     pause
-    echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec!，目标音频采样率: !first_audio_sample_rate!...
+    echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
 
     rem 为了做文件名安全，把 '/' 和 '\' 替换为 '_' 用于临时文件名
     set "suffix_safe=!first_video_fps!_!first_audio_sample_rate!"
@@ -188,7 +189,10 @@ if "!file_consistent!"=="0" (
                 for /f "delims=" %%r in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
                     set "current_audio_sample_rate=%%r"
                 )
-                echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!
+                for /f "delims=" %%r in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 %%f 2^>^&1') do (
+                    set "current_video_time_base=%%r"
+                )
+                echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
                 :: 对比参数
                 set "temp_file=%%~nf_!suffix_safe!.mp4"
                 set "video_consistent=1"
@@ -197,16 +201,19 @@ if "!file_consistent!"=="0" (
                 if not "!current_video_height!"=="!first_video_height!" ( set "video_consistent=0" && echo "video_height - !current_video_height! - !first_video_height!" )
                 if not "!current_video_codec!"=="!first_video_codec!" ( set "video_consistent=0" && echo "video_codec - !current_video_codec! - !first_video_codec!" )
                 if not "!current_video_fps!"=="!first_video_fps!" ( set "video_consistent=0" && echo "video_fps - !current_video_fps! - !first_video_fps!" )
+                if not "!current_video_time_base!"=="!first_video_time_base!" ( set "video_consistent=0" && echo "video_time_base - !current_video_time_base! - !first_video_time_base!" )
                 if not "!current_audio_codec!"=="!first_audio_codec!" ( set "audio_consistent=0" && echo "audio_codec - !current_audio_codec! - !first_audio_codec!" )
                 if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" ( set "audio_consistent=0" && echo "audio_sample_rate - !current_audio_sample_rate! - !first_audio_sample_rate!" )
                 echo 视频信息一致：!video_consistent!，音频信息一致：!audio_consistent!
 
+                set "target_timebase=!first_video_time_base:1/=!"
                 if not "!video_consistent!"=="1" (
                     echo 重新编码视频: %%~f - !temp_file!
                     if not "!audio_consistent!"=="1" (
                         if not exist "!temp_file!" (
                             ffmpeg -i "%%~f" ^
                                    -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
+                                   -video_track_timescale "!target_timebase!" ^
                                    -c:v "!target_video_encoder!" -r "!first_video_fps!" ^
                                    -c:a "!target_audio_encoder!" -ar "!first_audio_sample_rate!" ^
                                    -map_metadata -1 -threads 1 "!temp_file!"
@@ -215,6 +222,7 @@ if "!file_consistent!"=="0" (
                         if not exist "!temp_file!" (
                             ffmpeg -i "%%~f" ^
                                    -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
+                                   -video_track_timescale "!target_timebase!" ^
                                    -c:v "!target_video_encoder!" -r "!first_video_fps!" ^
                                    -c:a copy ^
                                    -map_metadata -1 -threads 1 "!temp_file!"
@@ -239,7 +247,7 @@ if "!file_consistent!"=="0" (
 )
 
 echo 正在合并视频...
-ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -fflags +genpts -threads 1 "merged.mp4"
+ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
 
 if exist "merged.mp4" (
     :: 查找封面文件，优先使用 PNG 格式
