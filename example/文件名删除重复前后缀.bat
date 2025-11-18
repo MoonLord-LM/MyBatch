@@ -2,7 +2,7 @@
 setlocal enabledelayedexpansion
 
 REM =======================================
-REM 分别去掉当前目录下所有 .jpg / .mp4 文件的公共前缀和后缀
+REM 分别去掉当前目录下所有 .jpg / .png / .mp4 / .mkv 文件的公共前缀和后缀
 REM =======================================
 
 echo 当前目录: '!cd!'
@@ -58,7 +58,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
  "    Write-Host '处理完成！';" ^
  "}" ^
  "Process-Files '*.jpg';" ^
- "Process-Files '*.mp4';"
+ "Process-Files '*.png';" ^
+ "Process-Files '*.mp4';" ^
+ "Process-Files '*.mkv';"
 
 pause
 exit
