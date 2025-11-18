@@ -100,6 +100,8 @@ if /i "!first_video_codec!"=="HEVC" (
 )
 if /i "!first_audio_codec!"=="AAC" (
     set "target_audio_encoder=aac"
+) else if /i "!first_audio_codec!"=="MP3" (
+    set "target_audio_encoder=libmp3lame"
 ) else (
     echo 警告：未知音频编码 "!first_audio_codec!"，使用默认 aac
     pause
