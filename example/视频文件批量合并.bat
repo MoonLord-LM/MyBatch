@@ -150,7 +150,9 @@ set "file_count=0"
 set "target_video_encoder=libx264"
 set "target_audio_encoder=aac"
 
-if /i "!first_video_codec!"=="HEVC" (
+if /i "!first_video_codec!"=="AV1" (
+    set "target_video_encoder=libaom-av1"
+) else if /i "!first_video_codec!"=="HEVC" (
     set "target_video_encoder=libx265"
 ) else if /i "!first_video_codec!"=="H265" (
     set "target_video_encoder=libx265"
