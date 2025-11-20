@@ -64,50 +64,38 @@ for /l %%i in (1,1,200) do (
             echo file '%%~f' >> file_list.txt
             set /a "file_count+=1"
             :: 解析参数
-            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 %%f 2^>^&1') do (
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_width=%%v"
             )
-            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 %%f 2^>^&1') do (
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_height=%%v"
             )
-            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 %%f 2^>^&1') do (
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_codec=%%v"
             )
-            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 %%f 2^>^&1') do (
+            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_audio_codec=%%a"
             )
-            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_fps=%%v"
             )
-            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
+            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_audio_sample_rate=%%a"
             )
-            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 %%f 2^>^&1') do (
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_time_base=%%v"
             )
             echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
+
             :: 对比参数
-            if not defined first_video_width (
-                set "first_video_width=!current_video_width!"
-            )
-            if not defined first_video_height (
-                set "first_video_height=!current_video_height!"
-            )
-            if not defined first_video_codec (
-                set "first_video_codec=!current_video_codec!"
-            )
-            if not defined first_audio_codec (
-                set "first_audio_codec=!current_audio_codec!"
-            )
-            if not defined first_video_fps (
-                set "first_video_fps=!current_video_fps!"
-            )
-            if not defined first_audio_sample_rate (
-                set "first_audio_sample_rate=!current_audio_sample_rate!"
-            )
-            if not defined first_video_time_base (
-                set "first_video_time_base=!current_video_time_base!"
-            )
+            if not defined first_video_width ( set "first_video_width=!current_video_width!" )
+            if not defined first_video_height ( set "first_video_height=!current_video_height!" )
+            if not defined first_video_codec ( set "first_video_codec=!current_video_codec!" )
+            if not defined first_audio_codec ( set "first_audio_codec=!current_audio_codec!" )
+            if not defined first_video_fps ( set "first_video_fps=!current_video_fps!" )
+            if not defined first_audio_sample_rate ( set "first_audio_sample_rate=!current_audio_sample_rate!" )
+            if not defined first_video_time_base ( set "first_video_time_base=!current_video_time_base!" )
+
             if not "!current_video_width!"=="!first_video_width!" (
                 echo 警告：文件 %%~f 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致！
                 set "file_consistent=0"
@@ -150,16 +138,16 @@ set "file_count=0"
 set "target_video_encoder=libx264"
 set "target_audio_encoder=aac"
 
-if /i "!first_video_codec!"=="AV1" (
-    set "target_video_encoder=libaom-av1"
-) else if /i "!first_video_codec!"=="HEVC" (
-    set "target_video_encoder=libx265"
-) else if /i "!first_video_codec!"=="H265" (
-    set "target_video_encoder=libx265"
-) else if /i "!first_video_codec!"=="AVC" (
-    set "target_video_encoder=libx264"
-) else if /i "!first_video_codec!"=="H264" (
-    set "target_video_encoder=libx264"
+if /i "!first_video_codec!"=="AV1,av01" (
+    set "target_video_encoder=libaom-av1 -tag:v av01"
+) else if /i "!first_video_codec!"=="HEVC,hvc1" (
+    set "target_video_encoder=libx265 -tag:v hvc1"
+) else if /i "!first_video_codec!"=="HEVC,hev1" (
+    set "target_video_encoder=libx265 -tag:v hev1"
+) else if /i "!first_video_codec!"=="H264,avc1" (
+    set "target_video_encoder=libx264 -tag:v avc1"
+) else if /i "!first_video_codec!"=="MPEG4,mp4v" (
+    set "target_video_encoder=mpeg4 -tag:v mp4v"
 ) else (
     echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
     pause
@@ -172,6 +160,10 @@ if /i "!first_audio_codec!"=="AAC,LC" (
     set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
 ) else if /i "!first_audio_codec!"=="MP3,UNKNOWN" (
     set "target_audio_encoder=libmp3lame"
+) else if /i "!first_audio_codec!"=="AC3,UNKNOWN" (
+    set "target_audio_encoder=ac3"
+) else if /i "!first_audio_codec!"=="EAC3,UNKNOWN" (
+    set "target_audio_encoder=eac3"
 ) else (
     echo 警告：未知音频编码 "!first_audio_codec!"，使用默认 aac
     pause
@@ -196,25 +188,25 @@ if "!file_consistent!"=="0" (
             if exist %%f (
                 set /a "file_count+=1"
                 :: 解析参数
-                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 %%f 2^>^&1') do (
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_width=%%v"
                 )
-                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 %%f 2^>^&1') do (
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_height=%%v"
                 )
-                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 %%f 2^>^&1') do (
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_codec=%%v"
                 )
-                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 %%f 2^>^&1') do (
+                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_audio_codec=%%a"
                 )
-                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 %%f 2^>^&1') do (
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_fps=%%v"
                 )
-                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 %%f 2^>^&1') do (
+                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_audio_sample_rate=%%a"
                 )
-                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 %%f 2^>^&1') do (
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_time_base=%%v"
                 )
                 echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
