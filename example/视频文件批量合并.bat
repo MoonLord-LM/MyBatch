@@ -167,8 +167,10 @@ if /i "!first_video_codec!"=="AV1" (
 if /i "!first_audio_codec!"=="AAC,LC" (
     set "target_audio_encoder=aac -profile:a aac_low"
 ) else if /i "!first_audio_codec!"=="AAC,HE-AAC" (
-    set "target_audio_encoder=aac -profile:a aac_he"
-)  else if /i "!first_audio_codec!"=="MP3,UNKNOWN" (
+    set "target_audio_encoder=libfdk_aac -profile:a aac_he"
+) else if /i "!first_audio_codec!"=="AAC,HE-AACv2" (
+    set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
+) else if /i "!first_audio_codec!"=="MP3,UNKNOWN" (
     set "target_audio_encoder=libmp3lame"
 ) else (
     echo 警告：未知音频编码 "!first_audio_codec!"，使用默认 aac
