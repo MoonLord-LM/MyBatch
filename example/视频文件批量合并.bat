@@ -434,8 +434,8 @@ if /i "!first_video_codec!"=="HEVC" (
                     ffmpeg -i "%%~f" ^
                            -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
                            -video_track_timescale "!target_timebase!" ^
-                           -c:v !target_video_encoder! -r "!first_video_fps!" ^
-                           -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
+                           -c:v "libx264" -r "!first_video_fps!" ^
+                           -c:a "aac" -ar "!first_audio_sample_rate!" ^
                            -map_metadata -1 -threads 1 "!temp_file!"
                 )
                 echo file '!temp_file!' >> file_list.txt
