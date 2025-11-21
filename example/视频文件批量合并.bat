@@ -204,7 +204,7 @@ set "target_audio_encoder=aac"
 
 :: H.264 (AVC) Level 对应关系 x10
 :: H.265 (HEVC) Level 对应关系 x30
-if "!first_video_codec!"=="H264" (
+if /i "!first_video_codec!"=="H264" (
            if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
     ) else if /i "!first_video_codec_level!"=="13" ( set "target_video_encoder=!target_video_encoder! -level:v 1.3"
     ) else if /i "!first_video_codec_level!"=="20" ( set "target_video_encoder=!target_video_encoder! -level:v 2.0"
