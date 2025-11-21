@@ -20,7 +20,12 @@ set "file_consistent=1"
 set "first_video_width="
 set "first_video_height="
 set "first_video_codec="
+set "first_video_codec_tag="
+set "first_video_codec_profile="
+set "first_video_codec_level="
+set "first_video_codec_tier="
 set "first_audio_codec="
+set "first_audio_codec_profile="
 set "first_video_fps="
 set "first_audio_sample_rate="
 set "first_video_time_base="
@@ -70,11 +75,30 @@ for /l %%i in (1,1,200) do (
             for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_height=%%v"
             )
-            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_codec=%%v"
             )
-            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "%%f" 2^>^&1') do (
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
+                set "current_video_codec_tag=%%v"
+            )
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=profile -of csv^=p^=0 "%%f" 2^>^&1') do (
+                set "current_video_codec_profile=%%v"
+            )
+            for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=level -of csv^=p^=0 "%%f" 2^>^&1') do (
+                set "current_video_codec_level=%%v"
+            )
+            :: MediaInfo.exe --Inform="Video;%%Format_Profile%%" "%%f"
+            for /f "tokens=*" %%v in ('MediaInfo.exe --Inform^="Video;%%Format_Profile%%" "%%f" 2^>^&1') do (
+                set "temp_profile=%%v"
+                set "temp_profile=!temp_profile:*@=!"
+                set "temp_profile=!temp_profile:*@=!"
+                set "current_video_codec_tier=!temp_profile!"
+            )
+            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_audio_codec=%%a"
+            )
+            for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=profile -of csv^=p^=0 "%%f" 2^>^&1') do (
+                set "current_audio_codec_profile=%%a"
             )
             for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_fps=%%v"
@@ -85,16 +109,26 @@ for /l %%i in (1,1,200) do (
             for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_time_base=%%v"
             )
-            echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
+            set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
+            set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
+            echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率: !current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
 
             :: 对比参数
             if not defined first_video_width ( set "first_video_width=!current_video_width!" )
             if not defined first_video_height ( set "first_video_height=!current_video_height!" )
             if not defined first_video_codec ( set "first_video_codec=!current_video_codec!" )
+            if not defined first_video_codec_tag ( set "first_video_codec_tag=!current_video_codec_tag!" )
+            if not defined first_video_codec_profile ( set "first_video_codec_profile=!current_video_codec_profile!" )
+            if not defined first_video_codec_level ( set "first_video_codec_level=!current_video_codec_level!" )
+            if not defined first_video_codec_tier ( set "first_video_codec_tier=!current_video_codec_tier!" )
             if not defined first_audio_codec ( set "first_audio_codec=!current_audio_codec!" )
+            if not defined first_audio_codec_profile ( set "first_audio_codec_profile=!current_audio_codec_profile!" )
             if not defined first_video_fps ( set "first_video_fps=!current_video_fps!" )
             if not defined first_audio_sample_rate ( set "first_audio_sample_rate=!current_audio_sample_rate!" )
             if not defined first_video_time_base ( set "first_video_time_base=!current_video_time_base!" )
+
+            if not defined first_video_codec_all ( set "first_video_codec_all=!current_video_codec_all!" )
+            if not defined first_audio_codec_all ( set "first_audio_codec_all=!current_audio_codec_all!" )
 
             if not "!current_video_width!"=="!first_video_width!" (
                 echo 警告：文件 %%~f 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致！
@@ -104,12 +138,12 @@ for /l %%i in (1,1,200) do (
                 echo 警告：文件 %%~f 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致！
                 set "file_consistent=0"
             )
-            if not "!current_video_codec!"=="!first_video_codec!" (
-                echo 警告：文件 %%~f 的视频编码 !current_video_codec! 与第一个视频的视频编码 !first_video_codec! 不一致！
+            if not "!current_video_codec_all!"=="!first_video_codec_all!" (
+                echo 警告：文件 %%~f 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致！
                 set "file_consistent=0"
             )
-            if not "!current_audio_codec!"=="!first_audio_codec!" (
-                echo 警告：文件 %%~f 的音频编码 !current_audio_codec! 与第一个视频的音频编码 !first_audio_codec! 不一致！
+            if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
+                echo 警告：文件 %%~f 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致！
                 set "file_consistent=0"
             )
             if not "!current_video_fps!"=="!first_video_fps!" (
@@ -138,36 +172,96 @@ set "file_count=0"
 set "target_video_encoder=libx264"
 set "target_audio_encoder=aac"
 
-if /i "!first_video_codec!"=="AV1,av01" (
-    set "target_video_encoder=libaom-av1 -tag:v av01"
-) else if /i "!first_video_codec!"=="HEVC,hvc1" (
-    set "target_video_encoder=libx265 -tag:v hvc1"
-) else if /i "!first_video_codec!"=="HEVC,hev1" (
-    set "target_video_encoder=libx265 -tag:v hev1"
-) else if /i "!first_video_codec!"=="H264,avc1" (
-    set "target_video_encoder=libx264 -tag:v avc1"
-) else if /i "!first_video_codec!"=="MPEG4,mp4v" (
-    set "target_video_encoder=mpeg4 -tag:v mp4v"
+       if /i "!first_video_codec!"=="AV1" ( set "target_video_encoder=libaom-av1"
+) else if /i "!first_video_codec!"=="HEVC" ( set "target_video_encoder=libx265"
+) else if /i "!first_video_codec!"=="H264" ( set "target_video_encoder=libx264"
+) else if /i "!first_video_codec!"=="MPEG4" ( set "target_video_encoder=mpeg4"
+) else if /i "!first_video_codec!"=="VP9" ( set "target_video_encoder=libvpx-vp9"
+) else if /i "!first_video_codec!"=="VP8" ( set "target_video_encoder=libvpx"
 ) else (
     echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
     pause
 )
-if /i "!first_audio_codec!"=="AAC,LC" (
-    set "target_audio_encoder=aac -profile:a aac_low"
-) else if /i "!first_audio_codec!"=="AAC,HE-AAC" (
-    set "target_audio_encoder=libfdk_aac -profile:a aac_he"
-) else if /i "!first_audio_codec!"=="AAC,HE-AACv2" (
-    set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
-) else if /i "!first_audio_codec!"=="MP3,UNKNOWN" (
-    set "target_audio_encoder=libmp3lame"
-) else if /i "!first_audio_codec!"=="AC3,UNKNOWN" (
-    set "target_audio_encoder=ac3"
-) else if /i "!first_audio_codec!"=="EAC3,UNKNOWN" (
-    set "target_audio_encoder=eac3"
+
+       if /i "!first_video_codec_tag!"=="av01" ( set "target_video_encoder=!target_video_encoder! -tag:v av01"
+) else if /i "!first_video_codec_tag!"=="hvc1" ( set "target_video_encoder=!target_video_encoder! -tag:v hvc1"
+) else if /i "!first_video_codec_tag!"=="hev1" ( set "target_video_encoder=!target_video_encoder! -tag:v hev1"
+) else if /i "!first_video_codec_tag!"=="avc1" ( set "target_video_encoder=!target_video_encoder! -tag:v avc1"
+) else if /i "!first_video_codec_tag!"=="mp4v" ( set "target_video_encoder=!target_video_encoder! -tag:v mp4v"
+) else if /i "!first_video_codec_tag!"=="vp09" ( set "target_video_encoder=!target_video_encoder! -tag:v vp09"
+) else (
+    echo 警告：未知视频编码 "!first_video_codec_tag!"，不使用 Tag
+    pause
+)
+
+       if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
+) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
+) else if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
+) else (
+    echo 警告：未知视频编码 "!first_video_codec_profile!"，使用默认 libx264
+    pause
+)
+
+:: H.264 (AVC) Level 对应关系 x10
+:: H.265 (HEVC) Level 对应关系 x30
+if "!first_video_codec!"=="H264" (
+           if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
+    ) else if /i "!first_video_codec_level!"=="13" ( set "target_video_encoder=!target_video_encoder! -level:v 1.3"
+    ) else if /i "!first_video_codec_level!"=="20" ( set "target_video_encoder=!target_video_encoder! -level:v 2.0"
+    ) else if /i "!first_video_codec_level!"=="30" ( set "target_video_encoder=!target_video_encoder! -level:v 3.0"
+    ) else if /i "!first_video_codec_level!"=="31" ( set "target_video_encoder=!target_video_encoder! -level:v 3.1"
+    ) else if /i "!first_video_codec_level!"=="32" ( set "target_video_encoder=!target_video_encoder! -level:v 3.2"
+    ) else if /i "!first_video_codec_level!"=="40" ( set "target_video_encoder=!target_video_encoder! -level:v 4.0"
+    ) else if /i "!first_video_codec_level!"=="41" ( set "target_video_encoder=!target_video_encoder! -level:v 4.1"
+    ) else if /i "!first_video_codec_level!"=="42" ( set "target_video_encoder=!target_video_encoder! -level:v 4.2"
+    ) else if /i "!first_video_codec_level!"=="50" ( set "target_video_encoder=!target_video_encoder! -level:v 5.0"
+    ) else if /i "!first_video_codec_level!"=="51" ( set "target_video_encoder=!target_video_encoder! -level:v 5.1"
+    ) else if /i "!first_video_codec_level!"=="52" ( set "target_video_encoder=!target_video_encoder! -level:v 5.2"
+    ) else (
+        echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
+        pause
+    )
+) else if /i "!first_video_codec!"=="HEVC" (
+           if /i "!first_video_codec_level!"=="30" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=10"
+    ) else if /i "!first_video_codec_level!"=="60" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=20"
+    ) else if /i "!first_video_codec_level!"=="63" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=21"
+    ) else if /i "!first_video_codec_level!"=="90" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=30"
+    ) else if /i "!first_video_codec_level!"=="93" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=31"
+    ) else if /i "!first_video_codec_level!"=="120" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=40"
+    ) else if /i "!first_video_codec_level!"=="123" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=41"
+    ) else if /i "!first_video_codec_level!"=="150" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=50"
+    ) else if /i "!first_video_codec_level!"=="153" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=51"
+    ) else if /i "!first_video_codec_level!"=="156" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=52"
+    ) else (
+        echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
+        pause
+    )
+           if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder!:high-tier=0^""
+    ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder!:high-tier=1^""
+    ) else (
+        echo 警告：未知视频编码 "!first_video_codec_tier!"，不使用 Tier
+        pause
+    )
+) else (
+    echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
+    pause
+)
+
+       if /i "!first_audio_codec_all!"=="AAC LC" ( set "target_audio_encoder=aac -profile:a aac_low"
+) else if /i "!first_audio_codec_all!"=="AAC HE-AAC" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he"
+) else if /i "!first_audio_codec_all!"=="AAC HE-AACv2" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
+) else if /i "!first_audio_codec_all!"=="MP3 UNKNOWN" ( set "target_audio_encoder=libmp3lame"
+) else if /i "!first_audio_codec_all!"=="AC3 UNKNOWN" ( set "target_audio_encoder=ac3"
+) else if /i "!first_audio_codec_all!"=="EAC3 UNKNOWN" ( set "target_audio_encoder=eac3"
 ) else (
     echo 警告：未知音频编码 "!first_audio_codec!"，使用默认 aac
     pause
 )
+
+echo.
+echo 当前视频编码参数 !target_video_encoder!
+echo 当前音频编码参数 !target_audio_encoder!
+echo.
 
 :: 参数不一致进行转码
 if "!file_consistent!"=="0" (
@@ -194,11 +288,30 @@ if "!file_consistent!"=="0" (
                 for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_height=%%v"
                 )
-                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_codec=%%v"
                 )
-                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "%%f" 2^>^&1') do (
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
+                    set "current_video_codec_tag=%%v"
+                )
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=profile -of csv^=p^=0 "%%f" 2^>^&1') do (
+                    set "current_video_codec_profile=%%v"
+                )
+                for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=level -of csv^=p^=0 "%%f" 2^>^&1') do (
+                    set "current_video_codec_level=%%v"
+                )
+                :: MediaInfo.exe --Inform="Video;%%Format_Profile%%" "%%f"
+                for /f "tokens=*" %%v in ('MediaInfo.exe --Inform^="Video;%%Format_Profile%%" "%%f" 2^>^&1') do (
+                    set "temp_profile=%%v"
+                    set "temp_profile=!temp_profile:*@=!"
+                    set "temp_profile=!temp_profile:*@=!"
+                    set "current_video_codec_tier=!temp_profile!"
+                )
+                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_audio_codec=%%a"
+                )
+                for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=profile -of csv^=p^=0 "%%f" 2^>^&1') do (
+                    set "current_audio_codec_profile=%%a"
                 )
                 for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_fps=%%v"
@@ -209,17 +322,19 @@ if "!file_consistent!"=="0" (
                 for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_time_base=%%v"
                 )
-                echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec!，帧率: !current_video_fps!，音频编码：!current_audio_codec!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
+                set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
+                set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
+                echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率: !current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
                 :: 对比参数
                 set "temp_file=%%~nf_!suffix_safe!.mp4"
                 set "video_consistent=1"
                 set "audio_consistent=1"
                 if not "!current_video_width!"=="!first_video_width!" ( set "video_consistent=0" && echo "video_width - !current_video_width! - !first_video_width!" )
                 if not "!current_video_height!"=="!first_video_height!" ( set "video_consistent=0" && echo "video_height - !current_video_height! - !first_video_height!" )
-                if not "!current_video_codec!"=="!first_video_codec!" ( set "video_consistent=0" && echo "video_codec - !current_video_codec! - !first_video_codec!" )
+                if not "!current_video_codec_all!"=="!first_video_codec_all!" ( set "video_consistent=0" && echo "video_codec - !current_video_codec_all! - !first_video_codec_all!" )
                 if not "!current_video_fps!"=="!first_video_fps!" ( set "video_consistent=0" && echo "video_fps - !current_video_fps! - !first_video_fps!" )
                 if not "!current_video_time_base!"=="!first_video_time_base!" ( set "video_consistent=0" && echo "video_time_base - !current_video_time_base! - !first_video_time_base!" )
-                if not "!current_audio_codec!"=="!first_audio_codec!" ( set "audio_consistent=0" && echo "audio_codec - !current_audio_codec! - !first_audio_codec!" )
+                if not "!current_audio_codec_all!"=="!first_audio_codec_all!" ( set "audio_consistent=0" && echo "audio_codec - !current_audio_codec_all! - !first_audio_codec_all!" )
                 if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" ( set "audio_consistent=0" && echo "audio_sample_rate - !current_audio_sample_rate! - !first_audio_sample_rate!" )
                 echo 视频信息一致：!video_consistent!，音频信息一致：!audio_consistent!
 

@@ -25,7 +25,7 @@ set "last_audio_codec10="
 echo 检查视频编码格式...
 for %%f in ("*.mp4") do (
     if exist %%f (
-        for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
+        for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string^,profile^,level -of csv^=p^=0 "%%f" 2^>^&1') do (
             set "current_video_codec=%%v"
             if "!last_video_codec1!"=="" (
                 echo new_video_codec: !current_video_codec! - %%f
