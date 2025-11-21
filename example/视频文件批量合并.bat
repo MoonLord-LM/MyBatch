@@ -263,20 +263,20 @@ echo 当前视频编码参数 !target_video_encoder!
 echo 当前音频编码参数 !target_audio_encoder!
 echo.
 
+rem 为了做文件名安全，把 '/' 和 '\' 替换为 '_' 用于临时文件名
+set "suffix_safe=!first_video_fps!_!first_audio_sample_rate!"
+set "suffix_safe=!suffix_safe:/=_!"
+set "suffix_safe=!suffix_safe:\=_!"
+
 :: 参数不一致进行转码
 if "!file_consistent!"=="0" (
     echo.
     echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行！
     echo.
     pause
-    echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
+    echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
 
-    rem 为了做文件名安全，把 '/' 和 '\' 替换为 '_' 用于临时文件名
-    set "suffix_safe=!first_video_fps!_!first_audio_sample_rate!"
-    set "suffix_safe=!suffix_safe:/=_!"
-    set "suffix_safe=!suffix_safe:\=_!"
     echo. > file_list.txt
-
     for /l %%i in (1,1,200) do (
         for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
             if exist %%f (
@@ -413,6 +413,69 @@ if exist "merged.mp4" (
 
 if exist "merged.mp4" ( del "merged.mp4" )
 if exist "file_list.txt" ( del "file_list.txt" )
+
+if /i "!first_video_codec!"=="HEVC" (
+    echo.
+    echo H265 编码较为复杂，直接拼接容易出现音画不同步问题，可以尝试进行全量的重新编码
+    echo.
+    echo 请选择按 Enter 键开始转码，或者关闭窗口结束运行！
+    echo.
+    pause
+    echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
+
+    echo. > file_list.txt
+    for /l %%i in (1,1,200) do (
+        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
+            if exist %%f (
+                set "temp_file=%%~nf_!suffix_safe!.mp4"
+                set "target_timebase=!first_video_time_base:1/=!"
+                echo 重新编码视频: %%~f - !temp_file!
+                if not exist "!temp_file!" (
+                    ffmpeg -i "%%~f" ^
+                           -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
+                           -video_track_timescale "!target_timebase!" ^
+                           -c:v !target_video_encoder! -r "!first_video_fps!" ^
+                           -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
+                           -map_metadata -1 -threads 1 "!temp_file!"
+                )
+                echo file '!temp_file!' >> file_list.txt
+            )
+        )
+    )
+
+    echo 正在合并视频...
+    ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
+
+    if exist "merged.mp4" (
+        :: 查找封面文件，优先使用 PNG 格式
+        set "cover_file="
+        if exist "0.png" (
+            set "cover_file=0.png"
+        ) else if exist "00.png" (
+            set "cover_file=00.png"
+        ) else if exist "000.png" (
+            set "cover_file=000.png"
+        ) else if exist "0.jpg" (
+            set "cover_file=0.jpg"
+        ) else if exist "00.jpg" (
+            set "cover_file=00.jpg"
+        ) else if exist "000.jpg" (
+            set "cover_file=000.jpg"
+        )
+        if defined cover_file (
+            echo 正在添加封面 [!cover_file!]...
+            ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "final2.mp4"
+        ) else (
+            echo 封面文件（0.png、0.jpg 等）不存在，不添加封面
+            move /Y "merged.mp4" "final2.mp4"
+        )
+        echo 合并完成，已生成 final2.mp4 文件
+    ) else (
+        echo 合并失败，请检查报错信息
+        pause
+        exit
+    )
+)
 
 pause
 exit
