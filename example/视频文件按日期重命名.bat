@@ -8,7 +8,7 @@
 
 
 
-for %%f in (*.mp4 *.flv) do (
+for %%f in (*.mp4 *.mkv *.flv *.mov) do (
     :: 必须在 disabledelayedexpansion 范围内，才能获取完整的包含 ^ 和 ! 符号的文件名
     set "filename=%%f"
     setlocal enabledelayedexpansion
