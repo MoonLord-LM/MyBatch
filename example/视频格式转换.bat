@@ -1,28 +1,48 @@
 @echo off
+chcp 65001 > nul
 setlocal enabledelayedexpansion
 
-:: ÒÀÀµµÄÈí¼şÈçÏÂ
+:: ä¾èµ–çš„è½¯ä»¶å¦‚ä¸‹
 :: https://github.com/FFmpeg/FFmpeg
 
 
 
 :loop
-echo Çë½«Òª´¦ÀíµÄÊÓÆµÎÄ¼şÍÏ×§µ½´°¿ÚÖĞ
-set /p "url="
+    echo è¯·å°†è¦å¤„ç†çš„è§†é¢‘æ–‡ä»¶æ‹–æ‹½åˆ°çª—å£ä¸­ï¼Œæˆ–è€…è¾“å…¥ mkvã€flvã€mov æ¥è‡ªåŠ¨è½¬æ¢å½“å‰ç›®å½•ä¸‹æ‰€æœ‰çš„è¾“å…¥æ ¼å¼çš„è§†é¢‘
 
-if "!url!"=="" (
-    echo ÊäÈë²»ÄÜÎª¿Õ£¬ÇëÖØĞÂÊäÈë
-    goto loop
-)
+    set /p "input="
+    if "!input!"=="" (
+        echo è¾“å…¥ä¸èƒ½ä¸ºç©ºï¼Œè¯·é‡æ–°è¾“å…¥
+        goto loop
+    ) else if /i "!input!"=="mkv" (
+        for %%f in (*.mkv) do (
+            set "file_name=%%f"
+            echo å¼€å§‹å¤„ç† !file_name!
+            ffmpeg.exe -i "!file_name!" -c copy -map_metadata 0 -movflags +faststart "!file_name!.new.mp4"
+            echo.
+        )
+        goto loop
+    ) else if /i "!input!"=="flv" (
+        for %%f in (*.flv) do (
+            set "file_name=%%f"
+            echo å¼€å§‹å¤„ç† !file_name!
+            ffmpeg.exe -i "!file_name!" -c copy -map_metadata 0 -movflags +faststart "!file_name!.new.mp4"
+            echo.
+        )
+        goto loop
+    ) else if /i "!input!"=="mov" (
+        for %%f in (*.mov) do (
+            set "file_name=%%f"
+            echo å¼€å§‹å¤„ç† !file_name!
+            ffmpeg.exe -i "!file_name!" -c copy -map_metadata 0 -movflags +faststart "!file_name!.new.mp4"
+            echo.
+        )
+        goto loop
+    ) else (
+        ffmpeg.exe -i "!input!" -c copy -map_metadata 0 -movflags +faststart "!input!.new.mp4"
+    )
+    echo.
 
-:: Æô¶¯Ò»¸öĞÂµÄÃüÁîĞĞ´°¿Ú
-echo ÔÚĞÂ´°¿ÚÖĞ´¦Àí: !url!
-set command=ffmpeg.exe ^
- -i !url! ^
- -c copy ^
- -movflags +faststart ^
- !url!.new.mp4
-start "" cmd /c "%command%"
-echo.
+
 
 goto loop
