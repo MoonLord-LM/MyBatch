@@ -16,6 +16,7 @@ echo.
     echo 请输入视频文件路径或 mp4：
 
     set /p "url="
+    set "url=!url:"=!"
     if "!url!"=="" (
         echo 输入不能为空，请重新输入
         goto loop
@@ -24,7 +25,7 @@ echo.
     if /i "!url!"=="mp4" (
         for %%f in (*.mp4) do (
             echo 处理: %%f
-            ffmpeg.exe -i "%%f" -c copy -map 0 -map -0:t "temp_%%~nxf" -hide_banner -loglevel error
+            ffmpeg.exe -i "%%f" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "temp_%%~nxf" -hide_banner -loglevel error
             if !errorlevel! equ 0 (
                 del /f /q "%%f" >nul
                 ren "temp_%%~nxf" "%%f" >nul
@@ -36,9 +37,9 @@ echo.
             echo.
         )
     ) else if exist "!url!" (
-        echo 处理: "!url!"
-        for %%f in ("!url!") do (
-            ffmpeg.exe -i "%%f" -c copy -map 0 -map -0:t "%%~dpnf.nocover.mp4" -hide_banner -loglevel error
+        for /f "delims=" %%f in ("!url!") do (
+            echo 处理: %%f
+            ffmpeg.exe -i "%%f" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "%%~dpnf.nocover.mp4" -hide_banner -loglevel error
         )
     ) else (
         echo 错误的输入
