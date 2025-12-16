@@ -24,21 +24,21 @@ echo.
     if /i "!url!"=="mp4" (
         for %%f in (*.mp4) do (
             echo 处理: %%f
-            ffmpeg.exe -i "%%f" -c copy -map 0 -map -0:t "temp_%%f"
+            ffmpeg.exe -i "%%f" -c copy -map 0 -map -0:t "temp_%%~nxf" -hide_banner -loglevel error
             if !errorlevel! equ 0 (
                 del /f /q "%%f" >nul
-                ren "temp_%%f" "%%f" >nul
+                ren "temp_%%~nxf" "%%f" >nul
                 echo 封面移除成功
             ) else (
                 echo 封面移除失败
-                if exist "temp_%%f" del /f /q "temp_%%f" > nul
+                if exist "temp_%%~nxf" del /f /q "temp_%%~nxf" > nul
             )
             echo.
         )
     ) else if exist "!url!" (
         echo 处理: "!url!"
         for %%f in ("!url!") do (
-            ffmpeg.exe -i "%%f" -c copy -map 0 -map -0:t "%%~dpnf.nocover.mp4"
+            ffmpeg.exe -i "%%f" -c copy -map 0 -map -0:t "%%~dpnf.nocover.mp4" -hide_banner -loglevel error
         )
     ) else (
         echo 错误的输入
