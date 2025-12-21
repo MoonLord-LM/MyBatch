@@ -382,6 +382,20 @@ echo 正在合并视频...
 ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
 
 if exist "merged.mp4" (
+    :: 兼容 webp 封面，自动转为 PNG 格式
+    if not exist "0.png" if exist "0.webp" (
+        echo 检测到封面 0.webp，正在转换为 0.png...
+        ffmpeg -y -i "0.webp" "0.png"
+    )
+    if not exist "00.png" if exist "00.webp" (
+        echo 检测到封面 00.webp，正在转换为 00.png...
+        ffmpeg -y -i "00.webp" "00.png"
+    )
+    if not exist "000.png" if exist "000.webp" (
+        echo 检测到封面 000.webp，正在转换为 000.png...
+        ffmpeg -y -i "000.webp" "000.png"
+    )
+
     :: 查找封面文件，优先使用 PNG 格式
     set "cover_file="
     if exist "0.png" (
