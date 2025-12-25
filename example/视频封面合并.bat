@@ -1,18 +1,17 @@
 @echo off
 chcp 65001
+setlocal enabledelayedexpansion
 
 echo.
 echo 扫描当前目录下的 mp4 文件，将同名的 png/jpg 图片设置为视频封面
 echo.
 
-setlocal
 set "processed=0"
 set "skipped=0"
-setlocal enabledelayedexpansion
 
 for %%f in (*.mp4) do (
     :: 必须在 disabledelayedexpansion 范围内，才能获取完整的包含 ^ 和 ! 符号的文件名
-    endlocal
+    setlocal disabledelayedexpansion
     set "filename=%%f"
     set "base_name=%%~nf"
     setlocal enabledelayedexpansion

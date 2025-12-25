@@ -1,4 +1,6 @@
 @echo off
+chcp 65001
+setlocal enabledelayedexpansion
 
 :: 将视频文件的创建日期添加到文件名开头，方便排序
 
@@ -10,7 +12,7 @@
 
 for %%f in (*.mp4 *.mkv *.flv *.mov) do (
     :: 必须在 disabledelayedexpansion 范围内，才能获取完整的包含 ^ 和 ! 符号的文件名
-    endlocal
+    setlocal disabledelayedexpansion
     set "filename=%%f"
     setlocal enabledelayedexpansion
     echo 文件名 "!filename!"
@@ -34,7 +36,7 @@ for %%f in (*.mp4 *.mkv *.flv *.mov) do (
     ) else (
         echo 警告：未找到 date 信息 "!filename!"
         :: 使用 ffprobe 获取 creation_time 标签
-        for /f "tokens=*" %%t in ('ffprobe.exe -v quiet -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "%%f" 2^>nul') do (
+        for /f "tokens=*" %%t in ('ffprobe.exe -v quiet -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!filename!" 2^>nul') do (
             set "creation_time=%%t"
         )
         if not defined creation_time (
