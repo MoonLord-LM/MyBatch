@@ -40,6 +40,8 @@ echo.
                 if exist "temp_!file_name!" del /f /q "temp_!file_name!" > nul
             )
             echo.
+            endlocal
+            endlocal
         )
     ) else if exist "!url!" (
         for /f "delims=" %%f in ("!url!") do (
