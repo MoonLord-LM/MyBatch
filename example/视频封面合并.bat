@@ -12,16 +12,16 @@ set "skipped=0"
 for %%f in (*.mp4) do (
     :: 必须在 disabledelayedexpansion 范围内，才能获取完整的包含 ^ 和 ! 符号的文件名
     setlocal disabledelayedexpansion
-    set "filename=%%f"
+    set "file_name=%%f"
     set "base_name=%%~nf"
     setlocal enabledelayedexpansion
 
     set "cover_file="
     set "has_cover=0"
 
-    echo 检查 "!filename!"
+    echo 检查 "!file_name!"
 
-    for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!filename!" 2^>nul') do (
+    for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!file_name!" 2^>nul') do (
         if "%%c"=="1" (
             set "has_cover=1"
         )
@@ -39,16 +39,16 @@ for %%f in (*.mp4) do (
 
         if defined cover_file (
             echo 设置封面: !cover_file!
-            ffmpeg -i "!filename!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "temp_!filename!" -hide_banner -loglevel error
+            ffmpeg -i "!file_name!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "temp_!file_name!" -hide_banner -loglevel error
 
             if !errorlevel! equ 0 (
-                del /f /q "!filename!" > nul
-                ren "temp_!filename!" "!filename!" > nul
+                del /f /q "!file_name!" > nul
+                ren "temp_!file_name!" "!file_name!" > nul
                 echo 设置成功
                 set /a "processed+=1"
             ) else (
                 echo 设置失败
-                if exist "temp_!filename!" del /f /q "temp_!filename!" > nul
+                if exist "temp_!file_name!" del /f /q "temp_!file_name!" > nul
             )
         ) else (
             echo 跳过，未找到封面图片
