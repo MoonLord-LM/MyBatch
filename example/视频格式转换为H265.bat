@@ -13,6 +13,7 @@ set "convert=-vf yadif -c:v libx265 -preset veryslow -crf 12 -c:a aac -b:a 320k"
     echo 请将要处理的视频文件拖拽到窗口中，或者输入 mkv、flv、mov、vob 来自动转换当前目录下所有的输入格式的视频
 
     set /p "input="
+    set "input=!input:"=!"
     if "!input!"=="" (
         echo 输入不能为空，请重新输入
         goto loop

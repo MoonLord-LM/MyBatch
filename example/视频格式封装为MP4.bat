@@ -11,6 +11,7 @@ setlocal enabledelayedexpansion
     echo 请将要处理的视频文件拖拽到窗口中，或者输入 mkv、flv、mov、vob 来自动封装当前目录下所有的输入格式的视频
 
     set /p "input="
+    set "input=!input:"=!"
     if "!input!"=="" (
         echo 输入不能为空，请重新输入
         goto loop
