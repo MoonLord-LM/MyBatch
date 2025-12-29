@@ -7,9 +7,13 @@ setlocal enabledelayedexpansion
 
 echo.
 echo 本脚本用于移除 MKV 视频的内嵌字幕
+echo. >nul
 echo 可输入文件路径，将想要处理的视频文件拖拽到窗口中
+echo. >nul
 echo 或者输入 mkv 这三个字母，以处理当前目录下的所有 mkv 文件
 echo.
+
+
 
 :loop
     set "processed=0"

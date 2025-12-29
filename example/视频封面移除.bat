@@ -7,7 +7,9 @@ setlocal enabledelayedexpansion
 
 echo.
 echo 本脚本用于移除视频封面
+echo. >nul
 echo 可输入文件路径，将想要处理的视频文件拖拽到窗口中
+echo. >nul
 echo 或者输入 mp4 这三个字母，以处理当前目录下的所有 mp4 文件
 echo.
 
