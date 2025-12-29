@@ -21,8 +21,10 @@ for %%f in (*.mkv) do (
 
     echo 检查 "!file_name!"
 
-    for /f "delims=" %%c in ('ffprobe -v error -select_streams s -show_entries stream_index -of csv^=p^=0 "!file_name!" 2^>nul') do (
-        set "has_sub=1"
+    for /f "delims=" %%s in ('ffprobe -v error -show_entries stream^=codec_type -of csv^=p^=0 "!file_name!" 2^>nul') do (
+        if "%%s"=="subtitle" (
+            set "has_sub=1"
+        )
     )
 
     if "!has_sub!"=="1" (
