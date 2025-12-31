@@ -441,7 +441,7 @@ if /i "!first_video_codec!"=="HEVC" (
     for /l %%i in (1,1,200) do (
         for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
             if exist %%f (
-                set "temp_file=%%~nf_!suffix_safe!.mp4"
+                set "temp_file=%%~nf_h264_!suffix_safe!.mp4"
                 set "target_timebase=!first_video_time_base:1/=!"
                 echo ÷ÿ–¬±‡¬Î ”∆µ: %%~f - !temp_file!
                 if not exist "!temp_file!" (
@@ -490,6 +490,9 @@ if /i "!first_video_codec!"=="HEVC" (
         exit
     )
 )
+
+if exist "merged.mp4" ( del "merged.mp4" )
+if exist "file_list.txt" ( del "file_list.txt" )
 
 pause
 exit
