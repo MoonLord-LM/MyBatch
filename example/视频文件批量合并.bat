@@ -44,7 +44,7 @@ for /l %%i in (1,1,200) do (
 
 echo 正在清理 Time code 资源...
 for /l %%i in (1,1,200) do (
-    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
+    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
         if exist %%f (
             for /f "delims=" %%d in ('ffprobe -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
                 if "%%d"=="tmcd" (
@@ -64,7 +64,7 @@ for /l %%i in (1,1,200) do (
 echo 正在生成文件列表...
 echo. > file_list.txt
 for /l %%i in (1,1,200) do (
-    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
+    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
         if exist %%f (
             echo file '%%~f' >> file_list.txt
             set /a "file_count+=1"
@@ -278,7 +278,7 @@ if "!file_consistent!"=="0" (
 
     echo. > file_list.txt
     for /l %%i in (1,1,200) do (
-        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
+        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
             if exist %%f (
                 set /a "file_count+=1"
                 :: 解析参数
@@ -439,7 +439,7 @@ if /i "!first_video_codec!"=="HEVC" (
 
     echo. > file_list.txt
     for /l %%i in (1,1,200) do (
-        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4") do (
+        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
             if exist %%f (
                 set "temp_file=%%~nf_h264_!suffix_safe!.mp4"
                 set "target_timebase=!first_video_time_base:1/=!"
