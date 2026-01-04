@@ -1,18 +1,19 @@
 @echo off
+chcp 65001
 setlocal enabledelayedexpansion
 
-:: ÒÀÀµµÄÈí¼şÈçÏÂ
+:: ä¾èµ–çš„è½¯ä»¶å¦‚ä¸‹
 :: https://github.com/FFmpeg/FFmpeg
 
 
 
-echo ±¾½Å±¾ÓÃÓÚ½«·âÃæÎÄ¼ş 00.jpg ÒÔ¼°ÊÓÆµÎÄ¼ş 01.mp4¡¢02.mp4... ×î¶àµ½ 200.mp4 Æ´½ÓºÏ²¢Îª final.mp4 ÎÄ¼ş
-echo »á¾¡¿ÉÄÜ±£ÁôÔ­Ê¼ÊÓÆµÖÊÁ¿£¬±ØÒªµÄÊ±ºò½øĞĞ×ªÂë
-echo ×ªÂë¹ı³ÌÊ¹ÓÃµ¥Ïß³ÌÔËĞĞ£¬·ÀÖ¹Õ¼ÓÃ¹ı¶à CPU ×ÊÔ´
+echo æœ¬è„šæœ¬ç”¨äºå°†å°é¢æ–‡ä»¶ 00.jpg ä»¥åŠè§†é¢‘æ–‡ä»¶ 01.mp4ã€02.mp4... æœ€å¤šåˆ° 200.mp4 æ‹¼æ¥åˆå¹¶ä¸º final.mp4 æ–‡ä»¶
+echo ä¼šå°½å¯èƒ½ä¿ç•™åŸå§‹è§†é¢‘è´¨é‡ï¼Œå¿…è¦çš„æ—¶å€™è¿›è¡Œè½¬ç 
+echo è½¬ç è¿‡ç¨‹ä½¿ç”¨å•çº¿ç¨‹è¿è¡Œï¼Œé˜²æ­¢å ç”¨è¿‡å¤š CPU èµ„æº
 echo.
 
-echo ºÏ²¢ÊÓÆµÊ±£¬ĞèÒª±£Ö¤Ã¿¶ÎÊÓÆµµÄÊÓÆµ±àÂë¡¢ÊÓÆµÖ¡ÂÊ¡¢ÒôÆµ±àÂë¡¢ÒôÆµ²ÉÑùÂÊ²ÎÊıÒ»ÖÂ£¬±ÜÃâÒô»­²»Ò»ÖÂÎÊÌâ
-echo ºÏ²¢ÊÓÆµÊ±£¬ĞèÒªÊ¹ÓÃ -map_metadata -1 ²ÎÊı£¬ÇåÀíµô QuickTime TC ¸ñÊ½µÄ Time code ×ÊÔ´£¬±ÜÃâÒô»­²»Ò»ÖÂÎÊÌâ
+echo åˆå¹¶è§†é¢‘æ—¶ï¼Œéœ€è¦ä¿è¯æ¯æ®µè§†é¢‘çš„è§†é¢‘ç¼–ç ã€è§†é¢‘å¸§ç‡ã€éŸ³é¢‘ç¼–ç ã€éŸ³é¢‘é‡‡æ ·ç‡å‚æ•°ä¸€è‡´ï¼Œé¿å…éŸ³ç”»ä¸ä¸€è‡´é—®é¢˜
+echo åˆå¹¶è§†é¢‘æ—¶ï¼Œéœ€è¦ä½¿ç”¨ -map_metadata -1 å‚æ•°ï¼Œæ¸…ç†æ‰ QuickTime TC æ ¼å¼çš„ Time code èµ„æºï¼Œé¿å…éŸ³ç”»ä¸ä¸€è‡´é—®é¢˜
 echo.
 
 set "file_count=0"
@@ -30,7 +31,7 @@ set "first_video_fps="
 set "first_audio_sample_rate="
 set "first_video_time_base="
 
-echo ÕıÔÚ¼ì²éºÍ´¦Àí mkv ¸ñÊ½µÄÊÓÆµ...
+echo æ­£åœ¨æ£€æŸ¥å’Œå¤„ç† mkv æ ¼å¼çš„è§†é¢‘...
 for /l %%i in (1,1,200) do (
     for %%f in ("%%i.mkv" "0%%i.mkv" "00%%i.mkv") do (
         if exist %%f (
@@ -42,13 +43,13 @@ for /l %%i in (1,1,200) do (
     )
 )
 
-echo ÕıÔÚÇåÀí Time code ×ÊÔ´...
+echo æ­£åœ¨æ¸…ç† Time code èµ„æº...
 for /l %%i in (1,1,200) do (
-    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "µÚ%%i¼¯.mp4" "µÚ0%%i¼¯.mp4" "µÚ00%%i¼¯.mp4") do (
+    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "ç¬¬%%ié›†.mp4" "ç¬¬0%%ié›†.mp4" "ç¬¬00%%ié›†.mp4") do (
         if exist %%f (
             for /f "delims=" %%d in ('ffprobe -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
                 if "%%d"=="tmcd" (
-                    echo ¾¯¸æ: ÎÄ¼ş°üº¬ Time code Á÷£¬ĞèÒª½øĞĞÇåÀí
+                    echo è­¦å‘Š: æ–‡ä»¶åŒ…å« Time code æµï¼Œéœ€è¦è¿›è¡Œæ¸…ç†
                     set "temp_file=%%~nf_tmp.mp4"
                     if not exist "!temp_file!" (
                         ffmpeg -i "%%~f" -c copy -map_metadata -1 -threads 1 "!temp_file!"
@@ -61,14 +62,14 @@ for /l %%i in (1,1,200) do (
     )
 )
 
-echo ÕıÔÚÉú³ÉÎÄ¼şÁĞ±í...
+echo æ­£åœ¨ç”Ÿæˆæ–‡ä»¶åˆ—è¡¨...
 echo. > file_list.txt
 for /l %%i in (1,1,200) do (
-    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "µÚ%%i¼¯.mp4" "µÚ0%%i¼¯.mp4" "µÚ00%%i¼¯.mp4") do (
+    for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "ç¬¬%%ié›†.mp4" "ç¬¬0%%ié›†.mp4" "ç¬¬00%%ié›†.mp4") do (
         if exist %%f (
             echo file '%%~f' >> file_list.txt
             set /a "file_count+=1"
-            :: ½âÎö²ÎÊı
+            :: è§£æå‚æ•°
             for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "%%f" 2^>^&1') do (
                 set "current_video_width=%%v"
             )
@@ -111,9 +112,9 @@ for /l %%i in (1,1,200) do (
             )
             set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
             set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
-            echo µÚ !file_count! ¸öÊÓÆµ£¬·Ö±æÂÊ£º!current_video_width!x!current_video_height!£¬ÊÓÆµ±àÂë£º!current_video_codec_all!£¬Ö¡ÂÊ: !current_video_fps!£¬ÒôÆµ±àÂë£º!current_audio_codec_all!£¬ÒôÆµ²ÉÑùÂÊ: !current_audio_sample_rate!£¬ÊÓÆµÊ±¼ä»ù×¼£º!current_video_time_base!
+            echo ç¬¬ !file_count! ä¸ªè§†é¢‘ï¼Œåˆ†è¾¨ç‡ï¼š!current_video_width!x!current_video_height!ï¼Œè§†é¢‘ç¼–ç ï¼š!current_video_codec_all!ï¼Œå¸§ç‡: !current_video_fps!ï¼ŒéŸ³é¢‘ç¼–ç ï¼š!current_audio_codec_all!ï¼ŒéŸ³é¢‘é‡‡æ ·ç‡: !current_audio_sample_rate!ï¼Œè§†é¢‘æ—¶é—´åŸºå‡†ï¼š!current_video_time_base!
 
-            :: ¶Ô±È²ÎÊı
+            :: å¯¹æ¯”å‚æ•°
             if not defined first_video_width ( set "first_video_width=!current_video_width!" )
             if not defined first_video_height ( set "first_video_height=!current_video_height!" )
             if not defined first_video_codec ( set "first_video_codec=!current_video_codec!" )
@@ -131,31 +132,31 @@ for /l %%i in (1,1,200) do (
             if not defined first_audio_codec_all ( set "first_audio_codec_all=!current_audio_codec_all!" )
 
             if not "!current_video_width!"=="!first_video_width!" (
-                echo ¾¯¸æ£ºÎÄ¼ş %%~f µÄÊÓÆµ·Ö±æÂÊ¿í¶È !current_video_width! ÓëµÚÒ»¸öÊÓÆµµÄ·Ö±æÂÊ¿í¶È !first_video_width! ²»Ò»ÖÂ£¡
+                echo è­¦å‘Šï¼šæ–‡ä»¶ %%~f çš„è§†é¢‘åˆ†è¾¨ç‡å®½åº¦ !current_video_width! ä¸ç¬¬ä¸€ä¸ªè§†é¢‘çš„åˆ†è¾¨ç‡å®½åº¦ !first_video_width! ä¸ä¸€è‡´ï¼
                 set "file_consistent=0"
             )
             if not "!current_video_height!"=="!first_video_height!" (
-                echo ¾¯¸æ£ºÎÄ¼ş %%~f µÄÊÓÆµ·Ö±æÂÊ¸ß¶È !current_video_height! ÓëµÚÒ»¸öÊÓÆµµÄÊÓÆµ·Ö±æÂÊ¸ß¶È !first_video_height! ²»Ò»ÖÂ£¡
+                echo è­¦å‘Šï¼šæ–‡ä»¶ %%~f çš„è§†é¢‘åˆ†è¾¨ç‡é«˜åº¦ !current_video_height! ä¸ç¬¬ä¸€ä¸ªè§†é¢‘çš„è§†é¢‘åˆ†è¾¨ç‡é«˜åº¦ !first_video_height! ä¸ä¸€è‡´ï¼
                 set "file_consistent=0"
             )
             if not "!current_video_codec_all!"=="!first_video_codec_all!" (
-                echo ¾¯¸æ£ºÎÄ¼ş %%~f µÄÊÓÆµ±àÂë !current_video_codec_all! ÓëµÚÒ»¸öÊÓÆµµÄÊÓÆµ±àÂë !first_video_codec_all! ²»Ò»ÖÂ£¡
+                echo è­¦å‘Šï¼šæ–‡ä»¶ %%~f çš„è§†é¢‘ç¼–ç  !current_video_codec_all! ä¸ç¬¬ä¸€ä¸ªè§†é¢‘çš„è§†é¢‘ç¼–ç  !first_video_codec_all! ä¸ä¸€è‡´ï¼
                 set "file_consistent=0"
             )
             if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
-                echo ¾¯¸æ£ºÎÄ¼ş %%~f µÄÒôÆµ±àÂë !current_audio_codec_all! ÓëµÚÒ»¸öÊÓÆµµÄÒôÆµ±àÂë !first_audio_codec_all! ²»Ò»ÖÂ£¡
+                echo è­¦å‘Šï¼šæ–‡ä»¶ %%~f çš„éŸ³é¢‘ç¼–ç  !current_audio_codec_all! ä¸ç¬¬ä¸€ä¸ªè§†é¢‘çš„éŸ³é¢‘ç¼–ç  !first_audio_codec_all! ä¸ä¸€è‡´ï¼
                 set "file_consistent=0"
             )
             if not "!current_video_fps!"=="!first_video_fps!" (
-                echo ¾¯¸æ£ºÎÄ¼ş %%~f µÄÖ¡ÂÊ !current_video_fps! ÓëµÚÒ»¸öÊÓÆµµÄÖ¡ÂÊ !first_video_fps! ²»Ò»ÖÂ£¡
+                echo è­¦å‘Šï¼šæ–‡ä»¶ %%~f çš„å¸§ç‡ !current_video_fps! ä¸ç¬¬ä¸€ä¸ªè§†é¢‘çš„å¸§ç‡ !first_video_fps! ä¸ä¸€è‡´ï¼
                 set "file_consistent=0"
             )
             if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
-                echo ¾¯¸æ£ºÎÄ¼ş %%~f µÄÒôÆµ²ÉÑùÂÊ !current_audio_sample_rate! ÓëµÚÒ»¸öÊÓÆµµÄÒôÆµ²ÉÑùÂÊ !first_audio_sample_rate! ²»Ò»ÖÂ£¡
+                echo è­¦å‘Šï¼šæ–‡ä»¶ %%~f çš„éŸ³é¢‘é‡‡æ ·ç‡ !current_audio_sample_rate! ä¸ç¬¬ä¸€ä¸ªè§†é¢‘çš„éŸ³é¢‘é‡‡æ ·ç‡ !first_audio_sample_rate! ä¸ä¸€è‡´ï¼
                 set "file_consistent=0"
             )
             if not "!current_video_time_base!"=="!first_video_time_base!" (
-                echo ¾¯¸æ£ºÎÄ¼ş %%~f µÄÊÓÆµÊ±¼ä»ù×¼ !current_video_time_base! ÓëµÚÒ»¸öÊÓÆµµÄÊÓÆµÊ±¼ä»ù×¼ !first_video_time_base! ²»Ò»ÖÂ£¡
+                echo è­¦å‘Šï¼šæ–‡ä»¶ %%~f çš„è§†é¢‘æ—¶é—´åŸºå‡† !current_video_time_base! ä¸ç¬¬ä¸€ä¸ªè§†é¢‘çš„è§†é¢‘æ—¶é—´åŸºå‡† !first_video_time_base! ä¸ä¸€è‡´ï¼
                 set "file_consistent=0"
             )
         )
@@ -163,7 +164,7 @@ for /l %%i in (1,1,200) do (
 )
 
 if "!file_count!"=="0" (
-    echo Ã»ÓĞÕÒµ½ÈÎºÎÊÓÆµÎÄ¼ş£¨01.mp4 µ½ 200.mp4£©
+    echo æ²¡æœ‰æ‰¾åˆ°ä»»ä½•è§†é¢‘æ–‡ä»¶ï¼ˆ01.mp4 åˆ° 200.mp4ï¼‰
     pause
     exit
 )
@@ -179,7 +180,7 @@ set "target_audio_encoder=aac"
 ) else if /i "!first_video_codec!"=="VP9" ( set "target_video_encoder=libvpx-vp9"
 ) else if /i "!first_video_codec!"=="VP8" ( set "target_video_encoder=libvpx"
 ) else (
-    echo ¾¯¸æ£ºÎ´ÖªÊÓÆµ±àÂë "!first_video_codec!"£¬Ê¹ÓÃÄ¬ÈÏ libx264
+    echo è­¦å‘Šï¼šæœªçŸ¥è§†é¢‘ç¼–ç  "!first_video_codec!"ï¼Œä½¿ç”¨é»˜è®¤ libx264
     pause
 )
 
@@ -190,7 +191,7 @@ set "target_audio_encoder=aac"
 ) else if /i "!first_video_codec_tag!"=="mp4v" ( set "target_video_encoder=!target_video_encoder! -tag:v mp4v"
 ) else if /i "!first_video_codec_tag!"=="vp09" ( set "target_video_encoder=!target_video_encoder! -tag:v vp09"
 ) else (
-    echo ¾¯¸æ£ºÎ´ÖªÊÓÆµ±àÂë "!first_video_codec_tag!"£¬²»Ê¹ÓÃ Tag
+    echo è­¦å‘Šï¼šæœªçŸ¥è§†é¢‘ç¼–ç  "!first_video_codec_tag!"ï¼Œä¸ä½¿ç”¨ Tag
     pause
 )
 
@@ -198,12 +199,12 @@ set "target_audio_encoder=aac"
 ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
 ) else if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
 ) else (
-    echo ¾¯¸æ£ºÎ´ÖªÊÓÆµ±àÂë "!first_video_codec_profile!"£¬Ê¹ÓÃÄ¬ÈÏ libx264
+    echo è­¦å‘Šï¼šæœªçŸ¥è§†é¢‘ç¼–ç  "!first_video_codec_profile!"ï¼Œä½¿ç”¨é»˜è®¤ libx264
     pause
 )
 
-:: H.264 (AVC) Level ¶ÔÓ¦¹ØÏµ x10
-:: H.265 (HEVC) Level ¶ÔÓ¦¹ØÏµ x30
+:: H.264 (AVC) Level å¯¹åº”å…³ç³» x10
+:: H.265 (HEVC) Level å¯¹åº”å…³ç³» x30
 if /i "!first_video_codec!"=="H264" (
            if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
     ) else if /i "!first_video_codec_level!"=="13" ( set "target_video_encoder=!target_video_encoder! -level:v 1.3"
@@ -218,7 +219,7 @@ if /i "!first_video_codec!"=="H264" (
     ) else if /i "!first_video_codec_level!"=="51" ( set "target_video_encoder=!target_video_encoder! -level:v 5.1"
     ) else if /i "!first_video_codec_level!"=="52" ( set "target_video_encoder=!target_video_encoder! -level:v 5.2"
     ) else (
-        echo ¾¯¸æ£ºÎ´ÖªÊÓÆµ±àÂë "!first_video_codec_level!"£¬²»Ê¹ÓÃ Level
+        echo è­¦å‘Šï¼šæœªçŸ¥è§†é¢‘ç¼–ç  "!first_video_codec_level!"ï¼Œä¸ä½¿ç”¨ Level
         pause
     )
 ) else if /i "!first_video_codec!"=="HEVC" (
@@ -233,17 +234,17 @@ if /i "!first_video_codec!"=="H264" (
     ) else if /i "!first_video_codec_level!"=="153" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=51"
     ) else if /i "!first_video_codec_level!"=="156" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=52"
     ) else (
-        echo ¾¯¸æ£ºÎ´ÖªÊÓÆµ±àÂë "!first_video_codec_level!"£¬²»Ê¹ÓÃ Level
+        echo è­¦å‘Šï¼šæœªçŸ¥è§†é¢‘ç¼–ç  "!first_video_codec_level!"ï¼Œä¸ä½¿ç”¨ Level
         pause
     )
            if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder!:high-tier=0^""
     ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder!:high-tier=1^""
     ) else (
-        echo ¾¯¸æ£ºÎ´ÖªÊÓÆµ±àÂë "!first_video_codec_tier!"£¬²»Ê¹ÓÃ Tier
+        echo è­¦å‘Šï¼šæœªçŸ¥è§†é¢‘ç¼–ç  "!first_video_codec_tier!"ï¼Œä¸ä½¿ç”¨ Tier
         pause
     )
 ) else (
-    echo ¾¯¸æ£ºÎ´ÖªÊÓÆµ±àÂë "!first_video_codec_level!"£¬²»Ê¹ÓÃ Level
+    echo è­¦å‘Šï¼šæœªçŸ¥è§†é¢‘ç¼–ç  "!first_video_codec_level!"ï¼Œä¸ä½¿ç”¨ Level
     pause
 )
 
@@ -254,34 +255,34 @@ if /i "!first_video_codec!"=="H264" (
 ) else if /i "!first_audio_codec_all!"=="AC3 UNKNOWN" ( set "target_audio_encoder=ac3"
 ) else if /i "!first_audio_codec_all!"=="EAC3 UNKNOWN" ( set "target_audio_encoder=eac3"
 ) else (
-    echo ¾¯¸æ£ºÎ´ÖªÒôÆµ±àÂë "!first_audio_codec!"£¬Ê¹ÓÃÄ¬ÈÏ aac
+    echo è­¦å‘Šï¼šæœªçŸ¥éŸ³é¢‘ç¼–ç  "!first_audio_codec!"ï¼Œä½¿ç”¨é»˜è®¤ aac
     pause
 )
 
 echo.
-echo µ±Ç°ÊÓÆµ±àÂë²ÎÊı !target_video_encoder!
-echo µ±Ç°ÒôÆµ±àÂë²ÎÊı !target_audio_encoder!
+echo å½“å‰è§†é¢‘ç¼–ç å‚æ•° !target_video_encoder!
+echo å½“å‰éŸ³é¢‘ç¼–ç å‚æ•° !target_audio_encoder!
 echo.
 
-rem ÎªÁË×öÎÄ¼şÃû°²È«£¬°Ñ '/' ºÍ '\' Ìæ»»Îª '_' ÓÃÓÚÁÙÊ±ÎÄ¼şÃû
+rem ä¸ºäº†åšæ–‡ä»¶åå®‰å…¨ï¼ŒæŠŠ '/' å’Œ '\' æ›¿æ¢ä¸º '_' ç”¨äºä¸´æ—¶æ–‡ä»¶å
 set "suffix_safe=!first_video_fps!_!first_audio_sample_rate!"
 set "suffix_safe=!suffix_safe:/=_!"
 set "suffix_safe=!suffix_safe:\=_!"
 
-:: ²ÎÊı²»Ò»ÖÂ½øĞĞ×ªÂë
+:: å‚æ•°ä¸ä¸€è‡´è¿›è¡Œè½¬ç 
 if "!file_consistent!"=="0" (
     echo.
-    echo ·Ö¶ÎÊÓÆµµÄ²ÎÊı²»Ò»ÖÂ£¬ÇëÑ¡Ôñ°´ Enter ¼ü¿ªÊ¼×ªÂë£¬»òÕß¹Ø±Õ´°¿Ú½áÊøÔËĞĞ£¡
+    echo åˆ†æ®µè§†é¢‘çš„å‚æ•°ä¸ä¸€è‡´ï¼Œè¯·é€‰æ‹©æŒ‰ Enter é”®å¼€å§‹è½¬ç ï¼Œæˆ–è€…å…³é—­çª—å£ç»“æŸè¿è¡Œï¼
     echo.
     pause
-    echo ÕıÔÚ×ªÂëÊÓÆµ£¬Ä¿±ê·Ö±æÂÊ£º!first_video_width!x!first_video_height!£¬ÊÓÆµ±àÂë£º!first_video_codec_all!£¬Ä¿±êÖ¡ÂÊ: !first_video_fps!£¬Ä¿±êÒôÆµ±àÂë£º!first_audio_codec_all!£¬Ä¿±êÒôÆµ²ÉÑùÂÊ: !first_audio_sample_rate!£¬Ä¿±êÊÓÆµÊ±¼ä»ù×¼£º!first_video_time_base!...
+    echo æ­£åœ¨è½¬ç è§†é¢‘ï¼Œç›®æ ‡åˆ†è¾¨ç‡ï¼š!first_video_width!x!first_video_height!ï¼Œè§†é¢‘ç¼–ç ï¼š!first_video_codec_all!ï¼Œç›®æ ‡å¸§ç‡: !first_video_fps!ï¼Œç›®æ ‡éŸ³é¢‘ç¼–ç ï¼š!first_audio_codec_all!ï¼Œç›®æ ‡éŸ³é¢‘é‡‡æ ·ç‡: !first_audio_sample_rate!ï¼Œç›®æ ‡è§†é¢‘æ—¶é—´åŸºå‡†ï¼š!first_video_time_base!...
 
     echo. > file_list.txt
     for /l %%i in (1,1,200) do (
-        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "µÚ%%i¼¯.mp4" "µÚ0%%i¼¯.mp4" "µÚ00%%i¼¯.mp4") do (
+        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "ç¬¬%%ié›†.mp4" "ç¬¬0%%ié›†.mp4" "ç¬¬00%%ié›†.mp4") do (
             if exist %%f (
                 set /a "file_count+=1"
-                :: ½âÎö²ÎÊı
+                :: è§£æå‚æ•°
                 for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "%%f" 2^>^&1') do (
                     set "current_video_width=%%v"
                 )
@@ -324,8 +325,8 @@ if "!file_consistent!"=="0" (
                 )
                 set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
                 set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
-                echo µÚ !file_count! ¸öÊÓÆµ£¬·Ö±æÂÊ£º!current_video_width!x!current_video_height!£¬ÊÓÆµ±àÂë£º!current_video_codec_all!£¬Ö¡ÂÊ: !current_video_fps!£¬ÒôÆµ±àÂë£º!current_audio_codec_all!£¬ÒôÆµ²ÉÑùÂÊ: !current_audio_sample_rate!£¬ÊÓÆµÊ±¼ä»ù×¼£º!current_video_time_base!
-                :: ¶Ô±È²ÎÊı
+                echo ç¬¬ !file_count! ä¸ªè§†é¢‘ï¼Œåˆ†è¾¨ç‡ï¼š!current_video_width!x!current_video_height!ï¼Œè§†é¢‘ç¼–ç ï¼š!current_video_codec_all!ï¼Œå¸§ç‡: !current_video_fps!ï¼ŒéŸ³é¢‘ç¼–ç ï¼š!current_audio_codec_all!ï¼ŒéŸ³é¢‘é‡‡æ ·ç‡: !current_audio_sample_rate!ï¼Œè§†é¢‘æ—¶é—´åŸºå‡†ï¼š!current_video_time_base!
+                :: å¯¹æ¯”å‚æ•°
                 set "temp_file=%%~nf_!suffix_safe!.mp4"
                 set "video_consistent=1"
                 set "audio_consistent=1"
@@ -336,11 +337,11 @@ if "!file_consistent!"=="0" (
                 if not "!current_video_time_base!"=="!first_video_time_base!" ( set "video_consistent=0" && echo "video_time_base - !current_video_time_base! - !first_video_time_base!" )
                 if not "!current_audio_codec_all!"=="!first_audio_codec_all!" ( set "audio_consistent=0" && echo "audio_codec - !current_audio_codec_all! - !first_audio_codec_all!" )
                 if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" ( set "audio_consistent=0" && echo "audio_sample_rate - !current_audio_sample_rate! - !first_audio_sample_rate!" )
-                echo ÊÓÆµĞÅÏ¢Ò»ÖÂ£º!video_consistent!£¬ÒôÆµĞÅÏ¢Ò»ÖÂ£º!audio_consistent!
+                echo è§†é¢‘ä¿¡æ¯ä¸€è‡´ï¼š!video_consistent!ï¼ŒéŸ³é¢‘ä¿¡æ¯ä¸€è‡´ï¼š!audio_consistent!
 
                 set "target_timebase=!first_video_time_base:1/=!"
                 if not "!video_consistent!"=="1" (
-                    echo ÖØĞÂ±àÂëÊÓÆµ: %%~f - !temp_file!
+                    echo é‡æ–°ç¼–ç è§†é¢‘: %%~f - !temp_file!
                     if not "!audio_consistent!"=="1" (
                         if not exist "!temp_file!" (
                             ffmpeg -i "%%~f" ^
@@ -362,7 +363,7 @@ if "!file_consistent!"=="0" (
                     )
                     echo file '!temp_file!' >> file_list.txt
                 ) else if not "!audio_consistent!"=="1" (
-                    echo ÖØĞÂ±àÂëÊÓÆµ: %%~f - !temp_file!
+                    echo é‡æ–°ç¼–ç è§†é¢‘: %%~f - !temp_file!
                     if not exist "!temp_file!" (
                         ffmpeg -i "%%~f" ^
                                -c:v copy ^
@@ -378,25 +379,25 @@ if "!file_consistent!"=="0" (
     )
 )
 
-echo ÕıÔÚºÏ²¢ÊÓÆµ...
+echo æ­£åœ¨åˆå¹¶è§†é¢‘...
 ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
 
 if exist "merged.mp4" (
-    :: ¼æÈİ webp ·âÃæ£¬×Ô¶¯×ªÎª PNG ¸ñÊ½
+    :: å…¼å®¹ webp å°é¢ï¼Œè‡ªåŠ¨è½¬ä¸º PNG æ ¼å¼
     if not exist "0.png" if exist "0.webp" (
-        echo ¼ì²âµ½·âÃæ 0.webp£¬ÕıÔÚ×ª»»Îª 0.png...
+        echo æ£€æµ‹åˆ°å°é¢ 0.webpï¼Œæ­£åœ¨è½¬æ¢ä¸º 0.png...
         ffmpeg -y -i "0.webp" "0.png"
     )
     if not exist "00.png" if exist "00.webp" (
-        echo ¼ì²âµ½·âÃæ 00.webp£¬ÕıÔÚ×ª»»Îª 00.png...
+        echo æ£€æµ‹åˆ°å°é¢ 00.webpï¼Œæ­£åœ¨è½¬æ¢ä¸º 00.png...
         ffmpeg -y -i "00.webp" "00.png"
     )
     if not exist "000.png" if exist "000.webp" (
-        echo ¼ì²âµ½·âÃæ 000.webp£¬ÕıÔÚ×ª»»Îª 000.png...
+        echo æ£€æµ‹åˆ°å°é¢ 000.webpï¼Œæ­£åœ¨è½¬æ¢ä¸º 000.png...
         ffmpeg -y -i "000.webp" "000.png"
     )
 
-    :: ²éÕÒ·âÃæÎÄ¼ş£¬ÓÅÏÈÊ¹ÓÃ PNG ¸ñÊ½
+    :: æŸ¥æ‰¾å°é¢æ–‡ä»¶ï¼Œä¼˜å…ˆä½¿ç”¨ PNG æ ¼å¼
     set "cover_file="
     if exist "0.png" (
         set "cover_file=0.png"
@@ -412,15 +413,15 @@ if exist "merged.mp4" (
         set "cover_file=000.jpg"
     )
     if defined cover_file (
-        echo ÕıÔÚÌí¼Ó·âÃæ [!cover_file!]...
+        echo æ­£åœ¨æ·»åŠ å°é¢ [!cover_file!]...
         ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "final.mp4"
     ) else (
-        echo ·âÃæÎÄ¼ş£¨0.png¡¢0.jpg µÈ£©²»´æÔÚ£¬²»Ìí¼Ó·âÃæ
+        echo å°é¢æ–‡ä»¶ï¼ˆ0.pngã€0.jpg ç­‰ï¼‰ä¸å­˜åœ¨ï¼Œä¸æ·»åŠ å°é¢
         move /Y "merged.mp4" "final.mp4"
     )
-    echo ºÏ²¢Íê³É£¬ÒÑÉú³É final.mp4 ÎÄ¼ş
+    echo åˆå¹¶å®Œæˆï¼Œå·²ç”Ÿæˆ final.mp4 æ–‡ä»¶
 ) else (
-    echo ºÏ²¢Ê§°Ü£¬Çë¼ì²é±¨´íĞÅÏ¢
+    echo åˆå¹¶å¤±è´¥ï¼Œè¯·æ£€æŸ¥æŠ¥é”™ä¿¡æ¯
     pause
     exit
 )
@@ -430,20 +431,20 @@ if exist "file_list.txt" ( del "file_list.txt" )
 
 if /i "!first_video_codec!"=="HEVC" (
     echo.
-    echo H265 ±àÂë½ÏÎª¸´ÔÓ£¬Ö±½ÓÆ´½ÓÈİÒ×³öÏÖÒô»­²»Í¬²½ÎÊÌâ£¬¿ÉÒÔ³¢ÊÔ½øĞĞÈ«Á¿µÄÖØĞÂ±àÂë
+    echo H265 ç¼–ç è¾ƒä¸ºå¤æ‚ï¼Œç›´æ¥æ‹¼æ¥å®¹æ˜“å‡ºç°éŸ³ç”»ä¸åŒæ­¥é—®é¢˜ï¼Œå¯ä»¥å°è¯•è¿›è¡Œå…¨é‡çš„é‡æ–°ç¼–ç 
     echo.
-    echo ÇëÑ¡Ôñ°´ Enter ¼ü¿ªÊ¼×ªÂë£¬»òÕß¹Ø±Õ´°¿Ú½áÊøÔËĞĞ£¡
+    echo è¯·é€‰æ‹©æŒ‰ Enter é”®å¼€å§‹è½¬ç ï¼Œæˆ–è€…å…³é—­çª—å£ç»“æŸè¿è¡Œï¼
     echo.
     pause
-    echo ÕıÔÚ×ªÂëÊÓÆµ£¬Ä¿±ê·Ö±æÂÊ£º!first_video_width!x!first_video_height!£¬ÊÓÆµ±àÂë£º!first_video_codec_all!£¬Ä¿±êÖ¡ÂÊ: !first_video_fps!£¬Ä¿±êÒôÆµ±àÂë£º!first_audio_codec_all!£¬Ä¿±êÒôÆµ²ÉÑùÂÊ: !first_audio_sample_rate!£¬Ä¿±êÊÓÆµÊ±¼ä»ù×¼£º!first_video_time_base!...
+    echo æ­£åœ¨è½¬ç è§†é¢‘ï¼Œç›®æ ‡åˆ†è¾¨ç‡ï¼š!first_video_width!x!first_video_height!ï¼Œè§†é¢‘ç¼–ç ï¼š!first_video_codec_all!ï¼Œç›®æ ‡å¸§ç‡: !first_video_fps!ï¼Œç›®æ ‡éŸ³é¢‘ç¼–ç ï¼š!first_audio_codec_all!ï¼Œç›®æ ‡éŸ³é¢‘é‡‡æ ·ç‡: !first_audio_sample_rate!ï¼Œç›®æ ‡è§†é¢‘æ—¶é—´åŸºå‡†ï¼š!first_video_time_base!...
 
     echo. > file_list.txt
     for /l %%i in (1,1,200) do (
-        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "µÚ%%i¼¯.mp4" "µÚ0%%i¼¯.mp4" "µÚ00%%i¼¯.mp4") do (
+        for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "ç¬¬%%ié›†.mp4" "ç¬¬0%%ié›†.mp4" "ç¬¬00%%ié›†.mp4") do (
             if exist %%f (
                 set "temp_file=%%~nf_h264_!suffix_safe!.mp4"
                 set "target_timebase=!first_video_time_base:1/=!"
-                echo ÖØĞÂ±àÂëÊÓÆµ: %%~f - !temp_file!
+                echo é‡æ–°ç¼–ç è§†é¢‘: %%~f - !temp_file!
                 if not exist "!temp_file!" (
                     ffmpeg -i "%%~f" ^
                            -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
@@ -457,11 +458,11 @@ if /i "!first_video_codec!"=="HEVC" (
         )
     )
 
-    echo ÕıÔÚºÏ²¢ÊÓÆµ...
+    echo æ­£åœ¨åˆå¹¶è§†é¢‘...
     ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
 
     if exist "merged.mp4" (
-        :: ²éÕÒ·âÃæÎÄ¼ş£¬ÓÅÏÈÊ¹ÓÃ PNG ¸ñÊ½
+        :: æŸ¥æ‰¾å°é¢æ–‡ä»¶ï¼Œä¼˜å…ˆä½¿ç”¨ PNG æ ¼å¼
         set "cover_file="
         if exist "0.png" (
             set "cover_file=0.png"
@@ -477,15 +478,15 @@ if /i "!first_video_codec!"=="HEVC" (
             set "cover_file=000.jpg"
         )
         if defined cover_file (
-            echo ÕıÔÚÌí¼Ó·âÃæ [!cover_file!]...
+            echo æ­£åœ¨æ·»åŠ å°é¢ [!cover_file!]...
             ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "final2.mp4"
         ) else (
-            echo ·âÃæÎÄ¼ş£¨0.png¡¢0.jpg µÈ£©²»´æÔÚ£¬²»Ìí¼Ó·âÃæ
+            echo å°é¢æ–‡ä»¶ï¼ˆ0.pngã€0.jpg ç­‰ï¼‰ä¸å­˜åœ¨ï¼Œä¸æ·»åŠ å°é¢
             move /Y "merged.mp4" "final2.mp4"
         )
-        echo ºÏ²¢Íê³É£¬ÒÑÉú³É final2.mp4 ÎÄ¼ş
+        echo åˆå¹¶å®Œæˆï¼Œå·²ç”Ÿæˆ final2.mp4 æ–‡ä»¶
     ) else (
-        echo ºÏ²¢Ê§°Ü£¬Çë¼ì²é±¨´íĞÅÏ¢
+        echo åˆå¹¶å¤±è´¥ï¼Œè¯·æ£€æŸ¥æŠ¥é”™ä¿¡æ¯
         pause
         exit
     )
