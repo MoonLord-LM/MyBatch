@@ -2,64 +2,64 @@
 chcp 65001
 setlocal enabledelayedexpansion
 
-:: ½«ÊÓÆµÎÄ¼şµÄ´´½¨ÈÕÆÚÌí¼Óµ½ÎÄ¼şÃû¿ªÍ·£¬·½±ãÅÅĞò
+:: å°†è§†é¢‘æ–‡ä»¶çš„åˆ›å»ºæ—¥æœŸæ·»åŠ åˆ°æ–‡ä»¶åå¼€å¤´ï¼Œæ–¹ä¾¿æ’åº
 
-:: ÒÀÀµµÄÈí¼ş ffprobe.exe
+:: ä¾èµ–çš„è½¯ä»¶ ffprobe.exe
 :: https://github.com/FFmpeg/FFmpeg
-:: ffprobe.exe -v quiet -select_streams v -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 + ÎÄ¼şÃû
+:: ffprobe.exe -v quiet -select_streams v -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 + æ–‡ä»¶å
 
 
 
 for %%f in (*.mp4 *.mkv *.flv *.mov) do (
-    :: ±ØĞëÔÚ disabledelayedexpansion ·¶Î§ÄÚ£¬²ÅÄÜ»ñÈ¡ÍêÕûµÄ°üº¬ ^ ºÍ ! ·ûºÅµÄÎÄ¼şÃû
+    :: å¿…é¡»åœ¨ disabledelayedexpansion èŒƒå›´å†…ï¼Œæ‰èƒ½è·å–å®Œæ•´çš„åŒ…å« ^ å’Œ ! ç¬¦å·çš„æ–‡ä»¶å
     setlocal disabledelayedexpansion
     set "filename=%%f"
     setlocal enabledelayedexpansion
-    echo ÎÄ¼şÃû "!filename!"
+    echo æ–‡ä»¶å "!filename!"
 
-    :: Ê¹ÓÃ ffprobe »ñÈ¡ date ±êÇ©
+    :: ä½¿ç”¨ ffprobe è·å– date æ ‡ç­¾
     for /f "delims=" %%x in ('ffprobe.exe -v quiet -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "%cd%\!filename!" 2^>^&1') do (
-        echo ´´½¨Ê±¼ä date ±êÇ© "%%x"
+        echo åˆ›å»ºæ—¶é—´ date æ ‡ç­¾ "%%x"
         set "filedate=%%x"
     )
 
-    :: ¼ì²éÊÇ·ñ»ñÈ¡µ½ÁËÈÕÆÚ
+    :: æ£€æŸ¥æ˜¯å¦è·å–åˆ°äº†æ—¥æœŸ
     if not "!filedate!" == "" (
-        :: Èç¹ûÎÄ¼şÃûÒÔÈÕÆÚ¿ªÍ·£¬ÔòÌø¹ıÖØÃüÃû
+        :: å¦‚æœæ–‡ä»¶åä»¥æ—¥æœŸå¼€å¤´ï¼Œåˆ™è·³è¿‡é‡å‘½å
         echo !filename! | findstr /b /c:!filedate! >nul
         if !errorlevel! == 1 (
-            echo ÎÄ¼şÃûĞŞ¸ÄÎª "!filedate! !filename!"
+            echo æ–‡ä»¶åä¿®æ”¹ä¸º "!filedate! !filename!"
             ren "!filename!" "!filedate! !filename!"
         ) else (
-            echo ÎÄ¼şÃûÒÑ°üº¬ÈÕÆÚ
+            echo æ–‡ä»¶åå·²åŒ…å«æ—¥æœŸ
         )
     ) else (
-        echo ¾¯¸æ£ºÎ´ÕÒµ½ date ĞÅÏ¢ "!filename!"
-        :: Ê¹ÓÃ ffprobe »ñÈ¡ creation_time ±êÇ©
+        echo è­¦å‘Šï¼šæœªæ‰¾åˆ° date ä¿¡æ¯ "!filename!"
+        :: ä½¿ç”¨ ffprobe è·å– creation_time æ ‡ç­¾
         for /f "tokens=*" %%t in ('ffprobe.exe -v quiet -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!filename!" 2^>nul') do (
             set "creation_time=%%t"
         )
         if not defined creation_time (
-            echo ¾¯¸æ£ºÎ´ÕÒµ½ creation_time ĞÅÏ¢£¬Ìø¹ı´ËÎÄ¼ş
+            echo è­¦å‘Šï¼šæœªæ‰¾åˆ° creation_time ä¿¡æ¯ï¼Œè·³è¿‡æ­¤æ–‡ä»¶
         ) else (
-            :: Ê¾Àı 2000-01-01T00:00:00.000000Z
+            :: ç¤ºä¾‹ 2000-01-01T00:00:00.000000Z
             set "suffix_part1=!creation_time:~19,8!"
             set "suffix_part2=!creation_time:~-8!"
 
             if not "!suffix_part1!"==".000000Z" (
-                echo ¾¯¸æ£ºÊ±¼ä¸ñÊ½²»ÕıÈ·£¬Ìø¹ı´ËÎÄ¼ş
+                echo è­¦å‘Šï¼šæ—¶é—´æ ¼å¼ä¸æ­£ç¡®ï¼Œè·³è¿‡æ­¤æ–‡ä»¶
             ) else if not "!suffix_part2!"==".000000Z" (
-                echo ¾¯¸æ£ºÊ±¼ä¸ñÊ½²»ÕıÈ·£¬Ìø¹ı´ËÎÄ¼ş
+                echo è­¦å‘Šï¼šæ—¶é—´æ ¼å¼ä¸æ­£ç¡®ï¼Œè·³è¿‡æ­¤æ–‡ä»¶
             ) else (
                 set "filedate=!creation_time:~0,10!
                 set "filedate=!filedate:-=!"
-                echo ´´½¨Ê±¼ä creation_time ±êÇ© "!filedate!"
+                echo åˆ›å»ºæ—¶é—´ creation_time æ ‡ç­¾ "!filedate!"
                 echo !filename! | findstr /b /c:!filedate! >nul
                 if !errorlevel! == 1 (
-                    echo ÎÄ¼şÃûĞŞ¸ÄÎª "!filedate! !filename!"
+                    echo æ–‡ä»¶åä¿®æ”¹ä¸º "!filedate! !filename!"
                     ren "!filename!" "!filedate! !filename!"
                 ) else (
-                    echo ÎÄ¼şÃûÒÑ°üº¬ÈÕÆÚ
+                    echo æ–‡ä»¶åå·²åŒ…å«æ—¥æœŸ
                 )
             )
         )
