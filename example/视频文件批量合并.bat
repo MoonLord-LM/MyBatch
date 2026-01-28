@@ -50,7 +50,18 @@ echo 正在清理 Time code 资源...
 for /l %%i in (1,1,200) do (
     for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
         if exist %%f (
+            ffmpeg -v error -i "%%f" -map 0 -f null - 2>nul
+            if errorlevel 1 (
+                echo.
+                echo 文件 %%f 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行！
+                pause
+                ffmpeg -v error -i "%%f" -map 0 -f null -
+                pause
+                exit
+            )
+
             for /f "delims=" %%d in ('ffprobe -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%f" 2^>^&1') do (
+                echo %%d
                 if "%%d"=="tmcd" (
                     echo 警告: 文件包含 Time code 流，需要进行清理
                     set "temp_file=%%~nf_tmp.mp4"
