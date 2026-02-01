@@ -6,6 +6,7 @@ setlocal enabledelayedexpansion
 :: 依赖的软件如下
 :: https://github.com/yt-dlp/yt-dlp
 :: https://github.com/FFmpeg/FFmpeg
+:: https://github.com/denoland/deno
 
 
 

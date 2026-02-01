@@ -6,6 +6,7 @@ setlocal enabledelayedexpansion
 :: 依赖的软件如下
 :: https://github.com/yt-dlp/yt-dlp
 :: https://github.com/FFmpeg/FFmpeg
+:: https://github.com/denoland/deno
 
 :: 当前文件夹下必须有 www.youtube.com_cookies.txt 文件用于登录
 :: 获取 Cookie 的插件如下
