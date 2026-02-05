@@ -66,6 +66,8 @@ for %%f in (*.mp4 *.mkv *.flv *.mov) do (
     )
 
     echo.
+    endlocal
+    endlocal
 )
 
 
