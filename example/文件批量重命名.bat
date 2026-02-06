@@ -66,6 +66,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "avmans.com-"
     call :new_name_replace "bbs2048.org@"
     call :new_name_replace "bbs.yzkof.com"
+    call :new_name_replace "FC2-PPV-" "FC2PPV-"
     call :new_name_replace "kcf9.com@"
     call :new_name_replace "kckc11.com@"
     call :new_name_replace "kckc16.com@"
