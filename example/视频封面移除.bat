@@ -45,37 +45,40 @@ goto loop
 :process_file
     :: 必须在 disabledelayedexpansion 范围内，才能获取完整的包含 ^ 和 ! 符号的文件名
     setlocal disabledelayedexpansion
-    set "file_name=%~1"
+    set "file_path=%~1"
+    set "dir_path=%~dp1"
     set "base_name=%~n1"
+    set "ext_name=%~x1"
     setlocal enabledelayedexpansion
 
-    echo 处理: "!file_name!"
+    echo 处理: "!file_path!"
 
     :: 先检查是否存在封面
     set "has_cover=0"
-    for /f "delims=" %%c in ('ffprobe.exe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!file_name!" 2^>nul') do (
+    for /f "delims=" %%c in ('ffprobe.exe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!file_path!" 2^>nul') do (
         if "%%c"=="1" (
             set "has_cover=1"
         )
     )
+
     if "!has_cover!"=="0" (
-        echo 无封面，跳过："!file_name!"
+        echo 无封面，跳过："!file_path!"
     ) else (
-        ren "!file_name!" "!base_name!.bak.mp4" >nul
+        set "backup_path=!dir_path!!base_name!.bak!ext_name!"
+        move /y "!file_path!" "!backup_path!" >nul
         if !errorlevel! equ 0 (
-            :: ffmpeg.exe -i "!base_name!.bak.mp4" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "!file_name!" -hide_banner -loglevel error
-            ffmpeg.exe -i "!base_name!.bak.mp4" -c copy -map 0 -map -0:v:attached_pic "!file_name!" -hide_banner -loglevel error
+            ffmpeg.exe -i "!backup_path!" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "!file_path!" -hide_banner -loglevel error
             if !errorlevel! equ 0 (
-                :: del /f /q "!base_name!.bak.mp4" >nul
-                echo 封面移除成功："!file_name!"
+                :: del /f /q "!backup_path!" >nul
+                echo 封面移除成功："!file_path!"
             ) else (
-                if not exist "!file_name!" (
-                    ren "!base_name!.bak.mp4" "!file_name!" >nul
+                if not exist "!file_path!" (
+                    move /y "!backup_path!" "!file_path!" >nul
                 )
-                echo 封面移除失败："!file_name!"
+                echo 封面移除失败："!file_path!"
             )
         ) else (
-            echo 备份失败，跳过："!file_name!"
+            echo 备份失败，跳过："!file_path!"
         )
     )
 
