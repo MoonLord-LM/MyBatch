@@ -16,43 +16,72 @@ echo.
 
 
 :loop
-    set "processed=0"
-    set "skipped=0"
     echo 请输入视频文件路径或 mp4：
 
-    set /p "url="
-    set "url=!url:"=!"
-    if "!url!"=="" (
+    set /p "path="
+    set "path=!path:"=!"
+    if "!path!"=="" (
         echo 输入不能为空，请重新输入
         goto loop
     )
 
-    if /i "!url!"=="mp4" (
+    if /i "!path!"=="mp4" (
         for %%f in (*.mp4) do (
             :: 必须在 disabledelayedexpansion 范围内，才能获取完整的包含 ^ 和 ! 符号的文件名
             setlocal disabledelayedexpansion
-            set "file_name=%%f"
+            set "file_name=%%~f"
+            set "base_name=%%~nf"
             setlocal enabledelayedexpansion
 
             echo 处理: "!file_name!"
-            ffmpeg.exe -i "!file_name!" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "temp_!file_name!" -hide_banner -loglevel error
+            ren "!file_name!" "!base_name!.bak.mp4" >nul
             if !errorlevel! equ 0 (
-                del /f /q "!file_name!" >nul
-                ren "temp_!file_name!" "!file_name!" >nul
-                set /a "processed+=1"
-                echo 封面移除成功
+                ffmpeg.exe -i "!base_name!.bak.mp4" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "!file_name!" -hide_banner -loglevel error
+                if !errorlevel! equ 0 (
+                    :: del /f /q "!base_name!.bak.mp4" >nul
+                    echo 封面移除成功："!file_name!"
+                ) else (
+                    if not exist "!file_name!" (
+                        ren "!base_name!.bak.mp4" "!file_name!" >nul
+                    )
+                    echo 封面移除失败："!file_name!"
+                )
             ) else (
-                echo 封面移除失败
-                if exist "temp_!file_name!" del /f /q "temp_!file_name!" > nul
+                echo 备份失败，跳过操作："!file_name!"
             )
+
             echo.
-            endlocal & set "processed=!processed!" & set "skipped=!skipped!" & echo !processed!-!skipped!
-            endlocal & set "processed=%processed%" & set "skipped=%skipped%" & echo %processed%-%skipped%
+            endlocal
+            endlocal
         )
-    ) else if exist "!url!" (
-        for /f "delims=" %%f in ("!url!") do (
-            echo 处理: "%%f"
-            ffmpeg.exe -i "%%f" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "%%~dpnf.nocover.mp4" -hide_banner -loglevel error
+    ) else if exist "!path!" (
+        for %%f in ("!path!") do (
+            :: 必须在 disabledelayedexpansion 范围内，才能获取完整的包含 ^ 和 ! 符号的文件名
+            setlocal disabledelayedexpansion
+            set "file_name=%%~f"
+            set "base_name=%%~nf"
+            setlocal enabledelayedexpansion
+
+            echo 处理: "!file_name!"
+            ren "!file_name!" "!base_name!.bak.mp4" >nul
+            if !errorlevel! equ 0 (
+                ffmpeg.exe -i "!base_name!.bak.mp4" -c copy -map 0:v:0 -map 0:a:0 -map -0:d:2 "!file_name!" -hide_banner -loglevel error
+                if !errorlevel! equ 0 (
+                    :: del /f /q "!base_name!.bak.mp4" >nul
+                    echo 封面移除成功："!file_name!"
+                ) else (
+                    if not exist "!file_name!" (
+                        ren "!base_name!.bak.mp4" "!file_name!" >nul
+                    )
+                    echo 封面移除失败："!file_name!"
+                )
+            ) else (
+                echo 备份失败，跳过操作："!file_name!"
+            )
+
+            echo.
+            endlocal
+            endlocal
         )
     ) else (
         echo 错误的输入
