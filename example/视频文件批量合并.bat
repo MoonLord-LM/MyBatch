@@ -7,7 +7,7 @@ setlocal enabledelayedexpansion
 
 
 
-echo 本脚本用于将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4... 最多到 200.mp4 拼接合并为 final.mp4 文件
+echo 本脚本用于将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4... 最多到 300.mp4 拼接合并为 final.mp4 文件
 echo. >nul
 echo 会尽可能保留原始视频质量，必要的时候进行转码
 echo. >nul
@@ -35,8 +35,8 @@ set "first_audio_sample_rate="
 set "first_video_time_base="
 
 echo 正在检查和处理 mkv 格式的视频...
-for /l %%i in (1,1,200) do (
-    for %%f in ("%%i.mkv" "0%%i.mkv" "00%%i.mkv") do (
+for /l %%i in (1,1,300) do (
+    for %%f in ("%%i.mkv" "0%%i.mkv" "00%%i.mkv" "%%i.ts" "0%%i.ts" "00%%i.ts") do (
         if exist %%f (
             set "temp_file=%%~nf.mp4"
             if not exist "!temp_file!" (
@@ -47,7 +47,7 @@ for /l %%i in (1,1,200) do (
 )
 
 echo 正在清理 Time code 资源...
-for /l %%i in (1,1,200) do (
+for /l %%i in (1,1,300) do (
     for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
         if exist %%f (
             ffmpeg -v error -i "%%f" -map 0 -f null - 2>nul
@@ -78,7 +78,7 @@ for /l %%i in (1,1,200) do (
 
 echo 正在生成文件列表...
 echo. > file_list.txt
-for /l %%i in (1,1,200) do (
+for /l %%i in (1,1,300) do (
     for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
         if exist %%f (
             echo file '%%~f' >> file_list.txt
@@ -178,7 +178,7 @@ for /l %%i in (1,1,200) do (
 )
 
 if "!file_count!"=="0" (
-    echo 没有找到任何视频文件（01.mp4 到 200.mp4）
+    echo 没有找到任何视频文件（01.mp4 到 300.mp4）
     pause
     exit
 )
@@ -303,7 +303,7 @@ if "!file_consistent!"=="0" (
         echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
 
         echo. > file_list.txt
-        for /l %%i in (1,1,200) do (
+        for /l %%i in (1,1,300) do (
             for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
                 if exist %%f (
                     set "temp_file=%%~nf_h264_!suffix_safe!.mp4"
@@ -329,7 +329,7 @@ if "!file_consistent!"=="0" (
         echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
 
         echo. > file_list.txt
-        for /l %%i in (1,1,200) do (
+        for /l %%i in (1,1,300) do (
             for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
                 if exist %%f (
                     set /a "file_count+=1"
