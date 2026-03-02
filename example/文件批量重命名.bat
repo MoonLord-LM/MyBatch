@@ -60,6 +60,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "1024核工厂-"
     call :new_name_replace "2048社区 - big2048.com@"
     call :new_name_replace "4k2.com@"
+    call :new_name_replace "4k2.me@"
     call :new_name_replace "91制片厂 "
     call :new_name_replace "aavv121.com@"
     call :new_name_replace "activehlj.com@"
