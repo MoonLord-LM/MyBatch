@@ -1,4 +1,0 @@
-比较两张软盘的内容。
-
-DISKCOMP [drive1: [drive2:]]
-
