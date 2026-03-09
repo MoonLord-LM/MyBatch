@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+
+
 set "creationDate=2025-02-01 00:00:00"
 set "writeDate=2025-02-01 00:00:00"
 set "accessDate=2025-02-01 00:00:00"
@@ -11,6 +13,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$_.LastWriteTime = [datetime]::Parse('%writeDate%');" ^
     "$_.LastAccessTime = [datetime]::Parse('%accessDate%');" ^
     "}"
+
+
 
 pause
 exit

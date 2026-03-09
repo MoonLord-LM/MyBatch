@@ -2,6 +2,8 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
+
+
 REM //处理的文件后缀
 set "extension=*.mp4,*.mkv,*.ts,*.wmv,*.avi,*.rar"
 echo.>"%tmp%\file_batch_rename.bat"

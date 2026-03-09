@@ -2,6 +2,8 @@
 chcp 65001 > nul
 setlocal enabledelayedexpansion
 
+
+
 :: 将视频文件按录制开始时间重命名，统一为 VID_YYYYMMDD_HHMMSS.mp4 格式
 :: 用视频的 creation_time 减去视频时长来计算录制开始时间，并转为中国时区
 
@@ -68,6 +70,8 @@ for %%f in (*.mp4 *.mkv *.flv *.mov) do (
 
     echo.
 )
+
+
 
 pause
 exit

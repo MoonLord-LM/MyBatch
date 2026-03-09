@@ -2,6 +2,8 @@
 chcp 65001 >nul
 setlocal EnableDelayedExpansion
 
+
+
 set PROCESS_NAME=360ChromeX.exe
 set LOG_FILE=memory_usage.log
 set INTERVAL=60

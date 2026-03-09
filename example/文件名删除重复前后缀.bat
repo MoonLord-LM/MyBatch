@@ -2,6 +2,8 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
+
+
 REM =======================================
 REM 分别去掉当前目录下所有 .jpg / .png / .mp4 / .mkv / .m4v 文件的公共前缀和后缀
 REM =======================================

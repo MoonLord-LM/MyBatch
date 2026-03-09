@@ -1,12 +1,11 @@
 @echo off
 chcp 65001 >nul
 setlocal disabledelayedexpansion
+
+
+
 ::
-::
-::
-::MyBatch代码测试
-::
-::
+:: MyBatch代码测试
 ::
 mkdir "tmp"
 cls
@@ -110,4 +109,5 @@ echo 【——————Test——————】My call string_trim "   aaa b
 call My call string_trim "   aaa bbb ccc   "
 echo.
 echo.
+
 pause

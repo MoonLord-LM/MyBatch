@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+
+
 for %%f in (*) do (
     if not "%%~xf"=="" (
         rem Do nothing
@@ -9,6 +11,8 @@ for %%f in (*) do (
         ren "%%f" "%%f.zip"
     )
 )
+
+
 
 pause
 exit

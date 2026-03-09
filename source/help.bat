@@ -2,6 +2,8 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
+
+
 ::
 ::  更新【help】文件夹中的所有的命令帮助信息
 ::

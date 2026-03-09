@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+
+
 :: 依赖的软件 ffprobe.exe
 :: https://github.com/FFmpeg/FFmpeg
 :: ffprobe.exe -v quiet -select_streams v -show_entries format_tags=comment -of default=noprint_wrappers=1:nokey=1 + 文件名

@@ -2,6 +2,8 @@
 chcp 65001
 setlocal enabledelayedexpansion
 
+
+
 :: 依赖的软件如下
 :: https://github.com/FFmpeg/FFmpeg
 
@@ -480,6 +482,8 @@ if exist "merged.mp4" (
 
 if exist "merged.mp4" ( del "merged.mp4" )
 if exist "file_list.txt" ( del "file_list.txt" )
+
+
 
 pause
 exit

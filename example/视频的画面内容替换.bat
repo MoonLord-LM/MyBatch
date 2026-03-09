@@ -1,6 +1,9 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+
+
+
 :: ffmpeg -i 1.mp4 -i 2.mp4 -map 1:v:0 -map 0:a -map 0:2 -map_metadata 0 -c copy -disposition:v:1 attached_pic output.mp4
 
 echo.
@@ -31,5 +34,8 @@ ffmpeg -i !video1! -i !video2! -map 1:v:0 -map 0:a -map 0:2 -map_metadata 0 -c c
 
 echo.
 echo 合成完成，生成文件为 output.mp4
+
+
+
 pause
 exit

@@ -1,6 +1,9 @@
 @echo off
 chcp 65001 >nul
 setlocal disabledelayedexpansion
+
+
+
 set debug_function=true
 set debug_exception=true
 ::

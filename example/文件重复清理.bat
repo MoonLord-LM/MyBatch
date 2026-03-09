@@ -2,6 +2,8 @@
 chcp 65001
 setlocal enabledelayedexpansion
 
+
+
 echo.
 echo 本脚本实现重复文件的搜索和清理功能，将 B 文件夹中已存在的文件从 A 文件夹中删除
 echo.

@@ -2,6 +2,8 @@
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
+
+
 set "last_video_codec1="
 set "last_video_codec2="
 set "last_video_codec3="
@@ -144,6 +146,8 @@ for %%f in ("*.mp4") do (
     )
 )
 echo.
+
+
 
 pause
 exit

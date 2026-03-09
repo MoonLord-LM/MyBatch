@@ -1,6 +1,9 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+
+
+
 if "%~1"=="" (
     echo 请拖拽要删除的文件，到本文件图标上运行
     pause
@@ -12,6 +15,8 @@ if "%~1"=="" (
 
 set "target_file=%~1"
 del /F /S /Q "\\?\%target_file%"
+
+
 
 pause
 exit

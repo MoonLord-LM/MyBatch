@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+
+
 for /f "usebackq tokens=3,*" %%i ^
 in (`reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "Desktop"`) ^
 do set "desktop_dir=%%i"
@@ -70,6 +72,8 @@ for /f "usebackq tokens=3,*" %%i ^
 in (`reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "{A520A1A4-1780-4FF6-BD18-167343C5AF16}"`) ^
 do set "appdata_locallow_dir=%%i"
 echo AppData LocalLow 路径：%appdata_locallow_dir%
+
+
 
 pause
 exit
