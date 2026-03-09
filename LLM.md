@@ -4,6 +4,7 @@ This file is the prompt content for the LLM.
 Before making any operations, we must first load this file as basic instructions.  
 Before making any operations, we must first review the README.md file to understand the entire project.  
 Before making any operations, we must first review the coding standards in this file and follow them strictly.  
+You can call the `self-check.bat` script, which implements local Git configuration, as well as self-checking and fixing the format of Bat type files.  
 When calling PowerShell commands such as Get-Content, Set-Content, and Add-Content, explicitly add -Encoding utf8 to prevent garbled text.  
 When reading and writing files, always use the latest version as the standard, no need to care about Git version management, the code has GitHub to fall back on, and will not be lost.  
 When recording time, call PowerShell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'" to get accurate time.  
@@ -21,7 +22,32 @@ For .md files, prioritize the Chinese text as the source of truth and keep the E
 For .md files, ensure that ordinary single-line text ends with 2 spaces to achieve line break effect.  
 For code style, such as spacing, logging, etc., refer to existing code and try to maintain consistency.  
 For batch scripts, prioritize code readability over performance optimization, using simple and easy-to-understand code to implement functionality, reducing comments.  
-Excessive blank lines do not need to be removed.  
+If temporary files need to be generated, use a path like `%temp%\\MyBatch_%random%_%random%_%random%_%random%.tmp` to prevent conflicts, and clean it up before the script ends.  
+
+Example code:
+```
+@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+
+
+
+:: This line is a comment, summarizing the entire file
+
+
+
+echo This is the main body of the code
+echo Note the fixed 3 lines of code at the beginning and the fixed 3 lines at the end
+echo The beginning, summary comment, code body, and end are separated by 3 blank lines
+echo A blank line is always reserved at the end of the file
+
+
+
+echo.
+pause
+exit /b
+
+```
 
 ## Issues That Can Be Ignored
 
