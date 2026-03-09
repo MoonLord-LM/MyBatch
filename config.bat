@@ -1,4 +1,4 @@
-﻿@echo off
+﻿﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
@@ -30,7 +30,7 @@ for /r %%f in (*.bat) do (
         "try {" ^
             "$chars = New-Object Char[] ($utf8.GetCharCount($bytes, 0, $bytes.Length));" ^
             "$utf8Decoder.GetChars($bytes, 0, $bytes.Length, $chars, 0);" ^
-            "$content = -join $chars" ^
+            "$content = -join $chars;" ^
         "} catch [System.Text.DecoderFallbackException] {" ^
             "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
         "}" ^
