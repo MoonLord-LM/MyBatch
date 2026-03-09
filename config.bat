@@ -28,7 +28,7 @@ for /r %%f in (*.bat) do (
         "$utf8Decoder = [System.Text.Encoding]::UTF8.GetDecoder();" ^
         "$utf8Decoder.Fallback = [System.Text.DecoderExceptionFallback]::new();" ^
         "try {" ^
-            "$chars = New-Object Char[] ($utf8.GetCharCount($bytes, 0, $bytes.Length));" ^
+            "$chars = New-Object Char[] ($utf8Decoder.GetCharCount($bytes, 0, $bytes.Length));" ^
             "$utf8Decoder.GetChars($bytes, 0, $bytes.Length, $chars, 0);" ^
             "$content = -join $chars;" ^
         "} catch [System.Text.DecoderFallbackException] {" ^
