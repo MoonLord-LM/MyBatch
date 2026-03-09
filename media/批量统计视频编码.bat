@@ -93,5 +93,3 @@ del "%videoCodecFile%" "%audioCodecFile%" 2>nul
 echo.
 pause
 exit /b
-
-
