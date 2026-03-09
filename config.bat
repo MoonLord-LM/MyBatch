@@ -1,4 +1,4 @@
-﻿@echo off
+﻿﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 
@@ -19,7 +19,7 @@ echo.
 
 
 
-for %%f in (*.bat) do (
+for /r %%f in (*.bat) do (
     echo 处理文件：%%f
     powershell -NoProfile -Command ^
         "$path='%%f';" ^
@@ -31,7 +31,7 @@ for %%f in (*.bat) do (
             "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
         "}" ^
         "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
-        "Set-Content -Path $path -Value $content -Encoding UTF8 -NoNewline;"
+        "[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false));"
 )
 
 
