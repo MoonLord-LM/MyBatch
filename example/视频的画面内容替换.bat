@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 :: ffmpeg -i 1.mp4 -i 2.mp4 -map 1:v:0 -map 0:a -map 0:2 -map_metadata 0 -c copy -disposition:v:1 attached_pic output.mp4
 

@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 del /F /S /Q "*100TB免费游戏仓库.url"
 del /F /S /Q /AH "*防止走失.html"

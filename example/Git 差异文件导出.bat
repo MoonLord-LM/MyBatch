@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 if exist "%~dp0changes.patch" (
     echo 脚本所在目录已存在 changes.patch 差异文件，将被覆盖

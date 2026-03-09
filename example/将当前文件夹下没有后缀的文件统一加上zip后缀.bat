@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 for %%f in (*) do (
     if not "%%~xf"=="" (

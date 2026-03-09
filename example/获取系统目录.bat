@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 for /f "usebackq tokens=3,*" %%i ^
 in (`reg query "HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\Shell Folders" /v "Desktop"`) ^

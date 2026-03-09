@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 echo 使用 FFmpeg，按时间截取视频，开始时间参数 -ss，结束时间参数 -to
 
 if "%~1"=="" (

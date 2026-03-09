@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 echo 使用 FFmpeg，转换视频格式，从 flv 到 mp4
 
 if "%~1"=="" (

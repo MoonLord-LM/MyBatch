@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: MoonLord 2023.07.29  
 :: 删除 master 分支的多余的本地文件  

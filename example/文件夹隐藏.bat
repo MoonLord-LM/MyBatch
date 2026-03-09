@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 if not exist "我的备份" (
     echo 本批处理用于隐藏"我的备份"文件夹
     echo 指定的文件夹不存在！

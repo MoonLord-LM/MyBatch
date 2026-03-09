@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 echo EXE压缩打包（必须先安装7-Zip和WinRAR两款压缩软件，并且安装在默认的位置）
 if "%~1"=="" (

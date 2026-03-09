@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: 查找注册表，找到 Visual Studio Code 的 Code.exe 的位置
 for /f usebackq^ tokens^=1^,2^,*^ delims^=^" %%i ^

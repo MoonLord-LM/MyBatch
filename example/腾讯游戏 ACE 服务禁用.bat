@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: 腾讯游戏 ACE 服务禁用，优化性能
 

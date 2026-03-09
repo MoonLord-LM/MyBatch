@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 start "" "C:\Windows\System32\osk.exe"
 start "" "C:\Program Files\Common Files\microsoft shared\ink\TabTip.exe"

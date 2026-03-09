@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 if not exist "%~dp0changes.patch" (
     echo 脚本所在目录必须有 changes.patch 差异文件

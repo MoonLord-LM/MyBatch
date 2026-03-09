@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal
 
 :: 获取拖动到 bat 文件上的输入文件路径

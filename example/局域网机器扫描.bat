@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 echo 正在扫描局域网 192.168.1.1 - 192.168.1.10 的设备...

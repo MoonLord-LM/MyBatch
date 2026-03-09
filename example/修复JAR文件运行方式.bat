@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 if "%JAVA_HOME%"=="" (
     echo 请先配置 JDK 安装路径的环境变量：JAVA_HOME

@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: 换行符保持原样
 git config --local core.autocrlf false

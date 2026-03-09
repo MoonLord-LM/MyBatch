@@ -1,4 +1,5 @@
 :: 全屏视频录制（MP4）
+chcp 65001 >nul
 :: ffmpeg.exe -y -f gdigrab -i desktop -s 1920x1080 -r 20 -t 10.01 -c:v libx264 "record.mp4"
 
 

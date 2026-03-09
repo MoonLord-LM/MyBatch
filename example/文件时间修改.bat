@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 set "creationDate=2025-02-01 00:00:00"
 set "writeDate=2025-02-01 00:00:00"

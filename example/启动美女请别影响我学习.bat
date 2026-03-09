@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 REM 《美女请别影响我学习》游戏启动程序，启动三秒后结束 LSPGame.exe 进程，防止第二章报错“Steam 处于离线状态或网络存在异常”
 

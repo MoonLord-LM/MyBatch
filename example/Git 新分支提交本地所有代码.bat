@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: MoonLord 2022.02.22  
 :: 根据文件夹后缀（-master、-develop），判断当前是哪个分支  

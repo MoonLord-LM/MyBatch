@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
 :: 支持输入视频链接单个下载，或者输入包含视频链接的 txt 文件路径批量下载
@@ -122,5 +123,4 @@ exit /b
         call :download_video "!input!"
     )
 goto main_loop
-
 

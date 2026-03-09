@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 echo 通过调用certutil命令，来计算文件的哈希值
 if "%~1"=="" (
     echo 请拖拽文件，到本文件图标上运行

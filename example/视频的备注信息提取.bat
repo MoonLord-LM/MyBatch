@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: 依赖的软件 ffprobe.exe
 :: https://github.com/FFmpeg/FFmpeg

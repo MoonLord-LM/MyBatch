@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 if "%~1"=="" (
     echo 请拖拽要压缩的文件或文件夹，到本文件图标上运行

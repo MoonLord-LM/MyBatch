@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: 参考
 :: https://www.zhihu.com/question/318527439

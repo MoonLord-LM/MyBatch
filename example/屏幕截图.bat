@@ -1,4 +1,5 @@
 /*
+chcp 65001 >nul
 @echo off & cls
 
 timeout /T 3 /nobreak >nul

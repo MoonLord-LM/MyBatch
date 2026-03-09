@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: 百度 公共 DNS
 :: https://dudns.baidu.com/

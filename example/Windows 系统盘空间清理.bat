@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 
 :: Windows 系统休眠保存文件

@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 
 :: 全局代理
 :: git config --global --unset http.proxy

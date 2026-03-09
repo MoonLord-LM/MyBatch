@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul
 setlocal
 
 :: 鑾峰彇鎷栧姩鍒? bat 鏂囦欢涓婄殑杈撳叆鏂囦欢璺?緞
