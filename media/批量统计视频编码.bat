@@ -14,7 +14,8 @@ if exist "%videoCodecFile%" del "%videoCodecFile%"
 if exist "%audioCodecFile%" del "%audioCodecFile%"
 
 echo 检查依赖: ffprobe...
-"ffprobe.exe" -version >nul 2>&1 || (
+"ffprobe.exe" -version >nul 2>&1
+if errorlevel 1 (
     echo 错误: 缺少 ffprobe.exe 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -26,7 +27,7 @@ echo 检查依赖: ffprobe...
 )
 
 echo.
-echo 检查视频编码格式 (递归 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv)...
+echo 检查视频编码格式: 递归 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
 for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
     if exist "%%f" (
         for /f "delims=" %%v in ('
@@ -50,7 +51,7 @@ for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
 )
 
 echo.
-echo 检查音频编码格式 (递归 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv)...
+echo 检查音频编码格式: 递归 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
 for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
     if exist "%%f" (
         for /f "delims=" %%a in ('
