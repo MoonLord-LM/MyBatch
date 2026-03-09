@@ -24,14 +24,18 @@ for /r %%f in (*.bat) do (
     powershell -NoProfile -Command ^
         "$path='%%f';" ^
         "$bytes = [System.IO.File]::ReadAllBytes($path);" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8Decoder = [System.Text.Encoding]::UTF8.GetDecoder();" ^
+        "$utf8Decoder.Fallback = [System.Text.DecoderExceptionFallback]::new();" ^
         "try {" ^
-            "$content = [System.Text.Encoding]::UTF8.GetString($bytes);" ^
-            "if (-not ($content -as [string])) { throw 'not utf8' }" ^
-        "} catch {" ^
+            "$chars = New-Object Char[] ($utf8.GetCharCount($bytes, 0, $bytes.Length));" ^
+            "$utf8Decoder.GetChars($bytes, 0, $bytes.Length, $chars, 0);" ^
+            "$content = -join $chars" ^
+        "} catch [System.Text.DecoderFallbackException] {" ^
             "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
         "}" ^
-        "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
-        "[System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false));"
+        "$content = $content -replace '(\r?\n)', \"`r`n\";" ^
+        "[System.IO.File]::WriteAllText($path, $content, $utf8NoBOM);"
 )
 
 
