@@ -17,11 +17,11 @@ Sort the self-check result entries by time in descending order, and keep only th
 
 ## Coding Standards
 
-The entire project's batch scripts, configuration files, etc., strictly use UTF-8 without BOM encoding with \r\n line endings.  
-For .md files, prioritize the Chinese text as the source of truth and keep the English text aligned with it.  
-For .md files, ensure that ordinary single-line text ends with 2 spaces to achieve line break effect.  
-For code style, such as spacing, logging, etc., refer to existing code and try to maintain consistency.  
-For batch scripts, prioritize code readability over performance optimization, using simple and easy-to-understand code to implement functionality, reducing comments.  
+All text files in the entire project, including code, configurations, and documentation, must strictly use UTF-8 without BOM encoding with \r\n line endings.  
+For .md files, prioritize the Chinese text as the source of truth. If there is English content, it must be consistent with the Chinese.  
+For .md files, ensure that ordinary single-line text ends with 2 spaces to achieve a line break effect.  
+For batch scripts, code readability is prioritized over performance optimization; use simple, easy-to-understand code to implement functionality and reduce comments.  
+For batch scripts, the code style (e.g., spacing, logging) should refer to existing code to maintain consistency as much as possible.  
 If temporary files need to be generated, use a path like `%temp%\\MyBatch_%random%_%random%_%random%_%random%.tmp` to prevent conflicts, and clean it up before the script ends.  
 Try to avoid using English parentheses ( ) or Chinese parentheses （） in echo commands to prevent interference.  
 To check if the previous command succeeded/failed, use the `if errorlevel 0/1` syntax, which is more concise.  
