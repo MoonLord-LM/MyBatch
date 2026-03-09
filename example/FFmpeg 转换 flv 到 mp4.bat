@@ -1,5 +1,8 @@
 @echo off
 chcp 65001 >nul
+
+
+
 echo 使用 FFmpeg，转换视频格式，从 flv 到 mp4
 
 if "%~1"=="" (
@@ -14,5 +17,6 @@ echo "%ffmpeg%" -i "%~1" -c copy "%~1.mp4"
 "%ffmpeg%" -i "%~1" -c copy "%~1.mp4"
 
 echo 转换完成，请查看生成的 mp4 文件
+
 pause
 exit

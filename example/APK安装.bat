@@ -1,6 +1,9 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+
+
+
 adb remount
 for /r "%cd%" %%c in (*) do (
     REM echo %%c
@@ -15,5 +18,8 @@ for /r "%cd%" %%c in (*) do (
     )
 )
 adb shell
+
+
+
 pause
 exit

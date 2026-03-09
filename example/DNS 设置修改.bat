@@ -10,6 +10,8 @@ chcp 65001 >nul
 :: 阿里云 公共 DNS
 :: https://www.alidns.com/
 
+
+
 echo 设置本地连接的 DNS 配置
 netsh interface ipv4 set dnsserver name="本地连接" source=static address=180.76.76.76 register=primary
 netsh interface ipv4 add dnsserver name="本地连接" address=8.8.8.8

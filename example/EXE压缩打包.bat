@@ -1,6 +1,9 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+
+
+
 echo EXE压缩打包（必须先安装7-Zip和WinRAR两款压缩软件，并且安装在默认的位置）
 if "%~1"=="" (
     echo 请拖拽要压缩打包的EXE文件，到本文件图标上运行
@@ -84,5 +87,6 @@ del /F /S /Q "!TmpFile!"
 del /F /S /Q "!ExeConfig!"
 
 echo 完成压缩打包，已输出到：!ExeFilePack!
+
 pause
 exit

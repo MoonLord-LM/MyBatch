@@ -1,5 +1,8 @@
 @echo off
 chcp 65001 >nul
+
+
+
 adb nodaemon server
 netstat -ano | findstr "5037"
 netstat -ano | findstr "5037" >"%windir%\Temp\adb_restart.log"
@@ -20,5 +23,6 @@ for /f "delims=" %%i in (%windir%\Temp\adb_restart.log) do (
 )
 adb shell
 del /F /S /Q "%windir%\Temp\adb_restart.log"
+
 pause
 exit
