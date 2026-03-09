@@ -6,14 +6,17 @@ setlocal enabledelayedexpansion
 
 :: 扫描当前目录及子目录中的 MP4 文件，统计并列出所有不重复的视频和音频编码信息
 
-set "videoCodecFile=%temp%\video_codecs.txt"
-set "audioCodecFile=%temp%\audio_codecs.txt"
+
+
+set "videoCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+set "audioCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
 del "%videoCodecFile%" "%audioCodecFile%" 2>nul
 
 echo 检查依赖: ffprobe...
 where ffprobe >nul 2>nul
 if errorlevel 1 (
     echo 未找到 ffprobe，请先安装 FFmpeg 并配置 PATH。
+    del "%videoCodecFile%" "%audioCodecFile%" 2>nul
     echo.
     pause
     exit /b 1
@@ -82,6 +85,8 @@ if exist "%audioCodecFile%" (
 ) else (
     echo 无
 )
+
+del "%videoCodecFile%" "%audioCodecFile%" 2>nul
 
 
 
