@@ -2,18 +2,18 @@
 chcp 65001 >nul
 setlocal
 
-:: 鑾峰彇鎷栧姩鍒? bat 鏂囦欢涓婄殑杈撳叆鏂囦欢璺?緞
+:: 获取拖动到 bat 文件上的输入文件路径
 set "input_file=%~1"
 
-:: 妫€鏌ユ槸鍚︽彁渚涗簡杈撳叆鏂囦欢
+:: 检查是否提供了输入文件
 if "%input_file%"=="" (
-    echo 璇峰皢瑕佺紪鐮佺殑鏂囦欢鎷栧姩鍒版?鑴氭湰涓?
+    echo 请将要编码的文件拖动到此脚本上
     pause
     exit /b
 )
 
-:: 璁剧疆杈撳嚭鏂囦欢璺?緞锛岄粯璁や负鍘熸枃浠跺悕鍔犱笂 .txt 鍚庣紑
+:: 设置输出文件路径，默认使用原文件名加上 .txt 后缀
 set "output_file=%input_file%.txt"
 
-:: 浣跨敤 certutil 杩涜? Base64 缂栫爜
+:: 使用 certutil 进行 Base64 编码
 certutil -encode "%input_file%" "%output_file%" >nul
