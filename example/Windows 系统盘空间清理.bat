@@ -2,6 +2,7 @@
 chcp 65001 >nul
 
 
+
 :: Windows 系统休眠保存文件
 powercfg -h off
 
@@ -46,6 +47,7 @@ for /d %%i in (%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*) do (
 )
 echo del /F /S /Q "%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*"
 del /F /S /Q "%USERPROFILE%\AppData\LocalLow\Unity\WebPlayer\Cache\*" 1>nul 2>nul
+
 
 
 pause

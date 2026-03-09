@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+
+
 w32tm /tz
 
 w32tm /config /manualpeerlist:"time.google.com" /syncfromflags:manual /reliable:yes /update
@@ -16,6 +18,8 @@ net stop w32time
 net start w32time
 
 w32tm /query /status
+
+
 
 pause
 exit

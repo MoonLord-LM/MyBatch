@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+
+
 :: 关闭 Windows 外壳程序 Explorer
 taskkill /f /im explorer.exe
 

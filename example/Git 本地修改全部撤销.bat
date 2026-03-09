@@ -1,6 +1,8 @@
 @echo off
 chcp 65001 >nul
 
+
+
 :: MoonLord 2021.10.29  
 :: 根据文件夹后缀（-master、-develop、-ICSL），判断当前是哪个分支  
 :: 删除多余的本地分支  
