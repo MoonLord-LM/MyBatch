@@ -39,6 +39,7 @@ None
 在做任何操作前，需要先加载本文档作为基础指令。  
 在做任何操作前，需要先查看 README.md 文件，理解整个工程。  
 在做任何操作前，需要先查看本文档约定的编码规范，严格按规范执行。  
+可以调用 `self-check.bat` 脚本，其中实现了本地的 Git 配置，以及 Bat 类型文件的格式的自检和修复。  
 在调用 PowerShell 的 Get-Content、Set-Content、Add-Content 等命令时，必须显式添加 -Encoding utf8 参数，防止乱码。  
 在读写文件时，始终以最新版本为准，不需要关心 Git 版本管理，代码有 GitHub 兜底，不会丢失。  
 在记录时间时，调用 PowerShell -NoProfile -Command "Get-Date -Format 'yyyy-MM-dd HH:mm:ss'" 获取准确的时间。  
@@ -57,6 +58,24 @@ None
 代码风格（如空格、日志等）参考现有代码，尽量保持一致。  
 对于批处理脚本，代码易读优先于性能优化，优先使用简单易懂的代码实现功能，减少注释。  
 多余的空行不需要删除。  
+
+示例代码：
+```
+@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+
+:: 这一行是注释，对整个文件进行总结说明
+
+echo 这里是代码正文
+echo 注意开头的固定 3 行写法和结尾的固定 3 行写法
+echo 文件末尾也要保留一个空行
+
+echo.
+pause
+exit /b
+
+```
 
 ## 可忽略问题
 

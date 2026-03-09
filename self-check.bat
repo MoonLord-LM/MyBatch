@@ -4,6 +4,10 @@ setlocal enabledelayedexpansion
 
 
 
+:: Git 配置和 Bat 文件格式自检
+
+
+
 git config --local core.autocrlf false
 git config --local core.safecrlf false
 git config --local core.ignorecase false
@@ -16,8 +20,6 @@ echo.
 echo 当前 Git 配置：
 git config --local --list
 echo.
-
-
 
 for /r %%f in (*.bat) do (
     echo 检查文件：%%f
@@ -52,5 +54,6 @@ for /r %%f in (*.bat) do (
 
 
 
+echo.
 pause
 exit

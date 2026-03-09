@@ -4,6 +4,8 @@ setlocal enabledelayedexpansion
 
 
 
+:: TODO 注释写在这里
+
 set "last_video_codec1="
 set "last_video_codec2="
 set "last_video_codec3="
@@ -25,8 +27,9 @@ set "last_audio_codec8="
 set "last_audio_codec9="
 set "last_audio_codec10="
 
+echo.
 echo 检查视频编码格式...
-for %%f in ("*.mp4") do (
+for /r %%f in ("*.mp4") do (
     if exist %%f (
         for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string^,profile^,level -of csv^=p^=0 "%%f" 2^>^&1') do (
             set "current_video_codec=%%v"
@@ -84,8 +87,8 @@ for %%f in ("*.mp4") do (
         )
     )
 )
-echo.
 
+echo.
 echo 检查音频编码格式...
 for %%f in ("*.mp4") do (
     if exist %%f (
@@ -145,9 +148,7 @@ for %%f in ("*.mp4") do (
         )
     )
 )
+
 echo.
-
-
-
 pause
 exit
