@@ -4,7 +4,7 @@ setlocal enabledelayedexpansion
 
 
 
-::: 扫描当前目录及子目录中的 MP4 文件，统计并列出所有不重复的视频和音频编码信息
+:: 扫描当前目录及子目录中的 MP4 文件，统计并列出所有不重复的视频和音频编码信息
 
 set "videoCodecFile=%temp%\video_codecs.txt"
 set "audioCodecFile=%temp%\audio_codecs.txt"
