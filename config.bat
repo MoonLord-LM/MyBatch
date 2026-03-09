@@ -34,7 +34,7 @@ for /r %%f in (*.bat) do (
         "} catch [System.Text.DecoderFallbackException] {" ^
             "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
         "}" ^
-        "$content = $content -replace '(\r?\n)', \"`r`n\";" ^
+        "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
         "[System.IO.File]::WriteAllText($path, $content, $utf8NoBOM);"
 )
 
