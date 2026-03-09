@@ -1,6 +1,6 @@
 @echo off
 
-:: Beyond Compare 4 重置试用时间
+:: Beyond Compare 4 閲嶇疆璇曠敤鏃堕棿
 reg delete "HKEY_CURRENT_USER\Software\Scooter Software\Beyond Compare 4" /v CacheID /f
 
 pause

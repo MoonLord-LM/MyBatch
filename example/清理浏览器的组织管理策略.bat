@@ -1,6 +1,6 @@
 @echo off
 
-:: ²Î¿¼
+:: å‚è€ƒ
 :: https://www.zhihu.com/question/318527439
 :: https://www.v2ex.com/t/548318
 :: chrome://policy/

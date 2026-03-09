@@ -1,7 +1,7 @@
 @echo off
-echo 获取指定文件夹路径下的文件和文件夹列表，并保存为txt文件
+echo 鑾峰彇鎸囧畾鏂囦欢澶硅矾寰勪笅鐨勬枃浠跺拰鏂囦欢澶瑰垪琛紝骞朵繚瀛樹负txt鏂囦欢
 if "%~1"=="" (
-    echo 请拖拽文件夹，到本文件图标上运行
+    echo 璇锋嫋鎷芥枃浠跺す锛屽埌鏈枃浠跺浘鏍囦笂杩愯
     pause
     exit
 )
@@ -10,6 +10,6 @@ for %%a in ("%~1") do set dirname=%%~na%%~xa
 tree /f "%~1" >"%dirname%.tree.txt"
 dir /o:n /s /b "%~1" >"%dirname%.list.txt"
 dir /o:n /s /q /t "%~1" >"%dirname%.dir.txt"
-echo 文件和文件夹列表保存完成，请查看生成的txt文件
+echo 鏂囦欢鍜屾枃浠跺す鍒楄〃淇濆瓨瀹屾垚锛岃鏌ョ湅鐢熸垚鐨則xt鏂囦欢
 pause
 exit

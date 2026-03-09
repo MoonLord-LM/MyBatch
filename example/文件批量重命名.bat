@@ -1,13 +1,13 @@
 @echo off
 setlocal enabledelayedexpansion
 
-REM //´¦ÀíµÄÎÄ¼şºó×º
+REM //å¤„ç†çš„æ–‡ä»¶åç¼€
 set "extension=*.mp4,*.mkv,*.ts,*.wmv,*.avi,*.rar"
 echo.>"%tmp%\file_batch_rename.bat"
 
 for /r "%cd%" %%i in (%extension%) do (
 
-    REM //±éÀúÎÄ¼şÃû
+    REM //éå†æ–‡ä»¶å
     set "file_path=%%~i"
     REM echo file_path : !file_path!
 
@@ -19,7 +19,7 @@ for /r "%cd%" %%i in (%extension%) do (
     REM echo file_dir : !file_dir!
     set "file_dir=!file_dir!"
 
-    REM //Ìæ»»×Ö·û´®
+    REM //æ›¿æ¢å­—ç¬¦ä¸²
 
     call :new_name_replace "[4K]"
     call :new_name_replace "[2K]"
@@ -40,28 +40,28 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "[marketingjl.com]@"
     call :new_name_replace "[Thz.la]"
     call :new_name_replace "[ThZu.Cc]"
-    call :new_name_replace "[¹úÂş]"
-    call :new_name_replace "[×îĞÂµçÓ°www.5266ys.com]"
-    call :new_name_replace "[×îĞÂµçÓ°www.66ys.tv]"
+    call :new_name_replace "[å›½æ¼«]"
+    call :new_name_replace "[æœ€æ–°ç”µå½±www.5266ys.com]"
+    call :new_name_replace "[æœ€æ–°ç”µå½±www.66ys.tv]"
 
-    call :new_name_replace "¡¾ses23.com¡¿"
+    call :new_name_replace "ã€ses23.comã€‘"
 
     call :new_name_replace "(4K)"
     call :new_name_replace "(S1)("
     call :new_name_replace "(SOD)("
     call :new_name_replace "(Madonna)("
-    call :new_name_replace "(ÍıÏë×å)("
+    call :new_name_replace "(å¦„æƒ³æ—)("
     call :new_name_replace ")" " "
 
     call :new_name_replace "0222223.com@"
     call :new_name_replace "0333332.com@"
     call :new_name_replace "169bbs.com@"
     call :new_name_replace "169bbs1.com@"
-    call :new_name_replace "1024ºË¹¤³§-"
-    call :new_name_replace "2048ÉçÇø - big2048.com@"
+    call :new_name_replace "1024æ ¸å·¥å‚-"
+    call :new_name_replace "2048ç¤¾åŒº - big2048.com@"
     call :new_name_replace "4k2.com@"
     call :new_name_replace "4k2.me@"
-    call :new_name_replace "91ÖÆÆ¬³§ "
+    call :new_name_replace "91åˆ¶ç‰‡å‚ "
     call :new_name_replace "aavv121.com@"
     call :new_name_replace "activehlj.com@"
     call :new_name_replace "avmans.com-"
@@ -118,7 +118,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "-C_GG5." "."
     call :new_name_replace "-C_GG5-C_GG5." "."
     call :new_name_replace "-high." "."
-    call :new_name_replace "-ÈËÈËÓ°ÊÓ." "."
+    call :new_name_replace "-äººäººå½±è§†." "."
     call :new_name_replace "-4k." "."
     call :new_name_replace "_8k." "."
     call :new_name_replace "_4K." "."
@@ -133,7 +133,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".2K." "."
     call :new_name_replace ".1080p." "."
     call :new_name_replace ".2160p." "."
-    call :new_name_replace ".1080PÔ¼Õ½¾º¼¼³¡." "."
+    call :new_name_replace ".1080Pçº¦æˆ˜ç«æŠ€åœº." "."
     call :new_name_replace ".720P." "."
     call :new_name_replace ".AAC." "."
     call :new_name_replace ".BDYS." "."
@@ -141,7 +141,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".HD." "."
     call :new_name_replace ".HD1080p." "."
     call :new_name_replace ".HD1080p." "."
-    call :new_name_replace ".HD¹úÓïÖĞ×ÖÎŞË®Ó¡." "."
+    call :new_name_replace ".HDå›½è¯­ä¸­å­—æ— æ°´å°." "."
     call :new_name_replace ".Mandarin." "."
     call :new_name_replace ".HDx." "."
     call :new_name_replace ".RI." "."
@@ -149,9 +149,9 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace ".H265." "."
     call :new_name_replace ".X264." "."
     call :new_name_replace ".WEBrip." "."
-    call :new_name_replace ".ÖĞÓ¢×ÖÄ»." "."
+    call :new_name_replace ".ä¸­è‹±å­—å¹•." "."
 
-    call :new_name_replace "[Dou Luo Da Lu][Douro Mainland][2019]" "¶·ÂŞ´óÂ½"
+    call :new_name_replace "[Dou Luo Da Lu][Douro Mainland][2019]" "æ–—ç½—å¤§é™†"
 
     call :new_name_replace "["
     call :new_name_replace "]"
@@ -160,11 +160,11 @@ for /r "%cd%" %%i in (%extension%) do (
 
     REM echo new_name : !new_name!
 
-    REM //ÖØÃüÃû½Å±¾
+    REM //é‡å‘½åè„šæœ¬
 
     if not "!file_name!"=="!new_name!" (
         if exist "!file_dir!\!new_name!" (
-            echo !file_name! ---^> !new_name!  --  ÎÄ¼şÖØÃû£¬ÎŞ·¨ÖØÃüÃû
+            echo !file_name! ---^> !new_name!  --  æ–‡ä»¶é‡åï¼Œæ— æ³•é‡å‘½å
         ) else (
             echo rename "!file_path!" "!new_name!" >>"%tmp%\file_batch_rename.bat"
             echo !file_name! ---^> !new_name!
@@ -184,9 +184,9 @@ set "file_size=!file_size!"
 
 echo.
 if "!file_size!" gtr "2" (
-    echo È·ÈÏÒªÖ´ĞĞÖØÃüÃû½Å±¾£¬Çë°´ÈÎÒâ¼ü¼ÌĞø. . .
+    echo ç¡®è®¤è¦æ‰§è¡Œé‡å‘½åè„šæœ¬ï¼Œè¯·æŒ‰ä»»æ„é”®ç»§ç»­. . .
 ) else (
-    echo Ã»ÓĞĞèÒªÖØÃüÃûµÄÎÄ¼ş£¬Çë°´ÈÎÒâ¼ü¼ÌĞø. . .
+    echo æ²¡æœ‰éœ€è¦é‡å‘½åçš„æ–‡ä»¶ï¼Œè¯·æŒ‰ä»»æ„é”®ç»§ç»­. . .
 )
 echo.
 
@@ -195,7 +195,7 @@ call "%tmp%\file_batch_rename.bat"
 del /F /S /Q "%tmp%\file_batch_rename.bat"
 exit
 
-:filepath_to_filename_sample - "½«ÍêÕûµÄÎÄ¼şÂ·¾¶(file_path)×ª»»ÎªÎÄ¼şÃû(file_name)"
+:filepath_to_filename_sample - "å°†å®Œæ•´çš„æ–‡ä»¶è·¯å¾„(file_path)è½¬æ¢ä¸ºæ–‡ä»¶å(file_name)"
     set /a tmp_offset=1
     :loop
     call set "tmp_mark=%%file_path:~-!tmp_offset!,1%%%"
@@ -210,25 +210,25 @@ exit
     call set "file_name=%%file_path:~-!tmp_offset!%%%"
 goto :eof
 
-:filepath_to_filename - "½«ÍêÕûµÄÎÄ¼şÂ·¾¶(file_path)×ª»»ÎªÎÄ¼şÃû(file_name)"
+:filepath_to_filename - "å°†å®Œæ•´çš„æ–‡ä»¶è·¯å¾„(file_path)è½¬æ¢ä¸ºæ–‡ä»¶å(file_name)"
     for %%i in ("%file_path%") do (
         set "file_name=%%~ni%%~xi"
     )
 goto :eof
 
-:filepath_to_filedir - "½«ÍêÕûµÄÎÄ¼şÂ·¾¶(file_path)×ª»»ÎªÎÄ¼ş¼ĞÂ·¾¶(file_dir)"
+:filepath_to_filedir - "å°†å®Œæ•´çš„æ–‡ä»¶è·¯å¾„(file_path)è½¬æ¢ä¸ºæ–‡ä»¶å¤¹è·¯å¾„(file_dir)"
     for %%i in ("%file_path%") do (
         set "file_dir=%%~di%%~pi"
     )
 goto :eof
 
-:filepath_to_filesize - "½«ÍêÕûµÄÎÄ¼şÂ·¾¶(file_path)×ª»»ÎªÎÄ¼ş´óĞ¡(file_size)"
+:filepath_to_filesize - "å°†å®Œæ•´çš„æ–‡ä»¶è·¯å¾„(file_path)è½¬æ¢ä¸ºæ–‡ä»¶å¤§å°(file_size)"
     for %%i in ("%file_path%") do (
         set "file_size=%%~zi"
     )
 goto :eof
 
-:new_name_replace - "½«ĞÂµÄÎÄ¼şÃû(new_name)ÖĞµÄ×Ö·û´®(²ÎÊı1)Ìæ»»Îª×Ö·û´®(²ÎÊı2)"
+:new_name_replace - "å°†æ–°çš„æ–‡ä»¶å(new_name)ä¸­çš„å­—ç¬¦ä¸²(å‚æ•°1)æ›¿æ¢ä¸ºå­—ç¬¦ä¸²(å‚æ•°2)"
     if not "%~1"=="" (
         set "old_tag=%~1"
         set "new_tag=%~2"

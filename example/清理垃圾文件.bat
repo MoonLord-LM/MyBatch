@@ -3,7 +3,7 @@ setlocal enabledelayedexpansion
 
 
 
-:: ÁúÖ®¹È DragonNest
+:: é¾™ä¹‹è°· DragonNest
 set "regPath=HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\SHENGQUGAMES\DN"
 set "keyName=Loader"
 for /f "tokens=2,*" %%A in ('reg query "%regPath%" /v "%keyName%" ^| findstr /i "%keyName%"') do (
@@ -20,7 +20,7 @@ if not "%fullValue%"=="" (
     echo Could not find DragonNest Game Path
 )
 
-:: Ô­Éñ Genshin Impact
+:: åŽŸç¥ž Genshin Impact
 set "regPath=HKEY_CURRENT_USER\Software\miHoYo\HYP\1_1\hk4e_cn"
 set "keyName=GameInstallPath"
 for /f "tokens=2,*" %%A in ('reg query "%regPath%" /v "%keyName%" ^| findstr /i "%keyName%"') do (
