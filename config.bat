@@ -13,14 +13,14 @@ git config --local i18n.logoutputencoding utf-8
 git config --local i18n.commitencoding utf-8
 
 echo.
-echo 查看当前 Git 配置：
+echo 当前 Git 配置：
 git config --local --list
 echo.
 
 
 
 for /r %%f in (*.bat) do (
-    echo 处理文件：%%f
+    echo 检查文件：%%f
     powershell -NoProfile -Command ^
         "$path='%%f';" ^
         "$bytes = [System.IO.File]::ReadAllBytes($path);" ^
@@ -36,6 +36,18 @@ for /r %%f in (*.bat) do (
         "}" ^
         "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
         "[System.IO.File]::WriteAllText($path, $content, $utf8NoBOM);"
+    powershell -NoProfile -Command ^
+        "$path='%%f';" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$content = Get-Content -Encoding utf8 -Path $path;" ^
+        "if (-not ($content -match 'chcp 65001')) {" ^
+            "$lines = $content -split '(\r?\n)';" ^
+            "if ($lines.Length -ge 1) {" ^
+                "$lines = $lines[0..0] + 'chcp 65001 >nul' + $lines[1..($lines.Length-1)];" ^
+            "}" ^
+            "$newContent = ($lines -join \""`r`n\"");" ^
+            "[System.IO.File]::WriteAllText($path, $newContent, $utf8NoBOM);" ^
+        "}"
 )
 
 
