@@ -34,7 +34,7 @@ if "%~1" == "" (
     echo.
     echo 检查视频编码格式的 codec_name, codec_tag_string, profile, level
     echo 递归扫描 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
-    for /r %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
+    for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         call :process_file "%%f"
     )
 ) else (

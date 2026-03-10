@@ -18,7 +18,7 @@ if "%~1" == "" (
     echo.
     echo 未检测到输入文件，将自动扫描并处理当前目录下的所有视频文件。
     echo.
-    for /r %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
+    for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         call :process_file "%%f"
     )
     echo.
