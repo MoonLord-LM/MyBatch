@@ -9,6 +9,11 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
+if /i "%cd%"=="%SystemRoot%\System32" (
+    echo 检测到使用右键的"以管理员权限运行"，切换到脚本所在目录 & echo.
+    cd /d "%~dp0"
+)
+
 for /r %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
     if exist "%%f" (
         echo 正在处理: %%f
@@ -16,7 +21,7 @@ for /r %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
     )
 )
 
-echo 处理完成，结果已保存到当前目录下
+echo 处理完成，包含了视频详细信息的同名 .json 文件已保存
 
 
 

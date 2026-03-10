@@ -9,6 +9,11 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
+if /i "%cd%"=="%SystemRoot%\System32" (
+    echo 检测到使用右键的"以管理员权限运行"，切换到脚本所在目录 & echo.
+    cd /d "%~dp0"
+)
+
 set "videoCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
 set "audioCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
 if exist "%videoCodecFile%" del "%videoCodecFile%"
