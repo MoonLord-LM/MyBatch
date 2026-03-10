@@ -28,7 +28,8 @@ If temporary files need to be generated, use a path like `%temp%\\MyBatch_%rando
 Try to avoid using English parentheses ( ) or Chinese parentheses （） in echo commands to prevent interference.  
 To check if the previous command succeeded/failed, use the `if errorlevel 0/1` syntax, which is more concise; do not use the `%errorlevel%` variable.  
 If the script is run as administrator from the right-click menu, it will switch to the system directory by default, but usually the script does not want to change the relative path; refer to the example code for handling.  
-When a script exits normally, use `exit /b` to exit; when it exits with an error, use `exit /b 1` to exit.
+When a script exits normally, use `exit /b` to exit; when it exits with an error, use `exit /b 1` to exit.  
+When processing video files, ensure compatibility with common formats: *.mp4, *.mkv, *.ts, *.avi, *.wmv, *.flv, *.rmvb, *.rm, *.vob, *.mpg, *.mpeg, *.3gp, *.m4v, *.f4v, *.mov, *.webm.  
 
 Example code:
 ```
@@ -103,7 +104,7 @@ None
 判断上一条命令是否成功/失败，用 if errorlevel 0/1 的写法，比较简洁，不要用 %errorlevel% 变量。  
 脚本如果用右键的"以管理员权限运行"，默认会切换到系统目录，而通常脚本并不想改变相对路径，参照示例代码处理。  
 脚本正常结束时，使用 exit /b 退出，异常结束时，使用 exit /b 1 退出。  
-处理视频文件时，尽量对常见格式都进行兼容：*.mp4, *.mkv, *.ts, *.avi, *.wmv, *.flv, *.rmvb, *.rm, *.vob, *.mpg, *.mpeg, *.3gp, *.m4v, *.f4v, *.mov, *.webm。  
+处理视频文件时，注意对常见格式都进行兼容：*.mp4, *.mkv, *.ts, *.avi, *.wmv, *.flv, *.rmvb, *.rm, *.vob, *.mpg, *.mpeg, *.3gp, *.m4v, *.f4v, *.mov, *.webm。  
 
 示例代码：
 ```
