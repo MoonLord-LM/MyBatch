@@ -40,7 +40,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: This line is a comment, used to mark the source or summarize the entire file
+:: This is a comment, it can be single line or multi-line, used to indicate the source or summarize the file.
 
 
 
@@ -49,9 +49,21 @@ if /i "%cd%"=="%SystemRoot%\System32" (
     cd /d "%~dp0"
 )
 
+xxx.exe -version >nul 2>&1
+if errorlevel 1 (
+    echo Error: Missing xxx.exe component
+    echo Please download from https://xxx.org/download.html
+    "explorer.exe" "https://xxx.org/download.html"
+    echo.
+    pause
+    exit /b 1
+)
+
+
+
 echo This is the main body of the code
 echo Note the fixed 4 lines of code at the beginning and the fixed 3 lines at the end
-echo The beginning, summary comment, code body, and end are separated by 3 blank lines
+echo The beginning, summary comment, environment check, code body, and end are separated by 3 blank lines
 echo A blank line is always reserved at the end of the file
 
 
@@ -115,7 +127,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 这一行是注释，对整个文件进行出处标注或者总结说明
+:: 这里是注释，可以是一行或多行，对整个文件进行出处标注或者总结说明
 
 
 
@@ -124,9 +136,21 @@ if /i "%cd%"=="%SystemRoot%\System32" (
     cd /d "%~dp0"
 )
 
-echo 这里是代码正文
+xxx.exe -version >nul 2>&1
+if errorlevel 1 (
+    echo 错误: 缺少 xxx.exe 组件
+    echo 请从 https://xxx.org/download.html 下载
+    "explorer.exe" "https://xxx.org/download.html"
+    echo.
+    pause
+    exit /b 1
+)
+
+
+
+echo 这里是代码主体
 echo 注意开头的固定 4 行代码和结尾的固定 3 行代码
-echo 开头、总结注释、代码主体、结尾，中间固定隔开 3 行
+echo 开头、总结注释、环境检查、代码主体、结尾，中间固定隔开 3 行
 echo 文件末尾固定保留 1 个空行
 
 

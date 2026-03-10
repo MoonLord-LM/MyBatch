@@ -21,7 +21,6 @@ set "audioCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
 if exist "%videoCodecFile%" del "%videoCodecFile%"
 if exist "%audioCodecFile%" del "%audioCodecFile%"
 
-:: 检查依赖
 "ffprobe.exe" -version >nul 2>&1
 if errorlevel 1 (
     echo 错误: 缺少 ffprobe.exe 组件
@@ -29,6 +28,8 @@ if errorlevel 1 (
     "explorer.exe" "https://ffmpeg.org/download.html"
     goto cleanup
 )
+
+
 
 if "%~1" == "" (
     echo.
