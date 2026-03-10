@@ -1,0 +1,60 @@
+@echo off
+chcp 65001 >nul
+setlocal enabledelayedexpansion
+powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
+
+
+
+:: 导出视频详细信息为json。A: 双击运行，扫描并处理当前目录下所有视频文件。B: 拖拽单个视频文件到此脚本上，处理该文件。
+
+
+
+if /i "%cd%"=="%SystemRoot%\System32" (
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
+    cd /d "%~dp0"
+)
+
+if "%~1" == "" (
+    echo.
+    echo 未检测到输入文件，将自动扫描并处理当前目录下的所有视频文件。
+    echo.
+    for /r %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
+        call :process_file "%%f"
+    )
+    echo.
+    echo ==================================================
+    echo 批量处理完成
+    echo ==================================================
+) else (
+    call :process_file "%~1"
+)
+
+
+
+echo.
+pause
+exit /b
+
+
+:process_file
+    set "file_path=%~1"
+    if not exist "%file_path%" goto :eof
+
+    setlocal disabledelayedexpansion
+    set "file_name=%~nx1"
+    set "file_dir_path=%~dp1"
+    set "file_base_name=%~n1"
+    setlocal enabledelayedexpansion
+
+    if not "!file_dir_path!"=="" cd /d "!file_dir_path!"
+
+    echo --------------------------------------------------
+    echo 正在处理: !file_name!
+    
+    set "output_file=!file_base_name!.json"
+    ffprobe -v error -show_streams -show_format -print_format json "!file_name!" > "!output_file!"
+    echo 详细信息已保存到: !output_file!
+
+    endlocal
+    endlocal
+goto :eof

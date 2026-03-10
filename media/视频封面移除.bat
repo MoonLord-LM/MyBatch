@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 移除视频封面，支持拖拽单个视频文件到此脚本上
+:: 移除视频封面。A: 双击运行，扫描并处理当前目录下所有mp4文件。B: 拖拽单个mp4文件到此脚本上，处理该文件。
 
 
 
@@ -16,48 +16,23 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 
 if "%~1" == "" (
     echo.
-    echo 请拖拽一个视频文件到此脚本上
+    echo 未检测到输入文件，将自动扫描并处理当前目录下的所有 .mp4 文件。
     echo.
-    pause
-    exit /b 1
-)
-
-set "file_path=%~1"
-
-setlocal disabledelayedexpansion
-set "file_name=%~nx1"
-set "dir_path=%~dp1"
-setlocal enabledelayedexpansion
-
-cd /d "!dir_path!"
-
-echo --------------------------------------------------
-echo 正在检查: !file_name!
-
-set "has_cover=0"
-for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!file_name!" 2^>nul') do (
-    if "%%c"=="1" (
-        set "has_cover=1"
+    set "processed=0"
+    set "skipped=0"
+    set "failed=0"
+    for %%f in (*.mp4) do (
+        call :process_file "%%f"
     )
-)
-
-if "!has_cover!"=="0" (
-    echo 跳过，无封面
+    echo.
+    echo ==================================================
+    echo 批量处理完成
+    echo 成功: !processed!
+    echo 失败: !failed!
+    echo 跳过: !skipped!
+    echo ==================================================
 ) else (
-    echo 找到封面，正在移除
-    set "temp_file=%temp%\MyBatch_%random%_%random%.mp4"
-    
-    :: 仅保留第一个视频流和所有音频流，以此移除作为第二个视频流的封面
-    ffmpeg -i "!file_name!" -c copy -map 0:v:0 -map 0:a? "!temp_file!" -hide_banner -loglevel error
-
-    if errorlevel 1 (
-        echo 移除失败
-        if exist "!temp_file!" del /f /q "!temp_file!" >nul
-    ) else (
-        del /f /q "!file_name!" >nul
-        ren "!temp_file!" "!file_name!" >nul
-        echo 移除成功
-    )
+    call :process_file "%~1"
 )
 
 
@@ -65,3 +40,47 @@ if "!has_cover!"=="0" (
 echo.
 pause
 exit /b
+
+
+:process_file
+    set "file_path=%~1"
+    setlocal disabledelayedexpansion
+    set "file_name=%~nx1"
+    set "dir_path=%~dp1"
+    setlocal enabledelayedexpansion
+
+    if not "%dir_path%"=="" cd /d "%dir_path%"
+
+    echo --------------------------------------------------
+    echo 正在处理: !file_name!
+
+    set "has_cover=0"
+    for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!file_name!" 2^>nul') do (
+        if "%%c"=="1" (
+            set "has_cover=1"
+        )
+    )
+
+    if "!has_cover!"=="0" (
+        echo 跳过，无封面
+        if defined processed set /a "skipped+=1"
+    ) else (
+        echo 找到封面，正在移除
+        set "temp_file=%temp%\MyBatch_%random%_%random%.mp4"
+        
+        ffmpeg -i "!file_name!" -c copy -map 0:v:0 -map 0:a? "!temp_file!" -hide_banner -loglevel error
+
+        if errorlevel 1 (
+            echo 移除失败
+            if exist "!temp_file!" del /f /q "!temp_file!" >nul
+            if defined processed set /a "failed+=1"
+        ) else (
+            del /f /q "!file_name!" >nul
+            ren "!temp_file!" "!file_name!" >nul
+            echo 移除成功
+            if defined processed set /a "processed+=1"
+        )
+    )
+    endlocal
+    endlocal
+goto :eof
