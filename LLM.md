@@ -39,7 +39,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: This line is a comment, summarizing the entire file
+:: This line is a comment, used to mark the source or summarize the entire file
 
 
 
@@ -112,7 +112,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 这一行是注释，对整个文件进行总结说明
+:: 这一行是注释，对整个文件进行出处标注或者总结说明
 
 
 
