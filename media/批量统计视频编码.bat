@@ -27,7 +27,8 @@ if errorlevel 1 (
 )
 
 echo.
-echo 检查视频编码格式: 递归 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
+echo 检查视频编码格式的 codec_name, codec_tag_string, profile, level
+echo 递归扫描 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
 for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
     if exist "%%f" (
         for /f "delims=" %%v in ('
@@ -36,12 +37,12 @@ for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
             set "current_video_codec=%%v"
             if defined current_video_codec (
                 if not exist "%videoCodecFile%" (
-                    echo new_video_codec: !current_video_codec! - %%f
+                    echo 新增: !current_video_codec! - %%f
                     >"%videoCodecFile%" echo(!current_video_codec!
                 ) else (
                     findstr /x /c:"!current_video_codec!" "%videoCodecFile%" >nul
                     if errorlevel 1 (
-                        echo new_video_codec: !current_video_codec! - %%f
+                        echo 新增: !current_video_codec! - %%f
                         >>"%videoCodecFile%" echo(!current_video_codec!
                     )
                 )
@@ -51,7 +52,8 @@ for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
 )
 
 echo.
-echo 检查音频编码格式: 递归 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
+echo 检查音频编码格式的 codec_name, profile
+echo 递归扫描 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
 for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
     if exist "%%f" (
         for /f "delims=" %%a in ('
@@ -60,12 +62,12 @@ for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
             set "current_audio_codec=%%a"
             if defined current_audio_codec (
                 if not exist "%audioCodecFile%" (
-                    echo new_audio_codec: !current_audio_codec! - %%f
+                    echo 新增: !current_audio_codec! - %%f
                     >"%audioCodecFile%" echo(!current_audio_codec!
                 ) else (
                     findstr /x /c:"!current_audio_codec!" "%audioCodecFile%" >nul
                     if errorlevel 1 (
-                        echo new_audio_codec: !current_audio_codec! - %%f
+                        echo 新增: !current_audio_codec! - %%f
                         >>"%audioCodecFile%" echo(!current_audio_codec!
                     )
                 )
