@@ -5,7 +5,9 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 视频编码转换为 h264。A: 双击运行，扫描并处理当前目录下所有mp4文件。B: 拖拽单个mp4文件到此脚本上，处理该文件。
+:: 视频编码转换为 h264 格式
+:: 双击运行时，自动扫描并处理当前目录下所有格式的视频文件
+:: 拖拽单个视频文件到此脚本上，则只处理该文件
 
 
 
@@ -21,7 +23,7 @@ if "%~1" == "" (
     set "processed=0"
     set "skipped=0"
     set "failed=0"
-    for %%f in (*.mp4) do (
+    for %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
         call :process_file "%%f"
     )
     echo.

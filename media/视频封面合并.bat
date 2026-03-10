@@ -5,7 +5,9 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 合并视频封面。A: 双击运行，扫描并处理当前目录下所有mp4文件。B: 拖拽单个mp4文件到此脚本上，处理该文件。
+:: 合并视频封面
+:: 双击运行时，自动扫描并处理当前目录下所有格式的视频文件
+:: 拖拽单个视频文件到此脚本上，则只处理该文件
 
 
 
@@ -16,12 +18,12 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 
 if "%~1" == "" (
     echo.
-    echo 未检测到输入文件，将自动扫描并处理当前目录下的所有 .mp4 文件。
+    echo 未检测到输入文件，将自动扫描并处理当前目录下的所有视频文件。
     echo.
     set "processed=0"
     set "skipped=0"
     set "failed=0"
-    for %%f in (*.mp4) do (
+    for %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
         call :process_file "%%f"
     )
     echo.
