@@ -16,11 +16,6 @@ if /i "%cd%"=="%SystemRoot%\System32" (
     cd /d "%~dp0"
 )
 
-set "videoCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
-set "audioCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
-if exist "%videoCodecFile%" del "%videoCodecFile%"
-if exist "%audioCodecFile%" del "%audioCodecFile%"
-
 "ffprobe.exe" -version >nul 2>&1
 if errorlevel 1 (
     echo 错误: 缺少 ffprobe.exe 组件
@@ -30,6 +25,11 @@ if errorlevel 1 (
 )
 
 
+
+set "videoCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+set "audioCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+if exist "%videoCodecFile%" del "%videoCodecFile%"
+if exist "%audioCodecFile%" del "%audioCodecFile%"
 
 if "%~1" == "" (
     echo.
