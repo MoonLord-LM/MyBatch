@@ -23,3 +23,5 @@
 # Temp Files
 /media/*.JSON
 /media/*.json
+/media/*.TXT
+/media/*.txt
