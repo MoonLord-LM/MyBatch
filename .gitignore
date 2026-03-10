@@ -1,5 +1,25 @@
-# Ignore files
+# Excutable files
 /media/_internal
 /media/Plugin
+/media/*.EXE
 /media/*.exe
+/media/*.DLL
 /media/*.dll
+
+# Video files
+/media/*.MP4
+/media/*.mp4
+/media/*.MKV
+/media/*.mkv
+/media/*.MOV
+/media/*.mov
+/media/*.AVI
+/media/*.avi
+/media/*.WMV
+/media/*.wmv
+/media/*.FLV
+/media/*.flv
+
+# Temp Files
+/media/*.JSON
+/media/*.json

@@ -35,6 +35,7 @@ for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
             ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string^,profile^,level -of csv^=p^=0 "%%f"
         ') do (
             set "current_video_codec=%%v"
+            if "!current_video_codec:~-1!"=="," set "current_video_codec=!current_video_codec:~0,-1!"
             if defined current_video_codec (
                 if not exist "%videoCodecFile%" (
                     echo 新增: !current_video_codec! - %%f
@@ -60,6 +61,7 @@ for /r %%f in ("*.mp4", "*.mkv", "*.mov", "*.avi", "*.wmv", "*.flv") do (
             ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "%%f"
         ') do (
             set "current_audio_codec=%%a"
+            if "!current_audio_codec:~-1!"=="," set "current_audio_codec=!current_audio_codec:~0,-1!"
             if defined current_audio_codec (
                 if not exist "%audioCodecFile%" (
                     echo 新增: !current_audio_codec! - %%f
