@@ -23,6 +23,8 @@ echo.
 
 for /r %%f in (*.bat) do (
     echo 检查文件：%%f
+
+    :: 统一编码为 UTF-8 without BOM，统一换行符为 CRLF
     powershell -NoProfile -Command ^
         "$path='%%f';" ^
         "$bytes = [System.IO.File]::ReadAllBytes($path);" ^
@@ -38,17 +40,30 @@ for /r %%f in (*.bat) do (
         "}" ^
         "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
         "[System.IO.File]::WriteAllText($path, $content, $utf8NoBOM);"
+
+    :: 检查并添加 @echo off
     powershell -NoProfile -Command ^
         "$path='%%f';" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
-        "$content = Get-Content -Encoding utf8 -Path $path;" ^
-        "if (-not ($content -match 'chcp 65001')) {" ^
-            "$lines = $content -split '(\r?\n)';" ^
-            "if ($lines.Length -ge 1) {" ^
-                "$lines = $lines[0..0] + 'chcp 65001 >nul' + $lines[1..($lines.Length-1)];" ^
+        "$lines = [System.IO.File]::ReadAllLines($path, [System.Text.Encoding]::UTF8);" ^
+        "if (($lines -join '`n') -notmatch '@echo off') {" ^
+            "$lines = @('@echo off') + $lines;" ^
+            "[System.IO.File]::WriteAllLines($path, $lines, $utf8NoBOM);" ^
+        "}"
+
+    :: 检查并添加 chcp 65001 >nul
+    powershell -NoProfile -Command ^
+        "$path='%%f';" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$lines = [System.IO.File]::ReadAllLines($path, [System.Text.Encoding]::UTF8);" ^
+        "if (($lines -join '`n') -notmatch 'chcp 65001') {" ^
+            "$newLines = New-Object System.Collections.Generic.List[string];" ^
+            "$newLines.Add($lines[0]);" ^
+            "$newLines.Add('chcp 65001 >nul');" ^
+            "if ($lines.Count -gt 1) {" ^
+                "$newLines.AddRange($lines[1..($lines.Count - 1)]);" ^
             "}" ^
-            "$newContent = ($lines -join \""`r`n\"");" ^
-            "[System.IO.File]::WriteAllText($path, $newContent, $utf8NoBOM);" ^
+            "[System.IO.File]::WriteAllLines($path, $newLines, $utf8NoBOM);" ^
         "}"
 )
 
@@ -56,4 +71,4 @@ for /r %%f in (*.bat) do (
 
 echo.
 pause
-exit
+exit /b
