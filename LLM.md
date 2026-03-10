@@ -23,7 +23,7 @@ For .md files, prioritize the Chinese text as the source of truth. If there is E
 For .md files, ensure that ordinary single-line text ends with 2 spaces to achieve a line break effect.  
 
 For batch scripts, code readability is prioritized over performance optimization; use simple, easy-to-understand code to implement functionality and reduce comments.  
-For batch scripts, the code style (e.g., spacing, logging) should refer to existing code to maintain consistency as much as possible.  
+For batch scripts, the code style should refer to existing code to maintain consistency as much as possible, for example, use Space spaces instead of Tab spaces, and use :: style comments instead of REM style comments.  
 If temporary files need to be generated, use a path like `%temp%\\MyBatch_%random%_%random%_%random%_%random%.tmp` to prevent conflicts, and clean it up before the script ends.  
 Try to avoid using English parentheses ( ) or Chinese parentheses （） in echo commands to prevent interference.  
 To check if the previous command succeeded/failed, use the `if errorlevel 0/1` syntax, which is more concise; do not use the `%errorlevel%` variable.  
@@ -98,7 +98,7 @@ None
 处理 .md 文件时，要保证普通单行文本的结尾要有 2 个空格，以实现换行效果。  
 
 对于批处理脚本，代码易读优先于性能优化，优先使用简单易懂的代码实现功能，减少注释。  
-批处理脚本的代码风格（如空格、日志等）参考现有代码，尽量保持一致。  
+批处理脚本的代码风格参考现有代码，尽量保持一致，例如使用 Space 空格而不用 Tab 空格，使用 :: 风格的注释而不用 REM 风格的注释。  
 如果需要生成临时文件，使用 `%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp` 这样的路径防止冲突，并且在脚本结束前做清理。  
 尽量避免在 echo 命令中，使用英文的括号 ( ) 或中文的括号（）符号，避免干扰。  
 判断上一条命令是否成功/失败，用 if errorlevel 0/1 的写法，比较简洁，不要用 %errorlevel% 变量。  

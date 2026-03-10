@@ -5,7 +5,9 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 统计视频编码。A: 双击运行，扫描并处理当前目录下所有视频文件。B: 拖拽单个视频文件到此脚本上，处理该文件。
+:: 统计视频编码参数
+:: 双击运行时，自动扫描并处理当前目录下所有格式的视频文件
+:: 拖拽单个视频文件到此脚本上，则只处理该文件
 
 
 
@@ -19,7 +21,7 @@ set "audioCodecFile=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
 if exist "%videoCodecFile%" del "%videoCodecFile%"
 if exist "%audioCodecFile%" del "%audioCodecFile%"
 
-rem 检查依赖
+:: 检查依赖
 "ffprobe.exe" -version >nul 2>&1
 if errorlevel 1 (
     echo 错误: 缺少 ffprobe.exe 组件
@@ -33,7 +35,7 @@ if "%~1" == "" (
     echo 未检测到输入文件，将自动扫描并处理当前目录下的所有视频文件。
     echo.
     echo 检查视频编码格式的 codec_name, codec_tag_string, profile, level
-    echo 递归扫描 *.mp4, *.mkv, *.mov, *.avi, *.wmv, *.flv...
+    echo 递归扫描 *.mp4, *.mkv, *.ts, *.avi, *.wmv, *.flv, *.rmvb, *.rm, *.vob, *.mpg, *.mpeg, *.3gp, *.m4v, *.f4v, *.mov, *.webm...
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         call :process_file "%%f"
     )
@@ -79,7 +81,7 @@ exit /b
 
     if not "%dir_path%"=="" cd /d "%dir_path%"
 
-    rem 处理视频编码
+    :: 处理视频编码
     for /f "delims=" %%v in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,codec_tag_string^,profile^,level -of csv^=p^=0 "!file_name!" 2^>nul') do (
         set "current_video_codec=%%v"
         if "!current_video_codec:~-1!"=="," set "current_video_codec=!current_video_codec:~0,-1!"
@@ -97,7 +99,7 @@ exit /b
         )
     )
 
-    rem 处理音频编码
+    :: 处理音频编码
     for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!file_name!" 2^>nul') do (
         set "current_audio_codec=%%a"
         if "!current_audio_codec:~-1!"=="," set "current_audio_codec=!current_audio_codec:~0,-1!"

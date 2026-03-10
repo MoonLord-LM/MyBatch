@@ -27,12 +27,10 @@ if "%~1" == "" (
         call :process_file "%%f"
     )
     echo.
-    echo ==================================================
     echo 批量处理完成
     echo 成功: !processed!
     echo 失败: !failed!
     echo 跳过: !skipped!
-    echo ==================================================
 ) else (
     call :process_file "%~1"
 )
@@ -53,7 +51,6 @@ exit /b
 
     if not "%dir_path%"=="" cd /d "%dir_path%"
 
-    echo --------------------------------------------------
     echo 正在处理: !file_name!
 
     set "has_cover=0"

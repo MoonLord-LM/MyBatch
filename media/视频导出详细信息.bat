@@ -5,7 +5,9 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 导出视频详细信息为json。A: 双击运行，扫描并处理当前目录下所有视频文件。B: 拖拽单个视频文件到此脚本上，处理该文件。
+:: 导出视频详细信息为 json
+:: 双击运行时，自动扫描并处理当前目录下所有格式的视频文件
+:: 拖拽单个视频文件到此脚本上，则只处理该文件
 
 
 
@@ -22,9 +24,7 @@ if "%~1" == "" (
         call :process_file "%%f"
     )
     echo.
-    echo ==================================================
     echo 批量处理完成
-    echo ==================================================
 ) else (
     call :process_file "%~1"
 )
@@ -48,7 +48,6 @@ exit /b
 
     if not "!file_dir_path!"=="" cd /d "!file_dir_path!"
 
-    echo --------------------------------------------------
     echo 正在处理: !file_name!
     
     set "output_file=!file_base_name!.json"
