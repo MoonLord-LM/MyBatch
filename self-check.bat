@@ -1,12 +1,18 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
 
 
 
 :: Git 配置和 Bat 文件格式自检
 
 
+
+if /i "%cd%"=="%SystemRoot%\System32" (
+    echo 检测到使用右键的"以管理员权限运行"，切换到脚本所在目录 & echo.
+    cd /d "%~dp0"
+)
 
 git config --local core.autocrlf false
 git config --local core.safecrlf false
