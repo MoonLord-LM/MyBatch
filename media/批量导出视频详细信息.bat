@@ -21,6 +21,7 @@ for /r %%f in (*.mp4 *.mkv *.mov *.avi *.wmv *.flv) do (
     )
 )
 
+echo.
 echo 处理完成，包含了视频详细信息的同名 .json 文件已保存
 
 
