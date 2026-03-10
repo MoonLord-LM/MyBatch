@@ -1,0 +1,5 @@
+# Ignore files
+/media/_internal
+/media/Plugin
+/media/*.exe
+/media/*.dll
