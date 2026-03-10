@@ -44,7 +44,7 @@ if "%~1" == "" (
     set "processed=0"
     set "skipped=0"
     set "failed=0"
-    for %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
+    for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         call :process_file "%%f"
     )
     echo.
@@ -88,7 +88,7 @@ exit /b
         echo 找到封面，正在移除
         set "temp_file=%temp%\MyBatch_%random%_%random%.mp4"
         
-        ffmpeg -i "!file_name!" -c copy -map 0:v:0 -map 0:a? "!temp_file!" -hide_banner -loglevel error
+        ffmpeg -i "!file_name!" -c copy -map 0:v:0 -map 0:a? -map 0:s? -map 0:t? "!temp_file!" -hide_banner -loglevel error
 
         if errorlevel 1 (
             echo 移除失败

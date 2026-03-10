@@ -16,12 +16,14 @@ if /i "%cd%"=="%SystemRoot%\System32" (
     cd /d "%~dp0"
 )
 
-"ffprobe.exe" -version >nul 2>&1
+ffprobe.exe -version >nul 2>&1
 if errorlevel 1 (
     echo 错误: 缺少 ffprobe.exe 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
-    goto cleanup
+    echo.
+    pause
+    exit /b 1
 )
 
 

@@ -35,7 +35,7 @@ if "%~1" == "" (
     set "processed=0"
     set "skipped=0"
     set "failed=0"
-    for %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
+    for /r %%f in (*.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         call :process_file "%%f"
     )
     echo.

@@ -44,7 +44,7 @@ if "%~1" == "" (
     set "processed=0"
     set "skipped=0"
     set "failed=0"
-    for %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
+    for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         call :process_file "%%f"
     )
     echo.
@@ -96,7 +96,7 @@ exit /b
 
         if defined cover_file (
             echo 找到封面: !cover_file!
-            set "temp_file=%temp%\MyBatch_%random%_%random%.mp4"
+            set "temp_file=%temp%\MyBatch_%random%_%random%%~x1"
             ffmpeg -i "!file_name!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_file!" -hide_banner -loglevel error
 
             if errorlevel 1 (
