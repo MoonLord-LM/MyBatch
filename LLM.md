@@ -27,13 +27,15 @@ For batch scripts, the code style (e.g., spacing, logging) should refer to exist
 If temporary files need to be generated, use a path like `%temp%\\MyBatch_%random%_%random%_%random%_%random%.tmp` to prevent conflicts, and clean it up before the script ends.  
 Try to avoid using English parentheses ( ) or Chinese parentheses （） in echo commands to prevent interference.  
 To check if the previous command succeeded/failed, use the `if errorlevel 0/1` syntax, which is more concise; do not use the `%errorlevel%` variable.  
-When a script exits normally, use `exit /b` to exit; when it exits with an error, use `exit /b 1` to exit.  '''
+If the script is run as administrator from the right-click menu, it will switch to the system directory by default, but usually the script does not want to change the relative path; refer to the example code for handling.  
+When a script exits normally, use `exit /b` to exit; when it exits with an error, use `exit /b 1` to exit.
 
 Example code:
 ```
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
 
 
 
@@ -41,8 +43,13 @@ setlocal enabledelayedexpansion
 
 
 
+if /i "%cd%"=="%SystemRoot%\System32" (
+    echo Use "Run as administrator" from right-click menu, switching to script directory & echo.
+    cd /d "%~dp0"
+)
+
 echo This is the main body of the code
-echo Note the fixed 3 lines of code at the beginning and the fixed 3 lines at the end
+echo Note the fixed 4 lines of code at the beginning and the fixed 3 lines at the end
 echo The beginning, summary comment, code body, and end are separated by 3 blank lines
 echo A blank line is always reserved at the end of the file
 
@@ -93,6 +100,7 @@ None
 如果需要生成临时文件，使用 `%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp` 这样的路径防止冲突，并且在脚本结束前做清理。  
 尽量避免在 echo 命令中，使用英文的括号 ( ) 或中文的括号（）符号，避免干扰。  
 判断上一条命令是否成功/失败，用 if errorlevel 0/1 的写法，比较简洁，不要用 %errorlevel% 变量。  
+脚本如果用右键的"以管理员权限运行"，默认会切换到系统目录，而通常脚本并不想改变相对路径，参照示例代码处理。  
 脚本正常结束时，使用 exit /b 退出，异常结束时，使用 exit /b 1 退出。  
 
 示例代码：
@@ -100,6 +108,7 @@ None
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
 
 
 
@@ -107,8 +116,13 @@ setlocal enabledelayedexpansion
 
 
 
+if /i "%cd%"=="%SystemRoot%\System32" (
+    echo 检测到使用右键的"以管理员权限运行"，切换到脚本所在目录 & echo.
+    cd /d "%~dp0"
+)
+
 echo 这里是代码正文
-echo 注意开头的固定 3 行代码和结尾的固定 3 行代码
+echo 注意开头的固定 4 行代码和结尾的固定 3 行代码
 echo 开头、总结注释、代码主体、结尾，中间固定隔开 3 行
 echo 文件末尾固定保留 1 个空行
 
