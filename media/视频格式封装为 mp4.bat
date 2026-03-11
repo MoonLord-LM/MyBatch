@@ -13,7 +13,7 @@ REM 支持的格式为 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov w
 
 
 if /i "%cd%"=="%SystemRoot%\System32" (
-    echo 检测到使用右键的"以管理员权限运行"，切换到脚本所在目录 & echo.
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
     cd /d "%~dp0"
 )
 
