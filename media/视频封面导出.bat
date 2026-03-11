@@ -39,7 +39,7 @@ if errorlevel 1 (
 
 if "%~1" == "" (
     echo.
-    echo 未检测到输入文件，将自动扫描并处理当前目录下的所有视频文件。
+    echo 递归扫描并导出封面，格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm...
     echo.
     set "processed=0"
     set "skipped=0"

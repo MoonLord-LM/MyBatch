@@ -50,9 +50,8 @@ exit /b
 
 
 :process_file
-    set "file_path=%~1"
-    if not exist "%file_path%" (
-        echo 文件不存在: %file_path%
+    if not exist "%~1" (
+        echo 文件不存在: "%~1"
         goto :eof
     )
 
@@ -65,7 +64,7 @@ exit /b
     echo 正在处理: !file_name!
     if not "!file_dir_path!"=="" ( cd /d "!file_dir_path!" )
     ffprobe -v error -show_streams -show_format -print_format json "!file_name!" > "!output_file!"
-    echo 已保存文件: !output_file!
+    echo 保存文件: !output_file!
 
     endlocal
     endlocal

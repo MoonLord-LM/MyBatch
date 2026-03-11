@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 统计视频编码参数
+:: 对视频文件统计编码参数
 :: 双击运行时，自动扫描并处理当前目录下所有格式的视频文件
 :: 拖拽单个视频文件到此脚本上时，则只处理该文件
 
@@ -38,7 +38,7 @@ if "%~1" == "" (
     echo 未检测到输入文件，将自动扫描并处理当前目录下的所有视频文件。
     echo.
     echo 检查视频编码格式的 codec_name, codec_tag_string, profile, level
-    echo 递归扫描 *.mp4, *.mkv, *.ts, *.avi, *.wmv, *.flv, *.rmvb, *.rm, *.vob, *.mpg, *.mpeg, *.3gp, *.m4v, *.f4v, *.mov, *.webm...
+    echo 递归扫描视频文件，格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm...
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         call :process_file "%%f"
     )
