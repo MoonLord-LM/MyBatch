@@ -33,18 +33,37 @@ if "%~1" == "" (
     echo 开始扫描
     echo.
 
-    set "temp_vcodecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.vcodecs"
-    set "temp_acodecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.acodecs"
-    type nul > "!temp_vcodecs!"
-    type nul > "!temp_acodecs!"
+    REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
+    set "temp_vcodecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.vcodecs" & type nul > "!temp_vcodecs!"
+    set "temp_acodecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.acodecs" & type nul > "!temp_acodecs!"
 
     set /a "total=0"
+    set /a "succeeded=0"
+    set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
-        set /a "total+=1"
-        echo 正在处理: "%%~nxf"
+        setlocal disabledelayedexpansion
+        set "video_file=%%~nxf"
+        setlocal enabledelayedexpansion
+
+        echo 正在处理: "!video_file!"
         ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "%%f" 2>nul >> "!temp_vcodecs!"
         ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "%%f" 2>nul >> "!temp_acodecs!"
+        if errorlevel 1 (
+            echo set /a "failed+=1">> "!temp_set!"
+            echo 视频解析报错: "%%f"
+        ) else (
+            echo set /a "succeeded+=1">> "!temp_set!"
+        )
+        echo set /a "total+=1">> "!temp_set!"
+        echo.
+
+        endlocal
+        endlocal
     )
+
+    REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+    call "!temp_set!"
 
     echo.
     echo ----------------------------------------
@@ -72,8 +91,10 @@ if "%~1" == "" (
 
     echo ----------------------------------------
     echo.
-    echo 统计完成，共处理 !total! 个文件，发现 !vcodec_count! 种视频编码、!acodec_count! 种音频编码。
+    echo 统计完成
+    echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个，发现 !vcodec_count! 种视频编码、!acodec_count! 种音频编码。
 
+    if exist "!temp_set!" ( del /f /q "!temp_set!" )
     if exist "!temp_vcodecs!" ( del /f /q "!temp_vcodecs!" )
     if exist "!temp_acodecs!" ( del /f /q "!temp_acodecs!" )
 ) else (
@@ -84,7 +105,11 @@ if "%~1" == "" (
         exit /b 1
     )
 
-    echo 正在处理: "%~nx1"
+    setlocal disabledelayedexpansion
+    set "video_file=%~nx1"
+    setlocal enabledelayedexpansion
+
+    echo 正在处理: "!video_file!"
     set "vcodec_info="
     for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "%~1" 2^>nul') do (
         set "vcodec_info=%%c"
@@ -97,15 +122,16 @@ if "%~1" == "" (
     )
     if defined acodec_info if "!acodec_info:~-1!"=="," set "acodec_info=!acodec_info:~0,-1!"
 
-    echo.
-    echo ----------------------------------------
-    echo.
-    echo 视频编码: !vcodec_info!
-    echo 音频编码: !acodec_info!
-    echo.
-    echo ----------------------------------------
-    echo.
-    echo 统计完成，共处理 1 个文件。
+    if errorlevel 1 (
+        echo 视频解析报错: "!video_file!"
+    ) else (
+        echo.
+        echo 视频编码: !vcodec_info!
+        echo 音频编码: !acodec_info!
+    )
+
+    endlocal
+    endlocal
 )
 
 

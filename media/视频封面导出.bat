@@ -111,20 +111,24 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     echo 正在处理: "!video_file!"
-    set "stream_index="
-    for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
-        if not defined stream_index set "stream_index=%%s"
-    )
-
-    if not defined stream_index (
-        echo 无封面: "!video_file!"
+    if exist "!file_dir!!cover_file!" (
+        echo 已存在: "!cover_file!"，跳过此文件
     ) else (
-        ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!" -y -hide_banner -loglevel error
-        if errorlevel 1 (
-            if exist "!file_dir!!cover_file!" ( del /f /q "!file_dir!!cover_file!" )
-            echo 导出失败: "!video_file!"
+        set "stream_index="
+        for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
+            if not defined stream_index set "stream_index=%%s"
+        )
+
+        if not defined stream_index (
+            echo 无封面: "!video_file!"
         ) else (
-            echo 保存文件: "!cover_file!"
+            ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!" -hide_banner -loglevel error
+            if errorlevel 1 (
+                if exist "!file_dir!!cover_file!" ( del /f /q "!file_dir!!cover_file!" )
+                echo 导出失败: "!video_file!"
+            ) else (
+                echo 保存文件: "!cover_file!"
+            )
         )
     )
 
