@@ -34,7 +34,7 @@ if "%~1" == "" (
     echo.
 
     :: 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
-    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & echo.> "!temp_set!"
+    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & echo.> "!temp_set!"
 
     set /a "total=0"
     set /a "succeeded=0"
@@ -67,9 +67,7 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个
-    echo 成功: !succeeded! 个
-    echo 失败: !failed! 个
+    echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个
 ) else (
     if not exist "%~1" (
         echo 错误: 文件不存在: "%~1"
