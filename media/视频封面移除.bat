@@ -5,9 +5,9 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 移除视频封面
-:: 双击运行时，自动扫描并处理当前目录下所有格式的视频文件
-:: 拖拽单个视频文件到此脚本上时，则只处理该文件
+REM 移除视频封面
+REM 双击运行时，自动扫描并处理当前目录下所有格式的视频文件
+REM 拖拽单个视频文件到此脚本上时，则只处理该文件
 
 
 

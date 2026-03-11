@@ -5,10 +5,10 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-:: 导出视频详细信息为 json
-:: 双击运行时，自动递归扫描和处理当前目录下所有的视频文件
-:: 拖拽单个视频文件到此脚本上时，则只处理该文件
-:: 支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm
+REM 导出视频详细信息为 json
+REM 双击运行时，自动递归扫描和处理当前目录下所有的视频文件
+REM 拖拽单个视频文件到此脚本上时，则只处理该文件
+REM 支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm
 
 
 
@@ -33,7 +33,7 @@ if "%~1" == "" (
     echo 开始扫描
     echo.
 
-    :: 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+    REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
     set /a "total=0"
@@ -69,7 +69,7 @@ if "%~1" == "" (
         endlocal
     )
 
-    :: 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+    REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
