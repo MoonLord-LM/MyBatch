@@ -32,13 +32,69 @@ if errorlevel 1 (
 if "%~1" == "" (
     echo 开始扫描
     echo.
+
+    :: 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & echo.> "!temp_set!"
+
+    set /a "total=0"
+    set /a "succeeded=0"
+    set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
-        call :process_file "%%f"
+        setlocal disabledelayedexpansion
+        set "file_dir=%%~dpf"
+        set "video_file=%%~nxf"
+        set "json_file=%%~nxf.json"
+        setlocal enabledelayedexpansion
+
+        echo 正在处理: "!video_file!"
+        ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
+        if errorlevel 1 (
+            echo set /a "failed+=1">> "!temp_set!"
+            echo 视频解析报错: "!file_dir!!video_file!"
+            if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
+        ) else (
+            echo set /a "succeeded+=1">> "!temp_set!"
+            echo 保存文件: "!json_file!"
+        )
+        echo set /a "total+=1">> "!temp_set!"
+        echo.
+
+        endlocal
+        endlocal
     )
-    echo.
+
+    :: 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+    call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
+
     echo 批量处理完成
+    echo 共计: !total! 个
+    echo 成功: !succeeded! 个
+    echo 失败: !failed! 个
 ) else (
-    call :process_file "%~1"
+    if not exist "%~1" (
+        echo 错误: 文件不存在: "%~1"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    setlocal disabledelayedexpansion
+    set "file_dir=%~dp1"
+    set "video_file=%~nx1"
+    set "json_file=%~nx1.json"
+    setlocal enabledelayedexpansion
+
+    echo 正在处理: "!video_file!"
+    ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
+    if errorlevel 1 (
+        echo 视频解析报错: "!file_dir!!video_file!"
+        if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
+    ) else (
+        echo 保存文件: "!json_file!"
+    )
+
+    endlocal
+    endlocal
 )
 
 
@@ -46,26 +102,3 @@ if "%~1" == "" (
 echo.
 pause
 exit /b
-
-
-
-:process_file
-    if not exist "%~1" (
-        echo 文件不存在: "%~1"
-        goto :eof
-    )
-
-    setlocal disabledelayedexpansion
-    set "file_name=%~nx1"
-    set "file_dir_path=%~dp1"
-    set "output_file=%~nx1.json"
-    setlocal enabledelayedexpansion
-
-    echo 正在处理: !file_name!
-    if not "!file_dir_path!"=="" ( cd /d "!file_dir_path!" )
-    ffprobe -v error -show_streams -show_format -print_format json "!file_name!" > "!output_file!"
-    echo 保存文件: !output_file!
-
-    endlocal
-    endlocal
-goto :eof

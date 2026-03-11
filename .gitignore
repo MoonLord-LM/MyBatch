@@ -11,14 +11,34 @@
 /media/*.mp4
 /media/*.MKV
 /media/*.mkv
-/media/*.MOV
-/media/*.mov
+/media/*.TS
+/media/*.ts
 /media/*.AVI
 /media/*.avi
 /media/*.WMV
 /media/*.wmv
 /media/*.FLV
 /media/*.flv
+/media/*.RMVB
+/media/*.rmvb
+/media/*.RM
+/media/*.rm
+/media/*.VOB
+/media/*.vob
+/media/*.MPG
+/media/*.mpg
+/media/*.MPEG
+/media/*.mpeg
+/media/*.3GP
+/media/*.3gp
+/media/*.M4V
+/media/*.m4v
+/media/*.F4V
+/media/*.f4v
+/media/*.MOV
+/media/*.mov
+/media/*.WEBM
+/media/*.webm
 
 # Temp Files
 /media/*.JSON
