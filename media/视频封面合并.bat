@@ -77,16 +77,15 @@ if "%~1" == "" (
 
             if defined cover_file (
                 echo 找到封面: "!cover_file!"
-                set "temp_file=%temp%\MyBatch_%random%_%random%%%~xf"
-                ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_file!" -hide_banner -loglevel error
+                set "temp_video_file=!file_dir!!base_name!_temp%%~xf"
+                ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!" -hide_banner -loglevel error
                 if errorlevel 1 (
                     echo set /a "failed+=1" >> "!temp_set!"
-                    if exist "!temp_file!" ( del /f /q "!temp_file!" )
+                    if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                     echo 设置失败
                 ) else (
                     echo set /a "succeeded+=1" >> "!temp_set!"
-                    del /f /q "!file_dir!!video_file!"
-                    ren "!temp_file!" "!video_file!"
+                    move /y "!temp_video_file!" "!file_dir!!video_file!" >nul
                     echo 设置成功
                 )
             ) else (
@@ -140,14 +139,13 @@ if "%~1" == "" (
 
         if defined cover_file (
             echo 找到封面: "!cover_file!"
-            set "temp_file=%temp%\MyBatch_%random%_%random%%~x1"
-            ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_file!" -hide_banner -loglevel error
+            set "temp_video_file=!file_dir!!base_name!_temp%~x1"
+            ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!" -hide_banner -loglevel error
             if errorlevel 1 (
-                if exist "!temp_file!" ( del /f /q "!temp_file!" )
+                if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 设置失败
             ) else (
-                del /f /q "!file_dir!!video_file!"
-                ren "!temp_file!" "!video_file!"
+                move /y "!temp_video_file!" "!file_dir!!video_file!" >nul
                 echo 设置成功
             )
         ) else (

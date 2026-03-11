@@ -57,30 +57,28 @@ if "%~1" == "" (
 
         echo 正在处理: "!video_file!"
 
-        set "has_cover=0"
-        for /f "delims=" %%c in ('ffprobe -v error -select_streams v:1 -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
-            if "%%c"=="1" (
-                set "has_cover=1"
-            )
+        set "stream_index="
+        for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
+            if not defined stream_index set "stream_index=%%s"
         )
 
-        if "!has_cover!"=="0" (
+        if not defined stream_index (
             echo set /a "skipped+=1" >> "!temp_set!"
             echo 无封面，跳过
         ) else (
             echo 找到封面，正在移除
-            set "temp_file=%temp%\MyBatch_%random%_%random%!file_ext!"
+            set "base_name=%%~nf"
+            set "temp_video_file=!file_dir!!base_name!_temp%%~xf"
             
-            ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:v:1 "!temp_file!" -hide_banner -loglevel error
+            ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!" -hide_banner -loglevel error
 
             if errorlevel 1 (
                 echo set /a "failed+=1" >> "!temp_set!"
-                if exist "!temp_file!" ( del /f /q "!temp_file!" )
+                if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
             ) else (
                 echo set /a "succeeded+=1" >> "!temp_set!"
-                del /f /q "!file_dir!!video_file!"
-                ren "!temp_file!" "!video_file!"
+                move /y "!temp_video_file!" "!file_dir!!video_file!" >nul
                 echo 移除成功
             )
         )
@@ -111,27 +109,25 @@ if "%~1" == "" (
 
     echo 正在处理: "!video_file!"
 
-    set "has_cover=0"
-    for /f "delims=" %%c in ('ffprobe -v error -select_streams v:1 -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
-        if "%%c"=="1" (
-            set "has_cover=1"
-        )
+    set "stream_index="
+    for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
+        if not defined stream_index set "stream_index=%%s"
     )
 
-    if "!has_cover!"=="0" (
+    if not defined stream_index (
         echo 无封面，跳过
     ) else (
         echo 找到封面，正在移除
-        set "temp_file=%temp%\MyBatch_%random%_%random%!file_ext!"
-        
-        ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:v:1 "!temp_file!" -hide_banner -loglevel error
+        set "base_name=%~n1"
+        set "temp_video_file=!file_dir!!base_name!_temp%~x1"
+
+        ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!" -hide_banner -loglevel error
 
         if errorlevel 1 (
-            if exist "!temp_file!" ( del /f /q "!temp_file!" )
+            if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
             echo 移除失败
         ) else (
-            del /f /q "!file_dir!!video_file!"
-            ren "!temp_file!" "!video_file!"
+            move /y "!temp_video_file!" "!file_dir!!video_file!" >nul
             echo 移除成功
         )
     )
