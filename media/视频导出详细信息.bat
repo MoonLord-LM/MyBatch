@@ -34,10 +34,11 @@ if "%~1" == "" (
     echo.
 
     :: 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
-    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & echo.> "!temp_set!"
+    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
     set /a "total=0"
     set /a "succeeded=0"
+    set /a "skipped=0"
     set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
@@ -47,14 +48,19 @@ if "%~1" == "" (
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
-        if errorlevel 1 (
-            echo set /a "failed+=1">> "!temp_set!"
-            echo 视频解析报错: "!file_dir!!video_file!"
-            if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
+        if exist "!file_dir!!json_file!" (
+            echo set /a "skipped+=1">> "!temp_set!"
+            echo 已存在: "!file_dir!!json_file!"，跳过此文件
         ) else (
-            echo set /a "succeeded+=1">> "!temp_set!"
-            echo 保存文件: "!json_file!"
+            ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
+            if errorlevel 1 (
+                echo set /a "failed+=1">> "!temp_set!"
+                if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
+                echo 视频解析报错: "!file_dir!!video_file!"
+            ) else (
+                echo set /a "succeeded+=1">> "!temp_set!"
+                echo 保存文件: "!json_file!"
+            )
         )
         echo set /a "total+=1">> "!temp_set!"
         echo.
@@ -67,7 +73,7 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个
+    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
 ) else (
     if not exist "%~1" (
         echo 错误: 文件不存在: "%~1"
@@ -85,8 +91,8 @@ if "%~1" == "" (
     echo 正在处理: "!video_file!"
     ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
     if errorlevel 1 (
-        echo 视频解析报错: "!file_dir!!video_file!"
         if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
+        echo 视频解析报错: "!file_dir!!video_file!"
     ) else (
         echo 保存文件: "!json_file!"
     )
