@@ -2,8 +2,6 @@
 chcp 65001
 setlocal enabledelayedexpansion
 
-
-
 :: 依赖的软件如下
 :: https://github.com/FFmpeg/FFmpeg
 
@@ -435,6 +433,12 @@ if "!file_consistent!"=="0" (
 
 echo 正在合并视频...
 ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
+if errorlevel 1 (
+    echo.
+    echo 文件 merged.mp4 合并失败，请检查报错信息
+    pause
+    exit
+)
 
 if exist "merged.mp4" (
     :: 兼容 webp 封面，自动转为 PNG 格式
@@ -467,8 +471,27 @@ if exist "merged.mp4" (
         set "cover_file=000.jpg"
     )
     if defined cover_file (
+        for /f "delims=" %%p in ('ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "!cover_file!"') do (
+            set "cover_file_type=%%p"
+            echo 封面图片编码: !cover_file_type!
+        )
+
+        if not !cover_file_type!=="png" (
+            if not !cover_file_type!=="mjpeg" (
+                echo 封面只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
+                ffmpeg -i "!cover_file!" -frames:v 1 "!cover_file!.png"
+                set "cover_file=!cover_file!.png"
+            )
+        )
+
         echo 正在添加封面 [!cover_file!]...
         ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "final.mp4"
+        if errorlevel 1 (
+            echo.
+            echo 文件 final.mp4 合并失败，请检查报错信息
+            pause
+            exit
+        )
     ) else (
         echo 封面文件（0.png、0.jpg 等）不存在，不添加封面
         move /Y "merged.mp4" "final.mp4"
@@ -482,8 +505,6 @@ if exist "merged.mp4" (
 
 if exist "merged.mp4" ( del "merged.mp4" )
 if exist "file_list.txt" ( del "file_list.txt" )
-
-
 
 pause
 exit
