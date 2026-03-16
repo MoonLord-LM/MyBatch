@@ -471,20 +471,26 @@ if exist "merged.mp4" (
         set "cover_file=000.jpg"
     )
     if defined cover_file (
-        for /f "delims=" %%p in ('ffprobe -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "!cover_file!"') do (
+        for /f "delims=" %%p in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!cover_file!"') do (
             set "cover_file_type=%%p"
             echo 封面图片编码: !cover_file_type!
         )
 
         if not !cover_file_type!=="png" (
             if not !cover_file_type!=="mjpeg" (
-                echo 封面只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
+                echo 封面图片只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
                 ffmpeg -i "!cover_file!" -frames:v 1 "!cover_file!.png"
+                if errorlevel 1 (
+                    echo.
+                    echo 封面图片格式转换失败，请检查报错信息
+                    pause
+                    exit
+                )
                 set "cover_file=!cover_file!.png"
             )
         )
 
-        echo 正在添加封面 [!cover_file!]...
+        echo 正在添加封面图片 [!cover_file!]...
         ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "final.mp4"
         if errorlevel 1 (
             echo.
