@@ -473,11 +473,11 @@ if exist "merged.mp4" (
     if defined cover_file (
         for /f "delims=" %%p in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!cover_file!"') do (
             set "cover_file_type=%%p"
-            echo 封面图片编码: !cover_file_type!
+            echo 封面图片编码: [!cover_file_type!]
         )
 
-        if not !cover_file_type!=="png" (
-            if not !cover_file_type!=="mjpeg" (
+        if not "!cover_file_type!"=="png" (
+            if not "!cover_file_type!"=="mjpeg" (
                 echo 封面图片只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
                 ffmpeg -i "!cover_file!" -frames:v 1 "!cover_file!.png"
                 if errorlevel 1 (
