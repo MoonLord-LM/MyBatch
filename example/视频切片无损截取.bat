@@ -3,11 +3,10 @@ chcp 65001
 setlocal enabledelayedexpansion
 
 echo.
-echo 视频切片截取
+echo 视频切片无损截取
 echo.
 
-:: 默认转码质量：-crf 16 -preset slow
-:: 可改为更快的转码参数：-crf 23 -preset medium
+:: 时间可能有误差
 
 
 
@@ -46,7 +45,7 @@ echo.
     set "output_file=!filename!_!begin_time::=!-!end_time::=!.mp4"
 
     echo 正在截取视频，请稍候...
-    ffmpeg -ss "!begin_time!" -to "!end_time!" -i "!input_file!" -c:v libx264 -crf 16 -preset slow -c:a aac -b:a 320k "!output_file!" -movflags +faststart -y
+    ffmpeg -ss "!begin_time!" -to "!end_time!" -i "!input_file!" -c copy "!output_file!" -movflags +faststart -y
 
     if !errorlevel! equ 0 (
         echo.
