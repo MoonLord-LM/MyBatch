@@ -35,13 +35,15 @@ for %%f in (*.mkv) do (
     ) else (
         if exist "!base_name!.ass" (
             set "sub_file=!base_name!.ass"
+        ) else if exist "!base_name!.sc.ass" (
+            set "sub_file=!base_name!.sc.ass"
         ) else if exist "!base_name!.srt" (
             set "sub_file=!base_name!.srt"
         )
 
         if defined sub_file (
             echo 嵌入字幕: !sub_file!
-            ffmpeg -i "!file_name!" -i "!sub_file!" -map 0 -map 1 -c copy -c:s copy "temp_!file_name!" -hide_banner -loglevel error
+            ffmpeg -i "!file_name!" -i "!sub_file!" -map 0 -map 1 -c copy "temp_!file_name!" -hide_banner -loglevel error
 
             if !errorlevel! equ 0 (
                 del /f /q "!file_name!" > nul
