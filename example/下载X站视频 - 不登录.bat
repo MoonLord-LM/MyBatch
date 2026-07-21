@@ -1,9 +1,10 @@
 @echo off
+chcp 65001 >nul
 setlocal enabledelayedexpansion
 
-:: Ö§³ÖÊäÈëÊÓÆµÁ´½Óµ¥¸öÏÂÔØ£¬»òÕßÊäÈë°üº¬ÊÓÆµÁ´½ÓµÄ txt ÎÄ¼şÂ·¾¶ÅúÁ¿ÏÂÔØ
+:: æ”¯æŒè¾“å…¥è§†é¢‘é“¾æ¥å•ä¸ªä¸‹è½½ï¼Œæˆ–è€…è¾“å…¥åŒ…å«è§†é¢‘é“¾æ¥çš„ txt æ–‡ä»¶è·¯å¾„æ‰¹é‡ä¸‹è½½
 
-:: ÒÀÀµµÄÈí¼şÈçÏÂ
+:: ä¾èµ–çš„è½¯ä»¶å¦‚ä¸‹
 :: https://github.com/yt-dlp/yt-dlp
 :: https://github.com/FFmpeg/FFmpeg
 :: https://github.com/denoland/deno
@@ -23,13 +24,13 @@ exit /b
 :download_video
     set "url=%~1"
 
-    :: É¾³ı & ºÍºóÃæµÄÄÚÈİ
+    :: åˆ é™¤ & å’Œåé¢çš„å†…å®¹
     if "!url!" neq "!url:&=!" (
         for /f "tokens=1 delims=&" %%i in ("!url!") do set "url=%%i"
     )
     set "url=!url:/video/1=!"
 
-    echo ÔÚĞÂ´°¿ÚÖĞÏÂÔØ: "!url!"
+    echo åœ¨æ–°çª—å£ä¸­ä¸‹è½½: "!url!"
     set command1=yt-dlp.exe ^
      --list-formats ^
      --verbose ^
@@ -53,27 +54,27 @@ exit /b
 :download_video_list
     set "file_path=%~1"
 
-    :: ¼ÆËã×ÜĞĞÊı£¨¼´×ÜÓĞĞ§Á´½ÓÊı£©
+    :: è®¡ç®—æ€»è¡Œæ•°ï¼ˆå³æ€»æœ‰æ•ˆé“¾æ¥æ•°ï¼‰
     set /a total_count=0
     for /f "usebackq tokens=*" %%a in ("!file_path!") do (
         set "line=%%a"
-        :: É¾³ıÇ°ºó¿Õ°×
+        :: åˆ é™¤å‰åç©ºç™½
         set "line=!line: =!"
         if not "!line!"=="" (
             set /a total_count+=1
         )
     )
-    echo ÊÓÆµ×Ü¸öÊı: !total_count!
+    echo è§†é¢‘æ€»ä¸ªæ•°: !total_count!
 
-    :: ³õÊ¼»¯µ±Ç°½ø¶È
+    :: åˆå§‹åŒ–å½“å‰è¿›åº¦
     set /a current_count=0
     for /f "usebackq tokens=*" %%a in ("!file_path!") do (
         set "line=%%a"
-        :: É¾³ıÇ°ºó¿Õ°×
+        :: åˆ é™¤å‰åç©ºç™½
         set "line=!line: =!"
         if not "!line!"=="" (
             set /a current_count+=1
-            echo ÕıÔÚ´¦ÀíµÚ !current_count!/%total_count% ¸öÁ´½Ó...
+            echo æ­£åœ¨å¤„ç†ç¬¬ !current_count!/%total_count% ä¸ªé“¾æ¥...
             call :download_video "!line!"
         )
     )
@@ -81,25 +82,25 @@ exit /b
 
 
 :main_loop
-    echo ÇëÊäÈë X.com ÊÓÆµÁ´½Ó»ò°üº¬ÊÓÆµÁ´½ÓµÄ txt ÎÄ¼şÂ·¾¶
+    echo è¯·è¾“å…¥ X.com è§†é¢‘é“¾æ¥æˆ–åŒ…å«è§†é¢‘é“¾æ¥çš„ txt æ–‡ä»¶è·¯å¾„
     set /p "input="
 
     if "!input!"=="" (
-        echo ÊäÈë²»ÄÜÎª¿Õ£¬ÇëÖØĞÂÊäÈë
+        echo è¾“å…¥ä¸èƒ½ä¸ºç©ºï¼Œè¯·é‡æ–°è¾“å…¥
         goto main_loop
     )
 
-    :: É¾³ı¶àÓàµÄÒıºÅ
+    :: åˆ é™¤å¤šä½™çš„å¼•å·
     set "input=!input:"=!"
 
-    :: ¼ì²éÊÇ·ñÊÇÓĞĞ§µÄÎÄ¼şÂ·¾¶
+    :: æ£€æŸ¥æ˜¯å¦æ˜¯æœ‰æ•ˆçš„æ–‡ä»¶è·¯å¾„
     if exist "!input!" (
         call :download_video_list "!input!"
     ) else (
-        :: Èç¹û²»ÊÇÎÄ¼şÂ·¾¶£¬ÔòÊÓÎªURL
+        :: å¦‚æœä¸æ˜¯æ–‡ä»¶è·¯å¾„ï¼Œåˆ™è§†ä¸ºURL
         echo "!input!" | findstr /C:"https://x.com/" >nul
         if !errorlevel! == 1 (
-            echo ÊäÈëµÄ²»ÊÇÓĞĞ§µÄ X.com Á´½Ó£¬ÇëÖØĞÂÊäÈë
+            echo è¾“å…¥çš„ä¸æ˜¯æœ‰æ•ˆçš„ X.com é“¾æ¥ï¼Œè¯·é‡æ–°è¾“å…¥
             goto main_loop
         )
         call :download_video "!input!"

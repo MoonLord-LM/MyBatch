@@ -38,7 +38,7 @@ exit /b
      ""!url!""
     set command2=yt-dlp.exe ^
      --concurrent-fragments 20 ^
-     -f ""bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"" ^
+     -f ""bestvideo+bestaudio/best"" ^
      --merge-output-format mp4 ^
      --embed-subs ^
      --embed-thumbnail ^
@@ -47,8 +47,7 @@ exit /b
      --embed-info-json ^
      --verbose ^
      ""!url!""
-    start "" cmd /c "%command1% & %command2%"
-    timeout /t 30
+    start "" cmd /c "%command1% & %command2% || pause"
     echo.
 exit /b
 
