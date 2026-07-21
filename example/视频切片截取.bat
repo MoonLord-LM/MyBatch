@@ -5,6 +5,8 @@ setlocal enabledelayedexpansion
 echo.
 echo 视频切片截取
 echo.
+echo 处理 ts 格式的文件时，建议先重新封装为 mp4 格式
+echo.
 
 :: 默认转码质量：-crf 16 -preset slow
 :: 可改为更快的转码参数：-crf 23 -preset medium

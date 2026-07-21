@@ -5,6 +5,8 @@ setlocal enabledelayedexpansion
 echo.
 echo 视频切片无损截取
 echo.
+echo 处理 ts 格式的文件时，建议先重新封装为 mp4 格式
+echo.
 
 :: 时间可能有误差
 
