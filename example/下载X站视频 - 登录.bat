@@ -8,7 +8,7 @@ setlocal enabledelayedexpansion
 :: https://github.com/FFmpeg/FFmpeg
 :: https://github.com/denoland/deno
 
-:: 当前文件夹下必须有 www.youtube.com_cookies.txt 文件用于登录
+:: 当前文件夹下必须有 x.com_cookies.txt 文件用于登录
 :: 获取 Cookie 的插件如下
 :: https://chromewebstore.google.com/detail/get-cookiestxt-locally/cclelndahbckbenkjhflpdbgdldlbecc
 
@@ -31,6 +31,7 @@ exit /b
     if "!url!" neq "!url:&=!" (
         for /f "tokens=1 delims=&" %%i in ("!url!") do set "url=%%i"
     )
+    set "url=!url:/video/1=!"
 
     echo 在新窗口中下载: "!url!"
     set command1=yt-dlp.exe ^
@@ -51,7 +52,6 @@ exit /b
      --verbose ^
      ""!url!""
     start "" cmd /c "%command1% & %command2%"
-    timeout /t 30
     echo.
 exit /b
 
