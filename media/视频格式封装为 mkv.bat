@@ -5,10 +5,14 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-REM 视频格式封装为 mkv
-REM 双击运行时，自动递归扫描和处理当前目录下所有非 mkv 格式的视频文件
-REM 拖拽单个视频文件到此脚本上时，则只处理该文件
-REM 支持的格式为 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm
+echo 视频格式封装为 mkv
+echo.
+echo 双击运行时，自动递归扫描和处理当前目录下所有非 mkv 格式的视频文件
+echo.
+echo 拖拽单个视频文件到此脚本上时，则只处理该文件
+echo.
+echo 支持的格式为 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm
+echo.
 
 
 
