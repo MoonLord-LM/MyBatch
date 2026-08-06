@@ -43,7 +43,8 @@ for %%f in (*.mkv) do (
 
         if defined sub_file (
             echo 嵌入字幕: !sub_file!
-            ffmpeg -i "!file_name!" -i "!sub_file!" -map 0 -map 1 -c copy "temp_!file_name!" -hide_banner -loglevel error
+            :: -metadata:s:s:0 设置新增字幕流标题为 “内嵌字幕”
+            ffmpeg -i "!file_name!" -i "!sub_file!" -map 0 -map 1 -c copy -metadata:s:s:0 title="内嵌字幕" "temp_!file_name!" -hide_banner -loglevel error
 
             if !errorlevel! equ 0 (
                 del /f /q "!file_name!" > nul
