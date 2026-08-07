@@ -5,13 +5,10 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-echo 统计视频文件的编码参数
-echo.
-echo 双击运行时，自动递归扫描和处理当前目录下所有的视频文件
-echo.
-echo 拖拽单个视频文件到此脚本上时，则只处理该文件
-echo.
-echo 支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm
+powershell -NoProfile -Command "Write-Host '查看视频文件的编码参数' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
 
 
@@ -102,26 +99,26 @@ if "%~1" == "" (
     if exist "!temp_vcodecs!" ( del /f /q "!temp_vcodecs!" )
     if exist "!temp_acodecs!" ( del /f /q "!temp_acodecs!" )
 ) else (
-    if not exist "%~1" (
-        echo 错误: 文件不存在: "%~1"
+    setlocal disabledelayedexpansion
+    set "video_file=%~nx1"
+    setlocal enabledelayedexpansion
+
+    if not exist "!video_file!" (
+        echo 错误: 文件不存在: "!video_file!"
         echo.
         pause
         exit /b 1
     )
 
-    setlocal disabledelayedexpansion
-    set "video_file=%~nx1"
-    setlocal enabledelayedexpansion
-
     echo 正在处理: "!video_file!"
     set "vcodec_info="
-    for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "%~1" 2^>nul') do (
+    for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "!video_file!" 2^>nul') do (
         set "vcodec_info=%%c"
     )
     if defined vcodec_info if "!vcodec_info:~-1!"=="," set "vcodec_info=!vcodec_info:~0,-1!"
     
     set "acodec_info="
-    for /f "delims=" %%c in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "%~1" 2^>nul') do (
+    for /f "delims=" %%c in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!video_file!" 2^>nul') do (
         set "acodec_info=%%c"
     )
     if defined acodec_info if "!acodec_info:~-1!"=="," set "acodec_info=!acodec_info:~0,-1!"
