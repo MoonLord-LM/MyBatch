@@ -44,7 +44,7 @@ if "%~1" == "" (
     set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
-        set "video_file=%%~nxf"
+        set "video_file=%%f"
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
@@ -100,7 +100,7 @@ if "%~1" == "" (
     if exist "!temp_acodecs!" ( del /f /q "!temp_acodecs!" )
 ) else (
     setlocal disabledelayedexpansion
-    set "video_file=%~nx1"
+    set "video_file=%~1"
     setlocal enabledelayedexpansion
 
     if not exist "!video_file!" (
