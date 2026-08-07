@@ -111,24 +111,20 @@ if "%~1" == "" (
     )
 
     echo 正在处理: "!video_file!"
-    set "vcodec_info="
     for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        set "vcodec_info=%%c"
+        if errorlevel 1 (
+            echo 视频编码解析报错: "!video_file!"
+        ) else (
+            echo 视频编码: %%c
+        )
     )
-    if defined vcodec_info if "!vcodec_info:~-1!"=="," set "vcodec_info=!vcodec_info:~0,-1!"
 
-    set "acodec_info="
     for /f "delims=" %%c in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        set "acodec_info=%%c"
-    )
-    if defined acodec_info if "!acodec_info:~-1!"=="," set "acodec_info=!acodec_info:~0,-1!"
-
-    if errorlevel 1 (
-        echo 视频解析报错: "!video_file!"
-    ) else (
-        echo.
-        echo 视频编码: !vcodec_info!
-        echo 音频编码: !acodec_info!
+        if errorlevel 1 (
+            echo 音频编码解析报错: "!video_file!"
+        ) else (
+            echo 音频编码: %%c
+        )
     )
 
     endlocal
