@@ -70,7 +70,6 @@ if "%~1" == "" (
     echo ----------------------------------------
     echo.
 
-    REM 统计视频编码
     set /a "vcodec_count=0"
     echo 已发现的视频编码列表:
     (for /f "delims=" %%c in ('findstr /r "." "!temp_vcodecs!" ^| sort /uniq') do (
@@ -80,7 +79,6 @@ if "%~1" == "" (
         set /a "vcodec_count+=1"
     )) & echo.
 
-    REM 统计音频编码
     set /a "acodec_count=0"
     echo 已发现的音频编码列表:
     (for /f "delims=" %%c in ('findstr /r "." "!temp_acodecs!" ^| sort /uniq') do (
