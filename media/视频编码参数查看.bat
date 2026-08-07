@@ -116,7 +116,7 @@ if "%~1" == "" (
         set "vcodec_info=%%c"
     )
     if defined vcodec_info if "!vcodec_info:~-1!"=="," set "vcodec_info=!vcodec_info:~0,-1!"
-    
+
     set "acodec_info="
     for /f "delims=" %%c in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!video_file!" 2^>nul') do (
         set "acodec_info=%%c"
