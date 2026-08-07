@@ -49,12 +49,17 @@ if "%~1" == "" (
 
         echo 正在处理: "!video_file!"
         ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_vcodecs!"
-        ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_acodecs!"
         if errorlevel 1 (
             echo set /a "failed+=1">> "!temp_set!"
-            echo 视频解析报错: "!video_file!"
+            echo 视频编码解析失败
         ) else (
-            echo set /a "succeeded+=1">> "!temp_set!"
+            ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_acodecs!"
+            if errorlevel 1 (
+                echo set /a "failed+=1">> "!temp_set!"
+                echo 音频编码解析失败
+            ) else (
+                echo set /a "succeeded+=1">> "!temp_set!"
+            )
         )
         echo set /a "total+=1">> "!temp_set!"
         echo.
