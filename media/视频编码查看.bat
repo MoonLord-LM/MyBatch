@@ -36,8 +36,8 @@ if "%~1" == "" (
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
-    set "temp_vcodecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.vcodecs" & type nul > "!temp_vcodecs!"
-    set "temp_acodecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.acodecs" & type nul > "!temp_acodecs!"
+    set "temp_video_codecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.video_codecs" & type nul > "!temp_video_codecs!"
+    set "temp_audio_codecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.audio_codecs" & type nul > "!temp_audio_codecs!"
 
     set /a "total=0"
     set /a "succeeded=0"
@@ -48,12 +48,12 @@ if "%~1" == "" (
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_vcodecs!"
+        ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_video_codecs!"
         if errorlevel 1 (
             echo set /a "failed+=1">> "!temp_set!"
             echo 视频编码解析失败
         ) else (
-            ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_acodecs!"
+            ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_audio_codecs!"
             if errorlevel 1 (
                 echo set /a "failed+=1">> "!temp_set!"
                 echo 音频编码解析失败
@@ -75,32 +75,32 @@ if "%~1" == "" (
     echo ----------------------------------------
     echo.
 
-    set /a "vcodec_count=0"
+    set /a "video_codec_count=0"
     echo 已发现的视频编码列表:
-    (for /f "delims=" %%c in ('findstr /r "." "!temp_vcodecs!" ^| sort /uniq') do (
-        set "vcodec=%%c"
-        if "!vcodec:~-1!"=="," set "vcodec=!vcodec:~0,-1!"
-        echo !vcodec!
-        set /a "vcodec_count+=1"
+    (for /f "delims=" %%c in ('findstr /r "." "!temp_video_codecs!" ^| sort /uniq') do (
+        set "video_codec=%%c"
+        if "!video_codec:~-1!"=="," set "video_codec=!video_codec:~0,-1!"
+        echo !video_codec!
+        set /a "video_codec_count+=1"
     )) & echo.
 
-    set /a "acodec_count=0"
+    set /a "audio_codec_count=0"
     echo 已发现的音频编码列表:
-    (for /f "delims=" %%c in ('findstr /r "." "!temp_acodecs!" ^| sort /uniq') do (
-        set "acodec=%%c"
-        if "!acodec:~-1!"=="," set "acodec=!acodec:~0,-1!"
-        echo !acodec!
-        set /a "acodec_count+=1"
+    (for /f "delims=" %%c in ('findstr /r "." "!temp_audio_codecs!" ^| sort /uniq') do (
+        set "audio_codec=%%c"
+        if "!audio_codec:~-1!"=="," set "audio_codec=!audio_codec:~0,-1!"
+        echo !audio_codec!
+        set /a "audio_codec_count+=1"
     )) & echo.
 
     echo ----------------------------------------
     echo.
     echo 统计完成
-    echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个，发现 !vcodec_count! 种视频编码、!acodec_count! 种音频编码。
+    echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。
 
     if exist "!temp_set!" ( del /f /q "!temp_set!" )
-    if exist "!temp_vcodecs!" ( del /f /q "!temp_vcodecs!" )
-    if exist "!temp_acodecs!" ( del /f /q "!temp_acodecs!" )
+    if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )
+    if exist "!temp_audio_codecs!" ( del /f /q "!temp_audio_codecs!" )
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
