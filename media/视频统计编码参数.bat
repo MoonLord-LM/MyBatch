@@ -51,11 +51,11 @@ if "%~1" == "" (
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "%%f" 2>nul >> "!temp_vcodecs!"
-        ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "%%f" 2>nul >> "!temp_acodecs!"
+        ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_vcodecs!"
+        ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_acodecs!"
         if errorlevel 1 (
             echo set /a "failed+=1">> "!temp_set!"
-            echo 视频解析报错: "%%f"
+            echo 视频解析报错: "!video_file!"
         ) else (
             echo set /a "succeeded+=1">> "!temp_set!"
         )
