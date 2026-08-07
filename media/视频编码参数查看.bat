@@ -75,7 +75,7 @@ if "%~1" == "" (
     (for /f "delims=" %%c in ('findstr /r "." "!temp_vcodecs!" ^| sort /uniq') do (
         set "vcodec=%%c"
         if "!vcodec:~-1!"=="," set "vcodec=!vcodec:~0,-1!"
-        echo   !vcodec!
+        echo !vcodec!
         set /a "vcodec_count+=1"
     )) & echo.
 
@@ -84,7 +84,7 @@ if "%~1" == "" (
     (for /f "delims=" %%c in ('findstr /r "." "!temp_acodecs!" ^| sort /uniq') do (
         set "acodec=%%c"
         if "!acodec:~-1!"=="," set "acodec=!acodec:~0,-1!"
-        echo   !acodec!
+        echo !acodec!
         set /a "acodec_count+=1"
     )) & echo.
 
@@ -109,20 +109,23 @@ if "%~1" == "" (
     )
 
     echo 正在处理: "!video_file!"
+    set "video_codec="
+    set "audio_codec="
     for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        if errorlevel 1 (
-            echo 视频编码解析报错: "!video_file!"
-        ) else (
-            echo 视频编码: %%c
-        )
+        set "video_codec=%%c"
     )
-
     for /f "delims=" %%c in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        if errorlevel 1 (
-            echo 音频编码解析报错: "!video_file!"
-        ) else (
-            echo 音频编码: %%c
-        )
+        set "audio_codec=%%c"
+    )
+    if "!video_codec!" == "" (
+        echo 视频编码解析失败
+    ) else (
+        echo 视频编码: !video_codec!
+    )
+    if "!audio_codec!" == "" (
+        echo 音频编码解析失败
+    ) else (
+        echo 音频编码: !audio_codec!
     )
 
     endlocal
