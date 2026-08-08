@@ -19,7 +19,7 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 )
 
 ffprobe -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -49,12 +49,12 @@ if "%~1" == "" (
 
         echo 正在处理: "!video_file!"
         ffprobe -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_video_codecs!"
-        if errorlevel 1 (
+        if !errorlevel! neq 0 (
             echo set /a "failed+=1">> "!temp_set!"
             echo 视频编码解析失败
         ) else (
             ffprobe -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_audio_codecs!"
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 echo 音频编码解析失败
             ) else (

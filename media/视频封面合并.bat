@@ -19,7 +19,7 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 )
 
 ffmpeg -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -28,7 +28,7 @@ if errorlevel 1 (
     exit /b 1
 )
 ffprobe -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -80,7 +80,7 @@ if "%~1" == "" (
                 echo 找到封面: "!cover_file!"
                 set "temp_video_file=!file_dir!!base_name!_temp%%~xf"
                 ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
-                if errorlevel 1 (
+                if !errorlevel! neq 0 (
                     echo set /a "failed+=1" >> "!temp_set!"
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                     echo 设置失败
@@ -142,7 +142,7 @@ if "%~1" == "" (
             echo 找到封面: "!cover_file!"
             set "temp_video_file=!file_dir!!base_name!_temp%~x1"
             ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 设置失败
             ) else (

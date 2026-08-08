@@ -51,7 +51,7 @@ for /l %%i in (1,1,300) do (
     for %%f in ("%%i.mp4" "0%%i.mp4" "00%%i.mp4" "第%%i集.mp4" "第0%%i集.mp4" "第00%%i集.mp4") do (
         if exist %%f (
             ffmpeg -v error -i "%%f" -map 0 -f null - 2>nul
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 echo.
                 echo 文件 %%f 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行！
                 pause
@@ -433,7 +433,7 @@ if "!file_consistent!"=="0" (
 
 echo 正在合并视频...
 ffmpeg -f concat -safe 0 -i "file_list.txt" -c copy -threads 1 "merged.mp4"
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo.
     echo 文件 merged.mp4 合并失败，请检查报错信息
     pause
@@ -480,7 +480,7 @@ if exist "merged.mp4" (
             if not "!cover_file_type!"=="mjpeg" (
                 echo 封面图片只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
                 ffmpeg -i "!cover_file!" -frames:v 1 "!cover_file!.png"
-                if errorlevel 1 (
+                if !errorlevel! neq 0 (
                     echo.
                     echo 封面图片格式转换失败，请检查报错信息
                     pause
@@ -492,7 +492,7 @@ if exist "merged.mp4" (
 
         echo 正在添加封面图片 [!cover_file!]...
         ffmpeg -i "merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "final.mp4"
-        if errorlevel 1 (
+        if !errorlevel! neq 0 (
             echo.
             echo 文件 final.mp4 合并失败，请检查报错信息
             pause

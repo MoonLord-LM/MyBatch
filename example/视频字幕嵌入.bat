@@ -43,7 +43,7 @@ for %%f in (*.mkv) do (
 
         if defined sub_file (
             echo 嵌入字幕: !sub_file!
-            ffmpeg -i "!file_name!" -i "!sub_file!" -map 0 -map 1 -c copy -metadata:s:s:0 language=zho "temp_!file_name!" -hide_banner -loglevel error
+            ffmpeg -i "!file_name!" -i "!sub_file!" -map 0 -map 1 -c copy -metadata:s:s:0 language=zho "temp_!file_name!"
 
             if !errorlevel! equ 0 (
                 del /f /q "!file_name!" > nul

@@ -19,7 +19,7 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 )
 
 ffmpeg -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -28,7 +28,7 @@ if errorlevel 1 (
     exit /b 1
 )
 ffprobe -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -76,7 +76,7 @@ if "%~1" == "" (
             ) else (
                 echo 正在转换为: "!output_file!"
                 ffmpeg -i "!file_dir!!video_file!" -c:v libx265 -crf 28 -preset medium -c:a copy "!file_dir!!output_file!"
-                if errorlevel 1 (
+                if !errorlevel! neq 0 (
                     echo set /a "failed+=1" >> "!temp_set!"
                     if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
                     echo 转换失败
@@ -129,7 +129,7 @@ if "%~1" == "" (
         ) else (
             echo 正在转换为: "!output_file!"
             ffmpeg -i "!file_dir!!video_file!" -c:v libx265 -crf 28 -preset medium -c:a copy "!file_dir!!output_file!"
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
                 echo 转换失败
             ) else (

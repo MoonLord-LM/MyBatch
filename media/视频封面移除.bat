@@ -19,7 +19,7 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 )
 
 ffmpeg -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -28,7 +28,7 @@ if errorlevel 1 (
     exit /b 1
 )
 ffprobe -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -73,7 +73,7 @@ if "%~1" == "" (
             
             ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!"
 
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 echo set /a "failed+=1" >> "!temp_set!"
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
@@ -124,7 +124,7 @@ if "%~1" == "" (
 
         ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!"
 
-        if errorlevel 1 (
+        if !errorlevel! neq 0 (
             if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
             echo 移除失败
         ) else (

@@ -19,7 +19,7 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 )
 
 ffmpeg -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -56,7 +56,7 @@ if "%~1" == "" (
         ) else (
             echo 正在封装为: "!output_file!"
             ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!"
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
                 echo 封装失败: "!file_dir!!video_file!"
@@ -101,7 +101,7 @@ if "%~1" == "" (
         ) else (
             echo 正在封装为: "!output_file!"
             ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!"
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
                 echo 封装失败: "!file_dir!!video_file!"
             ) else (

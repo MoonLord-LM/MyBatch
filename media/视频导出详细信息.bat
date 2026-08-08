@@ -19,7 +19,7 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 )
 
 ffprobe -version >nul 2>&1
-if errorlevel 1 (
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -54,7 +54,7 @@ if "%~1" == "" (
             echo 已存在: "!file_dir!!json_file!"，跳过此文件
         ) else (
             ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
-            if errorlevel 1 (
+            if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
                 echo 视频解析报错: "!file_dir!!video_file!"
@@ -91,7 +91,7 @@ if "%~1" == "" (
 
     echo 正在处理: "!video_file!"
     ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
-    if errorlevel 1 (
+    if !errorlevel! neq 0 (
         if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
         echo 视频解析报错: "!file_dir!!video_file!"
     ) else (
