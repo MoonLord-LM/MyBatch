@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将与音频文件名同名的图片文件，设置为音频的封面' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将同名的图片文件、cover.png 或 cover.jpg，设置为音频的封面' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的音频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个音频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 flac mp3' -ForegroundColor Green"
@@ -74,6 +74,10 @@ if "%~1" == "" (
                 set "cover_file=!file_dir!!base_name!.png"
             ) else if exist "!file_dir!!base_name!.jpg" (
                 set "cover_file=!file_dir!!base_name!.jpg"
+            ) else if exist "!file_dir!cover.png" (
+                set "cover_file=!file_dir!cover.png"
+            ) else if exist "!file_dir!cover.jpg" (
+                set "cover_file=!file_dir!cover.jpg"
             )
 
             if not "!cover_file!"=="" (
@@ -140,6 +144,10 @@ if "%~1" == "" (
             set "cover_file=!file_dir!!base_name!.png"
         ) else if exist "!file_dir!!base_name!.jpg" (
             set "cover_file=!file_dir!!base_name!.jpg"
+        ) else if exist "!file_dir!cover.png" (
+            set "cover_file=!file_dir!cover.png"
+        ) else if exist "!file_dir!cover.jpg" (
+            set "cover_file=!file_dir!cover.jpg"
         )
 
         if not "!cover_file!"=="" (
