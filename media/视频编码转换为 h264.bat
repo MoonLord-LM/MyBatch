@@ -51,7 +51,7 @@ if "%~1" == "" (
     set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
-        set "video_file=%~1"
+        set "video_file=%%f"
         set "file_dir=%%~dpf"
         set "base_name=%%~nf"
         setlocal enabledelayedexpansion
