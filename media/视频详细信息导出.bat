@@ -92,12 +92,16 @@ if "%~1" == "" (
 
     echo 正在处理: "!video_file!"
     set "json_file=!file_dir!!base_name!.json"
-    ffprobe -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
-    if !errorlevel! neq 0 (
-        if exist "!json_file!" ( del /f /q "!json_file!" )
-        echo 视频解析报错
+    if exist "!json_file!" (
+        echo 已存在: "!json_file!"，跳过此文件
     ) else (
-        echo 保存文件: "!json_file!"
+        ffprobe -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
+        if !errorlevel! neq 0 (
+            if exist "!json_file!" ( del /f /q "!json_file!" )
+            echo 视频解析报错
+        ) else (
+            echo 保存文件: "!json_file!"
+        )
     )
 
     endlocal
