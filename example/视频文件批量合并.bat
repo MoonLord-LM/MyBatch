@@ -179,6 +179,7 @@ for /l %%i in (1,1,300) do (
 
 if "!file_count!"=="0" (
     echo 没有找到任何视频文件（01.mp4 到 300.mp4）
+    if exist "file_list.txt" ( del "file_list.txt" )
     pause
     exit
 )
