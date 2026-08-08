@@ -43,26 +43,26 @@ if "%~1" == "" (
     set /a "failed=0"
     for /r %%f in (*.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
+        set "video_file=%%f"
         set "file_dir=%%~dpf"
-        set "video_file=%%~nxf"
         set "base_name=%%~nf"
-        set "output_file=%%~nf.mp4"
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        if exist "!file_dir!!output_file!" (
+        set "output_file=!file_dir!!base_name!.mp4"
+        if exist "!output_file!" (
             echo set /a "skipped+=1">> "!temp_set!"
-            echo 已存在: "!file_dir!!output_file!"，跳过此文件
+            echo 已存在: "!output_file!"，跳过此文件
         ) else (
             echo 正在封装为: "!output_file!"
-            ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!"
+            ffmpeg -i "!video_file!" -c copy -movflags +faststart "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
-                if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
-                echo 封装失败: "!file_dir!!video_file!"
+                if exist "!output_file!" ( del /f /q "!output_file!" )
+                echo 封装失败
             ) else (
                 echo set /a "succeeded+=1">> "!temp_set!"
-                echo 封装成功: "!output_file!"
+                echo 封装成功
             )
         )
         echo set /a "total+=1">> "!temp_set!"
@@ -78,34 +78,34 @@ if "%~1" == "" (
     echo 批量处理完成
     echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
 ) else (
-    if not exist "%~1" (
-        echo 错误: 文件不存在: "%~1"
+    setlocal disabledelayedexpansion
+    set "video_file=%~1"
+    set "file_dir=%~dp1"
+    set "base_name=%~n1"
+    setlocal enabledelayedexpansion
+
+    if not exist "!video_file!" (
+        echo 错误: 文件不存在: "!video_file!"
         echo.
         pause
         exit /b 1
     )
 
-    setlocal disabledelayedexpansion
-    set "file_dir=%~dp1"
-    set "video_file=%~nx1"
-    set "base_name=%~n1"
-    set "output_file=%~n1.mp4"
-    setlocal enabledelayedexpansion
-
     echo 正在处理: "!video_file!"
     if /i "%~x1"==".mp4" (
         echo 跳过，已经是 mp4 格式
     ) else (
-        if exist "!file_dir!!output_file!" (
-            echo 已存在: "!file_dir!!output_file!"，跳过此文件
+        set "output_file=!file_dir!!base_name!.mp4"
+        if exist "!output_file!" (
+            echo 已存在: "!output_file!"，跳过此文件
         ) else (
             echo 正在封装为: "!output_file!"
-            ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!"
+            ffmpeg -i "!video_file!" -c copy -movflags +faststart "!output_file!"
             if !errorlevel! neq 0 (
-                if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
-                echo 封装失败: "!file_dir!!video_file!"
+                if exist "!output_file!" ( del /f /q "!output_file!" )
+                echo 封装失败
             ) else (
-                echo 封装成功: "!output_file!"
+                echo 封装成功
             )
         )
     )
