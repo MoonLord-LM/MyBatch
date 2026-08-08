@@ -18,9 +18,9 @@ if /i "%cd%"=="%SystemRoot%\System32" (
     cd /d "%~dp0"
 )
 
-ffmpeg.exe -version >nul 2>&1
+ffmpeg -version >nul 2>&1
 if errorlevel 1 (
-    echo 错误: 缺少 ffmpeg.exe 组件
+    echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
