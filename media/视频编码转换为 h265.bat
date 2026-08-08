@@ -27,6 +27,7 @@ if !errorlevel! neq 0 (
     pause
     exit /b 1
 )
+
 ffprobe -version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
