@@ -69,7 +69,7 @@ if "%~1" == "" (
                 if not defined stream_index set "stream_index=%%s"
             )
 
-            if not defined stream_index (
+            if "!stream_index!"=="" (
                 echo set /a "skipped+=1">> "!temp_set!"
                 echo 无封面
             ) else (
