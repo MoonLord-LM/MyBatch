@@ -66,7 +66,7 @@ if "%~1" == "" (
         ) else (
             set "stream_index="
             for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-                if not defined stream_index set "stream_index=%%s"
+                set "stream_index=%%s"
             )
 
             if "!stream_index!"=="" (
@@ -117,10 +117,10 @@ if "%~1" == "" (
     ) else (
         set "stream_index="
         for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-            if not defined stream_index set "stream_index=%%s"
+            set "stream_index=%%s"
         )
 
-        if not defined stream_index (
+        if "!stream_index!"=="" (
             echo 无封面
         ) else (
             ffmpeg -i "!video_file!" -map 0:!stream_index! -c copy "!cover_file!"

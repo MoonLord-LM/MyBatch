@@ -62,7 +62,7 @@ if "%~1" == "" (
         echo 正在处理: "!video_file!"
         set "stream_index="
         for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-            if not defined stream_index set "stream_index=%%s"
+            set "stream_index=%%s"
         )
 
         if not "!stream_index!"=="" (
@@ -124,7 +124,7 @@ if "%~1" == "" (
     echo 正在处理: "!video_file!"
     set "stream_index="
     for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        if not defined stream_index set "stream_index=%%s"
+        set "stream_index=%%s"
     )
 
     if not "!stream_index!"=="" (
