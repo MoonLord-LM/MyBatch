@@ -87,13 +87,14 @@ if "%~1" == "" (
                 )
             )
         )
-        echo set /a "total+=1" >> "!temp_set!"
+        echo set /a "total+=1">> "!temp_set!"
         echo.
 
         endlocal
         endlocal
     )
 
+    REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成

@@ -53,31 +53,31 @@ if "%~1" == "" (
     set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
+        set "video_file=%%f"
         set "file_dir=%%~dpf"
-        set "video_file=%%~nxf"
         set "base_name=%%~nf"
-        set "cover_file=%%~nf.png"
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        if exist "!file_dir!!cover_file!" (
+        set "cover_file=!file_dir!!base_name!.png"
+        if exist "!cover_file!" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 已存在: "!cover_file!"，跳过此文件
         ) else (
             set "stream_index="
-            for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
+            for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
                 if not defined stream_index set "stream_index=%%s"
             )
 
             if not defined stream_index (
                 echo set /a "skipped+=1">> "!temp_set!"
-                echo 无封面: "!video_file!"
+                echo 无封面
             ) else (
-                ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!"
+                ffmpeg -i "!video_file!" -map 0:!stream_index! -c copy "!cover_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
-                    if exist "!file_dir!!cover_file!" ( del /f /q "!file_dir!!cover_file!" )
-                    echo 导出失败: "!video_file!"
+                    if exist "!cover_file!" ( del /f /q "!cover_file!" )
+                    echo 导出失败
                 ) else (
                     echo set /a "succeeded+=1">> "!temp_set!"
                     echo 保存文件: "!cover_file!"
@@ -97,36 +97,36 @@ if "%~1" == "" (
     echo 批量处理完成
     echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
 ) else (
-    if not exist "%~1" (
-        echo 错误: 文件不存在: "%~1"
+    setlocal disabledelayedexpansion
+    set "video_file=%~1"
+    set "file_dir=%~dp1"
+    set "base_name=%~n1"
+    setlocal enabledelayedexpansion
+
+    if not exist "!video_file!" (
+        echo 错误: 文件不存在: "!video_file!"
         echo.
         pause
         exit /b 1
     )
 
-    setlocal disabledelayedexpansion
-    set "file_dir=%~dp1"
-    set "video_file=%~nx1"
-    set "base_name=%~n1"
-    set "cover_file=%~n1.png"
-    setlocal enabledelayedexpansion
-
     echo 正在处理: "!video_file!"
-    if exist "!file_dir!!cover_file!" (
+    set "cover_file=!file_dir!!base_name!.png"
+    if exist "!cover_file!" (
         echo 已存在: "!cover_file!"，跳过此文件
     ) else (
         set "stream_index="
-        for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
+        for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if not defined stream_index set "stream_index=%%s"
         )
 
         if not defined stream_index (
-            echo 无封面: "!video_file!"
+            echo 无封面
         ) else (
-            ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!"
+            ffmpeg -i "!video_file!" -map 0:!stream_index! -c copy "!cover_file!"
             if !errorlevel! neq 0 (
-                if exist "!file_dir!!cover_file!" ( del /f /q "!file_dir!!cover_file!" )
-                echo 导出失败: "!video_file!"
+                if exist "!cover_file!" ( del /f /q "!cover_file!" )
+                echo 导出失败
             ) else (
                 echo 保存文件: "!cover_file!"
             )

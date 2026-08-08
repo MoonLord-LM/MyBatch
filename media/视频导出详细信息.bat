@@ -43,21 +43,22 @@ if "%~1" == "" (
     set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
+        set "video_file=%%f"
         set "file_dir=%%~dpf"
-        set "video_file=%%~nxf"
-        set "json_file=%%~nxf.json"
+        set "base_name=%%~nf"
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        if exist "!file_dir!!json_file!" (
+        set "json_file=!file_dir!!base_name!.json"
+        if exist "!json_file!" (
             echo set /a "skipped+=1">> "!temp_set!"
-            echo 已存在: "!file_dir!!json_file!"，跳过此文件
+            echo 已存在: "!json_file!"，跳过此文件
         ) else (
-            ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
+            ffprobe -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
-                if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
-                echo 视频解析报错: "!file_dir!!video_file!"
+                if exist "!json_file!" ( del /f /q "!json_file!" )
+                echo 视频解析报错
             ) else (
                 echo set /a "succeeded+=1">> "!temp_set!"
                 echo 保存文件: "!json_file!"
@@ -76,24 +77,25 @@ if "%~1" == "" (
     echo 批量处理完成
     echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
 ) else (
-    if not exist "%~1" (
-        echo 错误: 文件不存在: "%~1"
+    setlocal disabledelayedexpansion
+    set "video_file=%~1"
+    set "file_dir=%~dp1"
+    set "base_name=%~n1"
+    setlocal enabledelayedexpansion
+
+    if not exist "!video_file!" (
+        echo 错误: 文件不存在: "!video_file!"
         echo.
         pause
         exit /b 1
     )
 
-    setlocal disabledelayedexpansion
-    set "file_dir=%~dp1"
-    set "video_file=%~nx1"
-    set "json_file=%~nx1.json"
-    setlocal enabledelayedexpansion
-
     echo 正在处理: "!video_file!"
-    ffprobe -v error -show_streams -show_format -print_format json "!file_dir!!video_file!" > "!file_dir!!json_file!"
+    set "json_file=!file_dir!!base_name!.json"
+    ffprobe -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
     if !errorlevel! neq 0 (
-        if exist "!file_dir!!json_file!" ( del /f /q "!file_dir!!json_file!" )
-        echo 视频解析报错: "!file_dir!!video_file!"
+        if exist "!json_file!" ( del /f /q "!json_file!" )
+        echo 视频解析报错
     ) else (
         echo 保存文件: "!json_file!"
     )

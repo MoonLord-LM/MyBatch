@@ -69,7 +69,7 @@ if "%~1" == "" (
     )
 
     REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
-    call "!temp_set!"
+    call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo.
     echo ----------------------------------------
@@ -98,7 +98,6 @@ if "%~1" == "" (
     echo 统计完成
     echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。
 
-    if exist "!temp_set!" ( del /f /q "!temp_set!" )
     if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )
     if exist "!temp_audio_codecs!" ( del /f /q "!temp_audio_codecs!" )
 ) else (
