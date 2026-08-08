@@ -51,15 +51,15 @@ if "%~1" == "" (
     set /a "failed=0"
     for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
+        set "video_file=%%f"
         set "file_dir=%%~dpf"
-        set "video_file=%%~nxf"
         set "base_name=%%~nf"
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
 
         set "is_h265=0"
-        for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if /i "%%c"=="hevc" (
                 set "is_h265=1"
             )
@@ -69,16 +69,16 @@ if "%~1" == "" (
             echo set /a "skipped+=1" >> "!temp_set!"
             echo 视频编码已经是 h265，跳过
         ) else (
-            set "output_file=!base_name!_h265.mp4"
-            if exist "!file_dir!!output_file!" (
+            set "output_file=!file_dir!!base_name!_h265.mp4"
+            if exist "!output_file!" (
                 echo set /a "skipped+=1" >> "!temp_set!"
                 echo 已存在: "!output_file!"，跳过
             ) else (
                 echo 正在转换为: "!output_file!"
-                ffmpeg -i "!file_dir!!video_file!" -c:v libx265 -crf 28 -preset medium -c:a copy "!file_dir!!output_file!"
+                ffmpeg -i "!video_file!" -c:v libx265 -crf 28 -preset medium -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1" >> "!temp_set!"
-                    if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 转换失败
                 ) else (
                     echo set /a "succeeded+=1" >> "!temp_set!"
@@ -98,23 +98,22 @@ if "%~1" == "" (
     echo 批量处理完成
     echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
 ) else (
-    if not exist "%~1" (
-        echo 错误: 文件不存在: "%~1"
+    setlocal disabledelayedexpansion
+    set "video_file=%~1"
+    set "file_dir=%~dp1"
+    set "base_name=%~n1"
+    setlocal enabledelayedexpansion
+
+    if not exist "!video_file!" (
+        echo 错误: 文件不存在: "!video_file!"
         echo.
         pause
         exit /b 1
     )
 
-    setlocal disabledelayedexpansion
-    set "file_dir=%~dp1"
-    set "video_file=%~nx1"
-    set "base_name=%~n1"
-    setlocal enabledelayedexpansion
-
     echo 正在处理: "!video_file!"
-
     set "is_h265=0"
-    for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!file_dir!!video_file!" 2^>nul') do (
+    for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
         if /i "%%c"=="hevc" (
             set "is_h265=1"
         )
@@ -123,14 +122,14 @@ if "%~1" == "" (
     if "!is_h265!"=="1" (
         echo 视频编码已经是 h265，跳过
     ) else (
-        set "output_file=!base_name!_h265.mp4"
-        if exist "!file_dir!!output_file!" (
+        set "output_file=!file_dir!!base_name!_h265.mp4"
+        if exist "!output_file!" (
             echo 已存在: "!output_file!"，跳过
         ) else (
             echo 正在转换为: "!output_file!"
-            ffmpeg -i "!file_dir!!video_file!" -c:v libx265 -crf 28 -preset medium -c:a copy "!file_dir!!output_file!"
+            ffmpeg -i "!video_file!" -c:v libx265 -crf 28 -preset medium -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
-                if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
+                if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 转换失败
             ) else (
                 echo 转换成功
