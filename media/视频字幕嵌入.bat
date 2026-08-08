@@ -5,10 +5,11 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '导出视频字幕为同名的 srt 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将与视频文件名同名的字幕文件，嵌入到视频中' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的字幕格式为 ass srt' -ForegroundColor Green"
 echo.
 
 
@@ -56,33 +57,45 @@ if "%~1" == "" (
         set "video_file=%%f"
         set "file_dir=%%~dpf"
         set "base_name=%%~nf"
+        set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        set "sub_file=!file_dir!!base_name!.srt"
-        if exist "!sub_file!" (
-            echo set /a "skipped+=1">> "!temp_set!"
-            echo 已存在: "!sub_file!"，跳过此文件
+        set "has_sub=0"
+        for /f "delims=" %%s in ('ffprobe -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            set "has_sub=1"
+        )
+
+        if "!has_sub!"=="1" (
+            echo set /a "skipped+=1" >> "!temp_set!"
+            echo 已有字幕，跳过
         ) else (
-            set "has_sub=0"
-            for /f "delims=" %%s in ('ffprobe -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
-                set "has_sub=1"
-                set "stream_index=%%s"
+            set "sub_file="
+            if exist "!file_dir!!base_name!.ass" (
+                set "sub_file=!file_dir!!base_name!.ass"
+            ) else if exist "!file_dir!!base_name!.sc.ass" (
+                set "sub_file=!file_dir!!base_name!.sc.ass"
+            ) else if exist "!file_dir!!base_name!.srt" (
+                set "sub_file=!file_dir!!base_name!.srt"
             )
 
-            if "!has_sub!"=="0" (
-                echo set /a "skipped+=1">> "!temp_set!"
-                echo 无字幕
-            ) else (
-                ffmpeg -i "!video_file!" -map 0:!stream_index! "!sub_file!"
+            if not "!sub_file!"=="" (
+                echo 找到字幕: "!sub_file!"
+                set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
+                ffmpeg -i "!video_file!" -i "!sub_file!" -map 0 -map 1 -c copy -metadata:s:s:0 language=zho "!temp_video_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
-                    if exist "!sub_file!" ( del /f /q "!sub_file!" )
-                    echo 导出失败
+                    echo set /a "failed+=1" >> "!temp_set!"
+                    if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                    echo 设置失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
-                    echo 保存文件: "!sub_file!"
+                    echo set /a "succeeded+=1" >> "!temp_set!"
+                    powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('!video_file!', 'OnlyErrorDialogs', 'SendToRecycleBin')"
+                    move /y "!temp_video_file!" "!video_file!" >nul
+                    echo 设置成功
                 )
+            ) else (
+                echo set /a "skipped+=1" >> "!temp_set!"
+                echo 未找到字幕文件，跳过
             )
         )
         echo set /a "total+=1">> "!temp_set!"
@@ -102,6 +115,7 @@ if "%~1" == "" (
     set "video_file=%~1"
     set "file_dir=%~dp1"
     set "base_name=%~n1"
+    set "file_ext=%~x1"
     setlocal enabledelayedexpansion
 
     if not exist "!video_file!" (
@@ -112,26 +126,37 @@ if "%~1" == "" (
     )
 
     echo 正在处理: "!video_file!"
-    set "sub_file=!file_dir!!base_name!.srt"
-    if exist "!sub_file!" (
-        echo 已存在: "!sub_file!"，跳过此文件
+    set "has_sub=0"
+    for /f "delims=" %%s in ('ffprobe -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        set "has_sub=1"
+    )
+
+    if "!has_sub!"=="1" (
+        echo 已有字幕，跳过
     ) else (
-        set "has_sub=0"
-        for /f "delims=" %%s in ('ffprobe -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
-            set "has_sub=1"
-            set "stream_index=%%s"
+        set "sub_file="
+        if exist "!file_dir!!base_name!.ass" (
+            set "sub_file=!file_dir!!base_name!.ass"
+        ) else if exist "!file_dir!!base_name!.sc.ass" (
+            set "sub_file=!file_dir!!base_name!.sc.ass"
+        ) else if exist "!file_dir!!base_name!.srt" (
+            set "sub_file=!file_dir!!base_name!.srt"
         )
 
-        if "!has_sub!"=="0" (
-            echo 无字幕
-        ) else (
-            ffmpeg -i "!video_file!" -map 0:!stream_index! "!sub_file!"
+        if not "!sub_file!"=="" (
+            echo 找到字幕: "!sub_file!"
+            set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
+            ffmpeg -i "!video_file!" -i "!sub_file!" -map 0 -map 1 -c copy -metadata:s:s:0 language=zho "!temp_video_file!"
             if !errorlevel! neq 0 (
-                if exist "!sub_file!" ( del /f /q "!sub_file!" )
-                echo 导出失败
+                if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                echo 设置失败
             ) else (
-                echo 保存文件: "!sub_file!"
+                powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('!video_file!', 'OnlyErrorDialogs', 'SendToRecycleBin')"
+                move /y "!temp_video_file!" "!video_file!" >nul
+                echo 设置成功
             )
+        ) else (
+            echo 未找到字幕文件，跳过
         )
     )
 
