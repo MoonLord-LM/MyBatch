@@ -66,7 +66,7 @@ if "%~1" == "" (
             echo 已存在: "!output_file!"，跳过
         ) else (
             echo 正在缩小为: "!output_file!"
-            ffmpeg -i "!video_file!" -vf "scale=iw/2:ih/2" -c:v libx264 -preset medium -crf 23 -c:a copy "!output_file!"
+            ffmpeg -i "!video_file!" -vf "scale=iw/2:ih/2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -109,7 +109,7 @@ if "%~1" == "" (
         echo 已存在: "!output_file!"，跳过
     ) else (
         echo 正在缩小为: "!output_file!"
-        ffmpeg -i "!video_file!" -vf "scale=iw/2:ih/2" -c:v libx264 -preset medium -crf 23 -c:a copy "!output_file!"
+        ffmpeg -i "!video_file!" -vf "scale=iw/2:ih/2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
         if !errorlevel! neq 0 (
             if exist "!output_file!" ( del /f /q "!output_file!" )
             echo 缩小失败
