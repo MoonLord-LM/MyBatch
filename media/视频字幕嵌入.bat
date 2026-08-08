@@ -6,9 +6,9 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 powershell -NoProfile -Command "Write-Host '将与视频文件名同名的字幕文件，嵌入到视频中' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的 mkv 视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 mkv' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的字幕格式为 ass srt' -ForegroundColor Green"
 echo.
 
@@ -52,7 +52,7 @@ if "%~1" == "" (
     set /a "succeeded=0"
     set /a "skipped=0"
     set /a "failed=0"
-    for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
+    for /r %%f in (*.mkv) do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         set "file_dir=%%~dpf"
