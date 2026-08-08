@@ -86,6 +86,7 @@ if "%~1" == "" (
                     echo 设置失败
                 ) else (
                     echo set /a "succeeded+=1">> "!temp_set!"
+                    powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('!video_file!', 'OnlyErrorDialogs', 'SendToRecycleBin')"
                     move /y "!temp_video_file!" "!video_file!" >nul
                     echo 设置成功
                 )
@@ -145,6 +146,7 @@ if "%~1" == "" (
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 设置失败
             ) else (
+                powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('!video_file!', 'OnlyErrorDialogs', 'SendToRecycleBin')"
                 move /y "!temp_video_file!" "!video_file!" >nul
                 echo 设置成功
             )
