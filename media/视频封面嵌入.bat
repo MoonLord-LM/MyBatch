@@ -60,12 +60,14 @@ if "%~1" == "" (
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        set "stream_index="
-        for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-            set "stream_index=%%s"
+        set "has_cover=0"
+        for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            if "%%c"=="1" (
+                set "has_cover=1"
+            )
         )
 
-        if not "!stream_index!"=="" (
+        if "!has_cover!"=="1" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 已有封面，跳过
         ) else (
@@ -123,12 +125,14 @@ if "%~1" == "" (
     )
 
     echo 正在处理: "!video_file!"
-    set "stream_index="
-    for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        set "stream_index=%%s"
+    set "has_cover=0"
+    for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        if "%%c"=="1" (
+            set "has_cover=1"
+        )
     )
 
-    if not "!stream_index!"=="" (
+    if "!has_cover!"=="1" (
         echo 已有封面，跳过
     ) else (
         set "cover_file="

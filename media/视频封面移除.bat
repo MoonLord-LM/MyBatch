@@ -60,19 +60,21 @@ if "%~1" == "" (
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        set "stream_index="
-        for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-            set "stream_index=%%s"
+        set "has_cover=0"
+        for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            if "%%c"=="1" (
+                set "has_cover=1"
+            )
         )
 
-        if "!stream_index!"=="" (
+        if "!has_cover!"=="0" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 无封面，跳过
         ) else (
             echo 找到封面，正在移除
             set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
             
-            ffmpeg -i "!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!"
+            ffmpeg -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
@@ -112,18 +114,20 @@ if "%~1" == "" (
     )
 
     echo 正在处理: "!video_file!"
-    set "stream_index="
-    for /f "delims=" %%s in ('ffprobe -v error -select_streams v -show_entries stream^=index -disposition attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        set "stream_index=%%s"
+    set "has_cover=0"
+    for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        if "%%c"=="1" (
+            set "has_cover=1"
+        )
     )
 
-    if "!stream_index!"=="" (
+    if "!has_cover!"=="0" (
         echo 无封面，跳过
     ) else (
         echo 找到封面，正在移除
         set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
 
-        ffmpeg -i "!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!"
+        ffmpeg -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
         if !errorlevel! neq 0 (
             if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
             echo 移除失败
