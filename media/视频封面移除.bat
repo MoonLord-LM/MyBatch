@@ -71,7 +71,7 @@ if "%~1" == "" (
             set "base_name=%%~nf"
             set "temp_video_file=!file_dir!!base_name!_temp%%~xf"
             
-            ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!" -hide_banner -loglevel error
+            ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!"
 
             if errorlevel 1 (
                 echo set /a "failed+=1" >> "!temp_set!"
@@ -122,7 +122,7 @@ if "%~1" == "" (
         set "base_name=%~n1"
         set "temp_video_file=!file_dir!!base_name!_temp%~x1"
 
-        ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!" -hide_banner -loglevel error
+        ffmpeg -i "!file_dir!!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!"
 
         if errorlevel 1 (
             if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )

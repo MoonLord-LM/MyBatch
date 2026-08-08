@@ -75,7 +75,7 @@ if "%~1" == "" (
                 echo 已存在: "!output_file!"，跳过
             ) else (
                 echo 正在转换为: "!output_file!"
-                ffmpeg -i "!file_dir!!video_file!" -c:v libx264 -crf 23 -preset medium -c:a copy "!file_dir!!output_file!" -hide_banner -loglevel error
+                ffmpeg -i "!file_dir!!video_file!" -c:v libx264 -crf 23 -preset medium -c:a copy "!file_dir!!output_file!"
                 if errorlevel 1 (
                     echo set /a "failed+=1" >> "!temp_set!"
                     if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
@@ -128,7 +128,7 @@ if "%~1" == "" (
             echo 已存在: "!output_file!"，跳过
         ) else (
             echo 正在转换为: "!output_file!"
-            ffmpeg -i "!file_dir!!video_file!" -c:v libx264 -crf 23 -preset medium -c:a copy "!file_dir!!output_file!" -hide_banner -loglevel error
+            ffmpeg -i "!file_dir!!video_file!" -c:v libx264 -crf 23 -preset medium -c:a copy "!file_dir!!output_file!"
             if errorlevel 1 (
                 if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
                 echo 转换失败

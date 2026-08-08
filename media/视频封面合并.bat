@@ -79,7 +79,7 @@ if "%~1" == "" (
             if defined cover_file (
                 echo 找到封面: "!cover_file!"
                 set "temp_video_file=!file_dir!!base_name!_temp%%~xf"
-                ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!" -hide_banner -loglevel error
+                ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
                 if errorlevel 1 (
                     echo set /a "failed+=1" >> "!temp_set!"
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
@@ -141,7 +141,7 @@ if "%~1" == "" (
         if defined cover_file (
             echo 找到封面: "!cover_file!"
             set "temp_video_file=!file_dir!!base_name!_temp%~x1"
-            ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!" -hide_banner -loglevel error
+            ffmpeg -i "!file_dir!!video_file!" -i "!file_dir!!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
             if errorlevel 1 (
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 设置失败

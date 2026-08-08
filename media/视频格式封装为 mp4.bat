@@ -55,7 +55,7 @@ if "%~1" == "" (
             echo 已存在: "!file_dir!!output_file!"，跳过此文件
         ) else (
             echo 正在封装为: "!output_file!"
-            ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!" -hide_banner -loglevel error
+            ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!"
             if errorlevel 1 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
@@ -100,7 +100,7 @@ if "%~1" == "" (
             echo 已存在: "!file_dir!!output_file!"，跳过此文件
         ) else (
             echo 正在封装为: "!output_file!"
-            ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!" -hide_banner -loglevel error
+            ffmpeg -i "!file_dir!!video_file!" -c copy -movflags +faststart "!file_dir!!output_file!"
             if errorlevel 1 (
                 if exist "!file_dir!!output_file!" ( del /f /q "!file_dir!!output_file!" )
                 echo 封装失败: "!file_dir!!video_file!"

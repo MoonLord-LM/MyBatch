@@ -73,7 +73,7 @@ if "%~1" == "" (
                 echo set /a "skipped+=1">> "!temp_set!"
                 echo 无封面: "!video_file!"
             ) else (
-                ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!" -hide_banner -loglevel error
+                ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!"
                 if errorlevel 1 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!file_dir!!cover_file!" ( del /f /q "!file_dir!!cover_file!" )
@@ -123,7 +123,7 @@ if "%~1" == "" (
         if not defined stream_index (
             echo 无封面: "!video_file!"
         ) else (
-            ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!" -hide_banner -loglevel error
+            ffmpeg -i "!file_dir!!video_file!" -map 0:!stream_index! -c copy "!file_dir!!cover_file!"
             if errorlevel 1 (
                 if exist "!file_dir!!cover_file!" ( del /f /q "!file_dir!!cover_file!" )
                 echo 导出失败: "!video_file!"
