@@ -67,22 +67,22 @@ if "%~1" == "" (
         )
 
         if "!is_av1!"=="1" (
-            echo set /a "skipped+=1" >> "!temp_set!"
+            echo set /a "skipped+=1">> "!temp_set!"
             echo 视频编码已经是 av1，跳过
         ) else (
             set "output_file=!file_dir!!base_name!_av1.mp4"
             if exist "!output_file!" (
-                echo set /a "skipped+=1" >> "!temp_set!"
+                echo set /a "skipped+=1">> "!temp_set!"
                 echo 已存在: "!output_file!"，跳过
             ) else (
                 echo 正在转换为: "!output_file!"
                 ffmpeg -i "!video_file!" -c:v libsvtav1 -crf 30 -preset 6 -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1" >> "!temp_set!"
+                    echo set /a "failed+=1">> "!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 转换失败
                 ) else (
-                    echo set /a "succeeded+=1" >> "!temp_set!"
+                    echo set /a "succeeded+=1">> "!temp_set!"
                     echo 转换成功
                 )
             )

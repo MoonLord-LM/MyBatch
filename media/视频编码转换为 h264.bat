@@ -67,22 +67,22 @@ if "%~1" == "" (
         )
 
         if "!is_h264!"=="1" (
-            echo set /a "skipped+=1" >> "!temp_set!"
+            echo set /a "skipped+=1">> "!temp_set!"
             echo 视频编码已经是 h264，跳过
         ) else (
             set "output_file=!file_dir!!base_name!_h264.mp4"
             if exist "!output_file!" (
-                echo set /a "skipped+=1" >> "!temp_set!"
+                echo set /a "skipped+=1">> "!temp_set!"
                 echo 已存在: "!output_file!"，跳过
             ) else (
                 echo 正在转换为: "!output_file!"
                 ffmpeg -i "!video_file!" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1" >> "!temp_set!"
+                    echo set /a "failed+=1">> "!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 转换失败
                 ) else (
-                    echo set /a "succeeded+=1" >> "!temp_set!"
+                    echo set /a "succeeded+=1">> "!temp_set!"
                     echo 转换成功
                 )
             )

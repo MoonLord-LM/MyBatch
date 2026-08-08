@@ -65,7 +65,7 @@ if "%~1" == "" (
         )
 
         if not defined stream_index (
-            echo set /a "skipped+=1" >> "!temp_set!"
+            echo set /a "skipped+=1">> "!temp_set!"
             echo 无封面，跳过
         ) else (
             echo 找到封面，正在移除
@@ -73,11 +73,11 @@ if "%~1" == "" (
             
             ffmpeg -i "!video_file!" -c copy -map 0 -map -0:!stream_index! "!temp_video_file!"
             if !errorlevel! neq 0 (
-                echo set /a "failed+=1" >> "!temp_set!"
+                echo set /a "failed+=1">> "!temp_set!"
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
             ) else (
-                echo set /a "succeeded+=1" >> "!temp_set!"
+                echo set /a "succeeded+=1">> "!temp_set!"
                 move /y "!temp_video_file!" "!video_file!" >nul
                 echo 移除成功
             )
