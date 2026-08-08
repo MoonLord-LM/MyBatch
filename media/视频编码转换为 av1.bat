@@ -127,7 +127,7 @@ if "%~1" == "" (
             echo 已存在: "!output_file!"，跳过
         ) else (
             echo 正在转换为: "!output_file!"
-            ffmpeg -i "!video_file!" -c:v libaom-av1 -crf 30 -preset 6 -c:a copy "!output_file!"
+            ffmpeg -i "!video_file!" -c:v libsvtav1 -crf 30 -preset 6 -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 转换失败
