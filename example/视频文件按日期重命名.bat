@@ -6,9 +6,9 @@ setlocal enabledelayedexpansion
 
 :: 将视频文件的创建日期添加到文件名开头，方便排序
 
-:: 依赖的软件 ffprobe.exe
+:: 依赖的软件 ffprobe
 :: https://github.com/FFmpeg/FFmpeg
-:: ffprobe.exe -v quiet -select_streams v -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 + 文件名
+:: ffprobe -v quiet -select_streams v -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 + 文件名
 
 
 
@@ -20,7 +20,7 @@ for %%f in (*.mp4 *.mkv *.m4v *.flv *.mov) do (
     echo 文件名 "!filename!"
 
     :: 使用 ffprobe 获取 date 标签
-    for /f "delims=" %%x in ('ffprobe.exe -v quiet -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "%cd%\!filename!" 2^>^&1') do (
+    for /f "delims=" %%x in ('ffprobe -v quiet -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "%cd%\!filename!" 2^>^&1') do (
         echo 创建时间 date 标签 "%%x"
         set "filedate=%%x"
     )
@@ -38,7 +38,7 @@ for %%f in (*.mp4 *.mkv *.m4v *.flv *.mov) do (
     ) else (
         echo 警告：未找到 date 信息 "!filename!"
         :: 使用 ffprobe 获取 creation_time 标签
-        for /f "tokens=*" %%t in ('ffprobe.exe -v quiet -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!filename!" 2^>nul') do (
+        for /f "tokens=*" %%t in ('ffprobe -v quiet -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!filename!" 2^>nul') do (
             set "creation_time=%%t"
         )
         if not defined creation_time (

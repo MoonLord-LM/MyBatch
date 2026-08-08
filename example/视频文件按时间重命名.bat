@@ -7,9 +7,9 @@ setlocal enabledelayedexpansion
 :: 将视频文件按录制开始时间重命名，统一为 VID_YYYYMMDD_HHMMSS.mp4 格式
 :: 用视频的 creation_time 减去视频时长来计算录制开始时间，并转为中国时区
 
-:: 依赖的软件 ffprobe.exe
+:: 依赖的软件 ffprobe
 :: https://github.com/FFmpeg/FFmpeg
-:: ffprobe.exe -v quiet -select_streams v -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 + 文件名
+:: ffprobe -v quiet -select_streams v -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 + 文件名
 
 
 
@@ -18,10 +18,10 @@ for %%f in (*.mp4 *.mkv *.flv *.mov) do (
     set "creation_time="
 
     echo 处理文件："!file_name!"
-    for /f "tokens=*" %%x in ('ffprobe.exe -v quiet -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!file_name!" 2^>nul') do (
+    for /f "tokens=*" %%x in ('ffprobe -v quiet -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!file_name!" 2^>nul') do (
         set "creation_time=%%x"
     )
-    for /f "tokens=*" %%x in ('ffprobe.exe -v quiet -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!file_name!" 2^>nul') do (
+    for /f "tokens=*" %%x in ('ffprobe -v quiet -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!file_name!" 2^>nul') do (
         set "duration=%%x"
     )
     echo 原始创建时间："!creation_time!"

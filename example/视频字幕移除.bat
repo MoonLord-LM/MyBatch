@@ -38,7 +38,7 @@ echo.
 
             echo 处理: "!file_name!"
             :: 移除所有字幕轨道
-            ffmpeg.exe -i "!file_name!" -c copy -map 0 -map -0:s "temp_!file_name!" -hide_banner -loglevel error
+            ffmpeg -i "!file_name!" -c copy -map 0 -map -0:s "temp_!file_name!" -hide_banner -loglevel error
             if !errorlevel! equ 0 (
                 del /f /q "!file_name!" >nul
                 ren "temp_!file_name!" "!file_name!" >nul
@@ -54,7 +54,7 @@ echo.
     ) else if exist "!url!" (
         for /f "delims=" %%f in ("!url!") do (
             echo 处理: "%%f"
-            ffmpeg.exe -i "%%f" -c copy -map 0 -map -0:s "%%~dpnf.nosub.mkv" -hide_banner -loglevel error
+            ffmpeg -i "%%f" -c copy -map 0 -map -0:s "%%~dpnf.nosub.mkv" -hide_banner -loglevel error
         )
     ) else (
         echo 错误的输入
