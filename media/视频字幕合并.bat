@@ -15,7 +15,7 @@ echo.
 
 
 if /i "%cd%"=="%SystemRoot%\System32" (
-    echo 检测到使用右键的"以管理员权限运行"，切换到脚本所在目录 & echo.
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
     cd /d "%~dp0"
 )
 
@@ -28,6 +28,7 @@ if !errorlevel! neq 0 (
     pause
     exit /b 1
 )
+
 ffprobe -version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
@@ -60,7 +61,6 @@ if "%~1" == "" (
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        
         set "has_sub=0"
         for /f "delims=" %%s in ('ffprobe -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
             set "has_sub=1"
@@ -105,6 +105,7 @@ if "%~1" == "" (
         endlocal
     )
 
+    REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
