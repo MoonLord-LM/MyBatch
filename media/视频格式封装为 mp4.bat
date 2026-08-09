@@ -55,14 +55,38 @@ if "%~1" == "" (
             echo 已存在: "!output_file!"，跳过此文件
         ) else (
             echo 正在封装为: "!output_file!"
-            ffmpeg -i "!video_file!" -c copy -movflags +faststart "!output_file!"
-            if !errorlevel! neq 0 (
-                echo set /a "failed+=1">> "!temp_set!"
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 封装失败
+
+            REM 检测音频编码格式
+            for /f "tokens=*" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+
+            REM 不支持的音频编码列表
+            set "unsupported_codecs=pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
+            set "need_convert=0"
+            for %%c in (!unsupported_codecs!) do (
+                if /i "!audio_codec!"=="%%c" set "need_convert=1"
+            )
+
+            if "!need_convert!"=="1" (
+                echo 检测到不支持的音频编码: !audio_codec!，正在转换为 AAC 格式...
+                ffmpeg -i "!video_file!" -c:v copy -c:a aac -b:a 640k -movflags +faststart "!output_file!"
+                if !errorlevel! neq 0 (
+                    echo set /a "failed+=1">> "!temp_set!"
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 封装失败
+                ) else (
+                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo 封装成功（音频已转换）
+                )
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
-                echo 封装成功
+                ffmpeg -i "!video_file!" -c copy -movflags +faststart "!output_file!"
+                if !errorlevel! neq 0 (
+                    echo set /a "failed+=1">> "!temp_set!"
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 封装失败
+                ) else (
+                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo 封装成功
+                )
             )
         )
         echo set /a "total+=1">> "!temp_set!"
@@ -100,12 +124,34 @@ if "%~1" == "" (
             echo 已存在: "!output_file!"，跳过此文件
         ) else (
             echo 正在封装为: "!output_file!"
-            ffmpeg -i "!video_file!" -c copy -movflags +faststart "!output_file!"
-            if !errorlevel! neq 0 (
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 封装失败
+
+            REM 检测音频编码格式
+            for /f "tokens=*" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+
+            REM 不支持的音频编码列表
+            set "unsupported_codecs=pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
+            set "need_convert=0"
+            for %%c in (!unsupported_codecs!) do (
+                if /i "!audio_codec!"=="%%c" set "need_convert=1"
+            )
+
+            if "!need_convert!"=="1" (
+                echo 检测到不支持的音频编码: !audio_codec!，正在转换为 AAC 格式...
+                ffmpeg -i "!video_file!" -c:v copy -c:a aac -b:a 640k -movflags +faststart "!output_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 封装失败
+                ) else (
+                    echo 封装成功（音频已转换）
+                )
             ) else (
-                echo 封装成功
+                ffmpeg -i "!video_file!" -c copy -movflags +faststart "!output_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 封装失败
+                ) else (
+                    echo 封装成功
+                )
             )
         )
     )
