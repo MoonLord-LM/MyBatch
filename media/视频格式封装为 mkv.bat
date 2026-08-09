@@ -59,8 +59,8 @@ if "%~1" == "" (
             REM 检测音频编码格式
             for /f "tokens=*" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
 
-            REM 不支持的音频编码列表
-            set "unsupported_codecs=pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
+            REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
+            set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
             set "need_convert=0"
             for %%c in (!unsupported_codecs!) do (
                 if /i "!audio_codec!"=="%%c" set "need_convert=1"
@@ -128,8 +128,8 @@ if "%~1" == "" (
             REM 检测音频编码格式
             for /f "tokens=*" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
 
-            REM 不支持的音频编码列表
-            set "unsupported_codecs=pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
+            REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
+            set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
             set "need_convert=0"
             for %%c in (!unsupported_codecs!) do (
                 if /i "!audio_codec!"=="%%c" set "need_convert=1"
