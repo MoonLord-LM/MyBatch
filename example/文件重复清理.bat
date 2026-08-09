@@ -38,7 +38,8 @@ for /r "%pathA%" %%f in (*) do (
                     fc /b "%%f" "%%g" > nul
                     if !errorlevel! equ 0 (
                         echo 文件内容相同，执行删除
-                        powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile('%%f', 'OnlyErrorDialogs', 'SendToRecycleBin')"
+                        set "file_to_delete=%%f"
+                        powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     ) else (
                         echo 文件内容不同，跳过
                     )
