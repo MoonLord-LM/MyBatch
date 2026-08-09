@@ -67,8 +67,8 @@ if "%~1" == "" (
             )
 
             if "!need_convert!"=="1" (
-                echo 检测到不支持的音频编码: !audio_codec!，正在转换为 AAC 格式...
-                ffmpeg -i "!video_file!" -c:v copy -c:a aac -b:a 640k -movflags +faststart "!output_file!"
+                echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
+                ffmpeg -i "!video_file!" -c:v copy -c:a flac -compression_level 8 -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -136,8 +136,8 @@ if "%~1" == "" (
             )
 
             if "!need_convert!"=="1" (
-                echo 检测到不支持的音频编码: !audio_codec!，正在转换为 AAC 格式...
-                ffmpeg -i "!video_file!" -c:v copy -c:a aac -b:a 640k -movflags +faststart "!output_file!"
+                echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
+                ffmpeg -i "!video_file!" -c:v copy -c:a flac -compression_level 8 -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 封装失败
