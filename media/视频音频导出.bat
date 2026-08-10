@@ -5,10 +5,10 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '导出视频音频为同名的 m4a 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '导出视频音频，根据编码自动选择格式（优先无损复制）' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的 mp4 视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 mp4' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
 
 
@@ -51,7 +51,7 @@ if "%~1" == "" (
     set /a "succeeded=0"
     set /a "skipped=0"
     set /a "failed=0"
-    for /r %%f in (*.mp4) do (
+    for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         set "file_dir=%%~dpf"
@@ -59,21 +59,39 @@ if "%~1" == "" (
         setlocal enabledelayedexpansion
 
         echo 正在处理: "!video_file!"
-        set "audio_file=!file_dir!!base_name!.m4a"
-        if exist "!audio_file!" (
-            echo set /a "skipped+=1">> "!temp_set!"
-            echo 已存在: "!audio_file!"，跳过此文件
-        ) else (
-            set "has_audio=0"
-            for /f "delims=" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
-                set "has_audio=1"
-            )
+        set "audio_codec="
+        for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            set "audio_codec=%%a"
+        )
 
-            if "!has_audio!"=="0" (
+        if "!audio_codec!"=="" (
+            echo set /a "skipped+=1">> "!temp_set!"
+            echo 无音频
+        ) else (
+            set "audio_ext=m4a"
+            set "audio_mode=aac"
+            if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="opus" ( set "audio_ext=opus" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="vorbis" ( set "audio_ext=ogg" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="pcm_s16le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="pcm_s24le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="pcm_s32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="pcm_f32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="ac3" ( set "audio_ext=ac3" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="wmav2" ( set "audio_ext=wma" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="wmapro" ( set "audio_ext=wma" & set "audio_mode=copy" )
+            if /i "!audio_codec!"=="dts" ( set "audio_ext=dts" & set "audio_mode=copy" )
+
+            set "audio_file=!file_dir!!base_name!.!audio_ext!"
+            if exist "!audio_file!" (
                 echo set /a "skipped+=1">> "!temp_set!"
-                echo 无音频
+                echo 已存在: "!audio_file!"，跳过此文件
             ) else (
-                ffmpeg -i "!video_file!" -vn -c:a copy "!audio_file!"
+                ffmpeg -i "!video_file!" -vn -c:a !audio_mode! "!audio_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!audio_file!" ( del /f /q "!audio_file!" )
@@ -111,19 +129,37 @@ if "%~1" == "" (
     )
 
     echo 正在处理: "!video_file!"
-    set "audio_file=!file_dir!!base_name!.m4a"
-    if exist "!audio_file!" (
-        echo 已存在: "!audio_file!"，跳过此文件
-    ) else (
-        set "has_audio=0"
-        for /f "delims=" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
-            set "has_audio=1"
-        )
+    set "audio_codec="
+    for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        set "audio_codec=%%a"
+    )
 
-        if "!has_audio!"=="0" (
-            echo 无音频
+    if "!audio_codec!"=="" (
+        echo 无音频
+    ) else (
+        set "audio_ext=m4a"
+        set "audio_mode=aac"
+        if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="opus" ( set "audio_ext=opus" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="vorbis" ( set "audio_ext=ogg" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="pcm_s16le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="pcm_s24le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="pcm_s32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="pcm_f32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="ac3" ( set "audio_ext=ac3" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="wmav2" ( set "audio_ext=wma" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="wmapro" ( set "audio_ext=wma" & set "audio_mode=copy" )
+        if /i "!audio_codec!"=="dts" ( set "audio_ext=dts" & set "audio_mode=copy" )
+
+        set "audio_file=!file_dir!!base_name!.!audio_ext!"
+        if exist "!audio_file!" (
+            echo 已存在: "!audio_file!"，跳过此文件
         ) else (
-            ffmpeg -i "!video_file!" -vn -c:a copy "!audio_file!"
+            ffmpeg -i "!video_file!" -vn -c:a !audio_mode! "!audio_file!"
             if !errorlevel! neq 0 (
                 if exist "!audio_file!" ( del /f /q "!audio_file!" )
                 echo 导出失败
