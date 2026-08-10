@@ -69,29 +69,33 @@ if "%~1" == "" (
             echo 无音频
         ) else (
             set "audio_ext=m4a"
-            set "audio_mode=aac"
-            if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="opus" ( set "audio_ext=opus" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="vorbis" ( set "audio_ext=ogg" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="pcm_s16le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="pcm_s24le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="pcm_s32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="pcm_f32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="ac3" ( set "audio_ext=ac3" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="wmav2" ( set "audio_ext=wma" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="wmapro" ( set "audio_ext=wma" & set "audio_mode=copy" )
-            if /i "!audio_codec!"=="dts" ( set "audio_ext=dts" & set "audio_mode=copy" )
+            set "audio_enc=-c:a aac -b:a 320k"
+            if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+            if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+            if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+            if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_enc=-c:a copy" )
+            if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_enc=-c:a copy" )
+            if /i "!audio_codec!"=="pcm_dvd" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_s16be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_s16le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_u16be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_u16le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_s24be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_s24le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_u24be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_u24le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_s32be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_s32le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_u32be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+            if /i "!audio_codec!"=="pcm_u32le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
 
+            REM 跳过封面的判断复用
             set "audio_file=!file_dir!!base_name!.!audio_ext!"
             if exist "!audio_file!" (
                 echo set /a "skipped+=1">> "!temp_set!"
                 echo 已存在: "!audio_file!"，跳过此文件
             ) else (
-                ffmpeg -i "!video_file!" -vn -c:a !audio_mode! "!audio_file!"
+                ffmpeg -i "!video_file!" -vn !audio_enc! "!audio_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!audio_file!" ( del /f /q "!audio_file!" )
@@ -138,28 +142,31 @@ if "%~1" == "" (
         echo 无音频
     ) else (
         set "audio_ext=m4a"
-        set "audio_mode=aac"
-        if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="opus" ( set "audio_ext=opus" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="vorbis" ( set "audio_ext=ogg" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="pcm_s16le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="pcm_s24le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="pcm_s32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="pcm_f32le" ( set "audio_ext=wav" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="ac3" ( set "audio_ext=ac3" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="wmav2" ( set "audio_ext=wma" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="wmapro" ( set "audio_ext=wma" & set "audio_mode=copy" )
-        if /i "!audio_codec!"=="dts" ( set "audio_ext=dts" & set "audio_mode=copy" )
+        set "audio_enc=-c:a aac -b:a 320k"
+        if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+        if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_enc=-c:a copy" )
+        if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+        if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_enc=-c:a copy" )
+        if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+        if /i "!audio_codec!"=="pcm_dvd" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_s16be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_s16le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_u16be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_u16le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_s24be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_s24le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_u24be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_u24le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_s32be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_s32le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_u32be" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
+        if /i "!audio_codec!"=="pcm_u32le" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
 
         set "audio_file=!file_dir!!base_name!.!audio_ext!"
         if exist "!audio_file!" (
             echo 已存在: "!audio_file!"，跳过此文件
         ) else (
-            ffmpeg -i "!video_file!" -vn -c:a !audio_mode! "!audio_file!"
+            ffmpeg -i "!video_file!" -vn !audio_enc! "!audio_file!"
             if !errorlevel! neq 0 (
                 if exist "!audio_file!" ( del /f /q "!audio_file!" )
                 echo 导出失败
