@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将视频按录制或编码的时间重命名为 VID_YYYYMMDD_HHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将视频按录制或编码的时间，重命名为 VID_YYYYMMDD_HHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
@@ -63,21 +63,25 @@ if "%~1" == "" (
         set "creation_time="
         for /f "delims=" %%x in ('ffprobe -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_time=%%x"
+            echo 视频容器 creation_time 标记: "!creation_time!"
         )
         if "!creation_time!"=="" (
             for /f "delims=" %%x in ('ffprobe -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"
+                echo 视频流 creation_time 标记: "!creation_time!"
             )
         )
         if "!creation_time!"=="" (
             for /f "delims=" %%x in ('ffprobe -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"
+                echo 苹果 QuickTime 格式标记: "!creation_time!"
             )
         )
 
         set "duration="
         for /f "delims=" %%x in ('ffprobe -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "duration=%%x"
+            echo 视频时长: "!duration!"
         )
 
         if "!creation_time!"=="" (
@@ -147,21 +151,25 @@ if "%~1" == "" (
     set "creation_time="
     for /f "delims=" %%x in ('ffprobe -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
         set "creation_time=%%x"
+        echo 视频容器 creation_time 标记: "!creation_time!"
     )
     if "!creation_time!"=="" (
         for /f "delims=" %%x in ('ffprobe -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_time=%%x"
+            echo 视频流 creation_time 标记: "!creation_time!"
         )
     )
     if "!creation_time!"=="" (
         for /f "delims=" %%x in ('ffprobe -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_time=%%x"
+            echo 苹果 QuickTime 格式标记: "!creation_time!"
         )
     )
 
     set "duration="
     for /f "delims=" %%x in ('ffprobe -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
         set "duration=%%x"
+        echo 视频时长: "!duration!"
     )
 
     if "!creation_time!"=="" (
