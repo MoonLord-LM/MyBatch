@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将视频按录制或编码的时间重命名为 VID_YYYYMMDD_HHMMSS 格式，默认使用中国时区' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将视频按录制或编码的时间重命名为 VID_YYYYMMDD_HHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
@@ -85,7 +85,7 @@ if "%~1" == "" (
             echo 未找到创建时间，跳过此文件
         ) else (
             set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($utcTime, $duration) try { $dt = [DateTime]::Parse($utcTime, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($duration, [Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -utcTime '!creation_time!' -duration '!duration!'" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($utcTime, $duration) try { $dt = [DateTime]::Parse($utcTime, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($duration, [Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); $start = $start.Date.AddSeconds([Math]::Floor($start.TimeOfDay.TotalSeconds)); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -utcTime '!creation_time!' -duration '!duration!'" 2^>nul') do (
                 set "formatted_time=%%t"
             )
 
@@ -168,7 +168,7 @@ if "%~1" == "" (
         echo 未找到创建时间，跳过此文件
     ) else (
         set "formatted_time="
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($utcTime, $duration) try { $dt = [DateTime]::Parse($utcTime, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($duration, [Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -utcTime '!creation_time!' -duration '!duration!'" 2^>nul') do (
+        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($utcTime, $duration) try { $dt = [DateTime]::Parse($utcTime, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($duration, [Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); $start = $start.Date.AddSeconds([Math]::Floor($start.TimeOfDay.TotalSeconds)); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -utcTime '!creation_time!' -duration '!duration!'" 2^>nul') do (
             set "formatted_time=%%t"
         )
 
