@@ -20,8 +20,8 @@ if /i "%cd%"=="%SystemRoot%\System32" (
 
 MediaInfo --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: MediaInfo 不可用或未正确安装
-    echo 正在打开官方下载页面...
+    echo 错误: 缺少 MediaInfo 组件
+    echo 请从 https://mediaarea.net/en/MediaInfo 下载
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
