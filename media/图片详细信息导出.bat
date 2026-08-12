@@ -18,11 +18,11 @@ if /i "%cd%"=="%SystemRoot%\System32" (
     cd /d "%~dp0"
 )
 
-ffprobe -version >nul 2>&1
+MediaInfo --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffprobe 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
-    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo 错误: MediaInfo 不可用或未正确安装
+    echo 正在打开官方下载页面...
+    "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
     exit /b 1
@@ -54,7 +54,7 @@ if "%~1" == "" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 已存在: "!json_file!"，跳过此文件
         ) else (
-            ffprobe -v error -show_streams -show_format -print_format json "!img_file!" > "!json_file!"
+            MediaInfo --Output=JSON "!img_file!" > "!json_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!json_file!" ( del /f /q "!json_file!" )
@@ -95,7 +95,7 @@ if "%~1" == "" (
     if exist "!json_file!" (
         echo 已存在: "!json_file!"，跳过此文件
     ) else (
-        ffprobe -v error -show_streams -show_format -print_format json "!img_file!" > "!json_file!"
+        MediaInfo --Output=JSON "!img_file!" > "!json_file!"
         if !errorlevel! neq 0 (
             if exist "!json_file!" ( del /f /q "!json_file!" )
             echo 图片解析报错

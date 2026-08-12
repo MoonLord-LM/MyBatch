@@ -18,21 +18,11 @@ if /i "%cd%"=="%SystemRoot%\System32" (
     cd /d "%~dp0"
 )
 
-ffmpeg -version >nul 2>&1
+MediaInfo --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffmpeg 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
-    "explorer.exe" "https://ffmpeg.org/download.html"
-    echo.
-    pause
-    exit /b 1
-)
-
-ffprobe -version >nul 2>&1
-if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffprobe 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
-    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo 错误: 缺少 MediaInfo 组件
+    echo 请从 https://mediaarea.net/en/MediaInfo 下载
+    "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
     exit /b 1
@@ -61,15 +51,21 @@ if "%~1" == "" (
 
         echo 正在处理: "!img_file!"
         set "creation_time="
-        for /f "delims=" %%x in ('ffprobe -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!img_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Recorded_Date' + [char]37) '!img_file!'" 2^>nul') do (
             set "creation_time=%%x"
-            echo EXIF 拍摄时间 creation_time 标记: "!creation_time!"
+            echo 图片 Recorded_Date 标记: "!creation_time!"
+        )
+        if "!creation_time!"=="" (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Encoded_Date' + [char]37) '!img_file!'" 2^>nul') do (
+                set "creation_time=%%x"
+                echo 图片 Encoded_Date 标记: "!creation_time!"
+            )
         )
         set "formatted_time="
         if "!creation_time!"=="" (
-            echo 未找到 EXIF 拍摄时间，改用文件修改时间
             for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath '!img_file!').LastWriteTime.ToString('yyyyMMdd_HHmmss')" 2^>nul') do (
                 set "formatted_time=%%t"
+                echo 图片文件修改时间: "!formatted_time!"
             )
         ) else (
             for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -t '!creation_time!'" 2^>nul') do (
@@ -132,15 +128,21 @@ if "%~1" == "" (
 
     echo 正在处理: "!img_file!"
     set "creation_time="
-    for /f "delims=" %%x in ('ffprobe -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!img_file!" 2^>nul') do (
+    for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Recorded_Date' + [char]37) '!img_file!'" 2^>nul') do (
         set "creation_time=%%x"
-        echo EXIF 拍摄时间 creation_time 标记: "!creation_time!"
+        echo 图片 Recorded_Date 标记: "!creation_time!"
+    )
+    if "!creation_time!"=="" (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Encoded_Date' + [char]37) '!img_file!'" 2^>nul') do (
+            set "creation_time=%%x"
+            echo 图片 Encoded_Date 标记: "!creation_time!"
+        )
     )
     set "formatted_time="
     if "!creation_time!"=="" (
-        echo 未找到 EXIF 拍摄时间，改用文件修改时间
         for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath '!img_file!').LastWriteTime.ToString('yyyyMMdd_HHmmss')" 2^>nul') do (
             set "formatted_time=%%t"
+            echo 图片文件修改时间: "!formatted_time!"
         )
     ) else (
         for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -t '!creation_time!'" 2^>nul') do (
