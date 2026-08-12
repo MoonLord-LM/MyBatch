@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 powershell -NoProfile -Command "Write-Host '将视频按录制或编码的时间重命名为 VID_YYYYMMDD_HHMMSS 格式，默认使用中国时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv flv mov' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
 
 
@@ -16,6 +16,16 @@ echo.
 if /i "%cd%"=="%SystemRoot%\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
     cd /d "%~dp0"
+)
+
+ffmpeg -version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误: 缺少 ffmpeg 组件
+    echo 请从 https://ffmpeg.org/download.html 下载
+    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo.
+    pause
+    exit /b 1
 )
 
 ffprobe -version >nul 2>&1
@@ -41,7 +51,7 @@ if "%~1" == "" (
     set /a "succeeded=0"
     set /a "skipped=0"
     set /a "failed=0"
-    for /r %%f in (*.mp4 *.mkv *.flv *.mov) do (
+    for /r %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         set "file_dir=%%~dpf"
