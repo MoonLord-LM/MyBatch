@@ -4,25 +4,18 @@ setlocal enabledelayedexpansion
 
 
 
-REM //处理的文件后缀
 set "extension=*.mp4,*.mkv,*.ts,*.wmv,*.avi,*.rar"
 echo.>"%tmp%\file_batch_rename.bat"
 
 for /r "%cd%" %%i in (%extension%) do (
 
-    REM //遍历文件名
     set "file_path=%%~i"
-    REM echo file_path : !file_path!
 
     call :filepath_to_filename
-    REM echo file_name : !file_name!
     set "new_name=!file_name!"
 
     call :filepath_to_filedir
-    REM echo file_dir : !file_dir!
     set "file_dir=!file_dir!"
-
-    REM //替换字符串
 
     call :new_name_replace "[4K]"
     call :new_name_replace "[2K]"
@@ -64,6 +57,7 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "2048社区 - big2048.com@"
     call :new_name_replace "4k2.com@"
     call :new_name_replace "4k2.me@"
+    call :new_name_replace "4k688.com@"
     call :new_name_replace "91制片厂 "
     call :new_name_replace "aavv121.com@"
     call :new_name_replace "activehlj.com@"
@@ -159,12 +153,6 @@ for /r "%cd%" %%i in (%extension%) do (
     call :new_name_replace "["
     call :new_name_replace "]"
 
-    REM call :new_name_replace ".." "."
-
-    REM echo new_name : !new_name!
-
-    REM //重命名脚本
-
     if not "!file_name!"=="!new_name!" (
         if exist "!file_dir!\!new_name!" (
             echo !file_name! ---^> !new_name!  --  文件重名，无法重命名
@@ -182,7 +170,6 @@ type "%tmp%\file_batch_rename.bat"
 
 set "file_path=%tmp%\file_batch_rename.bat"
 call :filepath_to_filesize
-rem echo file_size : !file_size!
 set "file_size=!file_size!"
 
 echo.
@@ -198,11 +185,11 @@ call "%tmp%\file_batch_rename.bat"
 del /F /S /Q "%tmp%\file_batch_rename.bat"
 exit
 
-:filepath_to_filename_sample - "将完整的文件路径(file_path)转换为文件名(file_name)"
+REM "将完整的文件路径(file_path)转换为文件名(file_name)"
+:filepath_to_filename_sample
     set /a tmp_offset=1
     :loop
     call set "tmp_mark=%%file_path:~-!tmp_offset!,1%%%"
-    REM echo tmp_mark : !tmp_mark!
     if not "!tmp_mark!"=="" (
         if not "!tmp_mark!" == "\" (
             set /a tmp_offset+=1
@@ -213,30 +200,32 @@ exit
     call set "file_name=%%file_path:~-!tmp_offset!%%%"
 goto :eof
 
-:filepath_to_filename - "将完整的文件路径(file_path)转换为文件名(file_name)"
+REM "将完整的文件路径(file_path)转换为文件名(file_name)"
+:filepath_to_filename
     for %%i in ("%file_path%") do (
         set "file_name=%%~ni%%~xi"
     )
 goto :eof
 
-:filepath_to_filedir - "将完整的文件路径(file_path)转换为文件夹路径(file_dir)"
+REM "将完整的文件路径(file_path)转换为文件夹路径(file_dir)"
+:filepath_to_filedir
     for %%i in ("%file_path%") do (
         set "file_dir=%%~di%%~pi"
     )
 goto :eof
 
-:filepath_to_filesize - "将完整的文件路径(file_path)转换为文件大小(file_size)"
+REM "将完整的文件路径(file_path)转换为文件大小(file_size)"
+:filepath_to_filesize
     for %%i in ("%file_path%") do (
         set "file_size=%%~zi"
     )
 goto :eof
 
-:new_name_replace - "将新的文件名(new_name)中的字符串(参数1)替换为字符串(参数2)"
+REM "将新的文件名(new_name)中的字符串(参数1)替换为字符串(参数2)"
+:new_name_replace
     if not "%~1"=="" (
         set "old_tag=%~1"
         set "new_tag=%~2"
-        REM echo old_tag : !old_tag!
-        REM echo new_tag : !new_tag!
         call set "new_name=%%new_name:!old_tag!=!new_tag!%%"
     )
 goto :eof

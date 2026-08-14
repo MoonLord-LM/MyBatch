@@ -5,6 +5,8 @@ setlocal enabledelayedexpansion
 echo.
 echo 本脚本实现重复文件的搜索和清理功能，将 B 文件夹中已存在的文件从 A 文件夹中删除
 echo.
+echo 当两次输入的路径相同时，则会删除掉该文件夹中的重复文件
+echo.
 
 echo 请输入路径 A (要清理的文件夹，执行删除操作):
 set /p pathA=
@@ -42,9 +44,14 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "Get-ChildItem -Literal
 
                 fc /b "%%f" "%%g" >nul
                 if !errorlevel! equ 0 (
-                    echo 文件内容相同，执行删除
-                    set "file_to_delete=%%f"
-                    powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                    rem 必须是两个不同的文件路径，才能执行删除
+                    if "%%f"=="%%g" (
+                        echo 同一个文件，跳过
+                    ) else (
+                        echo 文件内容相同，执行删除
+                        set "file_to_delete=%%f"
+                        powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                    )
                 ) else (
                     echo 文件内容不同，跳过
                 )
