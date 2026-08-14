@@ -51,12 +51,12 @@ if "%~1" == "" (
 
         echo 正在处理: "!img_file!"
         set "creation_time="
-        for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Recorded_Date' + [char]37) '!img_file!'" 2^>nul') do (
+        for /f "delims=" %%x in ('MediaInfo --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
             set "creation_time=%%x"
             echo 图片 Recorded_Date 标记: "!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Encoded_Date' + [char]37) '!img_file!'" 2^>nul') do (
+            for /f "delims=" %%x in ('MediaInfo --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 图片 Encoded_Date 标记: "!creation_time!"
             )
