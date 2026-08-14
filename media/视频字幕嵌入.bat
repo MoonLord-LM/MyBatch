@@ -14,7 +14,7 @@ echo.
 
 
 
-if /i "%cd%"=="%SystemRoot%\System32" (
+if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
     cd /d "%~dp0"
 )

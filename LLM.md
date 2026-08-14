@@ -45,7 +45,7 @@ REM This is a comment, it can be single line or multi-line, used to indicate the
 
 
 
-if /i "%cd%"=="%SystemRoot%\System32" (
+if /i "!cd!"=="!SystemRoot!\System32" (
     echo Use "Run as administrator" from right-click menu, switching to script directory & echo.
     cd /d "%~dp0"
 )
@@ -136,7 +136,7 @@ REM 这里是注释，可以是一行或多行，对整个文件进行出处标�
 
 
 
-if /i "%cd%"=="%SystemRoot%\System32" (
+if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
     cd /d "%~dp0"
 )
