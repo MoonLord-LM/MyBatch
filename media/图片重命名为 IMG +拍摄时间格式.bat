@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将图片按 EXIF 的拍摄时间，重命名为 IMG_YYYYMMDD_HHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将图片按 EXIF 的拍摄时间，重命名为 IMG_YYYYMMDD_HHMMSS_fff 格式，默认使用系统时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
@@ -62,7 +62,7 @@ if "%~1" == "" (
             )
         )
         set "formatted_time="
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -t '!creation_time!'" 2^>nul') do (
+        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch { Write-Output 'ERROR' }} -t '!creation_time!'" 2^>nul') do (
             set "formatted_time=%%t"
         )
 

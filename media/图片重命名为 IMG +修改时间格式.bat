@@ -59,9 +59,6 @@ if "%~1" == "" (
         if "!formatted_time!"=="" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 时间获取失败，跳过此文件
-        ) else if "!formatted_time!"=="ERROR" (
-            echo set /a "skipped+=1">> "!temp_set!"
-            echo 时间解析失败，跳过此文件
         ) else (
             for /f "delims=" %%l in ('powershell -NoProfile -Command "'!file_ext!'.ToLower()"') do set "lower_file_ext=%%l"
             set "new_name=IMG_!formatted_time!!lower_file_ext!"
