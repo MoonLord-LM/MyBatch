@@ -62,15 +62,17 @@ if "%~1" == "" (
             )
         )
         set "formatted_time="
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch { Write-Output 'ERROR' }} -t '!creation_time!'" 2^>nul') do (
-            set "formatted_time=%%t"
+        if not "!creation_time!"=="" (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -t '!creation_time!'" 2^>nul') do (
+                set "formatted_time=%%t"
+            )
         )
 
         if "!formatted_time!"=="" (
             echo set /a "skipped+=1">> "!temp_set!"
-            echo 时间获取失败，跳过此文件
+            echo 图片 EXIF 拍摄时间获取失败，跳过此文件
         ) else (
-            for /f "delims=" %%l in ('powershell -NoProfile -Command "'!file_ext!'.ToLower()"') do set "lower_file_ext=%%l"
+            for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do set "lower_file_ext=%%l"
             set "new_name=IMG_!formatted_time!!lower_file_ext!"
             echo 目标文件名: "!new_name!"
             if /i "!img_file!"=="!file_dir!!new_name!" (
@@ -130,23 +132,17 @@ if "%~1" == "" (
         )
     )
     set "formatted_time="
-    if "!creation_time!"=="" (
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath '!img_file!').LastWriteTime.ToString('yyyyMMdd_HHmmss')" 2^>nul') do (
-            set "formatted_time=%%t"
-            echo 图片文件修改时间: "!formatted_time!"
-        )
-    ) else (
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -t '!creation_time!'" 2^>nul') do (
+    if not "!creation_time!"=="" (
+        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -t '!creation_time!'" 2^>nul') do (
             set "formatted_time=%%t"
         )
     )
 
     if "!formatted_time!"=="" (
-        echo 时间获取失败，跳过此文件
-    ) else if "!formatted_time!"=="ERROR" (
-        echo 时间解析失败，跳过此文件
+        echo 图片 EXIF 拍摄时间获取失败，跳过此文件
     ) else (
-        set "new_name=IMG_!formatted_time!!file_ext!"
+        for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do set "lower_file_ext=%%l"
+        set "new_name=IMG_!formatted_time!!lower_file_ext!"
         echo 目标文件名: "!new_name!"
         if /i "!img_file!"=="!file_dir!!new_name!" (
             echo 文件名已符合规范，无需处理

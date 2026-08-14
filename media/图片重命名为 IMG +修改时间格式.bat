@@ -108,35 +108,17 @@ if "%~1" == "" (
     )
 
     echo 正在处理: "!img_file!"
-    set "creation_time="
-    for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Recorded_Date' + [char]37) '!img_file!'" 2^>nul') do (
-        set "creation_time=%%x"
-        echo 图片 Recorded_Date 标记: "!creation_time!"
-    )
-    if "!creation_time!"=="" (
-        for /f "delims=" %%x in ('powershell -NoProfile -Command "& 'MediaInfo' ('--Output=General;' + [char]37 + 'Encoded_Date' + [char]37) '!img_file!'" 2^>nul') do (
-            set "creation_time=%%x"
-            echo 图片 Encoded_Date 标记: "!creation_time!"
-        )
-    )
     set "formatted_time="
-    if "!creation_time!"=="" (
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath '!img_file!').LastWriteTime.ToString('yyyyMMdd_HHmmss')" 2^>nul') do (
-            set "formatted_time=%%t"
-            echo 图片文件修改时间: "!formatted_time!"
-        )
-    ) else (
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "& {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch { Write-Output 'ERROR' }} -t '!creation_time!'" 2^>nul') do (
-            set "formatted_time=%%t"
-        )
+    for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMdd_HHmmss')" 2^>nul') do (
+        set "formatted_time=%%t"
+        echo 图片文件修改时间: "!formatted_time!"
     )
 
     if "!formatted_time!"=="" (
         echo 时间获取失败，跳过此文件
-    ) else if "!formatted_time!"=="ERROR" (
-        echo 时间解析失败，跳过此文件
     ) else (
-        set "new_name=IMG_!formatted_time!!file_ext!"
+        for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do set "lower_file_ext=%%l"
+        set "new_name=IMG_!formatted_time!!lower_file_ext!"
         echo 目标文件名: "!new_name!"
         if /i "!img_file!"=="!file_dir!!new_name!" (
             echo 文件名已符合规范，无需处理
