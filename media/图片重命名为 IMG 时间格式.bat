@@ -63,7 +63,7 @@ if "%~1" == "" (
         )
         set "formatted_time="
         if "!creation_time!"=="" (
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath '!img_file!').LastWriteTime.ToString('yyyyMMdd_HHmmss')" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMdd_HHmmss')" 2^>nul') do (
                 set "formatted_time=%%t"
                 echo 图片文件修改时间: "!formatted_time!"
             )
