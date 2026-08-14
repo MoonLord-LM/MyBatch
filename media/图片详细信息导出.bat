@@ -31,7 +31,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    echo 开始扫描
+    echo 开始处理当前文件夹: "!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
