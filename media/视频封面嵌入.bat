@@ -7,7 +7,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 powershell -NoProfile -Command "Write-Host '将同名的图片文件、cover.png 或 cover.jpg，设置为视频的封面' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
 
@@ -128,42 +128,118 @@ if "%~1" == "" (
         exit /b 1
     )
 
-    echo 正在处理: "!video_file!"
-    set "has_cover=0"
-    for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-        if "%%c"=="1" (
-            set "has_cover=1"
-        )
-    )
+    if exist "!video_file!\" (
+        echo 开始处理文件夹: "!video_file!"
+        echo.
 
-    if "!has_cover!"=="1" (
-        echo 已有封面，跳过
-    ) else (
-        set "cover_file="
-        if exist "!file_dir!!base_name!.png" (
-            set "cover_file=!file_dir!!base_name!.png"
-        ) else if exist "!file_dir!!base_name!.jpg" (
-            set "cover_file=!file_dir!!base_name!.jpg"
-        ) else if exist "!file_dir!cover.png" (
-            set "cover_file=!file_dir!cover.png"
-        ) else if exist "!file_dir!cover.jpg" (
-            set "cover_file=!file_dir!cover.jpg"
-        )
+        REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+        set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
-        if not "!cover_file!"=="" (
-            echo 找到封面: "!cover_file!"
-            set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
-            ffmpeg -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
-            if !errorlevel! neq 0 (
-                if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
-                echo 设置失败
-            ) else (
-                powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:video_file,'OnlyErrorDialogs','SendToRecycleBin')"
-                move /y "!temp_video_file!" "!video_file!" >nul
-                echo 设置成功
+        set /a "total=0"
+        set /a "succeeded=0"
+        set /a "skipped=0"
+        set /a "failed=0"
+        for /r "!video_file!" %%f in (*.mp4 *.mkv *.ts *.avi *.wmv *.flv *.rmvb *.rm *.vob *.mpg *.mpeg *.3gp *.m4v *.f4v *.mov *.webm) do (
+            setlocal disabledelayedexpansion
+            set "video_file=%%f"
+            set "file_dir=%%~dpf"
+            set "base_name=%%~nf"
+            set "file_ext=%%~xf"
+            setlocal enabledelayedexpansion
+
+            echo 正在处理: "!video_file!"
+            set "has_cover=0"
+            for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+                if "%%c"=="1" (
+                    set "has_cover=1"
+                )
             )
+
+            if "!has_cover!"=="1" (
+                echo set /a "skipped+=1">> "!temp_set!"
+                echo 已有封面，跳过
+            ) else (
+                set "cover_file="
+                if exist "!file_dir!!base_name!.png" (
+                    set "cover_file=!file_dir!!base_name!.png"
+                ) else if exist "!file_dir!!base_name!.jpg" (
+                    set "cover_file=!file_dir!!base_name!.jpg"
+                ) else if exist "!file_dir!cover.png" (
+                    set "cover_file=!file_dir!cover.png"
+                ) else if exist "!file_dir!cover.jpg" (
+                    set "cover_file=!file_dir!cover.jpg"
+                )
+
+                if not "!cover_file!"=="" (
+                    echo 找到封面: "!cover_file!"
+                    set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
+                    ffmpeg -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
+                    if !errorlevel! neq 0 (
+                        echo set /a "failed+=1">> "!temp_set!"
+                        if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                        echo 设置失败
+                    ) else (
+                        echo set /a "succeeded+=1">> "!temp_set!"
+                        powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:video_file,'OnlyErrorDialogs','SendToRecycleBin')"
+                        move /y "!temp_video_file!" "!video_file!" >nul
+                        echo 设置成功
+                    )
+                ) else (
+                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo 未找到封面图片，跳过
+                )
+            )
+            echo set /a "total+=1">> "!temp_set!"
+            echo.
+
+            endlocal
+            endlocal
+        )
+
+        REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+        call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
+
+        echo 批量处理完成
+        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    ) else (
+        echo 开始处理文件: "!video_file!"
+
+        set "has_cover=0"
+        for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            if "%%c"=="1" (
+                set "has_cover=1"
+            )
+        )
+
+        if "!has_cover!"=="1" (
+            echo 已有封面，跳过
         ) else (
-            echo 未找到封面图片，跳过
+            set "cover_file="
+            if exist "!file_dir!!base_name!.png" (
+                set "cover_file=!file_dir!!base_name!.png"
+            ) else if exist "!file_dir!!base_name!.jpg" (
+                set "cover_file=!file_dir!!base_name!.jpg"
+            ) else if exist "!file_dir!cover.png" (
+                set "cover_file=!file_dir!cover.png"
+            ) else if exist "!file_dir!cover.jpg" (
+                set "cover_file=!file_dir!cover.jpg"
+            )
+
+            if not "!cover_file!"=="" (
+                echo 找到封面: "!cover_file!"
+                set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
+                ffmpeg -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                    echo 设置失败
+                ) else (
+                    powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:video_file,'OnlyErrorDialogs','SendToRecycleBin')"
+                    move /y "!temp_video_file!" "!video_file!" >nul
+                    echo 设置成功
+                )
+            ) else (
+                echo 未找到封面图片，跳过
+            )
         )
     )
 
