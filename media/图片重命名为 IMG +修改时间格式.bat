@@ -60,7 +60,7 @@ if "%~1" == "" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 时间获取失败，跳过此文件
         ) else (
-            for /f "delims=" %%l in ('powershell -NoProfile -Command "'!file_ext!'.ToLower()"') do set "lower_file_ext=%%l"
+            for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do set "lower_file_ext=%%l"
             set "new_name=IMG_!formatted_time!!lower_file_ext!"
             echo 目标文件名: "!new_name!"
             if /i "!img_file!"=="!file_dir!!new_name!" (
