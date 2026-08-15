@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 powershell -NoProfile -Command "Write-Host '将当前目录下的所有文件重命名为 7z 后缀，例如 1.jpg 改为 1.jpg.7z' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '不处理文件后缀为 7z、bat、exe、dll、ini、lnk 的，或者属性为隐藏文件、系统文件的' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '不处理文件后缀为 7z、zip、rar、bat、exe、dll、ini、lnk 的，或者属性为隐藏文件、系统文件的' -ForegroundColor Green"
 echo.
 
 
@@ -42,9 +42,9 @@ if "%~1" == "" (
 
         echo 正在处理: "!file_path!"
 
-        REM 跳过不处理的后缀：7z bat exe dll ini lnk
+        REM 跳过不处理的后缀：7z zip rar bat exe dll ini lnk
         set "is_skip_ext="
-        for %%e in (.7z .bat .exe .dll .ini .lnk) do (
+        for %%e in (.7z .zip .rar .bat .exe .dll .ini .lnk) do (
             if /i "!file_ext!"=="%%e" set "is_skip_ext=1"
         )
 
@@ -129,9 +129,9 @@ if "%~1" == "" (
 
             echo 正在处理: "!file_path!"
 
-            REM 跳过不处理的后缀：7z bat exe dll ini lnk
+            REM 跳过不处理的后缀：7z zip rar bat exe dll ini lnk
             set "is_skip_ext="
-            for %%e in (.7z .bat .exe .dll .ini .lnk) do (
+            for %%e in (.7z .zip .rar .bat .exe .dll .ini .lnk) do (
                 if /i "!file_ext!"=="%%e" set "is_skip_ext=1"
             )
 
@@ -183,9 +183,9 @@ if "%~1" == "" (
     ) else (
         echo 开始处理文件: "!file_path!"
 
-        REM 跳过不处理的后缀：7z bat exe dll ini lnk
+        REM 跳过不处理的后缀：7z zip rar bat exe dll ini lnk
         set "is_skip_ext="
-        for %%e in (.7z .bat .exe .dll .ini .lnk) do (
+        for %%e in (.7z .zip .rar .bat .exe .dll .ini .lnk) do (
             if /i "!file_ext!"=="%%e" set "is_skip_ext=1"
         )
 
