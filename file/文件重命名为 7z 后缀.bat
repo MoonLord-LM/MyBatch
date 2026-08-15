@@ -31,7 +31,8 @@ if "%~1" == "" (
     set /a "succeeded=0"
     set /a "skipped=0"
     set /a "failed=0"
-    for /r %%f in (*) do (
+    set "file_path=!cd!"
+    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "file_path=%%f"
         set "file_dir=%%~dpf"
@@ -118,7 +119,7 @@ if "%~1" == "" (
         set /a "succeeded=0"
         set /a "skipped=0"
         set /a "failed=0"
-        for /r "!file_path!" %%f in (*) do (
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "file_path=%%f"
             set "file_dir=%%~dpf"
