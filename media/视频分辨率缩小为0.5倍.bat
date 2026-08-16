@@ -24,7 +24,7 @@ if exist "%~dp0ffmpeg.exe" (
 ) else if exist "!cd!\ffmpeg.exe" (
     set "ffmpeg_path=!cd!\ffmpeg.exe"
 )
-if not defined ffmpeg_path (
+if "!ffmpeg_path!"=="" (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"

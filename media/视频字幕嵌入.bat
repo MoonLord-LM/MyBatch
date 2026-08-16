@@ -25,7 +25,7 @@ if exist "%~dp0ffmpeg.exe" (
 ) else if exist "!cd!\ffmpeg.exe" (
     set "ffmpeg_path=!cd!\ffmpeg.exe"
 )
-if not defined ffmpeg_path (
+if "!ffmpeg_path!"=="" (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -39,7 +39,7 @@ if exist "%~dp0ffprobe.exe" (
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
 )
-if not defined ffprobe_path (
+if "!ffprobe_path!"=="" (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
