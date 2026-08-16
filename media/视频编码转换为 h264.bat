@@ -6,7 +6,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 powershell -NoProfile -Command "Write-Host '视频编码转换为 h264 格式（高质量 -crf 18 -preset slower）' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
@@ -14,24 +14,33 @@ echo.
 
 
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
     cd /d "%~dp0"
 )
 
-ffmpeg -version >nul 2>&1
-if !errorlevel! neq 0 (
+set "ffmpeg_path="
+if exist "%~dp0ffmpeg.exe" (
+    set "ffmpeg_path=%~dp0ffmpeg.exe"
+) else if exist "!cd!\ffmpeg.exe" (
+    set "ffmpeg_path=!cd!\ffmpeg.exe"
+)
+if not defined ffmpeg_path (
     echo 错误: 缺少 ffmpeg 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
     exit /b 1
 )
-
-ffprobe -version >nul 2>&1
-if !errorlevel! neq 0 (
+set "ffprobe_path="
+if exist "%~dp0ffprobe.exe" (
+    set "ffprobe_path=%~dp0ffprobe.exe"
+) else if exist "!cd!\ffprobe.exe" (
+    set "ffprobe_path=!cd!\ffprobe.exe"
+)
+if not defined ffprobe_path (
     echo 错误: 缺少 ffprobe 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
@@ -63,7 +72,7 @@ if "%~1" == "" (
         echo 正在处理: "!video_file!"
 
         set "is_h264=0"
-        for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if /i "%%c"=="h264" (
                 set "is_h264=1"
             )
@@ -81,7 +90,7 @@ if "%~1" == "" (
                 echo 正在转换为: "!output_file!"
 
                 REM 检测音频编码格式
-                for /f "tokens=*" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+                for /f "tokens=*" %%a in ('"!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
 
                 REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
                 set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
@@ -92,7 +101,7 @@ if "%~1" == "" (
 
                 if "!need_convert!"=="1" (
                     echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
-                    ffmpeg -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a flac -compression_level 8 "!output_file!"
+                    "!ffmpeg_path!" -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a flac -compression_level 8 "!output_file!"
                     if !errorlevel! neq 0 (
                         echo set /a "failed+=1">> "!temp_set!"
                         if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -102,7 +111,7 @@ if "%~1" == "" (
                         echo 转换成功（音频已转换）
                     )
                 ) else (
-                    ffmpeg -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                    "!ffmpeg_path!" -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
                     if !errorlevel! neq 0 (
                         echo set /a "failed+=1">> "!temp_set!"
                         if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -163,7 +172,7 @@ if "%~1" == "" (
             echo 正在处理: "!video_file!"
 
             set "is_h264=0"
-            for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
                 if /i "%%c"=="h264" (
                     set "is_h264=1"
                 )
@@ -181,7 +190,7 @@ if "%~1" == "" (
                     echo 正在转换为: "!output_file!"
 
                     REM 检测音频编码格式
-                    for /f "tokens=*" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+                    for /f "tokens=*" %%a in ('"!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
 
                     REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
                     set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
@@ -192,7 +201,7 @@ if "%~1" == "" (
 
                     if "!need_convert!"=="1" (
                         echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
-                        ffmpeg -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a flac -compression_level 8 "!output_file!"
+                        "!ffmpeg_path!" -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a flac -compression_level 8 "!output_file!"
                         if !errorlevel! neq 0 (
                             echo set /a "failed+=1">> "!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -202,7 +211,7 @@ if "%~1" == "" (
                             echo 转换成功（音频已转换）
                         )
                     ) else (
-                        ffmpeg -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                        "!ffmpeg_path!" -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
                         if !errorlevel! neq 0 (
                             echo set /a "failed+=1">> "!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -230,7 +239,7 @@ if "%~1" == "" (
         echo 开始处理文件: "!video_file!"
 
         set "is_h264=0"
-        for /f "delims=" %%c in ('ffprobe -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if /i "%%c"=="h264" (
                 set "is_h264=1"
             )
@@ -246,7 +255,7 @@ if "%~1" == "" (
                 echo 正在转换为: "!output_file!"
 
                 REM 检测音频编码格式
-                for /f "tokens=*" %%a in ('ffprobe -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+                for /f "tokens=*" %%a in ('"!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
 
                 REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
                 set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
@@ -257,7 +266,7 @@ if "%~1" == "" (
 
                 if "!need_convert!"=="1" (
                     echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
-                    ffmpeg -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a flac -compression_level 8 "!output_file!"
+                    "!ffmpeg_path!" -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a flac -compression_level 8 "!output_file!"
                     if !errorlevel! neq 0 (
                         if exist "!output_file!" ( del /f /q "!output_file!" )
                         echo 转换失败
@@ -265,7 +274,7 @@ if "%~1" == "" (
                         echo 转换成功（音频已转换）
                     )
                 ) else (
-                    ffmpeg -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                    "!ffmpeg_path!" -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
                     if !errorlevel! neq 0 (
                         if exist "!output_file!" ( del /f /q "!output_file!" )
                         echo 转换失败

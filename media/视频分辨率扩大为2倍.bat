@@ -6,7 +6,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 powershell -NoProfile -Command "Write-Host '视频分辨率扩大为 2 倍（默认质量 -crf 23 -preset medium）' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
@@ -14,24 +14,19 @@ echo.
 
 
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
     cd /d "%~dp0"
 )
 
-ffmpeg -version >nul 2>&1
-if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffmpeg 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
-    "explorer.exe" "https://ffmpeg.org/download.html"
-    echo.
-    pause
-    exit /b 1
+set "ffmpeg_path="
+if exist "%~dp0ffmpeg.exe" (
+    set "ffmpeg_path=%~dp0ffmpeg.exe"
+) else if exist "!cd!\ffmpeg.exe" (
+    set "ffmpeg_path=!cd!\ffmpeg.exe"
 )
-
-ffprobe -version >nul 2>&1
-if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffprobe 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
+if not defined ffmpeg_path (
+    echo 错误: 缺少 ffmpeg 组件
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
@@ -68,7 +63,7 @@ if "%~1" == "" (
             echo 已存在: "!output_file!"，跳过
         ) else (
             echo 正在扩大为: "!output_file!"
-            ffmpeg -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -133,7 +128,7 @@ if "%~1" == "" (
                 echo 已存在: "!output_file!"，跳过
             ) else (
                 echo 正在扩大为: "!output_file!"
-                ffmpeg -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -163,7 +158,7 @@ if "%~1" == "" (
             echo 已存在: "!output_file!"，跳过
         ) else (
             echo 正在扩大为: "!output_file!"
-            ffmpeg -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 扩大失败

@@ -6,7 +6,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 powershell -NoProfile -Command "Write-Host '视频详细参数信息。导出为同名的 json 文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
@@ -14,14 +14,19 @@ echo.
 
 
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
     cd /d "%~dp0"
 )
 
-ffprobe -version >nul 2>&1
-if !errorlevel! neq 0 (
+set "ffprobe_path="
+if exist "%~dp0ffprobe.exe" (
+    set "ffprobe_path=%~dp0ffprobe.exe"
+) else if exist "!cd!\ffprobe.exe" (
+    set "ffprobe_path=!cd!\ffprobe.exe"
+)
+if not defined ffprobe_path (
     echo 错误: 缺少 ffprobe 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
@@ -56,7 +61,7 @@ if "%~1" == "" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 已存在: "!json_file!"，跳过此文件
         ) else (
-            ffprobe -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
+            "!ffprobe_path!" -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!json_file!" ( del /f /q "!json_file!" )
@@ -118,7 +123,7 @@ if "%~1" == "" (
                 echo set /a "skipped+=1">> "!temp_set!"
                 echo 已存在: "!json_file!"，跳过此文件
             ) else (
-                ffprobe -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
+                "!ffprobe_path!" -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!json_file!" ( del /f /q "!json_file!" )
@@ -147,7 +152,7 @@ if "%~1" == "" (
         if exist "!json_file!" (
             echo 已存在: "!json_file!"，跳过此文件
         ) else (
-            ffprobe -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
+            "!ffprobe_path!" -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
             if !errorlevel! neq 0 (
                 if exist "!json_file!" ( del /f /q "!json_file!" )
                 echo 视频解析报错

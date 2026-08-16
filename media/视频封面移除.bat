@@ -6,7 +6,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 powershell -NoProfile -Command "Write-Host '移除视频封面' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前目录下所有的视频文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
@@ -14,24 +14,33 @@ echo.
 
 
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
     cd /d "%~dp0"
 )
 
-ffmpeg -version >nul 2>&1
-if !errorlevel! neq 0 (
+set "ffmpeg_path="
+if exist "%~dp0ffmpeg.exe" (
+    set "ffmpeg_path=%~dp0ffmpeg.exe"
+) else if exist "!cd!\ffmpeg.exe" (
+    set "ffmpeg_path=!cd!\ffmpeg.exe"
+)
+if not defined ffmpeg_path (
     echo 错误: 缺少 ffmpeg 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
     exit /b 1
 )
-
-ffprobe -version >nul 2>&1
-if !errorlevel! neq 0 (
+set "ffprobe_path="
+if exist "%~dp0ffprobe.exe" (
+    set "ffprobe_path=%~dp0ffprobe.exe"
+) else if exist "!cd!\ffprobe.exe" (
+    set "ffprobe_path=!cd!\ffprobe.exe"
+)
+if not defined ffprobe_path (
     echo 错误: 缺少 ffprobe 组件
-    echo 请从 https://ffmpeg.org/download.html 下载
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
@@ -63,7 +72,7 @@ if "%~1" == "" (
 
         echo 正在处理: "!video_file!"
         set "has_cover=0"
-        for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if "%%c"=="1" (
                 set "has_cover=1"
             )
@@ -76,7 +85,7 @@ if "%~1" == "" (
             echo 找到封面，正在移除
             set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
             
-            ffmpeg -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
+            "!ffmpeg_path!" -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
@@ -138,7 +147,7 @@ if "%~1" == "" (
 
             echo 正在处理: "!video_file!"
             set "has_cover=0"
-            for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
                 if "%%c"=="1" (
                     set "has_cover=1"
                 )
@@ -151,7 +160,7 @@ if "%~1" == "" (
                 echo 找到封面，正在移除
                 set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
 
-                ffmpeg -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
+                "!ffmpeg_path!" -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
@@ -179,7 +188,7 @@ if "%~1" == "" (
         echo 开始处理文件: "!video_file!"
 
         set "has_cover=0"
-        for /f "delims=" %%c in ('ffprobe -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if "%%c"=="1" (
                 set "has_cover=1"
             )
@@ -191,7 +200,7 @@ if "%~1" == "" (
             echo 找到封面，正在移除
             set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
 
-            ffmpeg -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
+            "!ffmpeg_path!" -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
             if !errorlevel! neq 0 (
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
