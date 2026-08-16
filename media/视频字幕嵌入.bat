@@ -52,7 +52,9 @@ if "%~1" == "" (
     set /a "succeeded=0"
     set /a "skipped=0"
     set /a "failed=0"
-    for /r %%f in (*.mkv) do (
+    set "file_path=!cd!"
+    set "ext_filter=\.mkv$"
+    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         set "file_dir=%%~dpf"
@@ -136,7 +138,9 @@ if "%~1" == "" (
         set /a "succeeded=0"
         set /a "skipped=0"
         set /a "failed=0"
-        for /r "!video_file!" %%f in (*.mkv) do (
+        set "file_path=!video_file!"
+        set "ext_filter=\.mkv$"
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "video_file=%%f"
             set "file_dir=%%~dpf"

@@ -51,7 +51,9 @@ if "%~1" == "" (
     set /a "succeeded=0"
     set /a "skipped=0"
     set /a "failed=0"
-    for /r %%f in (*.flac *.mp3) do (
+    set "file_path=!cd!"
+    set "ext_filter=\.(flac|mp3)$"
+    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "audio_file=%%f"
         set "file_dir=%%~dpf"
@@ -121,7 +123,9 @@ if "%~1" == "" (
         set /a "succeeded=0"
         set /a "skipped=0"
         set /a "failed=0"
-        for /r "!audio_file!" %%f in (*.flac *.mp3) do (
+        set "file_path=!audio_file!"
+        set "ext_filter=\.(flac|mp3)$"
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "audio_file=%%f"
             set "file_dir=%%~dpf"
