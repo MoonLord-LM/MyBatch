@@ -18,18 +18,6 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-MediaInfo --version >nul 2>&1
-if !errorlevel! neq 0 (
-    echo 错误: 缺少 MediaInfo 组件
-    echo 请从 https://mediaarea.net/en/MediaInfo 下载
-    "explorer.exe" "https://mediaarea.net/en/MediaInfo"
-    echo.
-    pause
-    exit /b 1
-)
-
-
-
 if "%~1" == "" (
     echo 开始处理当前文件夹: "!cd!"
     echo.

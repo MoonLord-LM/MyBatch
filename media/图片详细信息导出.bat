@@ -18,10 +18,15 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-MediaInfo --version >nul 2>&1
-if !errorlevel! neq 0 (
+set "mediainfo_path="
+if exist "%~dp0MediaInfo.exe" (
+    set "mediainfo_path=%~dp0MediaInfo.exe"
+) else if exist "!cd!\MediaInfo.exe" (
+    set "mediainfo_path=!cd!\MediaInfo.exe"
+)
+if "!mediainfo_path!"=="" (
     echo 错误: 缺少 MediaInfo 组件
-    echo 请从 https://mediaarea.net/en/MediaInfo 下载
+    echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
@@ -56,7 +61,7 @@ if "%~1" == "" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 已存在: "!json_file!"，跳过此文件
         ) else (
-            MediaInfo --Output=JSON "!img_file!" > "!json_file!"
+            "!mediainfo_path!" --Output=JSON "!img_file!" > "!json_file!"
             if !errorlevel! neq 0 (
                 echo set /a "failed+=1">> "!temp_set!"
                 if exist "!json_file!" ( del /f /q "!json_file!" )
@@ -118,7 +123,7 @@ if "%~1" == "" (
                 echo set /a "skipped+=1">> "!temp_set!"
                 echo 已存在: "!json_file!"，跳过此文件
             ) else (
-                MediaInfo --Output=JSON "!img_file!" > "!json_file!"
+                "!mediainfo_path!" --Output=JSON "!img_file!" > "!json_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "failed+=1">> "!temp_set!"
                     if exist "!json_file!" ( del /f /q "!json_file!" )
@@ -146,7 +151,7 @@ if "%~1" == "" (
         if exist "!json_file!" (
             echo 已存在: "!json_file!"，跳过此文件
         ) else (
-            MediaInfo --Output=JSON "!img_file!" > "!json_file!"
+            "!mediainfo_path!" --Output=JSON "!img_file!" > "!json_file!"
             if !errorlevel! neq 0 (
                 if exist "!json_file!" ( del /f /q "!json_file!" )
                 echo 图片解析报错
