@@ -18,13 +18,14 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "ffmpeg_path="
+set "ffmpeg_path=ffmpeg"
 if exist "%~dp0ffmpeg.exe" (
     set "ffmpeg_path=%~dp0ffmpeg.exe"
 ) else if exist "!cd!\ffmpeg.exe" (
     set "ffmpeg_path=!cd!\ffmpeg.exe"
 )
-if "!ffmpeg_path!"=="" (
+!ffmpeg_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -32,13 +33,14 @@ if "!ffmpeg_path!"=="" (
     pause
     exit /b 1
 )
-set "ffprobe_path="
+set "ffprobe_path=ffprobe"
 if exist "%~dp0ffprobe.exe" (
     set "ffprobe_path=%~dp0ffprobe.exe"
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
 )
-if "!ffprobe_path!"=="" (
+!ffprobe_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -76,7 +78,7 @@ if "%~1" == "" (
             echo 已存在: "!cover_file!"，跳过此文件
         ) else (
             set "has_cover=0"
-            for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
+            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
                 set "has_cover=1"
             )
 
@@ -148,7 +150,7 @@ if "%~1" == "" (
                 echo 已存在: "!cover_file!"，跳过此文件
             ) else (
                 set "has_cover=0"
-                for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
+                for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
                     set "has_cover=1"
                 )
 
@@ -186,7 +188,7 @@ if "%~1" == "" (
             echo 已存在: "!cover_file!"，跳过此文件
         ) else (
             set "has_cover=0"
-            for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
+            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
                 set "has_cover=1"
             )
 

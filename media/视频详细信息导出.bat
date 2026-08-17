@@ -18,13 +18,14 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "ffprobe_path="
+set "ffprobe_path=ffprobe"
 if exist "%~dp0ffprobe.exe" (
     set "ffprobe_path=%~dp0ffprobe.exe"
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
 )
-if "!ffprobe_path!"=="" (
+!ffprobe_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"

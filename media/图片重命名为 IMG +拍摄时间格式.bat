@@ -18,13 +18,15 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "mediainfo_path="
+REM 优先使用脚本所在文件夹中的 MediaInfo 组件
+set "mediainfo_path=mediainfo"
 if exist "%~dp0MediaInfo.exe" (
     set "mediainfo_path=%~dp0MediaInfo.exe"
 ) else if exist "!cd!\MediaInfo.exe" (
     set "mediainfo_path=!cd!\MediaInfo.exe"
 )
-if "!mediainfo_path!"=="" (
+!mediainfo_path! --version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 MediaInfo 组件
     echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
@@ -58,12 +60,12 @@ if "%~1" == "" (
 
         echo 正在处理: "!img_file!"
         set "creation_time="
-        for /f "delims=" %%x in ('"!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
             set "creation_time=%%x"
             echo 图片 Recorded_Date 标记: "!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('"!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 图片 Encoded_Date 标记: "!creation_time!"
             )
@@ -79,7 +81,9 @@ if "%~1" == "" (
             echo set /a "skipped+=1">> "!temp_set!"
             echo 图片 EXIF 拍摄时间获取失败，跳过此文件
         ) else (
-            for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do set "lower_file_ext=%%l"
+            for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
+                set "lower_file_ext=%%l"
+            )
             set "new_name=IMG_!formatted_time!!lower_file_ext!"
             echo 目标文件名: "!new_name!"
             if /i "!img_file!"=="!file_dir!!new_name!" (
@@ -149,12 +153,12 @@ if "%~1" == "" (
 
             echo 正在处理: "!img_file!"
             set "creation_time="
-            for /f "delims=" %%x in ('"!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 图片 Recorded_Date 标记: "!creation_time!"
             )
             if "!creation_time!"=="" (
-                for /f "delims=" %%x in ('"!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
+                for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
                     set "creation_time=%%x"
                     echo 图片 Encoded_Date 标记: "!creation_time!"
                 )
@@ -170,7 +174,9 @@ if "%~1" == "" (
                 echo set /a "skipped+=1">> "!temp_set!"
                 echo 图片 EXIF 拍摄时间获取失败，跳过此文件
             ) else (
-                for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do set "lower_file_ext=%%l"
+                for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
+                    set "lower_file_ext=%%l"
+                )
                 set "new_name=IMG_!formatted_time!!lower_file_ext!"
                 echo 目标文件名: "!new_name!"
                 if /i "!img_file!"=="!file_dir!!new_name!" (
@@ -205,12 +211,12 @@ if "%~1" == "" (
     ) else (
         echo 开始处理文件: "!img_file!"
         set "creation_time="
-        for /f "delims=" %%x in ('"!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
             set "creation_time=%%x"
             echo 图片 Recorded_Date 标记: "!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('"!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 图片 Encoded_Date 标记: "!creation_time!"
             )
@@ -225,7 +231,9 @@ if "%~1" == "" (
         if "!formatted_time!"=="" (
             echo 图片 EXIF 拍摄时间获取失败，跳过此文件
         ) else (
-            for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do set "lower_file_ext=%%l"
+            for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
+                set "lower_file_ext=%%l"
+            )
             set "new_name=IMG_!formatted_time!!lower_file_ext!"
             echo 目标文件名: "!new_name!"
             if /i "!img_file!"=="!file_dir!!new_name!" (

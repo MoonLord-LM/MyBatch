@@ -18,13 +18,14 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "ffprobe_path="
+set "ffprobe_path=ffprobe"
 if exist "%~dp0ffprobe.exe" (
     set "ffprobe_path=%~dp0ffprobe.exe"
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
 )
-if "!ffprobe_path!"=="" (
+!ffprobe_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -58,25 +59,25 @@ if "%~1" == "" (
 
         echo 正在处理: "!video_file!"
         set "creation_time="
-        for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_time=%%x"
             echo 视频容器 creation_time 标记: "!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 视频流 creation_time 标记: "!creation_time!"
             )
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 苹果 QuickTime 格式标记: "!creation_time!"
             )
         )
 
         set "duration="
-        for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "duration=%%x"
             echo 视频时长: "!duration!"
         )
@@ -167,25 +168,25 @@ if "%~1" == "" (
 
             echo 正在处理: "!video_file!"
             set "creation_time="
-            for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 视频容器 creation_time 标记: "!creation_time!"
             )
             if "!creation_time!"=="" (
-                for /f "delims=" %%x in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                     set "creation_time=%%x"
                     echo 视频流 creation_time 标记: "!creation_time!"
                 )
             )
             if "!creation_time!"=="" (
-                for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                     set "creation_time=%%x"
                     echo 苹果 QuickTime 格式标记: "!creation_time!"
                 )
             )
 
             set "duration="
-            for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "duration=%%x"
                 echo 视频时长: "!duration!"
             )
@@ -241,25 +242,25 @@ if "%~1" == "" (
     ) else (
         echo 开始处理文件: "!video_file!"
         set "creation_time="
-        for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_time=%%x"
             echo 视频容器 creation_time 标记: "!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('"!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 视频流 creation_time 标记: "!creation_time!"
             )
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"
                 echo 苹果 QuickTime 格式标记: "!creation_time!"
             )
         )
 
         set "duration="
-        for /f "delims=" %%x in ('"!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "duration=%%x"
             echo 视频时长: "!duration!"
         )

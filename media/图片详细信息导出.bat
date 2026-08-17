@@ -18,13 +18,15 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "mediainfo_path="
+REM 优先使用脚本所在文件夹中的 MediaInfo 组件
+set "mediainfo_path=mediainfo"
 if exist "%~dp0MediaInfo.exe" (
     set "mediainfo_path=%~dp0MediaInfo.exe"
 ) else if exist "!cd!\MediaInfo.exe" (
     set "mediainfo_path=!cd!\MediaInfo.exe"
 )
-if "!mediainfo_path!"=="" (
+!mediainfo_path! --version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 MediaInfo 组件
     echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"

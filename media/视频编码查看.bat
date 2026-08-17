@@ -18,13 +18,14 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "ffprobe_path="
+set "ffprobe_path=ffprobe"
 if exist "%~dp0ffprobe.exe" (
     set "ffprobe_path=%~dp0ffprobe.exe"
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
 )
-if "!ffprobe_path!"=="" (
+!ffprobe_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -196,10 +197,10 @@ if "%~1" == "" (
 
         set "video_codec="
         set "audio_codec="
-        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "!video_file!" 2^>nul') do (
             set "video_codec=%%c"
         )
-        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!video_file!" 2^>nul') do (
             set "audio_codec=%%c"
         )
         if "!video_codec!" == "" (

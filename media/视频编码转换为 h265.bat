@@ -18,13 +18,14 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "ffmpeg_path="
+set "ffmpeg_path=ffmpeg"
 if exist "%~dp0ffmpeg.exe" (
     set "ffmpeg_path=%~dp0ffmpeg.exe"
 ) else if exist "!cd!\ffmpeg.exe" (
     set "ffmpeg_path=!cd!\ffmpeg.exe"
 )
-if "!ffmpeg_path!"=="" (
+!ffmpeg_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -32,13 +33,14 @@ if "!ffmpeg_path!"=="" (
     pause
     exit /b 1
 )
-set "ffprobe_path="
+set "ffprobe_path=ffprobe"
 if exist "%~dp0ffprobe.exe" (
     set "ffprobe_path=%~dp0ffprobe.exe"
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
 )
-if "!ffprobe_path!"=="" (
+!ffprobe_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
@@ -72,7 +74,7 @@ if "%~1" == "" (
         echo 正在处理: "!video_file!"
 
         set "is_h265=0"
-        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if /i "%%c"=="hevc" (
                 set "is_h265=1"
             )
@@ -90,7 +92,9 @@ if "%~1" == "" (
                 echo 正在转换为: "!output_file!"
 
                 REM 检测音频编码格式
-                for /f "tokens=*" %%a in ('"!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+                for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                    set "audio_codec=%%a"
+                )
 
                 REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
                 set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
@@ -172,7 +176,7 @@ if "%~1" == "" (
             echo 正在处理: "!video_file!"
 
             set "is_h265=0"
-            for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
                 if /i "%%c"=="hevc" (
                     set "is_h265=1"
                 )
@@ -190,7 +194,9 @@ if "%~1" == "" (
                     echo 正在转换为: "!output_file!"
 
                     REM 检测音频编码格式
-                    for /f "tokens=*" %%a in ('"!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+                    for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                        set "audio_codec=%%a"
+                    )
 
                     REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
                     set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
@@ -239,7 +245,7 @@ if "%~1" == "" (
         echo 开始处理文件: "!video_file!"
 
         set "is_h265=0"
-        for /f "delims=" %%c in ('"!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if /i "%%c"=="hevc" (
                 set "is_h265=1"
             )
@@ -255,7 +261,9 @@ if "%~1" == "" (
                 echo 正在转换为: "!output_file!"
 
                 REM 检测音频编码格式
-                for /f "tokens=*" %%a in ('"!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do set "audio_codec=%%a"
+                for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                    set "audio_codec=%%a"
+                )
 
                 REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
                 set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"

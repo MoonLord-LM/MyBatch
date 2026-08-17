@@ -169,7 +169,7 @@ if "%~1" == "" (
 
             echo 正在处理: "!video_file!"
             set "audio_codec="
-            for /f "delims=" %%a in ('"!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "audio_codec=%%a"
             )
 
@@ -230,7 +230,7 @@ if "%~1" == "" (
         echo 开始处理文件: "!video_file!"
 
         set "audio_codec="
-        for /f "delims=" %%a in ('"!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "audio_codec=%%a"
         )
 

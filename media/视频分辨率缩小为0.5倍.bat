@@ -18,13 +18,14 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-set "ffmpeg_path="
+set "ffmpeg_path=ffmpeg"
 if exist "%~dp0ffmpeg.exe" (
     set "ffmpeg_path=%~dp0ffmpeg.exe"
 ) else if exist "!cd!\ffmpeg.exe" (
     set "ffmpeg_path=!cd!\ffmpeg.exe"
 )
-if "!ffmpeg_path!"=="" (
+!ffmpeg_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
     echo 错误: 缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
