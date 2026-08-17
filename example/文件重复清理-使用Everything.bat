@@ -10,8 +10,10 @@ echo.
 
 echo 请输入路径 A (要清理的文件夹，执行删除操作):
 set /p pathA=
+set "pathA=!pathA:"=!"
 echo 请输入路径 B (作为参考的文件夹，仅用于文件比对):
 set /p pathB=
+set "pathB=!pathB:"=!"
 
 if not exist "!pathA!\" (
     echo 错误：路径 A 不存在或不是文件夹！
