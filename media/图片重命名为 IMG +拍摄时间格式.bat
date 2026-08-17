@@ -46,8 +46,10 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "skipped=0"
-    set /a "failed=0"
+    set /a "no_time=0"
+    set /a "already_ok=0"
+    set /a "name_conflict=0"
+    set /a "rename_failed=0"
     set "file_path=!cd!"
     set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -78,7 +80,7 @@ if "%~1" == "" (
         )
 
         if "!formatted_time!"=="" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "no_time+=1">> "!temp_set!"
             echo 图片 EXIF 拍摄时间获取失败，跳过此文件
         ) else (
             for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
@@ -87,10 +89,10 @@ if "%~1" == "" (
             set "new_name=IMG_!formatted_time!!lower_file_ext!"
             echo 目标文件名: "!new_name!"
             if /i "!img_file!"=="!file_dir!!new_name!" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "already_ok+=1">> "!temp_set!"
                 echo 文件名已符合规范，无需处理
             ) else if exist "!file_dir!!new_name!" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "name_conflict+=1">> "!temp_set!"
                 echo 目标文件已存在，跳过此文件
             ) else (
                 ren "!img_file!" "!new_name!"
@@ -98,7 +100,7 @@ if "%~1" == "" (
                     echo set /a "succeeded+=1">> "!temp_set!"
                     echo 重命名成功
                 ) else (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "rename_failed+=1">> "!temp_set!"
                     echo 重命名失败
                 )
             )
@@ -114,7 +116,10 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    set /a "ok_total=succeeded+already_ok"
+    set /a "fail_total=no_time+name_conflict+rename_failed"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个
+    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，时间获取失败 !no_time! 个，已存在同名文件 !name_conflict! 个，重命名失败 !rename_failed! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -139,8 +144,10 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "skipped=0"
-        set /a "failed=0"
+        set /a "no_time=0"
+        set /a "already_ok=0"
+        set /a "name_conflict=0"
+        set /a "rename_failed=0"
         set "file_path=!img_file!"
         set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -171,7 +178,7 @@ if "%~1" == "" (
             )
 
             if "!formatted_time!"=="" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "no_time+=1">> "!temp_set!"
                 echo 图片 EXIF 拍摄时间获取失败，跳过此文件
             ) else (
                 for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
@@ -180,10 +187,10 @@ if "%~1" == "" (
                 set "new_name=IMG_!formatted_time!!lower_file_ext!"
                 echo 目标文件名: "!new_name!"
                 if /i "!img_file!"=="!file_dir!!new_name!" (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "already_ok+=1">> "!temp_set!"
                     echo 文件名已符合规范，无需处理
                 ) else if exist "!file_dir!!new_name!" (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "name_conflict+=1">> "!temp_set!"
                     echo 目标文件已存在，跳过此文件
                 ) else (
                     ren "!img_file!" "!new_name!"
@@ -191,7 +198,7 @@ if "%~1" == "" (
                         echo set /a "succeeded+=1">> "!temp_set!"
                         echo 重命名成功
                     ) else (
-                        echo set /a "failed+=1">> "!temp_set!"
+                        echo set /a "rename_failed+=1">> "!temp_set!"
                         echo 重命名失败
                     )
                 )
@@ -207,7 +214,10 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+        set /a "ok_total=succeeded+already_ok"
+        set /a "fail_total=no_time+name_conflict+rename_failed"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个
+        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，时间获取失败 !no_time! 个，已存在同名文件 !name_conflict! 个，重命名失败 !rename_failed! 个
     ) else (
         echo 开始处理文件: "!img_file!"
         set "creation_time="
