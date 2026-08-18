@@ -110,7 +110,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded"
     set /a "fail_total=no_sub+remove_failed"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
     echo 其中，移除成功 !succeeded! 个，移除失败 !remove_failed! 个，无字幕 !no_sub! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -186,7 +186,7 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded"
         set /a "fail_total=no_sub+remove_failed"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
         echo 其中，移除成功 !succeeded! 个，移除失败 !remove_failed! 个，无字幕 !no_sub! 个
     ) else (
         echo 开始处理文件: "!video_file!"

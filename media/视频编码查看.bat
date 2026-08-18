@@ -106,7 +106,7 @@ if "%~1" == "" (
     echo 统计完成
     set /a "ok_total=succeeded"
     set /a "fail_total=parse_failed"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。& REM
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。 & REM
     echo 其中，解析成功 !succeeded! 个，解析失败 !parse_failed! 个
 
     if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )
@@ -193,7 +193,7 @@ if "%~1" == "" (
         echo 统计完成
         set /a "ok_total=succeeded"
         set /a "fail_total=parse_failed"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。& REM
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。 & REM
         echo 其中，解析成功 !succeeded! 个，解析失败 !parse_failed! 个
 
         if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )

@@ -90,7 +90,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
     set /a "fail_total=not_standard+no_time+set_failed"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
     echo 其中，修改时间刷新成功 !succeeded! 个，已保持一致 !already_ok! 个，未识别到时间 !no_time! 个，刷新失败 !set_failed! 个，非标准命名跳过 !not_standard! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -175,7 +175,7 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
         set /a "fail_total=not_standard+no_time+set_failed"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
         echo 其中，修改时间刷新成功 !succeeded! 个，已保持一致 !already_ok! 个，未识别到时间 !no_time! 个，刷新失败 !set_failed! 个，非标准命名跳过 !not_standard! 个
     ) else (
         echo 开始处理文件: "!img_file!"
