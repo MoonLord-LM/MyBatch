@@ -96,7 +96,7 @@ if "%~1" == "" (
 
     echo 批量检查完成
     echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
-    if !mismatch! gtr 0 (
+    if not "!mismatch!"=="0" (
         echo 差异明细已写入: "!log_file!"
     )
 ) else (
@@ -181,7 +181,7 @@ if "%~1" == "" (
 
         echo 批量检查完成
         echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
-        if !mismatch! gtr 0 (
+        if not "!mismatch!"=="0" (
             echo 差异明细已写入: "!log_file!"
         )
     ) else (
