@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '不带有 EXIF 拍摄时间的图片会被跳过，不做处理' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '以 Screenshot、QQ截图 开头的图片，不做处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '以 Screenshot、QQ截图、mmexport 开头的图片，不做处理' -ForegroundColor Green"
 echo.
 
 
@@ -70,6 +70,9 @@ if "%~1" == "" (
         ) else if /i "!base_name:~0,4!"=="QQ截图" (
             echo set /a "other_prefix+=1">> "!temp_set!"
             echo 文件名以 QQ截图 开头，跳过此文件
+        ) else if /i "!base_name:~0,7!"=="mmexport" (
+            echo set /a "other_prefix+=1">> "!temp_set!"
+            echo 文件名以 mmexport 开头，跳过此文件
         ) else (
             set "creation_time="
             for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
@@ -177,6 +180,9 @@ if "%~1" == "" (
             ) else if /i "!base_name:~0,4!"=="QQ截图" (
                 echo set /a "other_prefix+=1">> "!temp_set!"
                 echo 文件名以 QQ截图 开头，跳过此文件
+            ) else if /i "!base_name:~0,7!"=="mmexport" (
+                echo set /a "other_prefix+=1">> "!temp_set!"
+                echo 文件名以 mmexport 开头，跳过此文件
             ) else (
                 set "creation_time="
                 for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
@@ -244,6 +250,8 @@ if "%~1" == "" (
             echo 文件名以 Screenshot 开头，跳过此文件
         ) else if /i "!base_name:~0,4!"=="QQ截图" (
             echo 文件名以 QQ截图 开头，跳过此文件
+        ) else if /i "!base_name:~0,7!"=="mmexport" (
+            echo 文件名以 mmexport 开头，跳过此文件
         ) else (
             set "creation_time="
             for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (

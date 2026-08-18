@@ -86,12 +86,12 @@ if "%~1" == "" (
             )
         )
 
-        if not "!exif_time!"=="" (
-            echo set /a "has_exif+=1">> "!temp_set!"
-            echo 图片带有拍摄时间，跳过此文件
-        ) else if /i not "!base_name:~0,7!"=="mmexport" (
+        if /i not "!base_name:~0,7!"=="mmexport" (
             echo set /a "not_mmexport+=1">> "!temp_set!"
             echo 文件名不以 mmexport 开头，跳过此文件
+        ) else if not "!exif_time!"=="" (
+            echo set /a "has_exif+=1">> "!temp_set!"
+            echo 图片带有拍摄时间，跳过此文件
         ) else (
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
@@ -105,7 +105,7 @@ if "%~1" == "" (
             ) else (
                 REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
                 set "formatted_time="
-                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToOffset([TimeSpan]::FromHours(8)); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
                     set "formatted_time=%%t"
                 )
 
@@ -214,12 +214,12 @@ if "%~1" == "" (
                 )
             )
 
-            if not "!exif_time!"=="" (
-                echo set /a "has_exif+=1">> "!temp_set!"
-                echo 图片带有拍摄时间，跳过此文件
-            ) else if /i not "!base_name:~0,7!"=="mmexport" (
+            if /i not "!base_name:~0,7!"=="mmexport" (
                 echo set /a "not_mmexport+=1">> "!temp_set!"
                 echo 文件名不以 mmexport 开头，跳过此文件
+            ) else if not "!exif_time!"=="" (
+                echo set /a "has_exif+=1">> "!temp_set!"
+                echo 图片带有拍摄时间，跳过此文件
             ) else (
                 REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
                 set "name_already_ok="
@@ -233,7 +233,7 @@ if "%~1" == "" (
                 ) else (
                     REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
                     set "formatted_time="
-                    for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToOffset([TimeSpan]::FromHours(8)); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                    for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
                         set "formatted_time=%%t"
                     )
 
@@ -303,10 +303,10 @@ if "%~1" == "" (
             )
         )
 
-        if not "!exif_time!"=="" (
-            echo 图片带有拍摄时间，跳过此文件
-        ) else if /i not "!base_name:~0,7!"=="mmexport" (
+        if /i not "!base_name:~0,7!"=="mmexport" (
             echo 文件名不以 mmexport 开头，跳过此文件
+        ) else if not "!exif_time!"=="" (
+            echo 图片带有拍摄时间，跳过此文件
         ) else (
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
@@ -319,7 +319,7 @@ if "%~1" == "" (
             ) else (
                 REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
                 set "formatted_time="
-                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToOffset([TimeSpan]::FromHours(8)); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
                     set "formatted_time=%%t"
                 )
 

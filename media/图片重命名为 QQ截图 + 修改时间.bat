@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg png bmp gif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '带有 EXIF 拍摄时间的图片会被跳过，不做处理' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '以 Screenshot、IMG 开头的图片，不做处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '以 Screenshot、IMG、mmexport 开头的图片，不做处理' -ForegroundColor Green"
 echo.
 
 
@@ -85,15 +85,18 @@ if "%~1" == "" (
             )
         )
 
-        if not "!exif_time!"=="" (
-            echo set /a "has_exif+=1">> "!temp_set!"
-            echo 图片带有拍摄时间，跳过此文件
-        ) else if /i "!base_name:~0,10!"=="Screenshot" (
+        if /i "!base_name:~0,10!"=="Screenshot" (
             echo set /a "other_prefix+=1">> "!temp_set!"
             echo 文件名以 Screenshot 开头，跳过此文件
         ) else if /i "!base_name:~0,3!"=="IMG" (
             echo set /a "other_prefix+=1">> "!temp_set!"
             echo 文件名以 IMG 开头，跳过此文件
+        ) else if /i "!base_name:~0,7!"=="mmexport" (
+            echo set /a "other_prefix+=1">> "!temp_set!"
+            echo 文件名以 mmexport 开头，跳过此文件
+        ) else if not "!exif_time!"=="" (
+            echo set /a "has_exif+=1">> "!temp_set!"
+            echo 图片带有拍摄时间，跳过此文件
         ) else (
             set "formatted_time="
             for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (
@@ -204,15 +207,18 @@ if "%~1" == "" (
                 )
             )
 
-            if not "!exif_time!"=="" (
-                echo set /a "has_exif+=1">> "!temp_set!"
-                echo 图片带有拍摄时间，跳过此文件
-            ) else if /i "!base_name:~0,10!"=="Screenshot" (
+            if /i "!base_name:~0,10!"=="Screenshot" (
                 echo set /a "other_prefix+=1">> "!temp_set!"
                 echo 文件名以 Screenshot 开头，跳过此文件
             ) else if /i "!base_name:~0,3!"=="IMG" (
                 echo set /a "other_prefix+=1">> "!temp_set!"
                 echo 文件名以 IMG 开头，跳过此文件
+            ) else if /i "!base_name:~0,7!"=="mmexport" (
+                echo set /a "other_prefix+=1">> "!temp_set!"
+                echo 文件名以 mmexport 开头，跳过此文件
+            ) else if not "!exif_time!"=="" (
+                echo set /a "has_exif+=1">> "!temp_set!"
+                echo 图片带有拍摄时间，跳过此文件
             ) else (
                 set "formatted_time="
                 for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (
@@ -284,12 +290,14 @@ if "%~1" == "" (
             )
         )
 
-        if not "!exif_time!"=="" (
-            echo 图片带有拍摄时间，跳过此文件
-        ) else if /i "!base_name:~0,10!"=="Screenshot" (
+        if /i "!base_name:~0,10!"=="Screenshot" (
             echo 文件名以 Screenshot 开头，跳过此文件
         ) else if /i "!base_name:~0,3!"=="IMG" (
             echo 文件名以 IMG 开头，跳过此文件
+        ) else if /i "!base_name:~0,7!"=="mmexport" (
+            echo 文件名以 mmexport 开头，跳过此文件
+        ) else if not "!exif_time!"=="" (
+            echo 图片带有拍摄时间，跳过此文件
         ) else (
             set "formatted_time="
             for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (

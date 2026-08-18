@@ -86,12 +86,12 @@ if "%~1" == "" (
             )
         )
 
-        if not "!exif_time!"=="" (
-            echo set /a "has_exif+=1">> "!temp_set!"
-            echo 图片带有拍摄时间，跳过此文件
-        ) else if /i not "!base_name:~0,10!"=="Screenshot" (
+        if /i not "!base_name:~0,10!"=="Screenshot" (
             echo set /a "not_screenshot+=1">> "!temp_set!"
             echo 文件名不以 Screenshot 开头，跳过此文件
+        ) else if not "!exif_time!"=="" (
+            echo set /a "has_exif+=1">> "!temp_set!"
+            echo 图片带有拍摄时间，跳过此文件
         ) else (
             REM 检查文件名是否已是目标格式（Screenshot_YYYYMMDD_HHMMSS）
             set "name_already_ok="
@@ -214,12 +214,12 @@ if "%~1" == "" (
                 )
             )
 
-            if not "!exif_time!"=="" (
-                echo set /a "has_exif+=1">> "!temp_set!"
-                echo 图片带有拍摄时间，跳过此文件
-            ) else if /i not "!base_name:~0,10!"=="Screenshot" (
+            if /i not "!base_name:~0,10!"=="Screenshot" (
                 echo set /a "not_screenshot+=1">> "!temp_set!"
                 echo 文件名不以 Screenshot 开头，跳过此文件
+            ) else if not "!exif_time!"=="" (
+                echo set /a "has_exif+=1">> "!temp_set!"
+                echo 图片带有拍摄时间，跳过此文件
             ) else (
                 REM 检查文件名是否已是目标格式（Screenshot_YYYYMMDD_HHMMSS）
                 set "name_already_ok="
@@ -303,10 +303,10 @@ if "%~1" == "" (
             )
         )
 
-        if not "!exif_time!"=="" (
-            echo 图片带有拍摄时间，跳过此文件
-        ) else if /i not "!base_name:~0,10!"=="Screenshot" (
+        if /i not "!base_name:~0,10!"=="Screenshot" (
             echo 文件名不以 Screenshot 开头，跳过此文件
+        ) else if not "!exif_time!"=="" (
+            echo 图片带有拍摄时间，跳过此文件
         ) else (
             REM 检查文件名是否已是目标格式（Screenshot_YYYYMMDD_HHMMSS）
             set "name_already_ok="
