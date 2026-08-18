@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '仅支持 mmexportXXXXXXXXXXXXX.jpg 
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '带有 EXIF 拍摄时间的图片会被跳过，不做处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '带有 EXIF 拍摄时间的图片给出提示，仍然处理' -ForegroundColor Green"
 echo.
 
 
@@ -89,10 +89,11 @@ if "%~1" == "" (
         if /i not "!base_name:~0,8!"=="mmexport" (
             echo set /a "not_mmexport+=1">> "!temp_set!"
             echo 文件名不以 mmexport 开头，跳过此文件
-        ) else if not "!exif_time!"=="" (
-            echo set /a "has_exif+=1">> "!temp_set!"
-            echo 图片带有拍摄时间，跳过此文件
         ) else (
+            if not "!exif_time!"=="" (
+                echo set /a "has_exif+=1">> "!temp_set!"
+                echo 图片带有 EXIF 拍摄时间
+            )
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
             for /f "delims=" %%n in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
@@ -150,9 +151,9 @@ if "%~1" == "" (
 
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
-    set /a "fail_total=has_exif+not_mmexport+no_time+name_conflict+rename_failed"
+    set /a "fail_total=not_mmexport+no_time+name_conflict+rename_failed"
     echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间: !has_exif! 个
+    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间仍处理: !has_exif! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -217,10 +218,11 @@ if "%~1" == "" (
             if /i not "!base_name:~0,8!"=="mmexport" (
                 echo set /a "not_mmexport+=1">> "!temp_set!"
                 echo 文件名不以 mmexport 开头，跳过此文件
-            ) else if not "!exif_time!"=="" (
-                echo set /a "has_exif+=1">> "!temp_set!"
-                echo 图片带有拍摄时间，跳过此文件
             ) else (
+                if not "!exif_time!"=="" (
+                    echo set /a "has_exif+=1">> "!temp_set!"
+                    echo 图片带有 EXIF 拍摄时间
+                )
                 REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
                 set "name_already_ok="
                 for /f "delims=" %%n in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
@@ -278,9 +280,9 @@ if "%~1" == "" (
 
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
-        set /a "fail_total=has_exif+not_mmexport+no_time+name_conflict+rename_failed"
+        set /a "fail_total=not_mmexport+no_time+name_conflict+rename_failed"
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间: !has_exif! 个
+        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间仍处理: !has_exif! 个
     ) else (
         echo 开始处理文件: "!img_file!"
 
@@ -305,9 +307,10 @@ if "%~1" == "" (
 
         if /i not "!base_name:~0,8!"=="mmexport" (
             echo 文件名不以 mmexport 开头，跳过此文件
-        ) else if not "!exif_time!"=="" (
-            echo 图片带有拍摄时间，跳过此文件
         ) else (
+            if not "!exif_time!"=="" (
+                echo 图片带有 EXIF 拍摄时间
+            )
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
             for /f "delims=" %%n in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
