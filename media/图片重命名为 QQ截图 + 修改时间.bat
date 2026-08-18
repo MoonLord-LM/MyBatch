@@ -10,6 +10,7 @@ powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg png bmp gif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '带有 EXIF 拍摄时间的图片会被跳过，不做处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '跳过以 Screenshot、IMG 开头的图片，不做处理' -ForegroundColor Green"
 echo.
 
 
@@ -52,6 +53,7 @@ if "%~1" == "" (
     set /a "name_conflict=0"
     set /a "rename_failed=0"
     set /a "has_exif=0"
+    set /a "other_prefix=0"
     set "file_path=!cd!"
     set "ext_filter=\.(jpg|png|bmp|gif)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -86,6 +88,12 @@ if "%~1" == "" (
         if not "!exif_time!"=="" (
             echo set /a "has_exif+=1">> "!temp_set!"
             echo 图片带有拍摄时间，跳过此文件
+        ) else if /i "!base_name:~0,10!"=="Screenshot" (
+            echo set /a "other_prefix+=1">> "!temp_set!"
+            echo 文件名以 Screenshot 开头，跳过此文件
+        ) else if /i "!base_name:~0,3!"=="IMG" (
+            echo set /a "other_prefix+=1">> "!temp_set!"
+            echo 文件名以 IMG 开头，跳过此文件
         ) else (
             set "formatted_time="
             for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (
@@ -132,9 +140,9 @@ if "%~1" == "" (
 
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
-    set /a "fail_total=has_exif+no_time+name_conflict+rename_failed"
+    set /a "fail_total=has_exif+other_prefix+no_time+name_conflict+rename_failed"
     echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个，带有拍摄时间: !has_exif! 个
+    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个，其他前缀跳过 !other_prefix! 个，带有拍摄时间: !has_exif! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -164,6 +172,7 @@ if "%~1" == "" (
         set /a "name_conflict=0"
         set /a "rename_failed=0"
         set /a "has_exif=0"
+        set /a "other_prefix=0"
         set "file_path=!img_file!"
         set "ext_filter=\.(jpg|png|bmp|gif)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -198,6 +207,12 @@ if "%~1" == "" (
             if not "!exif_time!"=="" (
                 echo set /a "has_exif+=1">> "!temp_set!"
                 echo 图片带有拍摄时间，跳过此文件
+            ) else if /i "!base_name:~0,10!"=="Screenshot" (
+                echo set /a "other_prefix+=1">> "!temp_set!"
+                echo 文件名以 Screenshot 开头，跳过此文件
+            ) else if /i "!base_name:~0,3!"=="IMG" (
+                echo set /a "other_prefix+=1">> "!temp_set!"
+                echo 文件名以 IMG 开头，跳过此文件
             ) else (
                 set "formatted_time="
                 for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (
@@ -244,9 +259,9 @@ if "%~1" == "" (
 
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
-        set /a "fail_total=has_exif+no_time+name_conflict+rename_failed"
+        set /a "fail_total=has_exif+other_prefix+no_time+name_conflict+rename_failed"
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个，带有拍摄时间: !has_exif! 个
+        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个，其他前缀跳过 !other_prefix! 个，带有拍摄时间: !has_exif! 个
     ) else (
         echo 开始处理文件: "!img_file!"
 
@@ -271,6 +286,10 @@ if "%~1" == "" (
 
         if not "!exif_time!"=="" (
             echo 图片带有拍摄时间，跳过此文件
+        ) else if /i "!base_name:~0,10!"=="Screenshot" (
+            echo 文件名以 Screenshot 开头，跳过此文件
+        ) else if /i "!base_name:~0,3!"=="IMG" (
+            echo 文件名以 IMG 开头，跳过此文件
         ) else (
             set "formatted_time="
             for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (
