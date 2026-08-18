@@ -1,4 +1,4 @@
-@echo off &
+@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -7,11 +7,11 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 powershell -NoProfile -Command "Write-Host '检查图片的修改时间与文件名中的时间是否一致，只输出结果，不做修改，默认使用系统时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持 IMG_YYYYMMDD_HHMMSS_fff、mmexport_YYYYMMDD_HHMMSS、QQ截图YYYYMMDDHHMMSS、Screenshot_YYYYMMDD_HHMMSS 的命名格式' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '检查结果记录到脚本所在文件夹的 .log 文件中' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '不支持的命名格式的图片，不做处理' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '不一致的图片明细将记录到脚本所在文件夹的 图片修改时间与命名检查.log' -ForegroundColor Green"
 echo.
 
 
@@ -23,11 +23,8 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 
-REM 日志文件统一放在脚本所在文件夹，每次运行先清空
-set "log_file=%~dp0图片修改时间与命名检查.log"
-if exist "!log_file!" del /f /q "!log_file!"
-
-
+REM 检查结果记录到脚本所在文件夹
+set "log_file=%~dp0%~n0.log"
 
 if "%~1" == "" (
     echo 开始处理当前文件夹: "!cd!"
