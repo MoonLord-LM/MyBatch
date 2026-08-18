@@ -83,10 +83,10 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    set /a "ok_total=succeeded+json_exist"
-    set /a "fail_total=parse_failed"
+    set /a "ok_total=succeeded"
+    set /a "fail_total=json_exist+parse_failed"
     echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-    echo 其中，导出成功 !succeeded! 个，json 文件已存在 !json_exist! 个，解析报错 !parse_failed! 个
+    echo 其中，导出成功 !succeeded! 个，解析报错 !parse_failed! 个，json 文件已存在 !json_exist! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -148,10 +148,10 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        set /a "ok_total=succeeded+json_exist"
-        set /a "fail_total=parse_failed"
+        set /a "ok_total=succeeded"
+        set /a "fail_total=json_exist+parse_failed"
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-        echo 其中，导出成功 !succeeded! 个，json 文件已存在 !json_exist! 个，解析报错 !parse_failed! 个
+        echo 其中，导出成功 !succeeded! 个，解析报错 !parse_failed! 个，json 文件已存在 !json_exist! 个
     ) else (
         echo 开始处理文件: "!video_file!"
 

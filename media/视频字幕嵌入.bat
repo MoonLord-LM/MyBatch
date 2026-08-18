@@ -123,10 +123,10 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    set /a "ok_total=succeeded+has_sub"
-    set /a "fail_total=set_failed+no_sub_file"
+    set /a "ok_total=succeeded"
+    set /a "fail_total=has_sub+set_failed+no_sub_file"
     echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-    echo 其中，设置成功 !succeeded! 个，已有字幕 !has_sub! 个，设置失败 !set_failed! 个，未找到字幕文件 !no_sub_file! 个
+    echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，未找到字幕文件 !no_sub_file! 个，已有字幕 !has_sub! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -213,10 +213,10 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        set /a "ok_total=succeeded+has_sub"
-        set /a "fail_total=set_failed+no_sub_file"
+        set /a "ok_total=succeeded"
+        set /a "fail_total=has_sub+set_failed+no_sub_file"
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-        echo 其中，设置成功 !succeeded! 个，已有字幕 !has_sub! 个，设置失败 !set_failed! 个，未找到字幕文件 !no_sub_file! 个
+        echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，未找到字幕文件 !no_sub_file! 个，已有字幕 !has_sub! 个
     ) else (
         echo 开始处理文件: "!video_file!"
 

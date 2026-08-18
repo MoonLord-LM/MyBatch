@@ -95,9 +95,10 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    set /a "ok_total=succeeded+name_conflict"
-    set /a "fail_total=rename_failed+ext_skip+hidden_skip+system_skip"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+    set /a "ok_total=succeeded"
+    set /a "fail_total=name_conflict+rename_failed"
+    set /a "skip_total=ext_skip+hidden_skip+system_skip"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
     echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，后缀不处理 !ext_skip! 个，隐藏文件 !hidden_skip! 个，系统文件 !system_skip! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -188,9 +189,10 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        set /a "ok_total=succeeded+name_conflict"
-        set /a "fail_total=rename_failed+ext_skip+hidden_skip+system_skip"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+        set /a "ok_total=succeeded"
+        set /a "fail_total=name_conflict+rename_failed"
+        set /a "skip_total=ext_skip+hidden_skip+system_skip"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
         echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，后缀不处理 !ext_skip! 个，隐藏文件 !hidden_skip! 个，系统文件 !system_skip! 个
     ) else (
         echo 开始处理文件: "!file_path!"
