@@ -86,7 +86,7 @@ if "%~1" == "" (
             )
         )
 
-        if /i not "!base_name:~0,7!"=="mmexport" (
+        if /i not "!base_name:~0,8!"=="mmexport" (
             echo set /a "not_mmexport+=1">> "!temp_set!"
             echo 文件名不以 mmexport 开头，跳过此文件
         ) else if not "!exif_time!"=="" (
@@ -214,7 +214,7 @@ if "%~1" == "" (
                 )
             )
 
-            if /i not "!base_name:~0,7!"=="mmexport" (
+            if /i not "!base_name:~0,8!"=="mmexport" (
                 echo set /a "not_mmexport+=1">> "!temp_set!"
                 echo 文件名不以 mmexport 开头，跳过此文件
             ) else if not "!exif_time!"=="" (
@@ -303,7 +303,7 @@ if "%~1" == "" (
             )
         )
 
-        if /i not "!base_name:~0,7!"=="mmexport" (
+        if /i not "!base_name:~0,8!"=="mmexport" (
             echo 文件名不以 mmexport 开头，跳过此文件
         ) else if not "!exif_time!"=="" (
             echo 图片带有拍摄时间，跳过此文件

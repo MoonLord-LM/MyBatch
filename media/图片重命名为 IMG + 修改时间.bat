@@ -91,7 +91,7 @@ if "%~1" == "" (
         ) else if /i "!base_name:~0,4!"=="QQ截图" (
             echo set /a "other_prefix+=1">> "!temp_set!"
             echo 文件名以 QQ截图 开头，跳过此文件
-        ) else if /i "!base_name:~0,7!"=="mmexport" (
+        ) else if /i "!base_name:~0,8!"=="mmexport" (
             echo set /a "other_prefix+=1">> "!temp_set!"
             echo 文件名以 mmexport 开头，跳过此文件
         ) else if not "!exif_time!"=="" (
@@ -213,7 +213,7 @@ if "%~1" == "" (
             ) else if /i "!base_name:~0,4!"=="QQ截图" (
                 echo set /a "other_prefix+=1">> "!temp_set!"
                 echo 文件名以 QQ截图 开头，跳过此文件
-            ) else if /i "!base_name:~0,7!"=="mmexport" (
+            ) else if /i "!base_name:~0,8!"=="mmexport" (
                 echo set /a "other_prefix+=1">> "!temp_set!"
                 echo 文件名以 mmexport 开头，跳过此文件
             ) else if not "!exif_time!"=="" (
@@ -294,7 +294,7 @@ if "%~1" == "" (
             echo 文件名以 Screenshot 开头，跳过此文件
         ) else if /i "!base_name:~0,4!"=="QQ截图" (
             echo 文件名以 QQ截图 开头，跳过此文件
-        ) else if /i "!base_name:~0,7!"=="mmexport" (
+        ) else if /i "!base_name:~0,8!"=="mmexport" (
             echo 文件名以 mmexport 开头，跳过此文件
         ) else if not "!exif_time!"=="" (
             echo 图片带有拍摄时间，跳过此文件
