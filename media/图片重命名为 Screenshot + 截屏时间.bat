@@ -54,6 +54,7 @@ if "%~1" == "" (
     set /a "name_conflict=0"
     set /a "rename_failed=0"
     set /a "has_exif=0"
+    set /a "not_screenshot=0"
     set "file_path=!cd!"
     set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -88,6 +89,9 @@ if "%~1" == "" (
         if not "!exif_time!"=="" (
             echo set /a "has_exif+=1">> "!temp_set!"
             echo 图片带有拍摄时间，跳过此文件
+        ) else if /i not "!base_name:~0,10!"=="Screenshot" (
+            echo set /a "not_screenshot+=1">> "!temp_set!"
+            echo 文件名不以 Screenshot 开头，跳过此文件
         ) else (
             REM 检查文件名是否已是目标格式（Screenshot_YYYYMMDD_HHMMSS）
             set "name_already_ok="
@@ -146,9 +150,9 @@ if "%~1" == "" (
 
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
-    set /a "fail_total=has_exif+no_time+name_conflict+rename_failed"
+    set /a "fail_total=has_exif+not_screenshot+no_time+name_conflict+rename_failed"
     echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到截图时间 !no_time! 个，重命名失败 !rename_failed! 个，带有拍摄时间: !has_exif! 个
+    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到截图时间 !no_time! 个，重命名失败 !rename_failed! 个，非 Screenshot 前缀跳过 !not_screenshot! 个，带有拍摄时间: !has_exif! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -178,6 +182,7 @@ if "%~1" == "" (
         set /a "name_conflict=0"
         set /a "rename_failed=0"
         set /a "has_exif=0"
+        set /a "not_screenshot=0"
         set "file_path=!img_file!"
         set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -212,6 +217,9 @@ if "%~1" == "" (
             if not "!exif_time!"=="" (
                 echo set /a "has_exif+=1">> "!temp_set!"
                 echo 图片带有拍摄时间，跳过此文件
+            ) else if /i not "!base_name:~0,10!"=="Screenshot" (
+                echo set /a "not_screenshot+=1">> "!temp_set!"
+                echo 文件名不以 Screenshot 开头，跳过此文件
             ) else (
                 REM 检查文件名是否已是目标格式（Screenshot_YYYYMMDD_HHMMSS）
                 set "name_already_ok="
@@ -270,9 +278,9 @@ if "%~1" == "" (
 
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
-        set /a "fail_total=has_exif+no_time+name_conflict+rename_failed"
+        set /a "fail_total=has_exif+not_screenshot+no_time+name_conflict+rename_failed"
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到截图时间 !no_time! 个，重命名失败 !rename_failed! 个，带有拍摄时间: !has_exif! 个
+        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到截图时间 !no_time! 个，重命名失败 !rename_failed! 个，非 Screenshot 前缀跳过 !not_screenshot! 个，带有拍摄时间: !has_exif! 个
     ) else (
         echo 开始处理文件: "!img_file!"
 
@@ -297,6 +305,8 @@ if "%~1" == "" (
 
         if not "!exif_time!"=="" (
             echo 图片带有拍摄时间，跳过此文件
+        ) else if /i not "!base_name:~0,10!"=="Screenshot" (
+            echo 文件名不以 Screenshot 开头，跳过此文件
         ) else (
             REM 检查文件名是否已是目标格式（Screenshot_YYYYMMDD_HHMMSS）
             set "name_already_ok="
