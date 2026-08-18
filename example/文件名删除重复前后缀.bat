@@ -64,7 +64,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -Command ^
  "Process-Files '*.png';" ^
  "Process-Files '*.mp4';" ^
  "Process-Files '*.mkv';" ^
- "Process-Files '*.m4v';"
+ "Process-Files '*.m4v';" ^
+ "Process-Files '*.ico';"
 
 pause
 exit
