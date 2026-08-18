@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 powershell -NoProfile -Command "Write-Host '将图片按文件最后修改时间，重命名为 QQ截图YYYYMMDDHHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 jpg png' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 jpg png bmp gif' -ForegroundColor Green"
 echo.
 
 
@@ -32,7 +32,7 @@ if "%~1" == "" (
     set /a "name_conflict=0"
     set /a "rename_failed=0"
     set "file_path=!cd!"
-    set "ext_filter=\.(jpg|png)$"
+    set "ext_filter=\.(jpg|png|bmp|gif)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "img_file=%%f"
@@ -118,7 +118,7 @@ if "%~1" == "" (
         set /a "name_conflict=0"
         set /a "rename_failed=0"
         set "file_path=!img_file!"
-        set "ext_filter=\.(jpg|png)$"
+        set "ext_filter=\.(jpg|png|bmp|gif)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "img_file=%%f"
