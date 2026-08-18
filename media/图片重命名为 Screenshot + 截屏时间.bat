@@ -7,7 +7,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 powershell -NoProfile -Command "Write-Host '将截图文件统一重命名为 Screenshot_YYYYMMDD_HHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '原文件名必须以 Screenshot 开头，仅从原文件名识别截图时间并重命名，识别不到则跳过，不做处理' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持 Screenshot_XXXX-XX-XX-XX-XX-XX.png 和 Screenshot_XXXXXXXX-XXXXXX.png 的原文件名格式' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持 Screenshot_XXXX-XX-XX-XX-XX-XX.png、Screenshot_XXXXXXXX-XXXXXX.png 和 Screenshot_YYYYMMDDHHMMSS.png 的原文件名格式' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
@@ -104,9 +104,9 @@ if "%~1" == "" (
                 echo set /a "already_ok+=1">> "!temp_set!"
                 echo 文件名已符合规范，无需处理
             ) else (
-                REM 从原文件名中识别截图时间（支持 Screenshot_YYYY-MM-DD-HH-MM-SS 和 Screenshot_YYYYMMDD-HHMMSS），识别不到则跳过
+                REM 从原文件名中识别截图时间（支持 Screenshot_YYYY-MM-DD-HH-MM-SS、Screenshot_YYYYMMDD-HHMMSS 和 Screenshot_YYYYMMDDHHMMSS），识别不到则跳过
                 set "formatted_time="
-                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'Screenshot_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value+'-'+$m.Groups[3].Value+'-'+$m.Groups[4].Value+'-'+$m.Groups[5].Value+'-'+$m.Groups[6].Value),'yyyy-MM-dd-HH-mm-ss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{8})-(\d{6})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value),'yyyyMMdd-HHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } }" 2^>nul') do (
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'Screenshot_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value+'-'+$m.Groups[3].Value+'-'+$m.Groups[4].Value+'-'+$m.Groups[5].Value+'-'+$m.Groups[6].Value),'yyyy-MM-dd-HH-mm-ss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{8})-(\d{6})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value),'yyyyMMdd-HHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{14})'); if($m.Success){ try { $dt=[datetime]::ParseExact($m.Groups[1].Value,'yyyyMMddHHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } } }" 2^>nul') do (
                     set "formatted_time=%%t"
                 )
 
@@ -233,9 +233,9 @@ if "%~1" == "" (
                     echo set /a "already_ok+=1">> "!temp_set!"
                     echo 文件名已符合规范，无需处理
                 ) else (
-                    REM 从原文件名中识别截图时间（支持 Screenshot_YYYY-MM-DD-HH-MM-SS 和 Screenshot_YYYYMMDD-HHMMSS），识别不到则跳过
+                    REM 从原文件名中识别截图时间（支持 Screenshot_YYYY-MM-DD-HH-MM-SS、Screenshot_YYYYMMDD-HHMMSS 和 Screenshot_YYYYMMDDHHMMSS），识别不到则跳过
                     set "formatted_time="
-                    for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'Screenshot_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value+'-'+$m.Groups[3].Value+'-'+$m.Groups[4].Value+'-'+$m.Groups[5].Value+'-'+$m.Groups[6].Value),'yyyy-MM-dd-HH-mm-ss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{8})-(\d{6})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value),'yyyyMMdd-HHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } }" 2^>nul') do (
+                    for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'Screenshot_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value+'-'+$m.Groups[3].Value+'-'+$m.Groups[4].Value+'-'+$m.Groups[5].Value+'-'+$m.Groups[6].Value),'yyyy-MM-dd-HH-mm-ss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{8})-(\d{6})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value),'yyyyMMdd-HHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{14})'); if($m.Success){ try { $dt=[datetime]::ParseExact($m.Groups[1].Value,'yyyyMMddHHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } } }" 2^>nul') do (
                         set "formatted_time=%%t"
                     )
 
@@ -320,9 +320,9 @@ if "%~1" == "" (
             if not "!name_already_ok!"=="" (
                 echo 文件名已符合规范，无需处理
             ) else (
-                REM 从原文件名中识别截图时间（支持 Screenshot_YYYY-MM-DD-HH-MM-SS 和 Screenshot_YYYYMMDD-HHMMSS），识别不到则跳过
+                REM 从原文件名中识别截图时间（支持 Screenshot_YYYY-MM-DD-HH-MM-SS、Screenshot_YYYYMMDD-HHMMSS 和 Screenshot_YYYYMMDDHHMMSS），识别不到则跳过
                 set "formatted_time="
-                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'Screenshot_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value+'-'+$m.Groups[3].Value+'-'+$m.Groups[4].Value+'-'+$m.Groups[5].Value+'-'+$m.Groups[6].Value),'yyyy-MM-dd-HH-mm-ss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{8})-(\d{6})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value),'yyyyMMdd-HHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } }" 2^>nul') do (
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'Screenshot_(\d{4})-(\d{2})-(\d{2})-(\d{2})-(\d{2})-(\d{2})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value+'-'+$m.Groups[3].Value+'-'+$m.Groups[4].Value+'-'+$m.Groups[5].Value+'-'+$m.Groups[6].Value),'yyyy-MM-dd-HH-mm-ss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{8})-(\d{6})'); if($m.Success){ try { $dt=[datetime]::ParseExact(($m.Groups[1].Value+'-'+$m.Groups[2].Value),'yyyyMMdd-HHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } else { $m=[regex]::Match($n,'Screenshot_(\d{14})'); if($m.Success){ try { $dt=[datetime]::ParseExact($m.Groups[1].Value,'yyyyMMddHHmmss',[Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} } } }" 2^>nul') do (
                     set "formatted_time=%%t"
                 )
 
