@@ -128,7 +128,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded"
     set /a "fail_total=has_cover+set_failed+no_cover_file"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
     echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，未找到封面图片 !no_cover_file! 个，已有封面 !has_cover! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -222,7 +222,7 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded"
         set /a "fail_total=has_cover+set_failed+no_cover_file"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
         echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，未找到封面图片 !no_cover_file! 个，已有封面 !has_cover! 个
     ) else (
         echo 开始处理文件: "!video_file!"

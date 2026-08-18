@@ -141,7 +141,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded+already_codec"
     set /a "fail_total=convert_failed+output_exist"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
     echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -247,7 +247,7 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded+already_codec"
         set /a "fail_total=convert_failed+output_exist"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
         echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
     ) else (
         echo 开始处理文件: "!video_file!"

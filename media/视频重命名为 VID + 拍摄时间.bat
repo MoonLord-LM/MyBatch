@@ -133,7 +133,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
     set /a "fail_total=no_time+name_conflict+rename_failed"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
     echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -247,7 +247,7 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
         set /a "fail_total=no_time+name_conflict+rename_failed"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
         echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个
     ) else (
         echo 开始处理文件: "!video_file!"

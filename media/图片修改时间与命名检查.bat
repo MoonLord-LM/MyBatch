@@ -1,4 +1,4 @@
-@echo off
+@echo off &
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -34,7 +34,7 @@ if "%~1" == "" (
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
-    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
+    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & echo ^@echo off > "!temp_set!" & echo chcp 65001 ^>nul > "!temp_set!"
 
     set /a "total=0"
     set /a "already_ok=0"
@@ -95,10 +95,10 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量检查完成
-    echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
     if not "!mismatch!"=="0" (
         echo 差异明细已写入: "!log_file!"
     )
+    echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -119,7 +119,7 @@ if "%~1" == "" (
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
-        set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
+        set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & echo echo off > "!temp_set!"
 
         set /a "total=0"
         set /a "already_ok=0"
@@ -180,10 +180,10 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量检查完成
-        echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
         if not "!mismatch!"=="0" (
             echo 差异明细已写入: "!log_file!"
         )
+        echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
     ) else (
         echo 开始处理文件: "!img_file!"
 

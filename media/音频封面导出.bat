@@ -111,7 +111,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded"
     set /a "fail_total=cover_exist+export_failed+no_cover"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
     echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，无封面 !no_cover! 个，封面文件已存在 !cover_exist! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -187,7 +187,7 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded"
         set /a "fail_total=cover_exist+export_failed+no_cover"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个& REM
         echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，无封面 !no_cover! 个，封面文件已存在 !cover_exist! 个
     ) else (
         echo 开始处理文件: "!audio_file!"
