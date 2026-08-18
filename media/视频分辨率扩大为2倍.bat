@@ -86,10 +86,9 @@ if "%~1" == "" (
 
     echo 批量处理完成
     set /a "ok_total=succeeded"
-    set /a "fail_total=resize_failed"
-    set /a "skip_total=output_exist"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
-    echo 其中，扩大成功 !succeeded! 个，扩大失败 !resize_failed! 个，跳过明细: 输出文件已存在 !output_exist! 个
+    set /a "fail_total=resize_failed+output_exist"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+    echo 其中，扩大成功 !succeeded! 个，扩大失败 !resize_failed! 个，输出文件已存在 !output_exist! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -155,10 +154,9 @@ if "%~1" == "" (
 
         echo 批量处理完成
         set /a "ok_total=succeeded"
-        set /a "fail_total=resize_failed"
-        set /a "skip_total=output_exist"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
-        echo 其中，扩大成功 !succeeded! 个，扩大失败 !resize_failed! 个，跳过明细: 输出文件已存在 !output_exist! 个
+        set /a "fail_total=resize_failed+output_exist"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+        echo 其中，扩大成功 !succeeded! 个，扩大失败 !resize_failed! 个，输出文件已存在 !output_exist! 个
     ) else (
         echo 开始处理文件: "!video_file!"
 

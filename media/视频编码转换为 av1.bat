@@ -139,11 +139,10 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    set /a "ok_total=succeeded"
-    set /a "fail_total=convert_failed"
-    set /a "skip_total=already_codec+output_exist"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
-    echo 其中，转换成功 !succeeded! 个，转换失败 !convert_failed! 个，跳过明细: 已是目标编码 !already_codec! 个，输出文件已存在 !output_exist! 个
+    set /a "ok_total=succeeded+already_codec"
+    set /a "fail_total=convert_failed+output_exist"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+    echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -246,11 +245,10 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        set /a "ok_total=succeeded"
-        set /a "fail_total=convert_failed"
-        set /a "skip_total=already_codec+output_exist"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
-        echo 其中，转换成功 !succeeded! 个，转换失败 !convert_failed! 个，跳过明细: 已是目标编码 !already_codec! 个，输出文件已存在 !output_exist! 个
+        set /a "ok_total=succeeded+already_codec"
+        set /a "fail_total=convert_failed+output_exist"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
+        echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
     ) else (
         echo 开始处理文件: "!video_file!"
 
