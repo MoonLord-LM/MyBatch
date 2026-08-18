@@ -60,8 +60,8 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "skipped=0"
-    set /a "failed=0"
+    set /a "output_exist=0"
+    set /a "mux_failed=0"
     set "file_path=!cd!"
     set "ext_filter=\.(mp4|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -74,7 +74,7 @@ if "%~1" == "" (
         echo 正在处理: "!video_file!"
         set "output_file=!file_dir!!base_name!.mkv"
         if exist "!output_file!" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "output_exist+=1">> "!temp_set!"
             echo 已存在: "!output_file!"，跳过此文件
         ) else (
             echo 正在封装为: "!output_file!"
@@ -95,7 +95,7 @@ if "%~1" == "" (
                 echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
                 "!ffmpeg_path!" -i "!video_file!" -c:v copy -c:a flac -compression_level 8 "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "mux_failed+=1">> "!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 封装失败
                 ) else (
@@ -105,7 +105,7 @@ if "%~1" == "" (
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -c copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "mux_failed+=1">> "!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 封装失败
                 ) else (
@@ -125,7 +125,11 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    set /a "ok_total=succeeded"
+    set /a "fail_total=mux_failed"
+    set /a "skip_total=output_exist"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+    echo 其中，封装成功 !succeeded! 个，封装失败 !mux_failed! 个，跳过明细: 输出文件已存在 !output_exist! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -149,8 +153,8 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "skipped=0"
-        set /a "failed=0"
+        set /a "output_exist=0"
+        set /a "mux_failed=0"
         set "file_path=!video_file!"
         set "ext_filter=\.(mp4|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -163,7 +167,7 @@ if "%~1" == "" (
             echo 正在处理: "!video_file!"
             set "output_file=!file_dir!!base_name!.mkv"
             if exist "!output_file!" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "output_exist+=1">> "!temp_set!"
                 echo 已存在: "!output_file!"，跳过此文件
             ) else (
                 echo 正在封装为: "!output_file!"
@@ -184,7 +188,7 @@ if "%~1" == "" (
                     echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
                     "!ffmpeg_path!" -i "!video_file!" -c:v copy -c:a flac -compression_level 8 "!output_file!"
                     if !errorlevel! neq 0 (
-                        echo set /a "failed+=1">> "!temp_set!"
+                        echo set /a "mux_failed+=1">> "!temp_set!"
                         if exist "!output_file!" ( del /f /q "!output_file!" )
                         echo 封装失败
                     ) else (
@@ -194,7 +198,7 @@ if "%~1" == "" (
                 ) else (
                     "!ffmpeg_path!" -i "!video_file!" -c copy "!output_file!"
                     if !errorlevel! neq 0 (
-                        echo set /a "failed+=1">> "!temp_set!"
+                        echo set /a "mux_failed+=1">> "!temp_set!"
                         if exist "!output_file!" ( del /f /q "!output_file!" )
                         echo 封装失败
                     ) else (
@@ -214,7 +218,11 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+        set /a "ok_total=succeeded"
+        set /a "fail_total=mux_failed"
+        set /a "skip_total=output_exist"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+        echo 其中，封装成功 !succeeded! 个，封装失败 !mux_failed! 个，跳过明细: 输出文件已存在 !output_exist! 个
     ) else (
         echo 开始处理文件: "!video_file!"
 

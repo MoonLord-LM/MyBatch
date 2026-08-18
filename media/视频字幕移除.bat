@@ -60,8 +60,8 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "skipped=0"
-    set /a "failed=0"
+    set /a "no_sub=0"
+    set /a "remove_failed=0"
     set "file_path=!cd!"
     set "ext_filter=\.mkv$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -79,7 +79,7 @@ if "%~1" == "" (
         )
 
         if "!has_sub!"=="0" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "no_sub+=1">> "!temp_set!"
             echo 无字幕，跳过
         ) else (
             echo 找到字幕，正在移除
@@ -87,7 +87,7 @@ if "%~1" == "" (
             
             "!ffmpeg_path!" -i "!video_file!" -c copy -map 0 -map -0:s "!temp_video_file!"
             if !errorlevel! neq 0 (
-                echo set /a "failed+=1">> "!temp_set!"
+                echo set /a "remove_failed+=1">> "!temp_set!"
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
             ) else (
@@ -108,7 +108,11 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    set /a "ok_total=succeeded"
+    set /a "fail_total=remove_failed"
+    set /a "skip_total=no_sub"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+    echo 其中，移除成功 !succeeded! 个，移除失败 !remove_failed! 个，跳过明细: 无字幕 !no_sub! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -133,8 +137,8 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "skipped=0"
-        set /a "failed=0"
+        set /a "no_sub=0"
+        set /a "remove_failed=0"
         set "file_path=!video_file!"
         set "ext_filter=\.mkv$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -152,7 +156,7 @@ if "%~1" == "" (
             )
 
             if "!has_sub!"=="0" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "no_sub+=1">> "!temp_set!"
                 echo 无字幕，跳过
             ) else (
                 echo 找到字幕，正在移除
@@ -160,7 +164,7 @@ if "%~1" == "" (
 
                 "!ffmpeg_path!" -i "!video_file!" -c copy -map 0 -map -0:s "!temp_video_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "remove_failed+=1">> "!temp_set!"
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                     echo 移除失败
                 ) else (
@@ -181,7 +185,11 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+        set /a "ok_total=succeeded"
+        set /a "fail_total=remove_failed"
+        set /a "skip_total=no_sub"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+        echo 其中，移除成功 !succeeded! 个，移除失败 !remove_failed! 个，跳过明细: 无字幕 !no_sub! 个
     ) else (
         echo 开始处理文件: "!video_file!"
 

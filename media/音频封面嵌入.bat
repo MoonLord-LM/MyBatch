@@ -60,8 +60,9 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "skipped=0"
-    set /a "failed=0"
+    set /a "has_cover=0"
+    set /a "no_cover_file=0"
+    set /a "set_failed=0"
     set "file_path=!cd!"
     set "ext_filter=\.(flac|mp3)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -79,7 +80,7 @@ if "%~1" == "" (
         )
 
         if "!has_cover!"=="1" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "has_cover+=1">> "!temp_set!"
             echo 已有封面，跳过
         ) else (
             set "cover_file="
@@ -102,7 +103,7 @@ if "%~1" == "" (
                     "!ffmpeg_path!" -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:1 attached_pic "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "set_failed+=1">> "!temp_set!"
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                     echo 设置失败
                 ) else (
@@ -112,7 +113,7 @@ if "%~1" == "" (
                     echo 设置成功
                 )
             ) else (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "no_cover_file+=1">> "!temp_set!"
                 echo 未找到封面图片，跳过
             )
         )
@@ -127,7 +128,11 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    set /a "ok_total=succeeded"
+    set /a "fail_total=set_failed"
+    set /a "skip_total=has_cover+no_cover_file"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+    echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，跳过明细: 已有封面 !has_cover! 个，未找到封面图片 !no_cover_file! 个
 ) else (
     setlocal disabledelayedexpansion
     set "audio_file=%~1"
@@ -152,8 +157,9 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "skipped=0"
-        set /a "failed=0"
+        set /a "has_cover=0"
+        set /a "no_cover_file=0"
+        set /a "set_failed=0"
         set "file_path=!audio_file!"
         set "ext_filter=\.(flac|mp3)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -171,7 +177,7 @@ if "%~1" == "" (
             )
 
             if "!has_cover!"=="1" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "has_cover+=1">> "!temp_set!"
                 echo 已有封面，跳过
             ) else (
                 set "cover_file="
@@ -194,7 +200,7 @@ if "%~1" == "" (
                         "!ffmpeg_path!" -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:1 attached_pic "!temp_audio_file!"
                     )
                     if !errorlevel! neq 0 (
-                        echo set /a "failed+=1">> "!temp_set!"
+                        echo set /a "set_failed+=1">> "!temp_set!"
                         if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                         echo 设置失败
                     ) else (
@@ -204,7 +210,7 @@ if "%~1" == "" (
                         echo 设置成功
                     )
                 ) else (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "no_cover_file+=1">> "!temp_set!"
                     echo 未找到封面图片，跳过
                 )
             )
@@ -219,7 +225,11 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+        set /a "ok_total=succeeded"
+        set /a "fail_total=set_failed"
+        set /a "skip_total=has_cover+no_cover_file"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+        echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，跳过明细: 已有封面 !has_cover! 个，未找到封面图片 !no_cover_file! 个
     ) else (
         echo 开始处理文件: "!audio_file!"
         set "has_cover=0"

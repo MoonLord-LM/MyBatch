@@ -29,8 +29,11 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "skipped=0"
-    set /a "failed=0"
+    set /a "ext_skip=0"
+    set /a "hidden_skip=0"
+    set /a "system_skip=0"
+    set /a "name_conflict=0"
+    set /a "rename_failed=0"
     set "file_path=!cd!"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
@@ -49,7 +52,7 @@ if "%~1" == "" (
         )
 
         if "!is_skip_ext!"=="1" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "ext_skip+=1">> "!temp_set!"
             echo 文件后缀 "!file_ext!"，跳过此文件
         ) else (
             REM 跳过隐藏文件、系统文件
@@ -58,16 +61,16 @@ if "%~1" == "" (
             attrib "!file_path!" | findstr /b /r /i "....H" >nul && set "is_hidden=1"
             attrib "!file_path!" | findstr /b /r /i "...S" >nul && set "is_system=1"
             if "!is_hidden!"=="1" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "hidden_skip+=1">> "!temp_set!"
                 echo 隐藏文件，跳过此文件
             ) else if "!is_system!"=="1" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "system_skip+=1">> "!temp_set!"
                 echo 系统文件，跳过此文件
             ) else (
                 set "new_name=!base_name!!file_ext!.7z"
                 echo 目标文件名: "!new_name!"
                 if exist "!file_dir!!new_name!" (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "name_conflict+=1">> "!temp_set!"
                     echo 目标文件已存在，跳过此文件
                 ) else (
                     ren "!file_path!" "!new_name!"
@@ -75,7 +78,7 @@ if "%~1" == "" (
                         echo set /a "succeeded+=1">> "!temp_set!"
                         echo 重命名成功
                     ) else (
-                        echo set /a "failed+=1">> "!temp_set!"
+                        echo set /a "rename_failed+=1">> "!temp_set!"
                         echo 重命名失败
                     )
                 )
@@ -92,7 +95,11 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    set /a "ok_total=succeeded"
+    set /a "fail_total=name_conflict+rename_failed"
+    set /a "skip_total=ext_skip+hidden_skip+system_skip"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+    echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，后缀不处理 !ext_skip! 个，隐藏文件 !hidden_skip! 个，系统文件 !system_skip! 个
 ) else (
     setlocal disabledelayedexpansion
     set "file_path=%~1"
@@ -117,8 +124,11 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "skipped=0"
-        set /a "failed=0"
+        set /a "ext_skip=0"
+        set /a "hidden_skip=0"
+        set /a "system_skip=0"
+        set /a "name_conflict=0"
+        set /a "rename_failed=0"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "file_path=%%f"
@@ -136,7 +146,7 @@ if "%~1" == "" (
             )
 
             if "!is_skip_ext!"=="1" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "ext_skip+=1">> "!temp_set!"
                 echo 文件后缀 "!file_ext!"，跳过此文件
             ) else (
                 REM 跳过隐藏文件、系统文件
@@ -145,16 +155,16 @@ if "%~1" == "" (
                 attrib "!file_path!" | findstr /b /r /i "....H" >nul && set "is_hidden=1"
                 attrib "!file_path!" | findstr /b /r /i "...S" >nul && set "is_system=1"
                 if "!is_hidden!"=="1" (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "hidden_skip+=1">> "!temp_set!"
                     echo 隐藏文件，跳过此文件
                 ) else if "!is_system!"=="1" (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "system_skip+=1">> "!temp_set!"
                     echo 系统文件，跳过此文件
                 ) else (
                     set "new_name=!base_name!!file_ext!.7z"
                     echo 目标文件名: "!new_name!"
                     if exist "!file_dir!!new_name!" (
-                        echo set /a "skipped+=1">> "!temp_set!"
+                        echo set /a "name_conflict+=1">> "!temp_set!"
                         echo 目标文件已存在，跳过此文件
                     ) else (
                         ren "!file_path!" "!new_name!"
@@ -162,7 +172,7 @@ if "%~1" == "" (
                             echo set /a "succeeded+=1">> "!temp_set!"
                             echo 重命名成功
                         ) else (
-                            echo set /a "failed+=1">> "!temp_set!"
+                            echo set /a "rename_failed+=1">> "!temp_set!"
                             echo 重命名失败
                         )
                     )
@@ -179,7 +189,11 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+        set /a "ok_total=succeeded"
+        set /a "fail_total=name_conflict+rename_failed"
+        set /a "skip_total=ext_skip+hidden_skip+system_skip"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+        echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，后缀不处理 !ext_skip! 个，隐藏文件 !hidden_skip! 个，系统文件 !system_skip! 个
     ) else (
         echo 开始处理文件: "!file_path!"
 

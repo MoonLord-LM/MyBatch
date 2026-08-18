@@ -60,8 +60,9 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "skipped=0"
-    set /a "failed=0"
+    set /a "sub_exist=0"
+    set /a "no_sub=0"
+    set /a "export_failed=0"
     set "file_path=!cd!"
     set "ext_filter=\.mkv$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -74,7 +75,7 @@ if "%~1" == "" (
         echo 正在处理: "!video_file!"
         set "sub_file=!file_dir!!base_name!.srt"
         if exist "!sub_file!" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "sub_exist+=1">> "!temp_set!"
             echo 已存在: "!sub_file!"，跳过此文件
         ) else (
             set "has_sub=0"
@@ -84,12 +85,12 @@ if "%~1" == "" (
             )
 
             if "!has_sub!"=="0" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "no_sub+=1">> "!temp_set!"
                 echo 无字幕
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -map 0:!stream_index! "!sub_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "export_failed+=1">> "!temp_set!"
                     if exist "!sub_file!" ( del /f /q "!sub_file!" )
                     echo 导出失败
                 ) else (
@@ -109,7 +110,11 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    set /a "ok_total=succeeded"
+    set /a "fail_total=export_failed"
+    set /a "skip_total=sub_exist+no_sub"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+    echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，跳过明细: 字幕文件已存在 !sub_exist! 个，无字幕 !no_sub! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -133,8 +138,9 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "skipped=0"
-        set /a "failed=0"
+        set /a "sub_exist=0"
+        set /a "no_sub=0"
+        set /a "export_failed=0"
         set "file_path=!video_file!"
         set "ext_filter=\.mkv$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -147,7 +153,7 @@ if "%~1" == "" (
             echo 正在处理: "!video_file!"
             set "sub_file=!file_dir!!base_name!.srt"
             if exist "!sub_file!" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "sub_exist+=1">> "!temp_set!"
                 echo 已存在: "!sub_file!"，跳过此文件
             ) else (
                 set "has_sub=0"
@@ -157,12 +163,12 @@ if "%~1" == "" (
                 )
 
                 if "!has_sub!"=="0" (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "no_sub+=1">> "!temp_set!"
                     echo 无字幕
                 ) else (
                     "!ffmpeg_path!" -i "!video_file!" -map 0:!stream_index! "!sub_file!"
                     if !errorlevel! neq 0 (
-                        echo set /a "failed+=1">> "!temp_set!"
+                        echo set /a "export_failed+=1">> "!temp_set!"
                         if exist "!sub_file!" ( del /f /q "!sub_file!" )
                         echo 导出失败
                     ) else (
@@ -182,7 +188,11 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+        set /a "ok_total=succeeded"
+        set /a "fail_total=export_failed"
+        set /a "skip_total=sub_exist+no_sub"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+        echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，跳过明细: 字幕文件已存在 !sub_exist! 个，无字幕 !no_sub! 个
     ) else (
         echo 开始处理文件: "!video_file!"
 

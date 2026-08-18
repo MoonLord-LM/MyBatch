@@ -60,8 +60,9 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "skipped=0"
-    set /a "failed=0"
+    set /a "cover_exist=0"
+    set /a "no_cover=0"
+    set /a "export_failed=0"
     set "file_path=!cd!"
     set "ext_filter=\.(flac|mp3)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -74,7 +75,7 @@ if "%~1" == "" (
         echo 正在处理: "!audio_file!"
         set "cover_file=!file_dir!!base_name!.png"
         if exist "!cover_file!" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "cover_exist+=1">> "!temp_set!"
             echo 已存在: "!cover_file!"，跳过此文件
         ) else (
             set "has_cover=0"
@@ -83,12 +84,12 @@ if "%~1" == "" (
             )
 
             if "!has_cover!"=="0" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "no_cover+=1">> "!temp_set!"
                 echo 无封面
             ) else (
                 "!ffmpeg_path!" -i "!audio_file!" -an -vcodec copy "!cover_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "export_failed+=1">> "!temp_set!"
                     if exist "!cover_file!" ( del /f /q "!cover_file!" )
                     echo 导出失败
                 ) else (
@@ -108,7 +109,11 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+    set /a "ok_total=succeeded"
+    set /a "fail_total=export_failed"
+    set /a "skip_total=cover_exist+no_cover"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+    echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，跳过明细: 封面文件已存在 !cover_exist! 个，无封面 !no_cover! 个
 ) else (
     setlocal disabledelayedexpansion
     set "audio_file=%~1"
@@ -132,8 +137,9 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "skipped=0"
-        set /a "failed=0"
+        set /a "cover_exist=0"
+        set /a "no_cover=0"
+        set /a "export_failed=0"
         set "file_path=!audio_file!"
         set "ext_filter=\.(flac|mp3)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -146,7 +152,7 @@ if "%~1" == "" (
             echo 正在处理: "!audio_file!"
             set "cover_file=!file_dir!!base_name!.png"
             if exist "!cover_file!" (
-                echo set /a "skipped+=1">> "!temp_set!"
+                echo set /a "cover_exist+=1">> "!temp_set!"
                 echo 已存在: "!cover_file!"，跳过此文件
             ) else (
                 set "has_cover=0"
@@ -155,12 +161,12 @@ if "%~1" == "" (
                 )
 
                 if "!has_cover!"=="0" (
-                    echo set /a "skipped+=1">> "!temp_set!"
+                    echo set /a "no_cover+=1">> "!temp_set!"
                     echo 无封面
                 ) else (
                     "!ffmpeg_path!" -i "!audio_file!" -an -vcodec copy "!cover_file!"
                     if !errorlevel! neq 0 (
-                        echo set /a "failed+=1">> "!temp_set!"
+                        echo set /a "export_failed+=1">> "!temp_set!"
                         if exist "!cover_file!" ( del /f /q "!cover_file!" )
                         echo 导出失败
                     ) else (
@@ -180,7 +186,11 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        echo 共计: !total! 个，成功: !succeeded! 个，跳过: !skipped! 个，失败: !failed! 个
+        set /a "ok_total=succeeded"
+        set /a "fail_total=export_failed"
+        set /a "skip_total=cover_exist+no_cover"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & echo off
+        echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，跳过明细: 封面文件已存在 !cover_exist! 个，无封面 !no_cover! 个
     ) else (
         echo 开始处理文件: "!audio_file!"
         set "cover_file=!file_dir!!base_name!.png"

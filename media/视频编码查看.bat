@@ -47,7 +47,7 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "failed=0"
+    set /a "parse_failed=0"
     set "file_path=!cd!"
     set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -58,12 +58,12 @@ if "%~1" == "" (
         echo 正在处理: "!video_file!"
         "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_video_codecs!"
         if !errorlevel! neq 0 (
-            echo set /a "failed+=1">> "!temp_set!"
+            echo set /a "parse_failed+=1">> "!temp_set!"
             echo 视频编码解析失败
         ) else (
             "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_audio_codecs!"
             if !errorlevel! neq 0 (
-                echo set /a "failed+=1">> "!temp_set!"
+                echo set /a "parse_failed+=1">> "!temp_set!"
                 echo 音频编码解析失败
             ) else (
                 echo set /a "succeeded+=1">> "!temp_set!"
@@ -104,7 +104,10 @@ if "%~1" == "" (
     echo ----------------------------------------
     echo.
     echo 统计完成
-    echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。
+    set /a "ok_total=succeeded"
+    set /a "fail_total=parse_failed"
+    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。 & echo off
+    echo 其中，解析成功 !succeeded! 个，解析失败 !parse_failed! 个
 
     if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )
     if exist "!temp_audio_codecs!" ( del /f /q "!temp_audio_codecs!" )
@@ -131,7 +134,7 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "failed=0"
+        set /a "parse_failed=0"
         set "file_path=!video_file!"
         set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -142,12 +145,12 @@ if "%~1" == "" (
             echo 正在处理: "!video_file!"
             "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_video_codecs!"
             if !errorlevel! neq 0 (
-                echo set /a "failed+=1">> "!temp_set!"
+                echo set /a "parse_failed+=1">> "!temp_set!"
                 echo 视频编码解析失败
             ) else (
                 "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_audio_codecs!"
                 if !errorlevel! neq 0 (
-                    echo set /a "failed+=1">> "!temp_set!"
+                    echo set /a "parse_failed+=1">> "!temp_set!"
                     echo 音频编码解析失败
                 ) else (
                     echo set /a "succeeded+=1">> "!temp_set!"
@@ -188,7 +191,10 @@ if "%~1" == "" (
         echo ----------------------------------------
         echo.
         echo 统计完成
-        echo 共计: !total! 个，成功: !succeeded! 个，失败: !failed! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。
+        set /a "ok_total=succeeded"
+        set /a "fail_total=parse_failed"
+        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。 & echo off
+        echo 其中，解析成功 !succeeded! 个，解析失败 !parse_failed! 个
 
         if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )
         if exist "!temp_audio_codecs!" ( del /f /q "!temp_audio_codecs!" )
