@@ -5,12 +5,13 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将图片按文件最后修改时间，重命名为 IMG_YYYYMMDD_HHMMSS_fff 格式，默认使用系统时区' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将微信导出的图片统一重命名为 mmexport_YYYYMMDD_HHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '原文件名必须以 mmexport 开头，后跟 13 位毫秒时间戳，仅从原文件名识别保存时间并重命名，识别不到则跳过，不做处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '仅支持 mmexportXXXXXXXXXXXXX.jpg 的原文件名格式' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '带有 EXIF 拍摄时间的图片会被跳过，不做处理' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '以 Screenshot、QQ截图 开头的图片，不做处理' -ForegroundColor Green"
 echo.
 
 
@@ -20,7 +21,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
-REM 优先使用脚本所在文件夹中的 MediaInfo 组件
+REM 优先使用脚本所在文件夹中的 MediaInfo 组件（用于检测图片的 EXIF 拍摄时间）
 set "mediainfo_path=mediainfo"
 if exist "%~dp0MediaInfo.exe" (
     set "mediainfo_path=%~dp0MediaInfo.exe"
@@ -53,7 +54,7 @@ if "%~1" == "" (
     set /a "name_conflict=0"
     set /a "rename_failed=0"
     set /a "has_exif=0"
-    set /a "other_prefix=0"
+    set /a "not_mmexport=0"
     set "file_path=!cd!"
     set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -88,42 +89,51 @@ if "%~1" == "" (
         if not "!exif_time!"=="" (
             echo set /a "has_exif+=1">> "!temp_set!"
             echo 图片带有拍摄时间，跳过此文件
-        ) else if /i "!base_name:~0,10!"=="Screenshot" (
-            echo set /a "other_prefix+=1">> "!temp_set!"
-            echo 文件名以 Screenshot 开头，跳过此文件
-        ) else if /i "!base_name:~0,4!"=="QQ截图" (
-            echo set /a "other_prefix+=1">> "!temp_set!"
-            echo 文件名以 QQ截图 开头，跳过此文件
+        ) else if /i not "!base_name:~0,7!"=="mmexport" (
+            echo set /a "not_mmexport+=1">> "!temp_set!"
+            echo 文件名不以 mmexport 开头，跳过此文件
         ) else (
-            set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMdd_HHmmss_fff')" 2^>nul') do (
-                set "formatted_time=%%t"
-                echo 图片文件修改时间: "!formatted_time!"
+            REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
+            set "name_already_ok="
+            for /f "delims=" %%n in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
+                set "name_already_ok=%%n"
             )
 
-            if "!formatted_time!"=="" (
-                echo set /a "no_time+=1">> "!temp_set!"
-                echo 时间获取失败，跳过此文件
+            if not "!name_already_ok!"=="" (
+                echo set /a "already_ok+=1">> "!temp_set!"
+                echo 文件名已符合规范，无需处理
             ) else (
-                for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
-                    set "lower_file_ext=%%l"
+                REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
+                set "formatted_time="
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToOffset([TimeSpan]::FromHours(8)); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                    set "formatted_time=%%t"
                 )
-                set "new_name=IMG_!formatted_time!!lower_file_ext!"
-                echo 目标文件名: "!new_name!"
-                if /i "!img_file!"=="!file_dir!!new_name!" (
-                    echo set /a "already_ok+=1">> "!temp_set!"
-                    echo 文件名已符合规范，无需处理
-                ) else if exist "!file_dir!!new_name!" (
-                    echo set /a "name_conflict+=1">> "!temp_set!"
-                    echo 目标文件已存在，跳过此文件
+
+                if "!formatted_time!"=="" (
+                    echo set /a "no_time+=1">> "!temp_set!"
+                    echo 文件名中未识别到微信保存时间，跳过此文件
                 ) else (
-                    ren "!img_file!" "!new_name!"
-                    if !errorlevel! equ 0 (
-                        echo set /a "succeeded+=1">> "!temp_set!"
-                        echo 重命名成功
+                    echo 图片文件名中的微信保存时间: "!formatted_time!"
+                    for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
+                        set "lower_file_ext=%%l"
+                    )
+                    set "new_name=mmexport_!formatted_time!!lower_file_ext!"
+                    echo 目标文件名: "!new_name!"
+                    if /i "!img_file!"=="!file_dir!!new_name!" (
+                        echo set /a "already_ok+=1">> "!temp_set!"
+                        echo 文件名已符合规范，无需处理
+                    ) else if exist "!file_dir!!new_name!" (
+                        echo set /a "name_conflict+=1">> "!temp_set!"
+                        echo 目标文件已存在，跳过此文件
                     ) else (
-                        echo set /a "rename_failed+=1">> "!temp_set!"
-                        echo 重命名失败
+                        ren "!img_file!" "!new_name!"
+                        if !errorlevel! equ 0 (
+                            echo set /a "succeeded+=1">> "!temp_set!"
+                            echo 重命名成功
+                        ) else (
+                            echo set /a "rename_failed+=1">> "!temp_set!"
+                            echo 重命名失败
+                        )
                     )
                 )
             )
@@ -140,9 +150,9 @@ if "%~1" == "" (
 
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
-    set /a "fail_total=has_exif+other_prefix+no_time+name_conflict+rename_failed"
+    set /a "fail_total=has_exif+not_mmexport+no_time+name_conflict+rename_failed"
     echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个，其他前缀跳过 !other_prefix! 个，带有拍摄时间: !has_exif! 个
+    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间: !has_exif! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -172,7 +182,7 @@ if "%~1" == "" (
         set /a "name_conflict=0"
         set /a "rename_failed=0"
         set /a "has_exif=0"
-        set /a "other_prefix=0"
+        set /a "not_mmexport=0"
         set "file_path=!img_file!"
         set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -207,42 +217,51 @@ if "%~1" == "" (
             if not "!exif_time!"=="" (
                 echo set /a "has_exif+=1">> "!temp_set!"
                 echo 图片带有拍摄时间，跳过此文件
-            ) else if /i "!base_name:~0,10!"=="Screenshot" (
-                echo set /a "other_prefix+=1">> "!temp_set!"
-                echo 文件名以 Screenshot 开头，跳过此文件
-            ) else if /i "!base_name:~0,4!"=="QQ截图" (
-                echo set /a "other_prefix+=1">> "!temp_set!"
-                echo 文件名以 QQ截图 开头，跳过此文件
+            ) else if /i not "!base_name:~0,7!"=="mmexport" (
+                echo set /a "not_mmexport+=1">> "!temp_set!"
+                echo 文件名不以 mmexport 开头，跳过此文件
             ) else (
-                set "formatted_time="
-                for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMdd_HHmmss_fff')" 2^>nul') do (
-                    set "formatted_time=%%t"
-                    echo 图片文件修改时间: "!formatted_time!"
+                REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
+                set "name_already_ok="
+                for /f "delims=" %%n in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
+                    set "name_already_ok=%%n"
                 )
 
-                if "!formatted_time!"=="" (
-                    echo set /a "no_time+=1">> "!temp_set!"
-                    echo 时间获取失败，跳过此文件
+                if not "!name_already_ok!"=="" (
+                    echo set /a "already_ok+=1">> "!temp_set!"
+                    echo 文件名已符合规范，无需处理
                 ) else (
-                    for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
-                        set "lower_file_ext=%%l"
+                    REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
+                    set "formatted_time="
+                    for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToOffset([TimeSpan]::FromHours(8)); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                        set "formatted_time=%%t"
                     )
-                    set "new_name=IMG_!formatted_time!!lower_file_ext!"
-                    echo 目标文件名: "!new_name!"
-                    if /i "!img_file!"=="!file_dir!!new_name!" (
-                        echo set /a "already_ok+=1">> "!temp_set!"
-                        echo 文件名已符合规范，无需处理
-                    ) else if exist "!file_dir!!new_name!" (
-                        echo set /a "name_conflict+=1">> "!temp_set!"
-                        echo 目标文件已存在，跳过此文件
+
+                    if "!formatted_time!"=="" (
+                        echo set /a "no_time+=1">> "!temp_set!"
+                        echo 文件名中未识别到微信保存时间，跳过此文件
                     ) else (
-                        ren "!img_file!" "!new_name!"
-                        if !errorlevel! equ 0 (
-                            echo set /a "succeeded+=1">> "!temp_set!"
-                            echo 重命名成功
+                        echo 图片文件名中的微信保存时间: "!formatted_time!"
+                        for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
+                            set "lower_file_ext=%%l"
+                        )
+                        set "new_name=mmexport_!formatted_time!!lower_file_ext!"
+                        echo 目标文件名: "!new_name!"
+                        if /i "!img_file!"=="!file_dir!!new_name!" (
+                            echo set /a "already_ok+=1">> "!temp_set!"
+                            echo 文件名已符合规范，无需处理
+                        ) else if exist "!file_dir!!new_name!" (
+                            echo set /a "name_conflict+=1">> "!temp_set!"
+                            echo 目标文件已存在，跳过此文件
                         ) else (
-                            echo set /a "rename_failed+=1">> "!temp_set!"
-                            echo 重命名失败
+                            ren "!img_file!" "!new_name!"
+                            if !errorlevel! equ 0 (
+                                echo set /a "succeeded+=1">> "!temp_set!"
+                                echo 重命名成功
+                            ) else (
+                                echo set /a "rename_failed+=1">> "!temp_set!"
+                                echo 重命名失败
+                            )
                         )
                     )
                 )
@@ -259,9 +278,9 @@ if "%~1" == "" (
 
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
-        set /a "fail_total=has_exif+other_prefix+no_time+name_conflict+rename_failed"
+        set /a "fail_total=has_exif+not_mmexport+no_time+name_conflict+rename_failed"
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & echo off
-        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个，其他前缀跳过 !other_prefix! 个，带有拍摄时间: !has_exif! 个
+        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间: !has_exif! 个
     ) else (
         echo 开始处理文件: "!img_file!"
 
@@ -286,35 +305,44 @@ if "%~1" == "" (
 
         if not "!exif_time!"=="" (
             echo 图片带有拍摄时间，跳过此文件
-        ) else if /i "!base_name:~0,10!"=="Screenshot" (
-            echo 文件名以 Screenshot 开头，跳过此文件
-        ) else if /i "!base_name:~0,4!"=="QQ截图" (
-            echo 文件名以 QQ截图 开头，跳过此文件
+        ) else if /i not "!base_name:~0,7!"=="mmexport" (
+            echo 文件名不以 mmexport 开头，跳过此文件
         ) else (
-            set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMdd_HHmmss_fff')" 2^>nul') do (
-                set "formatted_time=%%t"
-                echo 图片文件修改时间: "!formatted_time!"
+            REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
+            set "name_already_ok="
+            for /f "delims=" %%n in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
+                set "name_already_ok=%%n"
             )
 
-            if "!formatted_time!"=="" (
-                echo 时间获取失败，跳过此文件
+            if not "!name_already_ok!"=="" (
+                echo 文件名已符合规范，无需处理
             ) else (
-                for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
-                    set "lower_file_ext=%%l"
+                REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
+                set "formatted_time="
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=[IO.Path]::GetFileNameWithoutExtension($env:base_name); $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToOffset([TimeSpan]::FromHours(8)); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                    set "formatted_time=%%t"
                 )
-                set "new_name=IMG_!formatted_time!!lower_file_ext!"
-                echo 目标文件名: "!new_name!"
-                if /i "!img_file!"=="!file_dir!!new_name!" (
-                    echo 文件名已符合规范，无需处理
-                ) else if exist "!file_dir!!new_name!" (
-                    echo 目标文件已存在，跳过此文件
+
+                if "!formatted_time!"=="" (
+                    echo 文件名中未识别到微信保存时间，跳过此文件
                 ) else (
-                    ren "!img_file!" "!new_name!"
-                    if !errorlevel! equ 0 (
-                        echo 重命名成功
+                    echo 图片文件名中的微信保存时间: "!formatted_time!"
+                    for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
+                        set "lower_file_ext=%%l"
+                    )
+                    set "new_name=mmexport_!formatted_time!!lower_file_ext!"
+                    echo 目标文件名: "!new_name!"
+                    if /i "!img_file!"=="!file_dir!!new_name!" (
+                        echo 文件名已符合规范，无需处理
+                    ) else if exist "!file_dir!!new_name!" (
+                        echo 目标文件已存在，跳过此文件
                     ) else (
-                        echo 重命名失败
+                        ren "!img_file!" "!new_name!"
+                        if !errorlevel! equ 0 (
+                            echo 重命名成功
+                        ) else (
+                            echo 重命名失败
+                        )
                     )
                 )
             )

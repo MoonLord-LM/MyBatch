@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '不带有 EXIF 拍摄时间的图片会被跳过，不做处理' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '跳过以 Screenshot、QQ截图 开头的图片，不做处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '以 Screenshot、QQ截图 开头的图片，不做处理' -ForegroundColor Green"
 echo.
 
 

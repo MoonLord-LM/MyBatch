@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将截图文件统一重命名为 Screenshot_YYYYMMDD_HHMMSS 格式' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将截图文件统一重命名为 Screenshot_YYYYMMDD_HHMMSS 格式，默认使用系统时区' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '原文件名必须以 Screenshot 开头，仅从原文件名识别截图时间并重命名，识别不到则跳过，不做处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持 Screenshot_XXXX-XX-XX-XX-XX-XX.png 和 Screenshot_XXXXXXXX-XXXXXX.png 的原文件名格式' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
