@@ -59,14 +59,12 @@ setlocal enabledelayedexpansion
 
 if "!video1!"=="" (
     echo.
-    echo 请输入要保留元数据信息的视频文件路径
-    echo 提示：可以直接将文件拖拽到窗口内
+    echo 请输入要保留元数据信息的视频文件路径，可以将文件拖拽到窗口内
     set /p "video1="
 )
 if "!video2!"=="" (
     echo.
-    echo 请输入提供画面和声音内容的视频文件路径
-    echo 提示：可以直接将文件拖拽到窗口内
+    echo 请输入提供画面和声音内容的视频文件路径，可以将文件拖拽到窗口内
     set /p "video2="
 )
 
