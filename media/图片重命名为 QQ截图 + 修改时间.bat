@@ -269,6 +269,14 @@ if "%~1" == "" (
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
         echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个，其他前缀跳过 !other_prefix! 个，带有拍摄时间: !has_exif! 个
     ) else (
+        set "ext_ok="
+        for /f "delims=" %%e in ('powershell -NoProfile -Command "if ($env:file_ext -match '^\.(jpg|png|bmp|gif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
+        if not "!ext_ok!"=="ok" (
+            echo 错误: 不支持的图片格式: "!img_file!"
+            echo.
+            pause
+            exit /b 1
+        )
         echo 开始处理文件: "!img_file!"
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）

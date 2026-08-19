@@ -250,6 +250,14 @@ if "%~1" == "" (
         echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
         echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，时间获取失败 !no_time! 个，重命名失败 !rename_failed! 个
     ) else (
+        set "ext_ok="
+        for /f "delims=" %%e in ('powershell -NoProfile -Command "if ($env:file_ext -match '^\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
+        if not "!ext_ok!"=="ok" (
+            echo 错误: 不支持的视频格式: "!video_file!"
+            echo.
+            pause
+            exit /b 1
+        )
         echo 开始处理文件: "!video_file!"
         set "creation_time="
         for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
