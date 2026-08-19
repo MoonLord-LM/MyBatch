@@ -5,9 +5,9 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将另一个视频的画面和音频内容，替换到当前视频中，保留当前视频的元数据' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '保留第 1 个文件的元数据信息，将第 2 个文件的画面和声音内容，替换到第 1 个文件中，生成一个新的文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个视频文件的路径' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '也可以将两个视频文件直接拖拽到脚本上，自动开始处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '也可以选中两个视频文件，拖拽到此脚本上，自动识别处理；不支持拖入文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
 
