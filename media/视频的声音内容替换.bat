@@ -57,41 +57,46 @@ set "video1=%~1"
 set "video2=%~2"
 setlocal enabledelayedexpansion
 
+if not "!video1!"=="" goto video1_check
+:input_video1
+echo.
+echo 请输入要保留画面和元数据信息的视频文件路径，可以将文件拖拽到窗口内
+set /p "video1="
 if "!video1!"=="" (
-    echo.
-    echo 请输入要保留画面和元数据信息的视频文件路径，可以将文件拖拽到窗口内
-    set /p "video1="
+    echo 输入不能为空，请重新输入
+    goto input_video1
 )
-if "!video2!"=="" (
-    echo.
-    echo 请输入提供声音内容的视频文件路径，可以将文件拖拽到窗口内
-    set /p "video2="
-)
-
+set "video1=!video1:"=!"
+:video1_check
 if exist "!video1!\" (
-    echo 错误：不支持文件夹："!video1!"
-    echo.
-    pause
-    exit /b 1
+    echo 错误：不支持文件夹："!video1!"，请重新输入
+    goto input_video1
 )
 if not exist "!video1!" (
-    echo 错误：文件不存在："!video1!"
-    echo.
-    pause
-    exit /b 1
+    echo 错误：文件不存在："!video1!"，请重新输入
+    goto input_video1
 )
+:video1_ok
+if not "!video2!"=="" goto video2_check
+:input_video2
+echo.
+echo 请输入提供声音内容的视频文件路径，可以将文件拖拽到窗口内
+set /p "video2="
+if "!video2!"=="" (
+    echo 输入不能为空，请重新输入
+    goto input_video2
+)
+set "video2=!video2:"=!"
+:video2_check
 if exist "!video2!\" (
-    echo 错误：不支持文件夹："!video2!"
-    echo.
-    pause
-    exit /b 1
+    echo 错误：不支持文件夹："!video2!"，请重新输入
+    goto input_video2
 )
 if not exist "!video2!" (
-    echo 错误：文件不存在："!video2!"
-    echo.
-    pause
-    exit /b 1
+    echo 错误：文件不存在："!video2!"，请重新输入
+    goto input_video2
 )
+:video2_ok
 
 for %%i in ("!video1!") do (
     setlocal disabledelayedexpansion
