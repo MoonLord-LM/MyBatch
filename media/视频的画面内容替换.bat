@@ -60,7 +60,7 @@ setlocal enabledelayedexpansion
 :input_video1
 if "!video1!"=="" (
     echo.
-    echo 请输入要保留声音和元数据信息的视频文件路径
+    echo 请输入要保留声音和元数据信息的文件
     set /p "video1="
 )
 if "!video1!"=="" (
@@ -82,7 +82,7 @@ if not exist "!video1!" (
 :input_video2
 if "!video2!"=="" (
     echo.
-    echo 请输入提供画面内容的视频文件路径
+    echo 请输入提供画面内容的文件
     set /p "video2="
 )
 if "!video2!"=="" (
