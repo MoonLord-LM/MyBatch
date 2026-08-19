@@ -9,6 +9,7 @@ powershell -NoProfile -Command "Write-Host '删除文件名中重复的公共前
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '按格式对文件分组，依次对每种格式单独分析处理' -ForegroundColor Green"
 echo.
 
 
@@ -36,9 +37,15 @@ if "%~1" == "" (
 
     powershell -NoProfile -Command ^
      "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
-     "if ($files.Count -eq 0) { Write-Host '没有找到 jpg jpeg png webp bmp gif tif tiff heic heif avif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico 文件' -ForegroundColor Yellow; exit 0 };" ^
+     "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 };" ^
      "Write-Host ('找到 ' + $files.Count + ' 个文件');" ^
      "foreach ($g in ($files | Group-Object Extension)) {" ^
+     "    if ($g.Count -eq 1) {" ^
+     "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
+     "        Write-Host ('跳过: ' + $g.Group[0].Name + ' (单文件，无公共前后缀)');" ^
+     "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
+     "        continue;" ^
+     "    };" ^
      "    $names = @($g.Group | ForEach-Object { $_.BaseName });" ^
      "    $prefix = $names[0];" ^
      "    foreach ($n in $names) {" ^
@@ -54,7 +61,7 @@ if "%~1" == "" (
      "        if (-not $allMatch) { break };" ^
      "        $suffix = $ch + $suffix;" ^
      "    };" ^
-     "    Write-Host ('扩展名 ' + $g.Name + ': 公共前缀 \"' + $prefix + '\" 公共后缀 \"' + $suffix + '\"') -ForegroundColor Cyan;" ^
+     "    Write-Host ('扩展名 ' + $g.Name + ': 公共前缀 \"' + $prefix + '\" 公共后缀 \"' + $suffix + '\"');" ^
      "    $coreNames = @();" ^
      "    foreach ($f in $g.Group) {" ^
      "        $core = $f.BaseName;" ^
@@ -74,19 +81,19 @@ if "%~1" == "" (
      "        $newName = $core + $f.Extension;" ^
      "        if ($newName -eq $f.Name) {" ^
      "            Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
-     "            Write-Host ('跳过: ' + $f.Name + ' (无需更改)') -ForegroundColor Gray;" ^
+     "            Write-Host ('跳过: ' + $f.Name + ' (无需更改)');" ^
      "        } else {" ^
      "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
      "                Add-Content -LiteralPath $env:temp_set -Value 'set /a name_conflict+=1';" ^
-     "                Write-Host ('跳过: ' + $f.Name + ' -> ' + $newName + ' (目标已存在)') -ForegroundColor Yellow;" ^
+     "                Write-Host ('跳过: ' + $f.Name + ' -> ' + $newName + ' (目标已存在)');" ^
      "            } else {" ^
      "                try {" ^
      "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
      "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a succeeded+=1';" ^
-     "                    Write-Host ('重命名: ' + $f.Name + ' -> ' + $newName) -ForegroundColor Green;" ^
+     "                    Write-Host ('重命名: ' + $f.Name + ' -> ' + $newName);" ^
      "                } catch {" ^
      "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a rename_failed+=1';" ^
-     "                    Write-Host ('错误: 无法重命名 ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message) -ForegroundColor Red;" ^
+     "                    Write-Host ('错误: 无法重命名 ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message);" ^
      "                };" ^
      "            };" ^
      "        };" ^
@@ -94,6 +101,7 @@ if "%~1" == "" (
      "    };" ^
      "}" ^
      "Write-Host '处理完成！';"
+    echo.
 
     REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
@@ -130,9 +138,15 @@ if "%~1" == "" (
 
         powershell -NoProfile -Command ^
          "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
-         "if ($files.Count -eq 0) { Write-Host '没有找到 jpg jpeg png webp bmp gif tif tiff heic heif avif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico 文件' -ForegroundColor Yellow; exit 0 };" ^
+         "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 };" ^
          "Write-Host ('找到 ' + $files.Count + ' 个文件');" ^
          "foreach ($g in ($files | Group-Object Extension)) {" ^
+         "    if ($g.Count -eq 1) {" ^
+         "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
+         "        Write-Host ('跳过: ' + $g.Group[0].Name + ' (单文件，无公共前后缀)');" ^
+         "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
+         "        continue;" ^
+         "    };" ^
          "    $names = @($g.Group | ForEach-Object { $_.BaseName });" ^
          "    $prefix = $names[0];" ^
          "    foreach ($n in $names) {" ^
@@ -148,7 +162,7 @@ if "%~1" == "" (
          "        if (-not $allMatch) { break };" ^
          "        $suffix = $ch + $suffix;" ^
          "    };" ^
-         "    Write-Host ('扩展名 ' + $g.Name + ': 公共前缀 \"' + $prefix + '\" 公共后缀 \"' + $suffix + '\"') -ForegroundColor Cyan;" ^
+         "    Write-Host ('扩展名 ' + $g.Name + ': 公共前缀 \"' + $prefix + '\" 公共后缀 \"' + $suffix + '\"');" ^
          "    $coreNames = @();" ^
          "    foreach ($f in $g.Group) {" ^
          "        $core = $f.BaseName;" ^
@@ -168,19 +182,19 @@ if "%~1" == "" (
          "        $newName = $core + $f.Extension;" ^
          "        if ($newName -eq $f.Name) {" ^
          "            Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
-         "            Write-Host ('跳过: ' + $f.Name + ' (无需更改)') -ForegroundColor Gray;" ^
+         "            Write-Host ('跳过: ' + $f.Name + ' (无需更改)');" ^
          "        } else {" ^
          "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
          "                Add-Content -LiteralPath $env:temp_set -Value 'set /a name_conflict+=1';" ^
-         "                Write-Host ('跳过: ' + $f.Name + ' -> ' + $newName + ' (目标已存在)') -ForegroundColor Yellow;" ^
+         "                Write-Host ('跳过: ' + $f.Name + ' -> ' + $newName + ' (目标已存在)');" ^
          "            } else {" ^
          "                try {" ^
          "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
          "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a succeeded+=1';" ^
-         "                    Write-Host ('重命名: ' + $f.Name + ' -> ' + $newName) -ForegroundColor Green;" ^
+         "                    Write-Host ('重命名: ' + $f.Name + ' -> ' + $newName);" ^
          "                } catch {" ^
          "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a rename_failed+=1';" ^
-         "                    Write-Host ('错误: 无法重命名 ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message) -ForegroundColor Red;" ^
+         "                    Write-Host ('错误: 无法重命名 ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message);" ^
          "                };" ^
          "            };" ^
          "        };" ^
@@ -188,6 +202,7 @@ if "%~1" == "" (
          "    };" ^
          "}" ^
          "Write-Host '处理完成！';"
+        echo.
 
         REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
