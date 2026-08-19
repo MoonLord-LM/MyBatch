@@ -19,6 +19,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "%~dp0"
 )
 
+REM 优先使用脚本所在文件夹中的 ffmpeg 和 ffprobe 组件
 set "ffmpeg_path=ffmpeg"
 if exist "%~dp0ffmpeg.exe" (
     set "ffmpeg_path=%~dp0ffmpeg.exe"
