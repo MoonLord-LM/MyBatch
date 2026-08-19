@@ -9,7 +9,7 @@ powershell -NoProfile -Command "Write-Host '删除文件名中重复的公共前
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '按格式对文件分组，依次对每种格式单独分析处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '按格式对文件分组，每种格式依次单独分析处理' -ForegroundColor Green"
 echo.
 
 
