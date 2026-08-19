@@ -38,7 +38,7 @@ if "%~1" == "" (
     powershell -NoProfile -Command ^
      "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
      "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 };" ^
-     "Write-Host ('找到 ' + $files.Count + ' 个文件');" ^
+     "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
      "foreach ($g in ($files | Group-Object Extension)) {" ^
      "    if ($g.Count -eq 1) {" ^
      "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
@@ -61,7 +61,7 @@ if "%~1" == "" (
      "        if (-not $allMatch) { break };" ^
      "        $suffix = $ch + $suffix;" ^
      "    };" ^
-     "    Write-Host ('扩展名 ' + $g.Name + ': 公共前缀 \"' + $prefix + '\" 公共后缀 \"' + $suffix + '\"');" ^
+     "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
      "    $coreNames = @();" ^
      "    foreach ($f in $g.Group) {" ^
      "        $core = $f.BaseName;" ^
@@ -90,10 +90,10 @@ if "%~1" == "" (
      "                try {" ^
      "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
      "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a succeeded+=1';" ^
-     "                    Write-Host ('重命名: ' + $f.Name + ' -> ' + $newName);" ^
+     "                    Write-Host ('重命名成功: ' + $f.Name + ' -> ' + $newName);" ^
      "                } catch {" ^
      "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a rename_failed+=1';" ^
-     "                    Write-Host ('错误: 无法重命名 ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message);" ^
+     "                    Write-Host ('重命名失败: ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message);" ^
      "                };" ^
      "            };" ^
      "        };" ^
@@ -139,7 +139,7 @@ if "%~1" == "" (
         powershell -NoProfile -Command ^
          "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
          "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 };" ^
-         "Write-Host ('找到 ' + $files.Count + ' 个文件');" ^
+         "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
          "foreach ($g in ($files | Group-Object Extension)) {" ^
          "    if ($g.Count -eq 1) {" ^
          "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
@@ -162,7 +162,7 @@ if "%~1" == "" (
          "        if (-not $allMatch) { break };" ^
          "        $suffix = $ch + $suffix;" ^
          "    };" ^
-         "    Write-Host ('扩展名 ' + $g.Name + ': 公共前缀 \"' + $prefix + '\" 公共后缀 \"' + $suffix + '\"');" ^
+         "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
          "    $coreNames = @();" ^
          "    foreach ($f in $g.Group) {" ^
          "        $core = $f.BaseName;" ^
@@ -191,10 +191,10 @@ if "%~1" == "" (
          "                try {" ^
          "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
          "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a succeeded+=1';" ^
-         "                    Write-Host ('重命名: ' + $f.Name + ' -> ' + $newName);" ^
+         "                    Write-Host ('重命名成功: ' + $f.Name + ' -> ' + $newName);" ^
          "                } catch {" ^
          "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a rename_failed+=1';" ^
-         "                    Write-Host ('错误: 无法重命名 ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message);" ^
+         "                    Write-Host ('重命名失败: ' + $f.Name + ' -> ' + $newName + ': ' + $_.Exception.Message);" ^
          "                };" ^
          "            };" ^
          "        };" ^
