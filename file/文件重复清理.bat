@@ -70,7 +70,7 @@ echo.
 
 set /a "total=0"
 set /a "deleted=0"
-set /a "skipped=0"
+set /a "failed=0"
 
 for /f "delims=" %%f in ('dir /b /s /a-d "!path1!\*.*" 2^>nul') do (
     set /a "total+=1"
@@ -87,9 +87,11 @@ for /f "delims=" %%f in ('dir /b /s /a-d "!path1!\*.*" 2^>nul') do (
                     powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     if exist "%%f" (
                         echo 删除失败："%%f"
-                        set /a "skipped+=1"
+                        echo 与之内容一致的文件："%%g"
+                        set /a "failed+=1"
                     ) else (
-                        echo 内容相同，已删除到回收站："%%f"
+                        echo 内容一致，已删除到回收站："%%f"
+                        echo 与之内容一致的文件："%%g"
                         set /a "deleted+=1"
                     )
                 )
@@ -100,7 +102,7 @@ for /f "delims=" %%f in ('dir /b /s /a-d "!path1!\*.*" 2^>nul') do (
 
 echo.
 echo 处理完成
-echo 共计：!total! 个文件，删除：!deleted! 个，跳过：!skipped! 个
+echo 共计：!total! 个文件，删除成功：!deleted! 个，删除失败：!failed! 个
 
 
 
