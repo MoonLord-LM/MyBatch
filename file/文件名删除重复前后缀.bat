@@ -30,7 +30,7 @@ if "%~1" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "already_ok=0"
+    set /a "skipped=0"
     set /a "name_conflict=0"
     set /a "rename_failed=0"
     set "file_path=!cd!"
@@ -41,7 +41,7 @@ if "%~1" == "" (
      "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
      "foreach ($g in ($files | Group-Object Extension)) {" ^
      "    if ($g.Count -eq 1) {" ^
-     "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
+     "        Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
      "        Write-Host ('跳过，单文件，无公共前后缀：\"' + $g.Group[0].Name + '\"');" ^
      "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
      "        continue;" ^
@@ -60,6 +60,12 @@ if "%~1" == "" (
      "        foreach ($n in $names) { if ($n[$n.Length - $i] -ne $ch) { $allMatch = $false; break } };" ^
      "        if (-not $allMatch) { break };" ^
      "        $suffix = $ch + $suffix;" ^
+     "    };" ^
+     "    if ($prefix.Length -eq 0 -and $suffix.Length -eq 0) {" ^
+     "        Write-Host ('跳过，无公共前后缀：\"' + $g.Name + '\"，共 ' + $g.Count + ' 个文件');" ^
+     "        Add-Content -LiteralPath $env:temp_set -Value ('set /a skipped+=' + $g.Count);" ^
+     "        Add-Content -LiteralPath $env:temp_set -Value ('set /a total+=' + $g.Count);" ^
+     "        continue;" ^
      "    };" ^
      "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
      "    $coreNames = @();" ^
@@ -80,7 +86,7 @@ if "%~1" == "" (
      "        if ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') };" ^
      "        $newName = $core + $f.Extension;" ^
      "        if ($newName -eq $f.Name) {" ^
-     "            Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
+     "            Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
      "            Write-Host ('跳过，无需更改：\"' + $f.Name + '\"');" ^
      "        } else {" ^
      "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
@@ -106,10 +112,9 @@ if "%~1" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    set /a "ok_total=succeeded+already_ok"
     set /a "fail_total=name_conflict+rename_failed"
-    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个
+    echo 共计：!total! 个，成功：!succeeded! 个，失败：!fail_total! 个，跳过：!skipped! 个 & REM
+    echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，跳过 !skipped! 个
 ) else (
     setlocal disabledelayedexpansion
     set "file_path=%~1"
@@ -132,7 +137,7 @@ if "%~1" == "" (
 
         set /a "total=0"
         set /a "succeeded=0"
-        set /a "already_ok=0"
+        set /a "skipped=0"
         set /a "name_conflict=0"
         set /a "rename_failed=0"
 
@@ -142,7 +147,7 @@ if "%~1" == "" (
          "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
          "foreach ($g in ($files | Group-Object Extension)) {" ^
          "    if ($g.Count -eq 1) {" ^
-         "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
+         "        Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
          "        Write-Host ('跳过，单文件，无公共前后缀：\"' + $g.Group[0].Name + '\"');" ^
          "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
          "        continue;" ^
@@ -161,6 +166,12 @@ if "%~1" == "" (
          "        foreach ($n in $names) { if ($n[$n.Length - $i] -ne $ch) { $allMatch = $false; break } };" ^
          "        if (-not $allMatch) { break };" ^
          "        $suffix = $ch + $suffix;" ^
+         "    };" ^
+         "    if ($prefix.Length -eq 0 -and $suffix.Length -eq 0) {" ^
+         "        Write-Host ('跳过，无公共前后缀：\"' + $g.Name + '\"，共 ' + $g.Count + ' 个文件');" ^
+         "        Add-Content -LiteralPath $env:temp_set -Value ('set /a skipped+=' + $g.Count);" ^
+         "        Add-Content -LiteralPath $env:temp_set -Value ('set /a total+=' + $g.Count);" ^
+         "        continue;" ^
          "    };" ^
          "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
          "    $coreNames = @();" ^
@@ -181,7 +192,7 @@ if "%~1" == "" (
          "        if ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') };" ^
          "        $newName = $core + $f.Extension;" ^
          "        if ($newName -eq $f.Name) {" ^
-         "            Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
+         "            Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
          "            Write-Host ('跳过，无需更改：\"' + $f.Name + '\"');" ^
          "        } else {" ^
          "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
@@ -207,10 +218,9 @@ if "%~1" == "" (
         call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
         echo 批量处理完成
-        set /a "ok_total=succeeded+already_ok"
         set /a "fail_total=name_conflict+rename_failed"
-        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个
+        echo 共计：!total! 个，成功：!succeeded! 个，失败：!fail_total! 个，跳过：!skipped! 个 & REM
+        echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，跳过 !skipped! 个
     ) else (
         echo 错误：不支持拖入单个文件，请拖入文件夹或双击运行
         echo.
