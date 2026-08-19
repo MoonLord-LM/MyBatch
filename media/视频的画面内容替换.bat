@@ -52,8 +52,10 @@ if !errorlevel! neq 0 (
 
 
 
+setlocal disabledelayedexpansion
 set "video1=%~1"
 set "video2=%~2"
+setlocal enabledelayedexpansion
 
 if "!video1!"=="" (
     echo.
@@ -94,9 +96,11 @@ if not exist "!video2!" (
 )
 
 for %%i in ("!video1!") do (
+    setlocal disabledelayedexpansion
     set "file_dir=%%~dpi"
     set "base_name=%%~ni"
     set "file_ext=%%~xi"
+    setlocal enabledelayedexpansion
 )
 set "temp_file=!file_dir!!base_name!_temp!file_ext!"
 set "output_file=!file_dir!!base_name!_画面替换!file_ext!"
@@ -109,7 +113,7 @@ echo 替换画面来自："!video2!"
 if !errorlevel! neq 0 (
     if exist "!temp_file!" ( del /f /q "!temp_file!" )
     echo.
-    echo 错误：画面替换失败，请检查上方 ffmpeg 输出
+    echo 画面替换失败
 ) else (
     move /y "!temp_file!" "!output_file!" >nul
     echo.
