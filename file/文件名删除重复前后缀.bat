@@ -42,7 +42,7 @@ if "%~1" == "" (
      "foreach ($g in ($files | Group-Object Extension)) {" ^
      "    if ($g.Count -eq 1) {" ^
      "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
-     "        Write-Host ('跳过: ' + $g.Group[0].Name + ' (单文件，无公共前后缀)');" ^
+     "        Write-Host ('跳过，单文件，无公共前后缀：' + $g.Group[0].Name);" ^
      "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
      "        continue;" ^
      "    };" ^
@@ -81,11 +81,11 @@ if "%~1" == "" (
      "        $newName = $core + $f.Extension;" ^
      "        if ($newName -eq $f.Name) {" ^
      "            Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
-     "            Write-Host ('跳过: ' + $f.Name + ' (无需更改)');" ^
+     "            Write-Host ('跳过，无需更改：' + $f.Name);" ^
      "        } else {" ^
      "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
      "                Add-Content -LiteralPath $env:temp_set -Value 'set /a name_conflict+=1';" ^
-     "                Write-Host ('跳过: ' + $f.Name + ' -> ' + $newName + ' (目标已存在)');" ^
+     "                Write-Host ('跳过，目标已存在：' + $f.Name + ' -> ' + $newName);" ^
      "            } else {" ^
      "                try {" ^
      "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
@@ -142,7 +142,7 @@ if "%~1" == "" (
          "foreach ($g in ($files | Group-Object Extension)) {" ^
          "    if ($g.Count -eq 1) {" ^
          "        Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
-         "        Write-Host ('跳过: ' + $g.Group[0].Name + ' (单文件，无公共前后缀)');" ^
+         "        Write-Host ('跳过，单文件，无公共前后缀：' + $g.Group[0].Name);" ^
          "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
          "        continue;" ^
          "    };" ^
@@ -181,11 +181,11 @@ if "%~1" == "" (
          "        $newName = $core + $f.Extension;" ^
          "        if ($newName -eq $f.Name) {" ^
          "            Add-Content -LiteralPath $env:temp_set -Value 'set /a already_ok+=1';" ^
-         "            Write-Host ('跳过: ' + $f.Name + ' (无需更改)');" ^
+         "            Write-Host ('跳过，无需更改：' + $f.Name);" ^
          "        } else {" ^
          "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
          "                Add-Content -LiteralPath $env:temp_set -Value 'set /a name_conflict+=1';" ^
-         "                Write-Host ('跳过: ' + $f.Name + ' -> ' + $newName + ' (目标已存在)');" ^
+         "                Write-Host ('跳过，目标已存在：' + $f.Name + ' -> ' + $newName);" ^
          "            } else {" ^
          "                try {" ^
          "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
