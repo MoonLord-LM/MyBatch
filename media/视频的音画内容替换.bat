@@ -57,46 +57,49 @@ set "video1=%~1"
 set "video2=%~2"
 setlocal enabledelayedexpansion
 
-if not "!video1!"=="" goto video1_check
 :input_video1
-echo.
-echo 请输入要保留元数据信息的视频文件路径，可以将文件拖拽到窗口内
-set /p "video1="
+if "!video1!"=="" (
+    echo.
+    echo 请输入要保留元数据信息的视频文件路径，可以将文件拖拽到窗口内
+    set /p "video1="
+)
 if "!video1!"=="" (
     echo 输入不能为空，请重新输入
     goto input_video1
 )
 set "video1=!video1:"=!"
-:video1_check
 if exist "!video1!\" (
-    echo 错误：不支持文件夹："!video1!"，请重新输入
+    echo 不支持文件夹 "!video1!"，请重新输入
+    set "video1="
     goto input_video1
 )
 if not exist "!video1!" (
-    echo 错误：文件不存在："!video1!"，请重新输入
+    echo 文件不存在 "!video1!"，请重新输入
+    set "video1="
     goto input_video1
 )
-:video1_ok
-if not "!video2!"=="" goto video2_check
+
 :input_video2
-echo.
-echo 请输入提供画面和声音内容的视频文件路径，可以将文件拖拽到窗口内
-set /p "video2="
+if "!video2!"=="" (
+    echo.
+    echo 请输入提供画面和声音内容的视频文件路径，可以将文件拖拽到窗口内
+    set /p "video2="
+)
 if "!video2!"=="" (
     echo 输入不能为空，请重新输入
     goto input_video2
 )
 set "video2=!video2:"=!"
-:video2_check
 if exist "!video2!\" (
-    echo 错误：不支持文件夹："!video2!"，请重新输入
+    echo 不支持文件夹 "!video2!"，请重新输入
+    set "video2="
     goto input_video2
 )
 if not exist "!video2!" (
-    echo 错误：文件不存在："!video2!"，请重新输入
+    echo 文件不存在 "!video2!"，请重新输入
+    set "video2="
     goto input_video2
 )
-:video2_ok
 
 for %%i in ("!video1!") do (
     setlocal disabledelayedexpansion
@@ -105,14 +108,14 @@ for %%i in ("!video1!") do (
     set "file_ext=%%~xi"
     setlocal enabledelayedexpansion
 )
+
 set "temp_file=!file_dir!!base_name!_temp!file_ext!"
 set "output_file=!file_dir!!base_name!_音画替换!file_ext!"
 
 echo.
-echo 正在处理："!video1!"
-echo 替换画面和声音来自："!video2!"
+echo 正在处理："!video1!"，替换画面和声音来自："!video2!"
 
-"!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:v:0 -map 1:a? -map_metadata 0 -map_chapters 0 -c copy "!temp_file!"
+"!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:v -map 1:a -map_metadata 0 -c copy "!temp_file!"
 if !errorlevel! neq 0 (
     if exist "!temp_file!" ( del /f /q "!temp_file!" )
     echo.
