@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -22,7 +22,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -108,7 +108,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
     set /a "fail_total=name_conflict+rename_failed"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
     echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -116,14 +116,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!file_path!" (
-        echo 错误: 路径不存在: "!file_path!"
+        echo 错误：路径不存在："!file_path!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!file_path!\" (
-        echo 开始处理文件夹: "!file_path!"
+        echo 开始处理文件夹："!file_path!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -208,10 +208,10 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
         set /a "fail_total=name_conflict+rename_failed"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
         echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个
     ) else (
-        echo 错误: 不支持拖入单个文件，请拖入文件夹或双击运行
+        echo 错误：不支持拖入单个文件，请拖入文件夹或双击运行
         echo.
         pause
         exit /b 1

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -26,7 +26,7 @@ if exist "%~dp0ffmpeg.exe" (
 )
 !ffmpeg_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffmpeg 组件
+    echo 错误：缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -37,7 +37,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -57,13 +57,13 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!video_file!"
+        echo 正在处理："!video_file!"
         set "output_file=!file_dir!!base_name!_2x!file_ext!"
         if exist "!output_file!" (
             echo set /a "output_exist+=1">> "!temp_set!"
-            echo 已存在: "!output_file!"，跳过
+            echo 已存在："!output_file!"，跳过
         ) else (
-            echo 正在扩大为: "!output_file!"
+            echo 正在扩大为："!output_file!"
             "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "resize_failed+=1">> "!temp_set!"
@@ -87,7 +87,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded"
     set /a "fail_total=resize_failed+output_exist"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
     echo 其中，扩大成功 !succeeded! 个，扩大失败 !resize_failed! 个，输出文件已存在 !output_exist! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -98,14 +98,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!video_file!" (
-        echo 错误: 文件不存在: "!video_file!"
+        echo 错误：文件不存在："!video_file!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!video_file!\" (
-        echo 开始处理文件夹: "!video_file!"
+        echo 开始处理文件夹："!video_file!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -125,13 +125,13 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!video_file!"
+            echo 正在处理："!video_file!"
             set "output_file=!file_dir!!base_name!_2x!file_ext!"
             if exist "!output_file!" (
                 echo set /a "output_exist+=1">> "!temp_set!"
-                echo 已存在: "!output_file!"，跳过
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo 正在扩大为: "!output_file!"
+                echo 正在扩大为："!output_file!"
                 "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "resize_failed+=1">> "!temp_set!"
@@ -155,16 +155,16 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded"
         set /a "fail_total=resize_failed+output_exist"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
         echo 其中，扩大成功 !succeeded! 个，扩大失败 !resize_failed! 个，输出文件已存在 !output_exist! 个
     ) else (
-        echo 开始处理文件: "!video_file!"
+        echo 开始处理文件："!video_file!"
 
         set "output_file=!file_dir!!base_name!_2x!file_ext!"
         if exist "!output_file!" (
-            echo 已存在: "!output_file!"，跳过
+            echo 已存在："!output_file!"，跳过
         ) else (
-            echo 正在扩大为: "!output_file!"
+            echo 正在扩大为："!output_file!"
             "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )

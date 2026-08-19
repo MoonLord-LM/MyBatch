@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -27,7 +27,7 @@ REM 检查结果记录到脚本所在文件夹
 set "log_file=%~dp0%~n0.log"
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -49,7 +49,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!img_file!"
+        echo 正在处理："!img_file!"
 
         REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
         set "formatted_time="
@@ -64,7 +64,7 @@ if "%~1" == "" (
             echo set /a "no_time+=1">> "!temp_set!"
             echo 文件名中的时间无效，跳过此文件
         ) else (
-            echo 图片文件名中的时间: "!formatted_time!"
+            echo 图片文件名中的时间："!formatted_time!"
             set "check_result="
             for /f "delims=" %%r in ('powershell -NoProfile -Command "$f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
                 set "check_result=%%r"
@@ -93,9 +93,9 @@ if "%~1" == "" (
 
     echo 批量检查完成
     if not "!mismatch!"=="0" (
-        echo 差异明细已写入: "!log_file!"
+        echo 差异明细已写入："!log_file!"
     )
-    echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
+    echo 共计：!total! 个，一致：!already_ok! 个，不一致：!mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -105,14 +105,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!img_file!" (
-        echo 错误: 文件不存在: "!img_file!"
+        echo 错误：文件不存在："!img_file!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!img_file!\" (
-        echo 开始处理文件夹: "!img_file!"
+        echo 开始处理文件夹："!img_file!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -134,7 +134,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!img_file!"
+            echo 正在处理："!img_file!"
 
             REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
             set "formatted_time="
@@ -149,7 +149,7 @@ if "%~1" == "" (
                 echo set /a "no_time+=1">> "!temp_set!"
                 echo 文件名中的时间无效，跳过此文件
             ) else (
-                echo 图片文件名中的时间: "!formatted_time!"
+                echo 图片文件名中的时间："!formatted_time!"
                 set "check_result="
                 for /f "delims=" %%r in ('powershell -NoProfile -Command "$f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
                     set "check_result=%%r"
@@ -178,19 +178,19 @@ if "%~1" == "" (
 
         echo 批量检查完成
         if not "!mismatch!"=="0" (
-            echo 差异明细已写入: "!log_file!"
+            echo 差异明细已写入："!log_file!"
         )
-        echo 共计: !total! 个，一致: !already_ok! 个，不一致: !mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
+        echo 共计：!total! 个，一致：!already_ok! 个，不一致：!mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
     ) else (
         set "ext_ok="
         for /f "delims=" %%e in ('powershell -NoProfile -Command "if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
         if not "!ext_ok!"=="ok" (
-            echo 错误: 不支持的图片格式: "!img_file!"
+            echo 错误：不支持的图片格式："!img_file!"
             echo.
             pause
             exit /b 1
         )
-        echo 开始处理文件: "!img_file!"
+        echo 开始处理文件："!img_file!"
 
         REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
         set "formatted_time="
@@ -203,7 +203,7 @@ if "%~1" == "" (
         ) else if "!formatted_time!"=="NO_TIME" (
             echo 文件名中的时间无效，跳过此文件
         ) else (
-            echo 图片文件名中的时间: "!formatted_time!"
+            echo 图片文件名中的时间："!formatted_time!"
             set "check_result="
             for /f "delims=" %%r in ('powershell -NoProfile -Command "$f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
                 set "check_result=%%r"
@@ -212,7 +212,7 @@ if "%~1" == "" (
             if "!check_result!"=="ALREADY" (
                 echo 修改时间与文件名时间一致
             ) else if "!check_result!"=="DIFF" (
-                echo 发现差异，已记录到日志: "!log_file!"
+                echo 发现差异，已记录到日志："!log_file!"
             ) else (
                 echo 检查失败
             )

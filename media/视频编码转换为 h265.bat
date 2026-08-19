@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -26,7 +26,7 @@ if exist "%~dp0ffmpeg.exe" (
 )
 !ffmpeg_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffmpeg 组件
+    echo 错误：缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -41,7 +41,7 @@ if exist "%~dp0ffprobe.exe" (
 )
 !ffprobe_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffprobe 组件
+    echo 错误：缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -52,7 +52,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -72,7 +72,7 @@ if "%~1" == "" (
         set "base_name=%%~nf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!video_file!"
+        echo 正在处理："!video_file!"
 
         set "is_h265=0"
         for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
@@ -88,9 +88,9 @@ if "%~1" == "" (
             set "output_file=!file_dir!!base_name!_h265.mp4"
             if exist "!output_file!" (
                 echo set /a "output_exist+=1">> "!temp_set!"
-                echo 已存在: "!output_file!"，跳过
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo 正在转换为: "!output_file!"
+                echo 正在转换为："!output_file!"
 
                 REM 检测音频编码格式
                 for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
@@ -105,7 +105,7 @@ if "%~1" == "" (
                 )
 
                 if "!need_convert!"=="1" (
-                    echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
+                    echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
                     "!ffmpeg_path!" -i "!video_file!" -c:v libx265 -crf 22 -preset slower -c:a flac -compression_level 8 "!output_file!"
                     if !errorlevel! neq 0 (
                         echo set /a "convert_failed+=1">> "!temp_set!"
@@ -141,7 +141,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded+already_codec"
     set /a "fail_total=convert_failed+output_exist"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
     echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -151,14 +151,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!video_file!" (
-        echo 错误: 文件不存在: "!video_file!"
+        echo 错误：文件不存在："!video_file!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!video_file!\" (
-        echo 开始处理文件夹: "!video_file!"
+        echo 开始处理文件夹："!video_file!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -178,7 +178,7 @@ if "%~1" == "" (
             set "base_name=%%~nf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!video_file!"
+            echo 正在处理："!video_file!"
 
             set "is_h265=0"
             for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
@@ -194,9 +194,9 @@ if "%~1" == "" (
                 set "output_file=!file_dir!!base_name!_h265.mp4"
                 if exist "!output_file!" (
                     echo set /a "output_exist+=1">> "!temp_set!"
-                    echo 已存在: "!output_file!"，跳过
+                    echo 已存在："!output_file!"，跳过
                 ) else (
-                    echo 正在转换为: "!output_file!"
+                    echo 正在转换为："!output_file!"
 
                     REM 检测音频编码格式
                     for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
@@ -211,7 +211,7 @@ if "%~1" == "" (
                     )
 
                     if "!need_convert!"=="1" (
-                        echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
+                        echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
                         "!ffmpeg_path!" -i "!video_file!" -c:v libx265 -crf 22 -preset slower -c:a flac -compression_level 8 "!output_file!"
                         if !errorlevel! neq 0 (
                             echo set /a "convert_failed+=1">> "!temp_set!"
@@ -247,10 +247,10 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded+already_codec"
         set /a "fail_total=convert_failed+output_exist"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
         echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
     ) else (
-        echo 开始处理文件: "!video_file!"
+        echo 开始处理文件："!video_file!"
 
         set "is_h265=0"
         for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
@@ -264,9 +264,9 @@ if "%~1" == "" (
         ) else (
             set "output_file=!file_dir!!base_name!_h265.mp4"
             if exist "!output_file!" (
-                echo 已存在: "!output_file!"，跳过
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo 正在转换为: "!output_file!"
+                echo 正在转换为："!output_file!"
 
                 REM 检测音频编码格式
                 for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
@@ -281,7 +281,7 @@ if "%~1" == "" (
                 )
 
                 if "!need_convert!"=="1" (
-                    echo 检测到不支持的音频编码: !audio_codec!，正在转换为 FLAC 格式...
+                    echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
                     "!ffmpeg_path!" -i "!video_file!" -c:v libx265 -crf 22 -preset slower -c:a flac -compression_level 8 "!output_file!"
                     if !errorlevel! neq 0 (
                         if exist "!output_file!" ( del /f /q "!output_file!" )

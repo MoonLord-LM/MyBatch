@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -26,7 +26,7 @@ if exist "%~dp0ffprobe.exe" (
 )
 !ffprobe_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffprobe 组件
+    echo 错误：缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -37,7 +37,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -56,11 +56,11 @@ if "%~1" == "" (
         set "base_name=%%~nf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!video_file!"
+        echo 正在处理："!video_file!"
         set "json_file=!file_dir!!base_name!.json"
         if exist "!json_file!" (
             echo set /a "json_exist+=1">> "!temp_set!"
-            echo 已存在: "!json_file!"，跳过此文件
+            echo 已存在："!json_file!"，跳过此文件
         ) else (
             "!ffprobe_path!" -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
             if !errorlevel! neq 0 (
@@ -69,7 +69,7 @@ if "%~1" == "" (
                 echo 视频解析报错
             ) else (
                 echo set /a "succeeded+=1">> "!temp_set!"
-                echo 保存文件: "!json_file!"
+                echo 保存文件："!json_file!"
             )
         )
         echo set /a "total+=1">> "!temp_set!"
@@ -85,7 +85,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded"
     set /a "fail_total=json_exist+parse_failed"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
     echo 其中，导出成功 !succeeded! 个，解析报错 !parse_failed! 个，json 文件已存在 !json_exist! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -95,14 +95,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!video_file!" (
-        echo 错误: 文件不存在: "!video_file!"
+        echo 错误：文件不存在："!video_file!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!video_file!\" (
-        echo 开始处理文件夹: "!video_file!"
+        echo 开始处理文件夹："!video_file!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -121,11 +121,11 @@ if "%~1" == "" (
             set "base_name=%%~nf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!video_file!"
+            echo 正在处理："!video_file!"
             set "json_file=!file_dir!!base_name!.json"
             if exist "!json_file!" (
                 echo set /a "json_exist+=1">> "!temp_set!"
-                echo 已存在: "!json_file!"，跳过此文件
+                echo 已存在："!json_file!"，跳过此文件
             ) else (
                 "!ffprobe_path!" -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
                 if !errorlevel! neq 0 (
@@ -134,7 +134,7 @@ if "%~1" == "" (
                     echo 视频解析报错
                 ) else (
                     echo set /a "succeeded+=1">> "!temp_set!"
-                    echo 保存文件: "!json_file!"
+                    echo 保存文件："!json_file!"
                 )
             )
             echo set /a "total+=1">> "!temp_set!"
@@ -150,21 +150,21 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded"
         set /a "fail_total=json_exist+parse_failed"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
         echo 其中，导出成功 !succeeded! 个，解析报错 !parse_failed! 个，json 文件已存在 !json_exist! 个
     ) else (
-        echo 开始处理文件: "!video_file!"
+        echo 开始处理文件："!video_file!"
 
         set "json_file=!file_dir!!base_name!.json"
         if exist "!json_file!" (
-            echo 已存在: "!json_file!"，跳过此文件
+            echo 已存在："!json_file!"，跳过此文件
         ) else (
             "!ffprobe_path!" -v error -show_streams -show_format -print_format json "!video_file!" > "!json_file!"
             if !errorlevel! neq 0 (
                 if exist "!json_file!" ( del /f /q "!json_file!" )
                 echo 视频解析报错
             ) else (
-                echo 保存文件: "!json_file!"
+                echo 保存文件："!json_file!"
             )
         )
     )

@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -27,7 +27,7 @@ if exist "%~dp0ffmpeg.exe" (
 )
 !ffmpeg_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffmpeg 组件
+    echo 错误：缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -42,7 +42,7 @@ if exist "%~dp0ffprobe.exe" (
 )
 !ffprobe_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffprobe 组件
+    echo 错误：缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -53,7 +53,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -73,7 +73,7 @@ if "%~1" == "" (
         set "base_name=%%~nf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!video_file!"
+        echo 正在处理："!video_file!"
         set "audio_codec="
         for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "audio_codec=%%a"
@@ -109,7 +109,7 @@ if "%~1" == "" (
             set "audio_file=!file_dir!!base_name!.!audio_ext!"
             if exist "!audio_file!" (
                 echo set /a "audio_exist+=1">> "!temp_set!"
-                echo 已存在: "!audio_file!"，跳过此文件
+                echo 已存在："!audio_file!"，跳过此文件
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -vn !audio_enc! "!audio_file!"
                 if !errorlevel! neq 0 (
@@ -118,7 +118,7 @@ if "%~1" == "" (
                     echo 导出失败
                 ) else (
                     echo set /a "succeeded+=1">> "!temp_set!"
-                    echo 保存文件: "!audio_file!"
+                    echo 保存文件："!audio_file!"
                 )
             )
         )
@@ -135,7 +135,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded"
     set /a "fail_total=audio_exist+export_failed+no_audio"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
     echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，无音频 !no_audio! 个，音频文件已存在 !audio_exist! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -145,14 +145,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!video_file!" (
-        echo 错误: 文件不存在: "!video_file!"
+        echo 错误：文件不存在："!video_file!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!video_file!\" (
-        echo 开始处理文件夹: "!video_file!"
+        echo 开始处理文件夹："!video_file!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -172,7 +172,7 @@ if "%~1" == "" (
             set "base_name=%%~nf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!video_file!"
+            echo 正在处理："!video_file!"
             set "audio_codec="
             for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "audio_codec=%%a"
@@ -206,7 +206,7 @@ if "%~1" == "" (
                 set "audio_file=!file_dir!!base_name!.!audio_ext!"
                 if exist "!audio_file!" (
                     echo set /a "audio_exist+=1">> "!temp_set!"
-                    echo 已存在: "!audio_file!"，跳过此文件
+                    echo 已存在："!audio_file!"，跳过此文件
                 ) else (
                     "!ffmpeg_path!" -i "!video_file!" -vn !audio_enc! "!audio_file!"
                     if !errorlevel! neq 0 (
@@ -215,7 +215,7 @@ if "%~1" == "" (
                         echo 导出失败
                     ) else (
                         echo set /a "succeeded+=1">> "!temp_set!"
-                        echo 保存文件: "!audio_file!"
+                        echo 保存文件："!audio_file!"
                     )
                 )
             )
@@ -232,10 +232,10 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded"
         set /a "fail_total=audio_exist+export_failed+no_audio"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
         echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，无音频 !no_audio! 个，音频文件已存在 !audio_exist! 个
     ) else (
-        echo 开始处理文件: "!video_file!"
+        echo 开始处理文件："!video_file!"
 
         set "audio_codec="
         for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
@@ -268,14 +268,14 @@ if "%~1" == "" (
 
             set "audio_file=!file_dir!!base_name!.!audio_ext!"
             if exist "!audio_file!" (
-                echo 已存在: "!audio_file!"，跳过此文件
+                echo 已存在："!audio_file!"，跳过此文件
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -vn !audio_enc! "!audio_file!"
                 if !errorlevel! neq 0 (
                     if exist "!audio_file!" ( del /f /q "!audio_file!" )
                     echo 导出失败
                 ) else (
-                    echo 保存文件: "!audio_file!"
+                    echo 保存文件："!audio_file!"
                 )
             )
         )

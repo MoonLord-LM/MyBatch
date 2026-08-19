@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -21,7 +21,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -43,7 +43,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!file_path!"
+        echo 正在处理："!file_path!"
 
         REM 跳过不处理的后缀：7z zip rar tar bat exe dll ini lnk
         set "is_skip_ext="
@@ -68,7 +68,7 @@ if "%~1" == "" (
                 echo 系统文件，跳过此文件
             ) else (
                 set "new_name=!base_name!!file_ext!.7z"
-                echo 目标文件名: "!new_name!"
+                echo 目标文件名："!new_name!"
                 if exist "!file_dir!!new_name!" (
                     echo set /a "name_conflict+=1">> "!temp_set!"
                     echo 目标文件已存在，跳过此文件
@@ -98,7 +98,7 @@ if "%~1" == "" (
     set /a "ok_total=succeeded"
     set /a "fail_total=name_conflict+rename_failed"
     set /a "skip_total=ext_skip+hidden_skip+system_skip"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & REM
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个，跳过：!skip_total! 个 & REM
     echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，后缀不处理 !ext_skip! 个，隐藏文件 !hidden_skip! 个，系统文件 !system_skip! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -109,14 +109,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!file_path!" (
-        echo 错误: 文件不存在: "!file_path!"
+        echo 错误：文件不存在："!file_path!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!file_path!\" (
-        echo 开始处理文件夹: "!file_path!"
+        echo 开始处理文件夹："!file_path!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -137,7 +137,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!file_path!"
+            echo 正在处理："!file_path!"
 
             REM 跳过不处理的后缀：7z zip rar tar bat exe dll ini lnk
             set "is_skip_ext="
@@ -162,7 +162,7 @@ if "%~1" == "" (
                     echo 系统文件，跳过此文件
                 ) else (
                     set "new_name=!base_name!!file_ext!.7z"
-                    echo 目标文件名: "!new_name!"
+                    echo 目标文件名："!new_name!"
                     if exist "!file_dir!!new_name!" (
                         echo set /a "name_conflict+=1">> "!temp_set!"
                         echo 目标文件已存在，跳过此文件
@@ -192,10 +192,10 @@ if "%~1" == "" (
         set /a "ok_total=succeeded"
         set /a "fail_total=name_conflict+rename_failed"
         set /a "skip_total=ext_skip+hidden_skip+system_skip"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个，跳过: !skip_total! 个 & REM
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个，跳过：!skip_total! 个 & REM
         echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，后缀不处理 !ext_skip! 个，隐藏文件 !hidden_skip! 个，系统文件 !system_skip! 个
     ) else (
-        echo 开始处理文件: "!file_path!"
+        echo 开始处理文件："!file_path!"
 
         REM 跳过不处理的后缀：7z zip rar tar bat exe dll ini lnk
         set "is_skip_ext="
@@ -217,7 +217,7 @@ if "%~1" == "" (
                 echo 系统文件，跳过此文件
             ) else (
                 set "new_name=!base_name!!file_ext!.7z"
-                echo 目标文件名: "!new_name!"
+                echo 目标文件名："!new_name!"
                 if exist "!file_dir!!new_name!" (
                     echo 目标文件已存在，跳过此文件
                 ) else (

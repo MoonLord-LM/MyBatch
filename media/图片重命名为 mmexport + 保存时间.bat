@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -30,7 +30,7 @@ if exist "%~dp0MediaInfo.exe" (
 )
 !mediainfo_path! --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 MediaInfo 组件
+    echo 错误：缺少 MediaInfo 组件
     echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
@@ -41,7 +41,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -65,18 +65,18 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!img_file!"
+        echo 正在处理："!img_file!"
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
         set "creation_time="
         for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
             set "creation_time=%%x"
-            echo 图片 Recorded_Date 标记: "!creation_time!"
+            echo 图片 Recorded_Date 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
             for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
                 set "creation_time=%%x"
-                echo 图片 Encoded_Date 标记: "!creation_time!"
+                echo 图片 Encoded_Date 标记："!creation_time!"
             )
         )
         set "exif_time="
@@ -114,12 +114,12 @@ if "%~1" == "" (
                     echo set /a "no_time+=1">> "!temp_set!"
                     echo 文件名中未识别到微信保存时间，跳过此文件
                 ) else (
-                    echo 图片文件名中的微信保存时间: "!formatted_time!"
+                    echo 图片文件名中的微信保存时间："!formatted_time!"
                     for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
                         set "lower_file_ext=%%l"
                     )
                     set "new_name=mmexport_!formatted_time!!lower_file_ext!"
-                    echo 目标文件名: "!new_name!"
+                    echo 目标文件名："!new_name!"
                     if /i "!img_file!"=="!file_dir!!new_name!" (
                         echo set /a "already_ok+=1">> "!temp_set!"
                         echo 文件名已符合规范，无需处理
@@ -152,8 +152,8 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded+already_ok"
     set /a "fail_total=not_mmexport+no_time+name_conflict+rename_failed"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间仍处理: !has_exif! 个
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
+    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间仍处理：!has_exif! 个
 ) else (
     setlocal disabledelayedexpansion
     set "img_file=%~1"
@@ -163,14 +163,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!img_file!" (
-        echo 错误: 文件不存在: "!img_file!"
+        echo 错误：文件不存在："!img_file!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!img_file!\" (
-        echo 开始处理文件夹: "!img_file!"
+        echo 开始处理文件夹："!img_file!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -194,18 +194,18 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!img_file!"
+            echo 正在处理："!img_file!"
 
             REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
             set "creation_time="
             for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
                 set "creation_time=%%x"
-                echo 图片 Recorded_Date 标记: "!creation_time!"
+                echo 图片 Recorded_Date 标记："!creation_time!"
             )
             if "!creation_time!"=="" (
                 for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
                     set "creation_time=%%x"
-                    echo 图片 Encoded_Date 标记: "!creation_time!"
+                    echo 图片 Encoded_Date 标记："!creation_time!"
                 )
             )
             set "exif_time="
@@ -243,12 +243,12 @@ if "%~1" == "" (
                         echo set /a "no_time+=1">> "!temp_set!"
                         echo 文件名中未识别到微信保存时间，跳过此文件
                     ) else (
-                        echo 图片文件名中的微信保存时间: "!formatted_time!"
+                        echo 图片文件名中的微信保存时间："!formatted_time!"
                         for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
                             set "lower_file_ext=%%l"
                         )
                         set "new_name=mmexport_!formatted_time!!lower_file_ext!"
-                        echo 目标文件名: "!new_name!"
+                        echo 目标文件名："!new_name!"
                         if /i "!img_file!"=="!file_dir!!new_name!" (
                             echo set /a "already_ok+=1">> "!temp_set!"
                             echo 文件名已符合规范，无需处理
@@ -281,29 +281,29 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded+already_ok"
         set /a "fail_total=not_mmexport+no_time+name_conflict+rename_failed"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
-        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间仍处理: !has_exif! 个
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
+        echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间仍处理：!has_exif! 个
     ) else (
         set "ext_ok="
         for /f "delims=" %%e in ('powershell -NoProfile -Command "if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
         if not "!ext_ok!"=="ok" (
-            echo 错误: 不支持的图片格式: "!img_file!"
+            echo 错误：不支持的图片格式："!img_file!"
             echo.
             pause
             exit /b 1
         )
-        echo 开始处理文件: "!img_file!"
+        echo 开始处理文件："!img_file!"
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
         set "creation_time="
         for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
             set "creation_time=%%x"
-            echo 图片 Recorded_Date 标记: "!creation_time!"
+            echo 图片 Recorded_Date 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
             for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
                 set "creation_time=%%x"
-                echo 图片 Encoded_Date 标记: "!creation_time!"
+                echo 图片 Encoded_Date 标记："!creation_time!"
             )
         )
         set "exif_time="
@@ -337,12 +337,12 @@ if "%~1" == "" (
                 if "!formatted_time!"=="" (
                     echo 文件名中未识别到微信保存时间，跳过此文件
                 ) else (
-                    echo 图片文件名中的微信保存时间: "!formatted_time!"
+                    echo 图片文件名中的微信保存时间："!formatted_time!"
                     for /f "delims=" %%l in ('powershell -NoProfile -Command "$env:file_ext.ToLower()"') do (
                         set "lower_file_ext=%%l"
                     )
                     set "new_name=mmexport_!formatted_time!!lower_file_ext!"
-                    echo 目标文件名: "!new_name!"
+                    echo 目标文件名："!new_name!"
                     if /i "!img_file!"=="!file_dir!!new_name!" (
                         echo 文件名已符合规范，无需处理
                     ) else if exist "!file_dir!!new_name!" (

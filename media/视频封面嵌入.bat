@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -26,7 +26,7 @@ if exist "%~dp0ffmpeg.exe" (
 )
 !ffmpeg_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffmpeg 组件
+    echo 错误：缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -41,7 +41,7 @@ if exist "%~dp0ffprobe.exe" (
 )
 !ffprobe_path! -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 ffprobe 组件
+    echo 错误：缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
@@ -52,7 +52,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    echo 开始处理当前文件夹: "!cd!"
+    echo 开始处理当前文件夹："!cd!"
     echo.
 
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -73,7 +73,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理: "!video_file!"
+        echo 正在处理："!video_file!"
         set "has_cover=0"
         for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
             if "%%c"=="1" (
@@ -97,7 +97,7 @@ if "%~1" == "" (
             )
 
             if not "!cover_file!"=="" (
-                echo 找到封面: "!cover_file!"
+                echo 找到封面："!cover_file!"
                 set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
                 "!ffmpeg_path!" -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
                 if !errorlevel! neq 0 (
@@ -128,7 +128,7 @@ if "%~1" == "" (
     echo 批量处理完成
     set /a "ok_total=succeeded"
     set /a "fail_total=has_cover+set_failed+no_cover_file"
-    echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
     echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，未找到封面图片 !no_cover_file! 个，已有封面 !has_cover! 个
 ) else (
     setlocal disabledelayedexpansion
@@ -139,14 +139,14 @@ if "%~1" == "" (
     setlocal enabledelayedexpansion
 
     if not exist "!video_file!" (
-        echo 错误: 文件不存在: "!video_file!"
+        echo 错误：文件不存在："!video_file!"
         echo.
         pause
         exit /b 1
     )
 
     if exist "!video_file!\" (
-        echo 开始处理文件夹: "!video_file!"
+        echo 开始处理文件夹："!video_file!"
         echo.
 
         REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
@@ -167,7 +167,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理: "!video_file!"
+            echo 正在处理："!video_file!"
             set "has_cover=0"
             for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
                 if "%%c"=="1" (
@@ -191,7 +191,7 @@ if "%~1" == "" (
                 )
 
                 if not "!cover_file!"=="" (
-                    echo 找到封面: "!cover_file!"
+                    echo 找到封面："!cover_file!"
                     set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
                     "!ffmpeg_path!" -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
                     if !errorlevel! neq 0 (
@@ -222,10 +222,10 @@ if "%~1" == "" (
         echo 批量处理完成
         set /a "ok_total=succeeded"
         set /a "fail_total=has_cover+set_failed+no_cover_file"
-        echo 共计: !total! 个，成功: !ok_total! 个，失败: !fail_total! 个 & REM
+        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
         echo 其中，设置成功 !succeeded! 个，设置失败 !set_failed! 个，未找到封面图片 !no_cover_file! 个，已有封面 !has_cover! 个
     ) else (
-        echo 开始处理文件: "!video_file!"
+        echo 开始处理文件："!video_file!"
 
         set "has_cover=0"
         for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
@@ -249,7 +249,7 @@ if "%~1" == "" (
             )
 
             if not "!cover_file!"=="" (
-                echo 找到封面: "!cover_file!"
+                echo 找到封面："!cover_file!"
                 set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
                 "!ffmpeg_path!" -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
                 if !errorlevel! neq 0 (
