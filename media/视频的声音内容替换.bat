@@ -57,13 +57,13 @@ set "video2=%~2"
 
 if "!video1!"=="" (
     echo.
-    echo 请输入要保留画面和元数据的视频文件路径
+    echo 请输入要保留画面和元数据信息的视频文件路径
     echo 提示：可以直接将文件拖拽到窗口内
     set /p "video1="
 )
 if "!video2!"=="" (
     echo.
-    echo 请输入提供音频内容的视频文件路径
+    echo 请输入提供声音内容的视频文件路径
     echo 提示：可以直接将文件拖拽到窗口内
     set /p "video2="
 )
@@ -103,7 +103,7 @@ set "output_file=!file_dir!!base_name!_声音替换!file_ext!"
 
 echo.
 echo 正在处理："!video1!"
-echo 替换音频来自："!video2!"
+echo 替换声音来自："!video2!"
 
 "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 0:v? -map 1:a? -map_metadata 0 -map_chapters 0 -c copy "!temp_file!"
 if !errorlevel! neq 0 (
@@ -116,6 +116,8 @@ if !errorlevel! neq 0 (
     echo 声音替换成功
     echo 输出文件："!output_file!"
 )
+
+
 
 echo.
 pause

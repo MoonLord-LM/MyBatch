@@ -57,7 +57,7 @@ set "video2=%~2"
 
 if "!video1!"=="" (
     echo.
-    echo 请输入要保留音频和元数据的视频文件路径
+    echo 请输入要保留声音和元数据信息的视频文件路径
     echo 提示：可以直接将文件拖拽到窗口内
     set /p "video1="
 )
@@ -116,6 +116,8 @@ if !errorlevel! neq 0 (
     echo 画面替换成功
     echo 输出文件："!output_file!"
 )
+
+
 
 echo.
 pause
