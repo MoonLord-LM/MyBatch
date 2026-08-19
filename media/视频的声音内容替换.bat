@@ -113,7 +113,7 @@ set "temp_file=!file_dir!!base_name!_temp!file_ext!"
 set "output_file=!file_dir!!base_name!_声音替换!file_ext!"
 
 echo.
-echo 正在处理："!video1!" & REM
+echo 处理文件："!video1!" & REM
 echo 替换声音："!video2!"
 
 "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 0:v? -map 1:a -map_metadata 0 -c copy "!temp_file!"

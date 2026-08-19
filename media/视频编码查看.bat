@@ -56,7 +56,7 @@ if "%~1" == "" (
         set "video_file=%%f"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!video_file!"
+        echo 处理文件："!video_file!"
         "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_video_codecs!"
         if !errorlevel! neq 0 (
             echo set /a "parse_failed+=1">> "!temp_set!"
@@ -144,7 +144,7 @@ if "%~1" == "" (
             set "video_file=%%f"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!video_file!"
+            echo 处理文件："!video_file!"
             "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_video_codecs!"
             if !errorlevel! neq 0 (
                 echo set /a "parse_failed+=1">> "!temp_set!"

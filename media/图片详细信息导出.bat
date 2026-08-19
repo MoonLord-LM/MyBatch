@@ -58,7 +58,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!img_file!"
+        echo 处理文件："!img_file!"
         set "json_file=!file_dir!!base_name!!file_ext!.json"
         if exist "!json_file!" (
             echo set /a "json_exist+=1">> "!temp_set!"
@@ -126,7 +126,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!img_file!"
+            echo 处理文件："!img_file!"
             set "json_file=!file_dir!!base_name!!file_ext!.json"
             if exist "!json_file!" (
                 echo set /a "json_exist+=1">> "!temp_set!"

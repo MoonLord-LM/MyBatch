@@ -43,7 +43,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!file_path!"
+        echo 处理文件："!file_path!"
 
         REM 跳过不处理的后缀：7z zip rar tar bat exe dll ini lnk
         set "is_skip_ext="
@@ -138,7 +138,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!file_path!"
+            echo 处理文件："!file_path!"
 
             REM 跳过不处理的后缀：7z zip rar tar bat exe dll ini lnk
             set "is_skip_ext="

@@ -73,7 +73,7 @@ if "%~1" == "" (
         set "base_name=%%~nf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!video_file!"
+        echo 处理文件："!video_file!"
 
         set "is_h265=0"
         for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
@@ -180,7 +180,7 @@ if "%~1" == "" (
             set "base_name=%%~nf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!video_file!"
+            echo 处理文件："!video_file!"
 
             set "is_h265=0"
             for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (

@@ -45,7 +45,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!img_file!"
+        echo 处理文件："!img_file!"
 
         REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
         set "formatted_time="
@@ -131,7 +131,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!img_file!"
+            echo 处理文件："!img_file!"
 
             REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
             set "formatted_time="

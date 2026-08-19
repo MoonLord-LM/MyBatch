@@ -60,7 +60,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!video_file!"
+        echo 处理文件："!video_file!"
         set "creation_time="
         for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_time=%%x"
@@ -175,7 +175,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!video_file!"
+            echo 处理文件："!video_file!"
             set "creation_time="
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_time=%%x"

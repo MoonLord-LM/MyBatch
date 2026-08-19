@@ -73,7 +73,7 @@ if "%~1" == "" (
         set "base_name=%%~nf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!video_file!"
+        echo 处理文件："!video_file!"
         set "cover_file=!file_dir!!base_name!.png"
         if exist "!cover_file!" (
             echo set /a "cover_exist+=1">> "!temp_set!"
@@ -152,7 +152,7 @@ if "%~1" == "" (
             set "base_name=%%~nf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!video_file!"
+            echo 处理文件："!video_file!"
             set "cover_file=!file_dir!!base_name!.png"
             if exist "!cover_file!" (
                 echo set /a "cover_exist+=1">> "!temp_set!"

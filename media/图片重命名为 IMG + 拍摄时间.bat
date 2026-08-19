@@ -63,7 +63,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!img_file!"
+        echo 处理文件："!img_file!"
         if /i "!base_name:~0,10!"=="Screenshot" (
             echo set /a "other_prefix+=1">> "!temp_set!"
             echo 文件名以 Screenshot 开头，跳过此文件
@@ -174,7 +174,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!img_file!"
+            echo 处理文件："!img_file!"
             if /i "!base_name:~0,10!"=="Screenshot" (
                 echo set /a "other_prefix+=1">> "!temp_set!"
                 echo 文件名以 Screenshot 开头，跳过此文件

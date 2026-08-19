@@ -75,7 +75,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!video_file!"
+        echo 处理文件："!video_file!"
         set "has_sub=0"
         for /f "delims=" %%s in ('call "!ffprobe_path!" -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
             set "has_sub=1"
@@ -166,7 +166,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!video_file!"
+            echo 处理文件："!video_file!"
             set "has_sub=0"
             for /f "delims=" %%s in ('call "!ffprobe_path!" -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
                 set "has_sub=1"

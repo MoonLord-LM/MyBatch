@@ -73,7 +73,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!audio_file!"
+        echo 处理文件："!audio_file!"
         set "has_cover=0"
         for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
             set "has_cover=1"
@@ -150,7 +150,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!audio_file!"
+            echo 处理文件："!audio_file!"
             set "has_cover=0"
             for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
                 set "has_cover=1"

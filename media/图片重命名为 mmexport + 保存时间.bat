@@ -65,7 +65,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!img_file!"
+        echo 处理文件："!img_file!"
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
         set "creation_time="
@@ -195,7 +195,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!img_file!"
+            echo 处理文件："!img_file!"
 
             REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
             set "creation_time="

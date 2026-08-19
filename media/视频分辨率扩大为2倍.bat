@@ -58,7 +58,7 @@ if "%~1" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 正在处理："!video_file!"
+        echo 处理文件："!video_file!"
         set "output_file=!file_dir!!base_name!_2x!file_ext!"
         if exist "!output_file!" (
             echo set /a "output_exist+=1">> "!temp_set!"
@@ -127,7 +127,7 @@ if "%~1" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 正在处理："!video_file!"
+            echo 处理文件："!video_file!"
             set "output_file=!file_dir!!base_name!_2x!file_ext!"
             if exist "!output_file!" (
                 echo set /a "output_exist+=1">> "!temp_set!"
