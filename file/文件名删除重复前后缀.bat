@@ -99,8 +99,7 @@ if "%~1" == "" (
      "        };" ^
      "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
      "    };" ^
-     "}" ^
-     "Write-Host '处理完成！';"
+     "}"
     echo.
 
     REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
@@ -200,8 +199,7 @@ if "%~1" == "" (
          "        };" ^
          "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
          "    };" ^
-         "}" ^
-         "Write-Host '处理完成！';"
+         "}"
         echo.
 
         REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
