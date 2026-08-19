@@ -99,6 +99,7 @@ if "%~1" == "" (
     set "base_name=%~n1"
     set "file_ext=%~x1"
     setlocal enabledelayedexpansion
+    if "!img_file:~-1!"=="\" set "img_file=!img_file:~0,-1!"
 
     if not exist "!img_file!" (
         echo 错误：文件不存在："!img_file!"

@@ -25,19 +25,20 @@ if "%~1" == "" (
     echo.
 
     set "file_path=!cd!"
+    if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"
     for %%i in ("!file_path!") do (
         setlocal disabledelayedexpansion
         set "file_name=%%~ni"
         setlocal enabledelayedexpansion
     )
-    if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"
 
     set "output_file=!file_path!\!file_name!.list.txt"
     echo 输出列表文件："!output_file!"
     echo.
 
+    set "self_script=%~f0"
     powershell -NoProfile -Command ^
-     "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse);" ^
+     "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
      "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
      "$lines = @($files | Sort-Object FullName | ForEach-Object { '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\"' -f $_.FullName, $_.Length, $_.LastWriteTime });" ^
      "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines);" ^
@@ -54,8 +55,8 @@ if "%~1" == "" (
     setlocal disabledelayedexpansion
     set "file_path=%~1"
     setlocal enabledelayedexpansion
-
     if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"
+
     if not exist "!file_path!" (
         echo 错误：路径不存在："!file_path!"
         echo.
@@ -77,8 +78,9 @@ if "%~1" == "" (
         echo 输出列表文件："!output_file!"
         echo.
 
+        set "self_script=%~f0"
         powershell -NoProfile -Command ^
-         "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse);" ^
+         "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
          "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
          "$lines = @($files | Sort-Object FullName | ForEach-Object { '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\"' -f $_.FullName, $_.Length, $_.LastWriteTime });" ^
          "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines);" ^

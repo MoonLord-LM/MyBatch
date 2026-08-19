@@ -122,6 +122,7 @@ if "%~1" == "" (
     set "file_dir=%~dp1"
     set "base_name=%~n1"
     setlocal enabledelayedexpansion
+    if "!video_file:~-1!"=="\" set "video_file=!video_file:~0,-1!"
 
     if not exist "!video_file!" (
         echo 错误：文件不存在："!video_file!"

@@ -107,6 +107,7 @@ if "%~1" == "" (
     set "base_name=%~n1"
     set "file_ext=%~x1"
     setlocal enabledelayedexpansion
+    if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"
 
     if not exist "!file_path!" (
         echo 错误：文件不存在："!file_path!"

@@ -120,6 +120,7 @@ if "%~1" == "" (
     set "base_name=%~n1"
     set "file_ext=%~x1"
     setlocal enabledelayedexpansion
+    if "!audio_file:~-1!"=="\" set "audio_file=!audio_file:~0,-1!"
 
     if not exist "!audio_file!" (
         echo 错误：文件不存在："!audio_file!"
