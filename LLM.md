@@ -143,7 +143,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 xxx.exe -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误: 缺少 xxx.exe 组件
+    echo 错误：缺少 xxx.exe 组件
     echo 请从 https://xxx.org/download.html 下载
     "explorer.exe" "https://xxx.org/download.html"
     echo.
