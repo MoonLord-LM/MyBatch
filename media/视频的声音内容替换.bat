@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将另一个视频的画面内容，替换到当前视频中，保留当前视频的音频和元数据' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将另一个视频的音频内容，替换到当前视频中，保留当前视频的画面和元数据' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个视频文件的路径' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '也可以将两个视频文件直接拖拽到脚本上，自动开始处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
@@ -57,13 +57,13 @@ set "video2=%~2"
 
 if "!video1!"=="" (
     echo.
-    echo 请输入要保留音频和元数据的视频文件路径
+    echo 请输入要保留画面和元数据的视频文件路径
     echo 提示：可以直接将文件拖拽到窗口内
     set /p "video1="
 )
 if "!video2!"=="" (
     echo.
-    echo 请输入提供画面内容的视频文件路径
+    echo 请输入提供音频内容的视频文件路径
     echo 提示：可以直接将文件拖拽到窗口内
     set /p "video2="
 )
@@ -99,21 +99,21 @@ for %%i in ("!video1!") do (
     set "file_ext=%%~xi"
 )
 set "temp_file=!file_dir!!base_name!_temp!file_ext!"
-set "output_file=!file_dir!!base_name!_画面替换!file_ext!"
+set "output_file=!file_dir!!base_name!_声音替换!file_ext!"
 
 echo.
 echo 正在处理："!video1!"
-echo 替换画面来自："!video2!"
+echo 替换音频来自："!video2!"
 
-"!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:v:0 -map 0:a? -map_metadata 0 -map_chapters 0 -c copy "!temp_file!"
+"!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 0:v? -map 1:a? -map_metadata 0 -map_chapters 0 -c copy "!temp_file!"
 if !errorlevel! neq 0 (
     if exist "!temp_file!" ( del /f /q "!temp_file!" )
     echo.
-    echo 错误：画面替换失败，请检查上方 ffmpeg 输出
+    echo 错误：声音替换失败，请检查上方 ffmpeg 输出
 ) else (
     move /y "!temp_file!" "!output_file!" >nul
     echo.
-    echo 画面替换成功
+    echo 声音替换成功
     echo 输出文件："!output_file!"
 )
 

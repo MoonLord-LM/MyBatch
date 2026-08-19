@@ -1,41 +1,122 @@
 @echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
+powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
 
 
 
-:: ffmpeg -i 1.mp4 -i 2.mp4 -map 1:v:0 -map 1:a -map 0:2 -map_metadata 0 -c copy -disposition:v:1 attached_pic output.mp4
-
+powershell -NoProfile -Command "Write-Host '将另一个视频的画面和音频内容，替换到当前视频中，保留当前视频的元数据' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个视频文件的路径' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '也可以将两个视频文件直接拖拽到脚本上，自动开始处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 echo.
-echo 请输入原始视频文件路径（包含封面、描述等）
-set /p "video1="
 
+
+
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    cd /d "%~dp0"
+)
+
+REM 优先使用脚本所在文件夹中的 ffmpeg 和 ffprobe 组件
+set "ffmpeg_path=ffmpeg"
+if exist "%~dp0ffmpeg.exe" (
+    set "ffmpeg_path=%~dp0ffmpeg.exe"
+) else if exist "!cd!\ffmpeg.exe" (
+    set "ffmpeg_path=!cd!\ffmpeg.exe"
+)
+!ffmpeg_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 ffmpeg 组件
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
+    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo.
+    pause
+    exit /b 1
+)
+set "ffprobe_path=ffprobe"
+if exist "%~dp0ffprobe.exe" (
+    set "ffprobe_path=%~dp0ffprobe.exe"
+) else if exist "!cd!\ffprobe.exe" (
+    set "ffprobe_path=!cd!\ffprobe.exe"
+)
+!ffprobe_path! -version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 ffprobe 组件
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
+    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo.
+    pause
+    exit /b 1
+)
+
+
+
+set "video1=%~1"
+set "video2=%~2"
+
+if "!video1!"=="" (
+    echo.
+    echo 请输入要保留元数据的视频文件路径
+    echo 提示：可以直接将文件拖拽到窗口内
+    set /p "video1="
+)
+if "!video2!"=="" (
+    echo.
+    echo 请输入提供画面和音频内容的视频文件路径
+    echo 提示：可以直接将文件拖拽到窗口内
+    set /p "video2="
+)
+
+if exist "!video1!\" (
+    echo 错误：不支持文件夹："!video1!"
+    echo.
+    pause
+    exit /b 1
+)
 if not exist "!video1!" (
-    echo 文件 "!video1!" 不存在，请检查路径后重试。
+    echo 错误：文件不存在："!video1!"
+    echo.
     pause
-    exit /b
+    exit /b 1
 )
-
-echo.
-echo 请输入用于替换视频流的文件路径（包含更高清的视频和更高质量的音频）
-set /p "video2="
-
+if exist "!video2!\" (
+    echo 错误：不支持文件夹："!video2!"
+    echo.
+    pause
+    exit /b 1
+)
 if not exist "!video2!" (
-    echo 文件 "!video2!" 不存在，请检查路径后重试。
+    echo 错误：文件不存在："!video2!"
+    echo.
     pause
-    exit /b
+    exit /b 1
+)
+
+for %%i in ("!video1!") do (
+    set "file_dir=%%~dpi"
+    set "base_name=%%~ni"
+    set "file_ext=%%~xi"
+)
+set "temp_file=!file_dir!!base_name!_temp!file_ext!"
+set "output_file=!file_dir!!base_name!_音画替换!file_ext!"
+
+echo.
+echo 正在处理："!video1!"
+echo 替换画面和音频来自："!video2!"
+
+"!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:v:0 -map 1:a? -map_metadata 0 -map_chapters 0 -c copy "!temp_file!"
+if !errorlevel! neq 0 (
+    if exist "!temp_file!" ( del /f /q "!temp_file!" )
+    echo.
+    echo 错误：音画替换失败，请检查上方 ffmpeg 输出
+) else (
+    move /y "!temp_file!" "!output_file!" >nul
+    echo.
+    echo 音画替换成功
+    echo 输出文件："!output_file!"
 )
 
 echo.
-echo 正在执行视频合成命令，将第二个视频的视频流和音频流替换到第一个视频中...
-
-echo ffmpeg -i !video1! -i !video2! -map 1:v:0 -map 1:a -map 0:2 -map_metadata 0 -c copy -disposition:v:1 attached_pic output.mp4
-ffmpeg -i !video1! -i !video2! -map 1:v:0 -map 1:a -map 0:2 -map_metadata 0 -c copy -disposition:v:1 attached_pic output.mp4
-
-echo.
-echo 合成完成，生成文件为 output.mp4
-
-
-
 pause
-exit
+exit /b
