@@ -19,7 +19,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-REM 这里是代码主体功能部分
+REM 这里是代码主体功能部分，与其它代码用 3 个空行分开
 
 
 
@@ -38,7 +38,7 @@ exit /b
 可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM、& echo off 这种无意义代码，进行规避  
 
 调用 PowerShell 时，建议在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
-如果只有简单的 Write-Host 命令，也可以不加这段代码  
+如果只有简单的 Write-Host 命令，可以不加这段代码  
 
 ### 3. 调用外部程序并读取输出内容
 
