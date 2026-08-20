@@ -72,8 +72,8 @@ echo.
 REM 将两个文件夹的文件列表分别缓存到临时文件，只枚举一次，避免对每个文件重复扫描
 set "tmp_list1=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_list1!"
 set "tmp_list2=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_list2!"
-powershell -NoProfile -Command "Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }" > "!tmp_list1!" 2>nul
-powershell -NoProfile -Command "Get-ChildItem -LiteralPath $env:path2 -File -Recurse | ForEach-Object { $_.FullName }" > "!tmp_list2!" 2>nul
+powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }" > "!tmp_list1!" 2>nul
+powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path2 -File -Recurse | ForEach-Object { $_.FullName }" > "!tmp_list2!" 2>nul
 
 set /a "total=0"
 set /a "deleted=0"
@@ -90,7 +90,7 @@ for /f "usebackq delims=" %%f in ("!tmp_list1!") do (
                     echo 准备删除："%%f"
                     echo 重复文件："%%g"
                     set "file_to_delete=%%f"
-                    powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     if exist "%%f" (
                         echo 删除失败
                         set /a "failed+=1"

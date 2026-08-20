@@ -91,7 +91,7 @@ set /a "total=0"
 set /a "deleted=0"
 set /a "failed=0"
 
-for /f "delims=" %%f in ('powershell -NoProfile -Command "Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }"') do (
+for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }"') do (
     set /a "total+=1"
     for %%i in ("%%f") do set "size1=%%~zi"
     for /f "delims=" %%g in ('call "!es_path!" -path "!path2!" size:^=!size1!') do (
@@ -101,7 +101,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "Get-ChildItem -Literal
                 echo 准备删除："%%f"
                 echo 重复文件："%%g"
                 set "file_to_delete=%%f"
-                powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                 if exist "%%f" (
                     echo 删除失败
                     set /a "failed+=1"

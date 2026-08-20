@@ -38,7 +38,7 @@ if "%~1" == "" (
 
     set "self_script=%~f0"
     powershell -NoProfile -Command ^
-     "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
+     "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
      "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
      "$lines = @($files | Sort-Object FullName | ForEach-Object { '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\"' -f $_.FullName, $_.Length, $_.LastWriteTime });" ^
      "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines);" ^
@@ -80,7 +80,7 @@ if "%~1" == "" (
 
         set "self_script=%~f0"
         powershell -NoProfile -Command ^
-         "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
+         "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
          "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
          "$lines = @($files | Sort-Object FullName | ForEach-Object { '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\"' -f $_.FullName, $_.Length, $_.LastWriteTime });" ^
          "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines);" ^

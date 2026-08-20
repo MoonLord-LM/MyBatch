@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -53,7 +53,7 @@ if "%~1" == "" (
 
         REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
         set "formatted_time="
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
+        for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
             set "formatted_time=%%t"
         )
 
@@ -66,7 +66,7 @@ if "%~1" == "" (
         ) else (
             echo 图片文件名中的时间："!formatted_time!"
             set "check_result="
-            for /f "delims=" %%r in ('powershell -NoProfile -Command "$f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
+            for /f "delims=" %%r in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
                 set "check_result=%%r"
             )
 
@@ -139,7 +139,7 @@ if "%~1" == "" (
 
             REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
             set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
                 set "formatted_time=%%t"
             )
 
@@ -152,7 +152,7 @@ if "%~1" == "" (
             ) else (
                 echo 图片文件名中的时间："!formatted_time!"
                 set "check_result="
-                for /f "delims=" %%r in ('powershell -NoProfile -Command "$f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
+                for /f "delims=" %%r in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
                     set "check_result=%%r"
                 )
 
@@ -184,7 +184,7 @@ if "%~1" == "" (
         echo 共计：!total! 个，一致：!already_ok! 个，不一致：!mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
     ) else (
         set "ext_ok="
-        for /f "delims=" %%e in ('powershell -NoProfile -Command "if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
+        for /f "delims=" %%e in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
         if not "!ext_ok!"=="ok" (
             echo 错误：不支持的图片格式："!img_file!"
             echo.
@@ -195,7 +195,7 @@ if "%~1" == "" (
 
         REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
         set "formatted_time="
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "$n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
+        for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
             set "formatted_time=%%t"
         )
 
@@ -206,7 +206,7 @@ if "%~1" == "" (
         ) else (
             echo 图片文件名中的时间："!formatted_time!"
             set "check_result="
-            for /f "delims=" %%r in ('powershell -NoProfile -Command "$f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
+            for /f "delims=" %%r in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
                 set "check_result=%%r"
             )
 

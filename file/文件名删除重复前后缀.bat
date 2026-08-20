@@ -36,7 +36,7 @@ if "%~1" == "" (
     set "file_path=!cd!"
 
     powershell -NoProfile -Command ^
-     "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
+     "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
      "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 };" ^
      "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
      "foreach ($g in ($files | Group-Object Extension)) {" ^
@@ -142,7 +142,7 @@ if "%~1" == "" (
         set /a "rename_failed=0"
 
         powershell -NoProfile -Command ^
-         "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
+         "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$' });" ^
          "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 };" ^
          "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
          "foreach ($g in ($files | Group-Object Extension)) {" ^

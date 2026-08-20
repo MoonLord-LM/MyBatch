@@ -159,7 +159,7 @@ if "%~1" == "" (
         echo 其中，导出成功 !succeeded! 个，解析报错 !parse_failed! 个，json 文件已存在 !json_exist! 个
     ) else (
         set "ext_ok="
-        for /f "delims=" %%e in ('powershell -NoProfile -Command "if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
+        for /f "delims=" %%e in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
         if not "!ext_ok!"=="ok" (
             echo 错误：不支持的图片格式："!img_file!"
             echo.
