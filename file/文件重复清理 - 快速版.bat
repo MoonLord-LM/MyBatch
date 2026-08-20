@@ -27,7 +27,7 @@ if exist "%~dp0es.exe" (
 ) else if exist "!cd!\es.exe" (
     set "es_path=!cd!\es.exe"
 )
-!es_path! --version >nul 2>&1
+"!es_path!" -version >nul 2>&1
 if errorlevel 1 (
     echo 错误：缺少 Everything 命令行组件
     echo 请从 https://www.voidtools.com/zh-cn/downloads/ 下载，然后放到脚本所在文件夹
