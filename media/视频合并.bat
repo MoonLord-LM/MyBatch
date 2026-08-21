@@ -207,14 +207,14 @@ for /l %%i in (1,1,999) do (
                 exit /b 1
             )
 
-            for /f "delims=" %%d in ('call "!ffprobe_path!" -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%~f" 2^>^&1') do (
+            for /f "delims=" %%d in ('call "!ffprobe_path!" -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%~f" 2^>nul') do (
                 if "%%d"=="tmcd" (
                     echo 警告：文件包含 Time code 流，需要进行清理
                     set "temp_file=%%~dpnf_tmp.mp4"
                     if not exist "!temp_file!" (
                         "!ffmpeg_path!" -i "%%~f" -c copy -map_metadata -1 -threads 1 "!temp_file!"
                     )
-                    if exist "%%~f" ( del /f /q "%%~f" )
+                    del /f /q "%%~f"
                     ren "!temp_file!" "%%~nxf"
                 )
             )
@@ -461,7 +461,9 @@ if "!file_consistent!"=="0" (
             for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
                 if exist "%%~f" (
                     set "temp_file=%%~dpnf_h264_!suffix_safe!.mp4"
-                    set "target_timebase=!first_video_time_base:1/=!"
+                    REM 从 "1/1000" 中提取分母 "1000" 作为 timescale；格式异常时回退原值
+                    for /f "tokens=2 delims=/" %%t in ("!first_video_time_base!") do set "target_timebase=%%t"
+                    if "!target_timebase!"=="" set "target_timebase=!first_video_time_base!"
                     echo 重新编码视频："%%~f" - "!temp_file!"
                     if not exist "!temp_file!" (
                         "!ffmpeg_path!" -i "%%~f" ^
@@ -565,7 +567,9 @@ if "!file_consistent!"=="0" (
                     )
                     echo 视频信息对比完成
 
-                    set "target_timebase=!first_video_time_base:1/=!"
+                    REM 从 "1/1000" 中提取分母 "1000" 作为 timescale；格式异常时回退原值
+                    for /f "tokens=2 delims=/" %%t in ("!first_video_time_base!") do set "target_timebase=%%t"
+                    if "!target_timebase!"=="" set "target_timebase=!first_video_time_base!"
                     if not "!video_consistent!"=="1" (
                         echo 重新编码视频："%%~f" - "!temp_file!"
                         if not "!audio_consistent!"=="1" (
@@ -607,7 +611,7 @@ if "!file_consistent!"=="0" (
 )
 
 echo 正在合并视频
-"!ffmpeg_path!" -f concat -safe 0 -i "!work_dir!\file_list.txt" -c copy -threads 1 "!work_dir!\merged.mp4"
+"!ffmpeg_path!" -y -f concat -safe 0 -i "!work_dir!\file_list.txt" -c copy -threads 1 "!work_dir!\merged.mp4"
 if !errorlevel! neq 0 (
     echo.
     echo 文件 merged.mp4 合并失败，请检查报错信息
@@ -670,7 +674,7 @@ if exist "!work_dir!\merged.mp4" (
         if not "!cover_file_type!"=="png" (
             if not "!cover_file_type!"=="mjpeg" (
                 echo 封面图片只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
-                "!ffmpeg_path!" -i "!cover_file!" -frames:v 1 "!cover_file!.png"
+                "!ffmpeg_path!" -y -i "!cover_file!" -frames:v 1 "!cover_file!.png"
                 if !errorlevel! neq 0 (
                     echo.
                     echo 封面图片格式转换失败，请检查报错信息
@@ -682,7 +686,7 @@ if exist "!work_dir!\merged.mp4" (
         )
 
         echo 正在添加封面图片 [!cover_file!]
-        "!ffmpeg_path!" -i "!work_dir!\merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!work_dir!\final.mp4"
+        "!ffmpeg_path!" -y -i "!work_dir!\merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!work_dir!\final.mp4"
         if !errorlevel! neq 0 (
             echo.
             echo 文件 final.mp4 合并失败，请检查报错信息
