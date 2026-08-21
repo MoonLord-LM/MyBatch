@@ -40,9 +40,27 @@ exit /b
 调用 PowerShell 时，建议在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
 如果只有简单的 Write-Host 命令，可以不加这段代码  
 
-### 3. 路径中的特殊符号问题
+### 3. 遍历文件时，处理路径的特殊符号
 
+文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  
+因此，需要切换到 disabledelayedexpansion 的环境中，才能正确读取路径信息  
+文件遍历的最佳实践的代码示例如下：  
+```batch
+for /f "delims=" %%f in (...) do (
+    setlocal disabledelayedexpansion
+    set "file_path=%%f"   REM 完整路径（含文件名）
+    set "file_dir=%%~dpf" REM 所在目录
+    set "base_name=%%~nf" REM 主文件名（不含扩展名）
+    set "file_ext=%%~xf"  REM 扩展名
+    ...
+    setlocal enabledelayedexpansion
 
+    ...处理逻辑...
+
+    endlocal
+    endlocal
+)
+```
 
 ### 4. 调用外部程序并读取输出内容
 
