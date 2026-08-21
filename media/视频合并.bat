@@ -6,10 +6,12 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4 等，最多到 300.mp4 拼接合并为 final.mp4 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '会尽可能保留原始视频质量，必要的时候进行转码' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '转码过程使用单线程运行，防止占用过多 CPU 资源' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '合并视频时，需要保证每段视频的视频编码、视频帧率、音频编码、音频采样率参数一致，避免音画不一致问题' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '合并视频时，需要使用 -map_metadata -1 参数，清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致问题' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '注意，使用 ffmpeg 合并视频时，需要保证每段视频的视频编码、视频帧率、音频编码、音频采样率参数一致，避免音画不一致问题' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '注意，使用 ffmpeg 合并视频时，需要使用 -map_metadata -1 参数，清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致问题' -ForegroundColor Green"
 echo.
 
 
