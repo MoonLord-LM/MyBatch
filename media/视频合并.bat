@@ -104,6 +104,8 @@ if "%~1" == "" (
     )
 )
 
+
+
 set "file_count=0"
 set "file_consistent=1"
 set "first_video_width="
@@ -338,7 +340,7 @@ if /i "!first_video_codec!"=="H264" (
         echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
         pause
     )
-    if defined x265_level (
+    if not "!x265_level!"=="" (
         if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=0^""
         ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=1^""
         ) else (
@@ -583,10 +585,10 @@ if exist "!work_dir!\merged.mp4" (
     ) else if exist "!work_dir!\000.jpg" (
         set "cover_file=!work_dir!\000.jpg"
     )
-    if defined cover_file (
+    if not "!cover_file!"=="" (
         for /f "delims=" %%p in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!cover_file!"') do (
             set "cover_file_type=%%p"
-            echo 封面图片编码: [!cover_file_type!]
+            echo 封面图片编码：[!cover_file_type!]
         )
 
         if not "!cover_file_type!"=="png" (
