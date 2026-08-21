@@ -54,7 +54,7 @@ if !errorlevel! neq 0 (
 )
 
 REM 使用 MediaInfo.exe 获取视频编码的 Tier 信息
-set "mediainfo_path=MediaInfo.exe"
+set "mediainfo_path=mediainfo"
 if exist "%~dp0MediaInfo.exe" (
     set "mediainfo_path=%~dp0MediaInfo.exe"
 ) else if exist "!cd!\MediaInfo.exe" (
