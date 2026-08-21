@@ -104,18 +104,22 @@ setlocal enabledelayedexpansion
             set "file2=%%g"
             setlocal enabledelayedexpansion
             if not "!file1!"=="!file2!" (
-                fc /b "!file1!" "!file2!" > nul
-                if !errorlevel! equ 0 (
-                    echo 准备删除："!file1!"
-                    echo 重复文件："!file2!"
-                    set "file_to_delete=!file1!"
-                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
-                    if exist "!file1!" (
-                        echo 删除失败
-                        echo set /a "failed+=1">> "!temp_set!"
-                    ) else (
-                        echo 已删除到回收站
-                        echo set /a "deleted+=1">> "!temp_set!"
+                if exist "!file1!" (
+                    if exist "!file2!" (
+                        fc /b "!file1!" "!file2!" > nul
+                        if !errorlevel! equ 0 (
+                            echo 准备删除："!file1!"
+                            echo 重复文件："!file2!"
+                            set "file_to_delete=!file1!"
+                            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                            if exist "!file1!" (
+                                echo 删除失败
+                                echo set /a "failed+=1">> "!temp_set!"
+                            ) else (
+                                echo 已删除到回收站
+                                echo set /a "deleted+=1">> "!temp_set!"
+                            )
+                        )
                     )
                 )
             )
