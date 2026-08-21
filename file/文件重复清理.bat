@@ -78,10 +78,10 @@ powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8;
 set /a "total=0"
 set /a "deleted=0"
 set /a "failed=0"
-for /f "usebackq delims=" %%f in ("!tmp_list1!") do (
+for /f "delims=" %%f in ("!tmp_list1!") do (
     set /a "total+=1"
     for %%i in ("%%f") do set "size1=%%~zi"
-    for /f "usebackq delims=" %%g in ("!tmp_list2!") do (
+    for /f "delims=" %%g in ("!tmp_list2!") do (
         if not "%%f"=="%%g" (
             for %%j in ("%%g") do set "size2=%%~zj"
             if "!size1!"=="!size2!" (
