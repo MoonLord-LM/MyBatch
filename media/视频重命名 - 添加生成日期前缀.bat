@@ -64,12 +64,12 @@ if "%~1" == "" (
         set "creation_date="
         for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_date=%%x"
-            echo 创建时间 date 标记："!creation_date!"
+            echo 视频容器 date 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_date=%%x"
-                echo 创建时间 creation_time 标记："!creation_date!"
+                echo 视频容器 creation_time 标记："!creation_date!"
             )
         )
         if "!creation_date!"=="" (
@@ -178,12 +178,12 @@ if "%~1" == "" (
             set "creation_date="
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_date=%%x"
-                echo 创建时间 date 标记："!creation_date!"
+                echo 视频容器 date 标记："!creation_date!"
             )
             if "!creation_date!"=="" (
                 for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                     set "creation_date=%%x"
-                    echo 创建时间 creation_time 标记："!creation_date!"
+                    echo 视频容器 creation_time 标记："!creation_date!"
                 )
             )
             if "!creation_date!"=="" (
@@ -263,12 +263,12 @@ if "%~1" == "" (
         set "creation_date="
         for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_date=%%x"
-            echo 创建时间 date 标记："!creation_date!"
+            echo 视频容器 date 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_date=%%x"
-                echo 创建时间 creation_time 标记："!creation_date!"
+                echo 视频容器 creation_time 标记："!creation_date!"
             )
         )
         if "!creation_date!"=="" (
