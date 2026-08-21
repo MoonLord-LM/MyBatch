@@ -44,6 +44,7 @@ exit /b
 
 文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  
 因此，需要切换到 disabledelayedexpansion 的环境中，才能正确读取路径信息  
+
 文件遍历的最佳实践的代码示例如下：  
 ```batch
 for /f "delims=" %%f in (...) do (
@@ -55,11 +56,40 @@ for /f "delims=" %%f in (...) do (
     ...
     setlocal enabledelayedexpansion
 
-    ...处理逻辑...
+    REM 这里是代码主体功能部分，可以使用 "!file_path!" 等变量
 
     endlocal
     endlocal
 )
+```
+
+如果需要将内层环境的变量传递到外部环境，可以使用文件暂存的方式来实现  
+代码示例如下：  
+```batch
+REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
+
+set /a "total=0"
+set "file_path=!cd!"
+for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
+    setlocal disabledelayedexpansion
+    set "file_path=%%f"
+    set "file_dir=%%~dpf"
+    set "base_name=%%~nf"
+    set "file_ext=%%~xf"
+    setlocal enabledelayedexpansion
+
+    REM 这里是代码主体功能部分，可以使用 "!file_path!" 等变量
+    echo set /a "total+=1">> "!temp_set!"
+
+    endlocal
+    endlocal
+)
+
+REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
+
+REM 这里可以获取到内层的 "!total!" 的值
 ```
 
 ### 4. 调用外部程序并读取输出内容
