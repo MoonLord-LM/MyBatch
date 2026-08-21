@@ -57,76 +57,82 @@ set "video1=%~1"
 set "video2=%~2"
 setlocal enabledelayedexpansion
 
-:input_video1
-if "!video1!"=="" (
-    echo.
-    echo 请输入要保留画面和元数据信息的文件
-    set /p "video1="
-)
-if "!video1!"=="" (
-    echo 输入不能为空，请重新输入
-    goto input_video1
-)
-set "video1=!video1:"=!"
-if exist "!video1!\" (
-    echo 不支持文件夹 "!video1!"，请重新输入
-    set "video1="
-    goto input_video1
-)
-if not exist "!video1!" (
-    echo 文件不存在 "!video1!"，请重新输入
-    set "video1="
-    goto input_video1
-)
+    :input_video1
+    if "!video1!"=="" (
+        echo.
+        echo 请输入要保留画面和元数据信息的文件
+        set /p "video1="
+    )
+    if "!video1!"=="" (
+        echo 输入不能为空，请重新输入
+        goto input_video1
+    )
+    set "video1=!video1:"=!"
+    if exist "!video1!\" (
+        echo 不支持文件夹 "!video1!"，请重新输入
+        set "video1="
+        goto input_video1
+    )
+    if not exist "!video1!" (
+        echo 文件不存在 "!video1!"，请重新输入
+        set "video1="
+        goto input_video1
+    )
 
-:input_video2
-if "!video2!"=="" (
-    echo.
-    echo 请输入提供声音内容的文件
-    set /p "video2="
-)
-if "!video2!"=="" (
-    echo 输入不能为空，请重新输入
-    goto input_video2
-)
-set "video2=!video2:"=!"
-if exist "!video2!\" (
-    echo 不支持文件夹 "!video2!"，请重新输入
-    set "video2="
-    goto input_video2
-)
-if not exist "!video2!" (
-    echo 文件不存在 "!video2!"，请重新输入
-    set "video2="
-    goto input_video2
-)
+    :input_video2
+    if "!video2!"=="" (
+        echo.
+        echo 请输入提供声音内容的文件
+        set /p "video2="
+    )
+    if "!video2!"=="" (
+        echo 输入不能为空，请重新输入
+        goto input_video2
+    )
+    set "video2=!video2:"=!"
+    if exist "!video2!\" (
+        echo 不支持文件夹 "!video2!"，请重新输入
+        set "video2="
+        goto input_video2
+    )
+    if not exist "!video2!" (
+        echo 文件不存在 "!video2!"，请重新输入
+        set "video2="
+        goto input_video2
+    )
 
-for %%i in ("!video1!") do (
-    setlocal disabledelayedexpansion
-    set "file_dir=%%~dpi"
-    set "base_name=%%~ni"
-    set "file_ext=%%~xi"
-    setlocal enabledelayedexpansion
-)
+    for %%i in ("!video1!") do (
+        setlocal disabledelayedexpansion
+        set "file_dir=%%~dpi"
+        set "base_name=%%~ni"
+        set "file_ext=%%~xi"
+        setlocal enabledelayedexpansion
 
-set "temp_file=!file_dir!!base_name!_temp!file_ext!"
-set "output_file=!file_dir!!base_name!_声音替换!file_ext!"
+        set "temp_file=!file_dir!!base_name!_temp!file_ext!"
+        set "output_file=!file_dir!!base_name!_声音替换!file_ext!"
 
-echo.
-echo 处理文件："!video1!" & REM
-echo 替换声音："!video2!"
+        echo.
+        echo 处理文件："!video1!" & REM
+        echo 替换声音："!video2!"
 
-"!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 0:v? -map 1:a -map_metadata 0 -c copy "!temp_file!"
-if !errorlevel! neq 0 (
-    if exist "!temp_file!" ( del /f /q "!temp_file!" )
-    echo.
-    echo 声音替换失败
-) else (
-    move /y "!temp_file!" "!output_file!" >nul
-    echo.
-    echo 声音替换成功
-    echo 输出文件："!output_file!"
-)
+        "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 0:v? -map 1:a -map_metadata 0 -c copy "!temp_file!"
+        if !errorlevel! neq 0 (
+            if exist "!temp_file!" ( del /f /q "!temp_file!" )
+            echo.
+            echo 声音替换失败
+        ) else (
+            move /y "!temp_file!" "!output_file!" >nul
+            echo.
+            echo 声音替换成功
+            echo 输出文件："!output_file!"
+        )
+
+        endlocal
+        endlocal
+    )
+
+endlocal
+endlocal
 
 
 
