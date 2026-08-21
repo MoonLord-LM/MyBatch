@@ -627,5 +627,8 @@ if exist "!work_dir!\merged.mp4" (
 if exist "!work_dir!\merged.mp4" ( del /f /q "!work_dir!\merged.mp4" )
 if exist "!work_dir!\file_list.txt" ( del /f /q "!work_dir!\file_list.txt" )
 
+
+
+echo.
 pause
 exit /b
