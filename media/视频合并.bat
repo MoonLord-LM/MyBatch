@@ -123,6 +123,25 @@ set "first_video_fps="
 set "first_audio_sample_rate="
 set "first_video_time_base="
 
+echo 正在检查文件的命名方式是否按序号排序
+for /l %%i in (1,1,300) do (
+    set "name_count=0"
+    set "name_list="
+    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+        if exist "%%~f" (
+            set /a "name_count+=1"
+            set "name_list=!name_list! %%~nxf"
+        )
+    )
+    if !name_count! gtr 1 (
+        echo 错误：序号 %%i 存在多个命名方式相同的文件：!name_list!
+        echo 请只保留其中一种命名方式，然后重新运行
+        echo.
+        pause
+        exit /b 1
+    )
+)
+
 echo 正在检查和处理 mkv 格式的视频
 for /l %%i in (1,1,300) do (
     for %%f in ("!work_dir!\%%i.mkv" "!work_dir!\0%%i.mkv" "!work_dir!\00%%i.mkv" "!work_dir!\%%i.ts" "!work_dir!\0%%i.ts" "!work_dir!\00%%i.ts") do (
