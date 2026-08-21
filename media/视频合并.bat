@@ -81,7 +81,7 @@ if "%~1" == "" (
     if "!video_path:~-1!"=="\" set "video_path=!video_path:~0,-1!"
 
     if not exist "!video_path!" (
-        echo 错误：文件夹不存在："!video_path!"
+        echo 错误：文件不存在："!video_path!"
         echo.
         pause
         exit /b 1
