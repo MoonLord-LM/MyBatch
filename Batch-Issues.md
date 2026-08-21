@@ -40,7 +40,11 @@ exit /b
 调用 PowerShell 时，建议在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
 如果只有简单的 Write-Host 命令，可以不加这段代码  
 
-### 3. 调用外部程序并读取输出内容
+### 3. 路径中的特殊符号问题
+
+
+
+### 4. 调用外部程序并读取输出内容
 
 常用的写法为 for /f "delims=" %%a in ('外部程序命令') do set "变量名=%%a"  
 例如，调用 ffprobe.exe 获取视频文件的第一个音频流的编码格式，代码示例如下：
