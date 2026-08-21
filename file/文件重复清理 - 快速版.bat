@@ -44,79 +44,97 @@ set "path1=%~1"
 set "path2=%~2"
 setlocal enabledelayedexpansion
 
-:input_path1
-if "!path1!"=="" (
+    :input_path1
+    if "!path1!"=="" (
+        echo.
+        echo 请输入要清理多余文件的文件夹
+        set /p "path1="
+    )
+    if "!path1!"=="" (
+        echo 输入不能为空，请重新输入
+        goto input_path1
+    )
+    set "path1=!path1:"=!"
+    if "!path1:~-1!"=="\" set "path1=!path1:~0,-1!"
+    if not exist "!path1!\" (
+        echo 错误：路径 1 不存在或不是文件夹："!path1!"，请重新输入
+        set "path1="
+        goto input_path1
+    )
+
+    :input_path2
+    if "!path2!"=="" (
+        echo.
+        echo 请输入作为参考的文件夹，仅用于文件比对
+        set /p "path2="
+    )
+    if "!path2!"=="" (
+        echo 输入不能为空，请重新输入
+        goto input_path2
+    )
+    set "path2=!path2:"=!"
+    if "!path2:~-1!"=="\" set "path2=!path2:~0,-1!"
+    if not exist "!path2!\" (
+        echo 错误：路径 2 不存在或不是文件夹："!path2!"，请重新输入
+        set "path2="
+        goto input_path2
+    )
+
+
+
     echo.
-    echo 请输入要清理多余文件的文件夹
-    set /p "path1="
-)
-if "!path1!"=="" (
-    echo 输入不能为空，请重新输入
-    goto input_path1
-)
-set "path1=!path1:"=!"
-if "!path1:~-1!"=="\" set "path1=!path1:~0,-1!"
-if not exist "!path1!\" (
-    echo 错误：路径 1 不存在或不是文件夹："!path1!"，请重新输入
-    set "path1="
-    goto input_path1
-)
-
-:input_path2
-if "!path2!"=="" (
+    echo 清理文件夹："!path1!"
+    echo 参考文件夹："!path2!"
     echo.
-    echo 请输入作为参考的文件夹，仅用于文件比对
-    set /p "path2="
-)
-if "!path2!"=="" (
-    echo 输入不能为空，请重新输入
-    goto input_path2
-)
-set "path2=!path2:"=!"
-if "!path2:~-1!"=="\" set "path2=!path2:~0,-1!"
-if not exist "!path2!\" (
-    echo 错误：路径 2 不存在或不是文件夹："!path2!"，请重新输入
-    set "path2="
-    goto input_path2
-)
 
+    REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
-
-echo.
-echo 清理文件夹："!path1!"
-echo 参考文件夹："!path2!"
-echo.
-
-set /a "total=0"
-set /a "deleted=0"
-set /a "failed=0"
-
-for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }"') do (
-    set /a "total+=1"
-    for %%i in ("%%f") do set "size1=%%~zi"
-    for /f "delims=" %%g in ('call "!es_path!" -path "!path2!" size:^=!size1!') do (
-        if not "%%g"=="%%f" (
-            fc /b "%%f" "%%g" > nul
-            if !errorlevel! equ 0 (
-                echo 准备删除："%%f"
-                echo 重复文件："%%g"
-                set "file_to_delete=%%f"
-                powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
-                if exist "%%f" (
-                    echo 删除失败
-                    set /a "failed+=1"
-                ) else (
-                    echo 已删除到回收站
-                    set /a "deleted+=1"
+    set /a "total=0"
+    set /a "deleted=0"
+    set /a "failed=0"
+    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }"') do (
+        setlocal disabledelayedexpansion
+        set "file1=%%f"
+        set "size1=%%~zf"
+        setlocal enabledelayedexpansion
+        echo set /a "total+=1">> "!temp_set!"
+        for /f "delims=" %%g in ('call "!es_path!" -path "!path2!" size:^=!size1!') do (
+            setlocal disabledelayedexpansion
+            set "file2=%%g"
+            setlocal enabledelayedexpansion
+            if not "!file1!"=="!file2!" (
+                fc /b "!file1!" "!file2!" > nul
+                if !errorlevel! equ 0 (
+                    echo 准备删除："!file1!"
+                    echo 重复文件："!file2!"
+                    set "file_to_delete=!file1!"
+                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                    if exist "!file1!" (
+                        echo 删除失败
+                        echo set /a "failed+=1">> "!temp_set!"
+                    ) else (
+                        echo 已删除到回收站
+                        echo set /a "deleted+=1">> "!temp_set!"
+                    )
                 )
             )
+            endlocal
+            endlocal
         )
+        endlocal
+        endlocal
     )
-)
 
-echo.
-echo 处理完成
-echo 共计：!total! 个文件，删除成功：!deleted! 个，删除失败：!failed! 个
+    REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+    call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
+
+    echo.
+    echo 处理完成
+    echo 共计：!total! 个文件，删除成功：!deleted! 个，删除失败：!failed! 个
+
+endlocal
+endlocal
 
 
 

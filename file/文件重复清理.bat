@@ -75,34 +75,50 @@ set "tmp_list2=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nu
 powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }" > "!tmp_list1!" 2>nul
 powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path2 -File -Recurse | ForEach-Object { $_.FullName }" > "!tmp_list2!" 2>nul
 
+REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
+
 set /a "total=0"
 set /a "deleted=0"
 set /a "failed=0"
-for /f "delims=" %%f in ("!tmp_list1!") do (
-    set /a "total+=1"
-    for %%i in ("%%f") do set "size1=%%~zi"
-    for /f "delims=" %%g in ("!tmp_list2!") do (
-        if not "%%f"=="%%g" (
-            for %%j in ("%%g") do set "size2=%%~zj"
+for /f "usebackq delims=" %%i in ("!tmp_list1!") do (
+    setlocal disabledelayedexpansion
+    set "file1=%%i"
+    set "size1=%%~zi"
+    setlocal enabledelayedexpansion
+    echo set /a "total+=1">> "!temp_set!"
+    for /f "usebackq delims=" %%j in ("!tmp_list2!") do (
+        setlocal disabledelayedexpansion
+        set "file2=%%j"
+        set "size2=%%~zj"
+        setlocal enabledelayedexpansion
+        if not "!file1!"=="!file2!" (
             if "!size1!"=="!size2!" (
-                fc /b "%%f" "%%g" > nul
+                fc /b "!file1!" "!file2!" > nul
                 if !errorlevel! equ 0 (
-                    echo 准备删除："%%f"
-                    echo 重复文件："%%g"
-                    set "file_to_delete=%%f"
+                    echo 准备删除："!file1!"
+                    echo 重复文件："!file2!"
+                    set "file_to_delete=!file1!"
                     powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
-                    if exist "%%f" (
+                    if exist "!file1!" (
                         echo 删除失败
-                        set /a "failed+=1"
+                        echo set /a "failed+=1">> "!temp_set!"
                     ) else (
                         echo 已删除到回收站
-                        set /a "deleted+=1"
+                        echo set /a "deleted+=1">> "!temp_set!"
                     )
                 )
             )
         )
+        endlocal
+        endlocal
     )
+    endlocal
+    endlocal
 )
+
+REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
 if exist "!tmp_list1!" ( del /f /q "!tmp_list1!" )
 if exist "!tmp_list2!" ( del /f /q "!tmp_list2!" )
