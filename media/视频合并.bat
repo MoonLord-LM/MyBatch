@@ -213,21 +213,21 @@ for /l %%i in (1,1,300) do (
             echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
 
             REM 对比参数
-            if not defined first_video_width ( set "first_video_width=!current_video_width!" )
-            if not defined first_video_height ( set "first_video_height=!current_video_height!" )
-            if not defined first_video_codec ( set "first_video_codec=!current_video_codec!" )
-            if not defined first_video_codec_tag ( set "first_video_codec_tag=!current_video_codec_tag!" )
-            if not defined first_video_codec_profile ( set "first_video_codec_profile=!current_video_codec_profile!" )
-            if not defined first_video_codec_level ( set "first_video_codec_level=!current_video_codec_level!" )
-            if not defined first_video_codec_tier ( set "first_video_codec_tier=!current_video_codec_tier!" )
-            if not defined first_audio_codec ( set "first_audio_codec=!current_audio_codec!" )
-            if not defined first_audio_codec_profile ( set "first_audio_codec_profile=!current_audio_codec_profile!" )
-            if not defined first_video_fps ( set "first_video_fps=!current_video_fps!" )
-            if not defined first_audio_sample_rate ( set "first_audio_sample_rate=!current_audio_sample_rate!" )
-            if not defined first_video_time_base ( set "first_video_time_base=!current_video_time_base!" )
+            if "!first_video_width!"=="" ( set "first_video_width=!current_video_width!" )
+            if "!first_video_height!"=="" ( set "first_video_height=!current_video_height!" )
+            if "!first_video_codec!"=="" ( set "first_video_codec=!current_video_codec!" )
+            if "!first_video_codec_tag!"=="" ( set "first_video_codec_tag=!current_video_codec_tag!" )
+            if "!first_video_codec_profile!"=="" ( set "first_video_codec_profile=!current_video_codec_profile!" )
+            if "!first_video_codec_level!"=="" ( set "first_video_codec_level=!current_video_codec_level!" )
+            if "!first_video_codec_tier!"=="" ( set "first_video_codec_tier=!current_video_codec_tier!" )
+            if "!first_audio_codec!"=="" ( set "first_audio_codec=!current_audio_codec!" )
+            if "!first_audio_codec_profile!"=="" ( set "first_audio_codec_profile=!current_audio_codec_profile!" )
+            if "!first_video_fps!"=="" ( set "first_video_fps=!current_video_fps!" )
+            if "!first_audio_sample_rate!"=="" ( set "first_audio_sample_rate=!current_audio_sample_rate!" )
+            if "!first_video_time_base!"=="" ( set "first_video_time_base=!current_video_time_base!" )
 
-            if not defined first_video_codec_all ( set "first_video_codec_all=!current_video_codec_all!" )
-            if not defined first_audio_codec_all ( set "first_audio_codec_all=!current_audio_codec_all!" )
+            if "!first_video_codec_all!"=="" ( set "first_video_codec_all=!current_video_codec_all!" )
+            if "!first_audio_codec_all!"=="" ( set "first_audio_codec_all=!current_audio_codec_all!" )
 
             if not "!current_video_width!"=="!first_video_width!" (
                 echo 警告：文件 %%~f 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致
