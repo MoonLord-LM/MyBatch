@@ -5,13 +5,13 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4 等，最多到 300.mp4 拼接合并为 final.mp4 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4 ... 最多到 999.mp4 拼接合并为 final.mp4 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '会尽可能保留原始视频质量，必要的时候进行转码' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '转码过程使用单线程运行，防止占用过多 CPU 资源' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '注意，使用 ffmpeg 合并视频时，需要保证每段视频的视频编码、视频帧率、音频编码、音频采样率参数一致，避免音画不一致问题' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '注意，使用 ffmpeg 合并视频时，需要使用 -map_metadata -1 参数，清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致问题' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '合并视频时，需要保证每段视频的视频编码、视频帧率、音频编码、音频采样率参数一致，避免音画不一致问题' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '合并视频时，需要使用 -map_metadata -1 参数，清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致问题' -ForegroundColor Green"
 echo.
 
 
@@ -73,7 +73,7 @@ if !errorlevel! neq 0 (
 
 
 if "%~1" == "" (
-    if "!work_dir!"=="" set "work_dir=!cd!"
+    set "work_dir=!cd!"
     echo 开始处理当前文件夹："!work_dir!"
     echo.
 ) else (
@@ -90,6 +90,7 @@ if "%~1" == "" (
     )
 
     if exist "!video_path!\" (
+        set "work_dir=!video_path!"
         echo 开始处理文件夹："!video_path!"
         echo.
     ) else (
@@ -99,11 +100,8 @@ if "%~1" == "" (
         exit /b 1
     )
 
-    for /f "delims=" %%p in ("!video_path!") do (
-        endlocal
-        endlocal
-        set "work_dir=%%p"
-    )
+    endlocal
+    endlocal
 )
 
 
@@ -123,28 +121,9 @@ set "first_video_fps="
 set "first_audio_sample_rate="
 set "first_video_time_base="
 
-echo 正在检查文件的命名方式是否按序号排序
-for /l %%i in (1,1,300) do (
-    set "name_count=0"
-    set "name_list="
-    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
-        if exist "%%~f" (
-            set /a "name_count+=1"
-            set "name_list=!name_list! %%~nxf"
-        )
-    )
-    if !name_count! gtr 1 (
-        echo 错误：序号 %%i 存在多个命名方式相同的文件：!name_list!
-        echo 请只保留其中一种命名方式，然后重新运行
-        echo.
-        pause
-        exit /b 1
-    )
-)
-
 echo 正在检查和处理 mkv 格式的视频
-for /l %%i in (1,1,300) do (
-    for %%f in ("!work_dir!\%%i.mkv" "!work_dir!\0%%i.mkv" "!work_dir!\00%%i.mkv" "!work_dir!\%%i.ts" "!work_dir!\0%%i.ts" "!work_dir!\00%%i.ts") do (
+for /l %%i in (1,1,999) do (
+    for %%f in ("!work_dir!\%%i.mkv" "!work_dir!\0%%i.mkv" "!work_dir!\00%%i.mkv" "!work_dir!\第%%i集.mkv" "!work_dir!\第0%%i集.mkv" "!work_dir!\第00%%i集.mkv") do (
         if exist "%%~f" (
             set "temp_file=%%~dpnf.mp4"
             if not exist "!temp_file!" (
@@ -154,8 +133,68 @@ for /l %%i in (1,1,300) do (
     )
 )
 
+echo 正在检查和处理 ts 格式的视频
+for /l %%i in (1,1,999) do (
+    for %%f in ("!work_dir!\%%i.ts" "!work_dir!\0%%i.ts" "!work_dir!\00%%i.ts" "!work_dir!\第%%i集.ts" "!work_dir!\第0%%i集.ts" "!work_dir!\第00%%i集.ts") do (
+        if exist "%%~f" (
+            set "temp_file=%%~dpnf.mp4"
+            if not exist "!temp_file!" (
+                "!ffmpeg_path!" -i "%%~f" -c copy -map_metadata -1 -threads 1 "!temp_file!"
+            )
+        )
+    )
+)
+
+echo 正在检查文件的序号
+set "min_i=0"
+set "max_i=0"
+for /l %%i in (1,1,999) do (
+    set "name_count=0"
+    set "name_list="
+    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+        if exist "%%~f" (
+            set /a "name_count+=1"
+            if "!name_list!"=="" (
+                set "name_list=%%~nxf"
+            ) else (
+                set "name_list=!name_list! %%~nxf"
+            )
+        )
+    )
+    if !name_count! gtr 1 (
+        echo 错误：序号 %%i 存在多个命名方式相同的文件：!name_list!，请只保留其中一个文件
+        echo.
+        pause
+        exit /b 1
+    )
+    if !name_count! gtr 0 (
+        if "!min_i!"=="0" set "min_i=%%i"
+        set "max_i=%%i"
+    )
+)
+set "missing_list="
+for /l %%i in (!min_i!,1,!max_i!) do (
+    set "name_count=0"
+    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+        if exist "%%~f" set /a "name_count+=1"
+    )
+    if !name_count! equ 0 (
+        if "!missing_list!"=="" (
+            set "missing_list=%%i"
+        ) else (
+            set "missing_list=!missing_list! %%i"
+        )
+    )
+)
+if not "!missing_list!"=="" (
+    echo 错误：视频序号不连续，缺少以下序号：!missing_list!，请补齐缺失的视频文件
+    echo.
+    pause
+    exit /b 1
+)
+
 echo 正在清理 Time code 资源
-for /l %%i in (1,1,300) do (
+for /l %%i in (1,1,999) do (
     for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
         if exist "%%~f" (
             "!ffmpeg_path!" -v error -i "%%~f" -map 0 -f null - 2>nul
@@ -185,7 +224,7 @@ for /l %%i in (1,1,300) do (
 
 echo 正在生成文件列表
 type nul > "!work_dir!\file_list.txt"
-for /l %%i in (1,1,300) do (
+for /l %%i in (1,1,999) do (
     for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
         if exist "%%~f" (
             echo file '%%~f' >> "!work_dir!\file_list.txt"
@@ -285,7 +324,7 @@ for /l %%i in (1,1,300) do (
 )
 
 if "!file_count!"=="0" (
-    echo 没有找到任何视频文件（01.mp4 到 300.mp4）
+    echo 没有找到任何视频文件（01.mp4 到 999.mp4）
     if exist "!work_dir!\file_list.txt" ( del /f /q "!work_dir!\file_list.txt" )
     pause
     exit /b 1
@@ -418,7 +457,7 @@ if "!file_consistent!"=="0" (
         echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
         type nul > "!work_dir!\file_list.txt"
-        for /l %%i in (1,1,300) do (
+        for /l %%i in (1,1,999) do (
             for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
                 if exist "%%~f" (
                     set "temp_file=%%~dpnf_h264_!suffix_safe!.mp4"
@@ -444,7 +483,7 @@ if "!file_consistent!"=="0" (
         echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
         type nul > "!work_dir!\file_list.txt"
-        for /l %%i in (1,1,300) do (
+        for /l %%i in (1,1,999) do (
             for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
                 if exist "%%~f" (
                     set /a "file_count+=1"
