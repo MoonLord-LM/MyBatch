@@ -258,7 +258,8 @@ if "%~1" == "" (
             pause
             exit /b 1
         )
-        echo 处理文件："!video_file!"
+
+        echo 开始处理文件："!video_file!"
         set "creation_date="
         for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_date=%%x"
