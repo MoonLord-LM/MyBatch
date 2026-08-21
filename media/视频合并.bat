@@ -5,7 +5,7 @@ powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" &&
 
 
 
-powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4... 最多到 300.mp4 拼接合并为 final.mp4 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4 等，最多到 300.mp4 拼接合并为 final.mp4 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '会尽可能保留原始视频质量，必要的时候进行转码' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '转码过程使用单线程运行，防止占用过多 CPU 资源' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '合并视频时，需要保证每段视频的视频编码、视频帧率、音频编码、音频采样率参数一致，避免音画不一致问题' -ForegroundColor Green"
@@ -51,7 +51,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-REM 优先使用脚本所在文件夹中的 MediaInfo 组件（用于获取视频编码的 Tier 信息）
+REM 优先使用脚本所在文件夹中的 MediaInfo 组件
 set "mediainfo_path=mediainfo"
 if exist "%~dp0MediaInfo.exe" (
     set "mediainfo_path=%~dp0MediaInfo.exe"
@@ -121,7 +121,7 @@ set "first_video_fps="
 set "first_audio_sample_rate="
 set "first_video_time_base="
 
-echo 正在检查和处理 mkv 格式的视频...
+echo 正在检查和处理 mkv 格式的视频
 for /l %%i in (1,1,300) do (
     for %%f in ("!work_dir!\%%i.mkv" "!work_dir!\0%%i.mkv" "!work_dir!\00%%i.mkv" "!work_dir!\%%i.ts" "!work_dir!\0%%i.ts" "!work_dir!\00%%i.ts") do (
         if exist "%%~f" (
@@ -133,7 +133,7 @@ for /l %%i in (1,1,300) do (
     )
 )
 
-echo 正在清理 Time code 资源...
+echo 正在清理 Time code 资源
 for /l %%i in (1,1,300) do (
     for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
         if exist "%%~f" (
@@ -162,7 +162,7 @@ for /l %%i in (1,1,300) do (
     )
 )
 
-echo 正在生成文件列表...
+echo 正在生成文件列表
 type nul > "!work_dir!\file_list.txt"
 for /l %%i in (1,1,300) do (
     for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
@@ -394,7 +394,7 @@ if "!file_consistent!"=="0" (
         echo 请选择按 Enter 键开始转码，或者关闭窗口结束运行
         echo.
         pause
-        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
+        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
         type nul > "!work_dir!\file_list.txt"
         for /l %%i in (1,1,300) do (
@@ -420,7 +420,7 @@ if "!file_consistent!"=="0" (
         echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行
         echo.
         pause
-        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
+        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
         type nul > "!work_dir!\file_list.txt"
         for /l %%i in (1,1,300) do (
@@ -546,7 +546,7 @@ if "!file_consistent!"=="0" (
     )
 )
 
-echo 正在合并视频...
+echo 正在合并视频
 "!ffmpeg_path!" -f concat -safe 0 -i "!work_dir!\file_list.txt" -c copy -threads 1 "!work_dir!\merged.mp4"
 if !errorlevel! neq 0 (
     echo.
@@ -557,17 +557,29 @@ if !errorlevel! neq 0 (
 
 if exist "!work_dir!\merged.mp4" (
     REM 兼容 webp 封面，自动转为 PNG 格式
-    if not exist "!work_dir!\0.png" if exist "!work_dir!\0.webp" (
-        echo 检测到封面 0.webp，正在转换为 0.png...
-        "!ffmpeg_path!" -y -i "!work_dir!\0.webp" "!work_dir!\0.png"
+    if not exist "!work_dir!\0.png" (
+        if exist "!work_dir!\0.webp" (
+            echo 检测到封面 0.webp，正在转换为 0.png
+            "!ffmpeg_path!" -y -i "!work_dir!\0.webp" "!work_dir!\0.png"
+        )
     )
-    if not exist "!work_dir!\00.png" if exist "!work_dir!\00.webp" (
-        echo 检测到封面 00.webp，正在转换为 00.png...
-        "!ffmpeg_path!" -y -i "!work_dir!\00.webp" "!work_dir!\00.png"
+    if not exist "!work_dir!\00.png" (
+        if exist "!work_dir!\00.webp" (
+            echo 检测到封面 00.webp，正在转换为 00.png
+            "!ffmpeg_path!" -y -i "!work_dir!\00.webp" "!work_dir!\00.png"
+        )
     )
-    if not exist "!work_dir!\000.png" if exist "!work_dir!\000.webp" (
-        echo 检测到封面 000.webp，正在转换为 000.png...
-        "!ffmpeg_path!" -y -i "!work_dir!\000.webp" "!work_dir!\000.png"
+    if not exist "!work_dir!\000.png" (
+        if exist "!work_dir!\000.webp" (
+            echo 检测到封面 000.webp，正在转换为 000.png
+            "!ffmpeg_path!" -y -i "!work_dir!\000.webp" "!work_dir!\000.png"
+        )
+    )
+    if not exist "!work_dir!\cover.png" (
+        if exist "!work_dir!\cover.webp" (
+            echo 检测到封面 cover.webp，正在转换为 cover.png
+            "!ffmpeg_path!" -y -i "!work_dir!\cover.webp" "!work_dir!\cover.png"
+        )
     )
 
     REM 查找封面文件，优先使用 PNG 格式
@@ -584,6 +596,10 @@ if exist "!work_dir!\merged.mp4" (
         set "cover_file=!work_dir!\00.jpg"
     ) else if exist "!work_dir!\000.jpg" (
         set "cover_file=!work_dir!\000.jpg"
+    ) else if exist "!work_dir!\cover.png" (
+        set "cover_file=!work_dir!\cover.png"
+    ) else if exist "!work_dir!\cover.jpg" (
+        set "cover_file=!work_dir!\cover.jpg"
     )
     if not "!cover_file!"=="" (
         for /f "delims=" %%p in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!cover_file!"') do (
@@ -605,7 +621,7 @@ if exist "!work_dir!\merged.mp4" (
             )
         )
 
-        echo 正在添加封面图片 [!cover_file!]...
+        echo 正在添加封面图片 [!cover_file!]
         "!ffmpeg_path!" -i "!work_dir!\merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!work_dir!\final.mp4"
         if !errorlevel! neq 0 (
             echo.
@@ -614,7 +630,7 @@ if exist "!work_dir!\merged.mp4" (
             exit /b 1
         )
     ) else (
-        echo 封面文件（0.png、0.jpg 等）不存在，不添加封面
+        echo 封面文件（0.png、0.jpg、cover.png 等）不存在，不添加封面
         move /y "!work_dir!\merged.mp4" "!work_dir!\final.mp4"
     )
     echo 合并完成，已生成 !work_dir!\final.mp4 文件
