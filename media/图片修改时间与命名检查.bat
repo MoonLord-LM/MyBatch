@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
@@ -75,7 +75,7 @@ if "%~1" == "" (
                 echo 修改时间与文件名时间一致
             ) else if "!check_result!"=="DIFF" (
                 echo set /a "mismatch+=1">> "!temp_set!"
-                echo 发现差异，已记录到日志
+                echo 发现差异
             ) else (
                 echo set /a "check_failed+=1">> "!temp_set!"
                 echo 检查失败
@@ -93,7 +93,7 @@ if "%~1" == "" (
 
     echo 批量检查完成
     if not "!mismatch!"=="0" (
-        echo 差异明细已写入："!log_file!"
+        echo 差异明细已记录到日志："!log_file!"
     )
     echo 共计：!total! 个，一致：!already_ok! 个，不一致：!mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
 ) else (
@@ -161,7 +161,7 @@ if "%~1" == "" (
                     echo 修改时间与文件名时间一致
                 ) else if "!check_result!"=="DIFF" (
                     echo set /a "mismatch+=1">> "!temp_set!"
-                    echo 发现差异，已记录到日志
+                    echo 发现差异
                 ) else (
                     echo set /a "check_failed+=1">> "!temp_set!"
                     echo 检查失败
@@ -179,7 +179,7 @@ if "%~1" == "" (
 
         echo 批量检查完成
         if not "!mismatch!"=="0" (
-            echo 差异明细已写入："!log_file!"
+            echo 差异明细已记录到日志："!log_file!"
         )
         echo 共计：!total! 个，一致：!already_ok! 个，不一致：!mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
     ) else (
