@@ -62,52 +62,61 @@ if "%~1" == "" (
 
         echo 处理文件："!video_file!"
         set "filedate="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "filedate=%%x"
-            echo 视频流 date 标签："!filedate!"
+            echo 创建时间 date 标记："!filedate!"
         )
         if "!filedate!"=="" (
-            set "creation_time="
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-                set "creation_time=%%x"
-                echo 视频容器 creation_time 标签："!creation_time!"
-            )
-            if "!creation_time!"=="" (
-                echo set /a "no_date+=1">> "!temp_set!"
-                echo 未找到 date 或 creation_time 信息，跳过此文件
-            ) else (
-                REM 示例 2000-01-01T00:00:00.000000Z
-                set "suffix_part1=!creation_time:~19,8!"
-                set "suffix_part2=!creation_time:~-8!"
-                if not "!suffix_part1!"==".000000Z" (
-                    echo set /a "no_date+=1">> "!temp_set!"
-                    echo 时间格式不正确，跳过此文件
-                ) else if not "!suffix_part2!"==".000000Z" (
-                    echo set /a "no_date+=1">> "!temp_set!"
-                    echo 时间格式不正确，跳过此文件
-                ) else (
-                    set "filedate=!creation_time:~0,10!"
-                    set "filedate=!filedate:-=!"
-                )
+                set "filedate=%%x"
+                echo 创建时间 creation_time 标记："!filedate!"
             )
         )
-        if not "!filedate!"=="" (
-            set "new_name=!filedate! !base_name!!file_ext!"
-            echo 目标文件名："!new_name!"
-            if /i "!base_name:~0,8!"=="!filedate!" (
-                echo set /a "already_ok+=1">> "!temp_set!"
-                echo 文件名已符合规范，无需处理
-            ) else if exist "!file_dir!!new_name!" (
-                echo set /a "name_conflict+=1">> "!temp_set!"
-                echo 目标文件已存在，跳过此文件
+        if "!filedate!"=="" (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                set "filedate=%%x"
+                echo 视频流 creation_time 标记："!filedate!"
+            )
+        )
+        if "!filedate!"=="" (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                set "filedate=%%x"
+                echo 苹果 QuickTime 格式标记："!filedate!"
+            )
+        )
+        if "!filedate!"=="" (
+            echo set /a "no_date+=1">> "!temp_set!"
+            echo 未找到生成日期信息，跳过此文件
+        ) else (
+            REM 归一化为 YYYYMMDD，并转换到系统时区
+            set "raw_date=!filedate!"
+            set "filedate="
+            for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($t) if ($t -match '^\d{8}$') { Write-Output $t } else { try { $dt = [DateTime]::Parse($t, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); Write-Output $dt.ToLocalTime().ToString('yyyyMMdd') } catch {} } } -t '!raw_date!'" 2^>nul') do (
+                set "filedate=%%d"
+            )
+            if "!filedate!"=="" (
+                echo set /a "no_date+=1">> "!temp_set!"
+                echo 时间解析失败，跳过此文件
             ) else (
-                ren "!video_file!" "!new_name!"
-                if !errorlevel! equ 0 (
-                    echo set /a "succeeded+=1">> "!temp_set!"
-                    echo 重命名成功
+                if /i "!base_name:~0,8!"=="!filedate!" (
+                    echo set /a "already_ok+=1">> "!temp_set!"
+                    echo 文件名已包含日期，无需处理
                 ) else (
-                    echo set /a "rename_failed+=1">> "!temp_set!"
-                    echo 重命名失败
+                    set "new_name=!filedate! !base_name!!file_ext!"
+                    echo 目标文件名："!new_name!"
+                    if exist "!file_dir!!new_name!" (
+                        echo set /a "name_conflict+=1">> "!temp_set!"
+                        echo 目标文件已存在，跳过此文件
+                    ) else (
+                        ren "!video_file!" "!new_name!"
+                        if !errorlevel! equ 0 (
+                            echo set /a "succeeded+=1">> "!temp_set!"
+                            echo 重命名成功
+                        ) else (
+                            echo set /a "rename_failed+=1">> "!temp_set!"
+                            echo 重命名失败
+                        )
+                    )
                 )
             )
         )
@@ -125,7 +134,7 @@ if "%~1" == "" (
     set /a "ok_total=succeeded+already_ok"
     set /a "fail_total=no_date+name_conflict+rename_failed"
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，日期获取失败 !no_date! 个，重命名失败 !rename_failed! 个
+    echo 其中，重命名成功 !succeeded! 个，已包含日期 !already_ok! 个，已存在同名文件 !name_conflict! 个，日期获取失败 !no_date! 个，重命名失败 !rename_failed! 个
 ) else (
     setlocal disabledelayedexpansion
     set "video_file=%~1"
@@ -156,7 +165,7 @@ if "%~1" == "" (
         set /a "name_conflict=0"
         set /a "rename_failed=0"
         set "file_path=!video_file!"
-        set "ext_filter=\.(mp4|mkv|m4v|flv|mov)$"
+        set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "video_file=%%f"
@@ -167,52 +176,61 @@ if "%~1" == "" (
 
             echo 处理文件："!video_file!"
             set "filedate="
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "filedate=%%x"
-                echo 创建时间 date 标签："!filedate!"
+                echo 创建时间 date 标记："!filedate!"
             )
             if "!filedate!"=="" (
-                set "creation_time="
                 for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-                    set "creation_time=%%x"
-                    echo 创建时间 creation_time 标签："!creation_time!"
-                )
-                if "!creation_time!"=="" (
-                    echo set /a "no_date+=1">> "!temp_set!"
-                    echo 未找到 date 或 creation_time 信息，跳过此文件
-                ) else (
-                    REM 示例 2000-01-01T00:00:00.000000Z
-                    set "suffix_part1=!creation_time:~19,8!"
-                    set "suffix_part2=!creation_time:~-8!"
-                    if not "!suffix_part1!"==".000000Z" (
-                        echo set /a "no_date+=1">> "!temp_set!"
-                        echo 时间格式不正确，跳过此文件
-                    ) else if not "!suffix_part2!"==".000000Z" (
-                        echo set /a "no_date+=1">> "!temp_set!"
-                        echo 时间格式不正确，跳过此文件
-                    ) else (
-                        set "filedate=!creation_time:~0,10!"
-                        set "filedate=!filedate:-=!"
-                    )
+                    set "filedate=%%x"
+                    echo 创建时间 creation_time 标记："!filedate!"
                 )
             )
-            if not "!filedate!"=="" (
-                set "new_name=!filedate! !base_name!!file_ext!"
-                echo 目标文件名："!new_name!"
-                if /i "!base_name:~0,8!"=="!filedate!" (
-                    echo set /a "already_ok+=1">> "!temp_set!"
-                    echo 文件名已包含日期，无需处理
-                ) else if exist "!file_dir!!new_name!" (
-                    echo set /a "name_conflict+=1">> "!temp_set!"
-                    echo 目标文件已存在，跳过此文件
+            if "!filedate!"=="" (
+                for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                    set "filedate=%%x"
+                    echo 视频流 creation_time 标记："!filedate!"
+                )
+            )
+            if "!filedate!"=="" (
+                for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                    set "filedate=%%x"
+                    echo 苹果 QuickTime 格式标记："!filedate!"
+                )
+            )
+            if "!filedate!"=="" (
+                echo set /a "no_date+=1">> "!temp_set!"
+                echo 未找到生成日期信息，跳过此文件
+            ) else (
+                REM 归一化为 YYYYMMDD，并转换到系统时区
+                set "raw_date=!filedate!"
+                set "filedate="
+                for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($t) if ($t -match '^\d{8}$') { Write-Output $t } else { try { $dt = [DateTime]::Parse($t, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); Write-Output $dt.ToLocalTime().ToString('yyyyMMdd') } catch {} } } -t '!raw_date!'" 2^>nul') do (
+                    set "filedate=%%d"
+                )
+                if "!filedate!"=="" (
+                    echo set /a "no_date+=1">> "!temp_set!"
+                    echo 时间解析失败，跳过此文件
                 ) else (
-                    ren "!video_file!" "!new_name!"
-                    if !errorlevel! equ 0 (
-                        echo set /a "succeeded+=1">> "!temp_set!"
-                        echo 重命名成功
+                    if /i "!base_name:~0,8!"=="!filedate!" (
+                        echo set /a "already_ok+=1">> "!temp_set!"
+                        echo 文件名已包含日期，无需处理
                     ) else (
-                        echo set /a "rename_failed+=1">> "!temp_set!"
-                        echo 重命名失败
+                        set "new_name=!filedate! !base_name!!file_ext!"
+                        echo 目标文件名："!new_name!"
+                        if exist "!file_dir!!new_name!" (
+                            echo set /a "name_conflict+=1">> "!temp_set!"
+                            echo 目标文件已存在，跳过此文件
+                        ) else (
+                            ren "!video_file!" "!new_name!"
+                            if !errorlevel! equ 0 (
+                                echo set /a "succeeded+=1">> "!temp_set!"
+                                echo 重命名成功
+                            ) else (
+                                echo set /a "rename_failed+=1">> "!temp_set!"
+                                echo 重命名失败
+                            )
+                        )
                     )
                 )
             )
@@ -233,54 +251,64 @@ if "%~1" == "" (
         echo 其中，重命名成功 !succeeded! 个，已包含日期 !already_ok! 个，已存在同名文件 !name_conflict! 个，日期获取失败 !no_date! 个，重命名失败 !rename_failed! 个
     ) else (
         set "ext_ok="
-        for /f "delims=" %%e in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ($env:file_ext -match '^\.(mp4|mkv|m4v|flv|mov)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
+        for /f "delims=" %%e in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ($env:file_ext -match '^\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
         if not "!ext_ok!"=="ok" (
             echo 错误：不支持的视频格式："!video_file!"
             echo.
             pause
             exit /b 1
         )
-        echo 开始处理文件："!video_file!"
+        echo 处理文件："!video_file!"
         set "filedate="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "filedate=%%x"
-            echo 创建时间 date 标签："!filedate!"
+            echo 创建时间 date 标记："!filedate!"
         )
         if "!filedate!"=="" (
-            set "creation_time="
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-                set "creation_time=%%x"
-                echo 创建时间 creation_time 标签："!creation_time!"
-            )
-            if "!creation_time!"=="" (
-                echo 未找到 date 或 creation_time 信息，跳过此文件
-            ) else (
-                REM 示例 2000-01-01T00:00:00.000000Z
-                set "suffix_part1=!creation_time:~19,8!"
-                set "suffix_part2=!creation_time:~-8!"
-                if not "!suffix_part1!"==".000000Z" (
-                    echo 时间格式不正确，跳过此文件
-                ) else if not "!suffix_part2!"==".000000Z" (
-                    echo 时间格式不正确，跳过此文件
-                ) else (
-                    set "filedate=!creation_time:~0,10!"
-                    set "filedate=!filedate:-=!"
-                )
+                set "filedate=%%x"
+                echo 创建时间 creation_time 标记："!filedate!"
             )
         )
-        if not "!filedate!"=="" (
-            set "new_name=!filedate! !base_name!!file_ext!"
-            echo 目标文件名："!new_name!"
-            if /i "!base_name:~0,8!"=="!filedate!" (
-                echo 文件名已包含日期，无需处理
-            ) else if exist "!file_dir!!new_name!" (
-                echo 目标文件已存在，跳过此文件
+        if "!filedate!"=="" (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                set "filedate=%%x"
+                echo 视频流 creation_time 标记："!filedate!"
+            )
+        )
+        if "!filedate!"=="" (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                set "filedate=%%x"
+                echo 苹果 QuickTime 格式标记："!filedate!"
+            )
+        )
+        if "!filedate!"=="" (
+            echo 未找到生成日期信息，跳过此文件
+        ) else (
+            REM 归一化为 YYYYMMDD，并转换到系统时区
+            set "raw_date=!filedate!"
+            set "filedate="
+            for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($t) if ($t -match '^\d{8}$') { Write-Output $t } else { try { $dt = [DateTime]::Parse($t, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); Write-Output $dt.ToLocalTime().ToString('yyyyMMdd') } catch {} } } -t '!raw_date!'" 2^>nul') do (
+                set "filedate=%%d"
+            )
+            if "!filedate!"=="" (
+                echo 时间解析失败，跳过此文件
             ) else (
-                ren "!video_file!" "!new_name!"
-                if !errorlevel! equ 0 (
-                    echo 重命名成功
+                if /i "!base_name:~0,8!"=="!filedate!" (
+                    echo 文件名已包含日期，无需处理
                 ) else (
-                    echo 重命名失败
+                    set "new_name=!filedate! !base_name!!file_ext!"
+                    echo 目标文件名："!new_name!"
+                    if exist "!file_dir!!new_name!" (
+                        echo 目标文件已存在，跳过此文件
+                    ) else (
+                        ren "!video_file!" "!new_name!"
+                        if !errorlevel! equ 0 (
+                            echo 重命名成功
+                        ) else (
+                            echo 重命名失败
+                        )
+                    )
                 )
             )
         )
