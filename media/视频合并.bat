@@ -14,11 +14,9 @@ echo.
 
 
 
-set "work_dir="
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，处理脚本所在文件夹 & echo.
-    set "work_dir=%~dp0"
-    if "!work_dir:~-1!"=="\" set "work_dir=!work_dir:~0,-1!"
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    cd /d "%~dp0"
 )
 
 REM 优先使用脚本所在文件夹中的 ffmpeg 和 ffprobe 组件
@@ -53,7 +51,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-REM 使用 MediaInfo.exe 获取视频编码的 Tier 信息
+REM 优先使用脚本所在文件夹中的 MediaInfo 组件（用于获取视频编码的 Tier 信息）
 set "mediainfo_path=mediainfo"
 if exist "%~dp0MediaInfo.exe" (
     set "mediainfo_path=%~dp0MediaInfo.exe"
@@ -63,16 +61,17 @@ if exist "%~dp0MediaInfo.exe" (
 !mediainfo_path! --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 MediaInfo 组件
-    echo 请从 https://mediaarea.net/en/MediaInfo/Download 下载，然后放到脚本所在文件夹
-    "explorer.exe" "https://mediaarea.net/en/MediaInfo/Download"
+    echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
+    "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
     exit /b 1
 )
 
-REM 支持双击运行（处理当前文件夹），或拖入文件夹运行
+
+
 if "%~1" == "" (
-    if not defined work_dir set "work_dir=!cd!"
+    if "!work_dir!"=="" set "work_dir=!cd!"
     echo 开始处理当前文件夹："!work_dir!"
     echo.
 ) else (
@@ -124,7 +123,7 @@ echo 正在检查和处理 mkv 格式的视频...
 for /l %%i in (1,1,300) do (
     for %%f in ("!work_dir!\%%i.mkv" "!work_dir!\0%%i.mkv" "!work_dir!\00%%i.mkv" "!work_dir!\%%i.ts" "!work_dir!\0%%i.ts" "!work_dir!\00%%i.ts") do (
         if exist "%%~f" (
-            set "temp_file=%%~nf.mp4"
+            set "temp_file=%%~dpnf.mp4"
             if not exist "!temp_file!" (
                 "!ffmpeg_path!" -i "%%~f" -c copy -map_metadata -1 -threads 1 "!temp_file!"
             )
@@ -139,7 +138,7 @@ for /l %%i in (1,1,300) do (
             "!ffmpeg_path!" -v error -i "%%~f" -map 0 -f null - 2>nul
             if !errorlevel! neq 0 (
                 echo.
-                echo 文件 %%~f 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行！
+                echo 文件 "%%~f" 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行
                 pause
                 "!ffmpeg_path!" -v error -i "%%~f" -map 0 -f null -
                 pause
@@ -147,15 +146,14 @@ for /l %%i in (1,1,300) do (
             )
 
             for /f "delims=" %%d in ('call "!ffprobe_path!" -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%~f" 2^>^&1') do (
-                echo %%d
                 if "%%d"=="tmcd" (
-                    echo 警告: 文件包含 Time code 流，需要进行清理
-                    set "temp_file=%%~nf_tmp.mp4"
+                    echo 警告：文件包含 Time code 流，需要进行清理
+                    set "temp_file=%%~dpnf_tmp.mp4"
                     if not exist "!temp_file!" (
                         "!ffmpeg_path!" -i "%%~f" -c copy -map_metadata -1 -threads 1 "!temp_file!"
                     )
                     if exist "%%~f" ( del /f /q "%%~f" )
-                    ren "!temp_file!" "%%~f"
+                    ren "!temp_file!" "%%~nxf"
                 )
             )
         )
@@ -212,7 +210,7 @@ for /l %%i in (1,1,300) do (
             )
             set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
             set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
-            echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率: !current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
+            echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
 
             REM 对比参数
             if not defined first_video_width ( set "first_video_width=!current_video_width!" )
@@ -232,31 +230,31 @@ for /l %%i in (1,1,300) do (
             if not defined first_audio_codec_all ( set "first_audio_codec_all=!current_audio_codec_all!" )
 
             if not "!current_video_width!"=="!first_video_width!" (
-                echo 警告：文件 %%~f 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致！
+                echo 警告：文件 %%~f 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_height!"=="!first_video_height!" (
-                echo 警告：文件 %%~f 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致！
+                echo 警告：文件 %%~f 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_codec_all!"=="!first_video_codec_all!" (
-                echo 警告：文件 %%~f 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致！
+                echo 警告：文件 %%~f 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
                 set "file_consistent=0"
             )
             if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
-                echo 警告：文件 %%~f 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致！
+                echo 警告：文件 %%~f 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_fps!"=="!first_video_fps!" (
-                echo 警告：文件 %%~f 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致！
+                echo 警告：文件 %%~f 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
                 set "file_consistent=0"
             )
             if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
-                echo 警告：文件 %%~f 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致！
+                echo 警告：文件 %%~f 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_time_base!"=="!first_video_time_base!" (
-                echo 警告：文件 %%~f 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致！
+                echo 警告：文件 %%~f 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
                 set "file_consistent=0"
             )
         )
@@ -274,7 +272,7 @@ set "file_count=0"
 set "target_video_encoder=libx264"
 set "target_audio_encoder=aac"
 
-       if /i "!first_video_codec!"=="AV1" ( set "target_video_encoder=libaom-av1"
+if /i "!first_video_codec!"=="AV1" ( set "target_video_encoder=libaom-av1"
 ) else if /i "!first_video_codec!"=="HEVC" ( set "target_video_encoder=libx265"
 ) else if /i "!first_video_codec!"=="H264" ( set "target_video_encoder=libx264"
 ) else if /i "!first_video_codec!"=="MPEG4" ( set "target_video_encoder=mpeg4"
@@ -285,7 +283,7 @@ set "target_audio_encoder=aac"
     pause
 )
 
-       if /i "!first_video_codec_tag!"=="av01" ( set "target_video_encoder=!target_video_encoder! -tag:v av01"
+if /i "!first_video_codec_tag!"=="av01" ( set "target_video_encoder=!target_video_encoder! -tag:v av01"
 ) else if /i "!first_video_codec_tag!"=="hvc1" ( set "target_video_encoder=!target_video_encoder! -tag:v hvc1"
 ) else if /i "!first_video_codec_tag!"=="hev1" ( set "target_video_encoder=!target_video_encoder! -tag:v hev1"
 ) else if /i "!first_video_codec_tag!"=="avc1" ( set "target_video_encoder=!target_video_encoder! -tag:v avc1"
@@ -296,7 +294,7 @@ set "target_audio_encoder=aac"
     pause
 )
 
-       if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
+if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
 ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
 ) else if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
 ) else if /i "!first_video_codec_profile!"=="Simple Profile" ( set "target_video_encoder=!target_video_encoder! -profile:v simple"
@@ -308,7 +306,7 @@ set "target_audio_encoder=aac"
 REM H.264 (AVC) Level 对应关系 x10
 REM H.265 (HEVC) Level 对应关系 x30
 if /i "!first_video_codec!"=="H264" (
-           if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
+    if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
     ) else if /i "!first_video_codec_level!"=="13" ( set "target_video_encoder=!target_video_encoder! -level:v 1.3"
     ) else if /i "!first_video_codec_level!"=="20" ( set "target_video_encoder=!target_video_encoder! -level:v 2.0"
     ) else if /i "!first_video_codec_level!"=="30" ( set "target_video_encoder=!target_video_encoder! -level:v 3.0"
@@ -326,7 +324,7 @@ if /i "!first_video_codec!"=="H264" (
     )
 ) else if /i "!first_video_codec!"=="HEVC" (
     set "x265_level="
-           if /i "!first_video_codec_level!"=="30" ( set "x265_level=10"
+    if /i "!first_video_codec_level!"=="30" ( set "x265_level=10"
     ) else if /i "!first_video_codec_level!"=="60" ( set "x265_level=20"
     ) else if /i "!first_video_codec_level!"=="63" ( set "x265_level=21"
     ) else if /i "!first_video_codec_level!"=="90" ( set "x265_level=30"
@@ -341,19 +339,19 @@ if /i "!first_video_codec!"=="H264" (
         pause
     )
     if defined x265_level (
-           if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=0^""
-    ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=1^""
-    ) else (
-        echo 警告：未知视频编码 "!first_video_codec_tier!"，不使用 Tier
-        pause
-        set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!^""
-    )
+        if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=0^""
+        ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=1^""
+        ) else (
+            echo 警告：未知视频编码 "!first_video_codec_tier!"，不使用 Tier
+            pause
+            set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!^""
+        )
     ) else (
         echo 警告：未知视频编码 "!first_video_codec_tier!"，不使用 Tier
         pause
     )
 ) else if /i "!first_video_codec!"=="MPEG4" (
-           if /i "!first_video_codec_level!"=="3" ( set "target_video_encoder=!target_video_encoder! -level 3"
+    if /i "!first_video_codec_level!"=="3" ( set "target_video_encoder=!target_video_encoder! -level 3"
     ) else (
         echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
         pause
@@ -363,7 +361,7 @@ if /i "!first_video_codec!"=="H264" (
     pause
 )
 
-       if /i "!first_audio_codec_all!"=="AAC LC" ( set "target_audio_encoder=aac -profile:a aac_low"
+if /i "!first_audio_codec_all!"=="AAC LC" ( set "target_audio_encoder=aac -profile:a aac_low"
 ) else if /i "!first_audio_codec_all!"=="AAC HE-AAC" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he"
 ) else if /i "!first_audio_codec_all!"=="AAC HE-AACv2" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
 ) else if /i "!first_audio_codec_all!"=="MP3 UNKNOWN" ( set "target_audio_encoder=libmp3lame"
@@ -391,18 +389,18 @@ if "!file_consistent!"=="0" (
         echo.
         echo H265 编码较为复杂，直接拼接容易出现音画不同步问题，可以尝试进行全量的重新编码
         echo.
-        echo 请选择按 Enter 键开始转码，或者关闭窗口结束运行！
+        echo 请选择按 Enter 键开始转码，或者关闭窗口结束运行
         echo.
         pause
-        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
+        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
 
         type nul > "!work_dir!\file_list.txt"
         for /l %%i in (1,1,300) do (
             for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
                 if exist "%%~f" (
-                    set "temp_file=%%~nf_h264_!suffix_safe!.mp4"
+                    set "temp_file=%%~dpnf_h264_!suffix_safe!.mp4"
                     set "target_timebase=!first_video_time_base:1/=!"
-                    echo 重新编码视频: %%~f - !temp_file!
+                    echo 重新编码视频："%%~f" - "!temp_file!"
                     if not exist "!temp_file!" (
                         "!ffmpeg_path!" -i "%%~f" ^
                             -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
@@ -417,10 +415,10 @@ if "!file_consistent!"=="0" (
         )
     ) else (
         echo.
-        echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行！
+        echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行
         echo.
         pause
-        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率: !first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率: !first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
+        echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!...
 
         type nul > "!work_dir!\file_list.txt"
         for /l %%i in (1,1,300) do (
@@ -470,23 +468,44 @@ if "!file_consistent!"=="0" (
                     )
                     set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
                     set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
-                    echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率: !current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率: !current_audio_sample_rate!，视频时间基准：!current_video_time_base!
+                    echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
                     REM 对比参数
-                    set "temp_file=%%~nf_!suffix_safe!.mp4"
+                    set "temp_file=%%~dpnf_!suffix_safe!.mp4"
                     set "video_consistent=1"
                     set "audio_consistent=1"
-                    if not "!current_video_width!"=="!first_video_width!" ( set "video_consistent=0" && echo "video_width - !current_video_width! - !first_video_width!" )
-                    if not "!current_video_height!"=="!first_video_height!" ( set "video_consistent=0" && echo "video_height - !current_video_height! - !first_video_height!" )
-                    if not "!current_video_codec_all!"=="!first_video_codec_all!" ( set "video_consistent=0" && echo "video_codec - !current_video_codec_all! - !first_video_codec_all!" )
-                    if not "!current_video_fps!"=="!first_video_fps!" ( set "video_consistent=0" && echo "video_fps - !current_video_fps! - !first_video_fps!" )
-                    if not "!current_video_time_base!"=="!first_video_time_base!" ( set "video_consistent=0" && echo "video_time_base - !current_video_time_base! - !first_video_time_base!" )
-                    if not "!current_audio_codec_all!"=="!first_audio_codec_all!" ( set "audio_consistent=0" && echo "audio_codec - !current_audio_codec_all! - !first_audio_codec_all!" )
-                    if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" ( set "audio_consistent=0" && echo "audio_sample_rate - !current_audio_sample_rate! - !first_audio_sample_rate!" )
-                    echo 视频信息一致：!video_consistent!，音频信息一致：!audio_consistent!
+                    if not "!current_video_width!"=="!first_video_width!" (
+                        set "video_consistent=0"
+                        echo 警告：文件 %%~f 的视频分辨率宽度 !current_video_width! 与第一个视频的视频分辨率宽度 !first_video_width! 不一致
+                    )
+                    if not "!current_video_height!"=="!first_video_height!" (
+                        set "video_consistent=0"
+                        echo 警告：文件 %%~f 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
+                    )
+                    if not "!current_video_codec_all!"=="!first_video_codec_all!" (
+                        set "video_consistent=0"
+                        echo 警告：文件 %%~f 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
+                    )
+                    if not "!current_video_fps!"=="!first_video_fps!" (
+                        set "video_consistent=0"
+                        echo 警告：文件 %%~f 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
+                    )
+                    if not "!current_video_time_base!"=="!first_video_time_base!" (
+                        set "video_consistent=0"
+                        echo 警告：文件 %%~f 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
+                    )
+                    if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
+                        set "audio_consistent=0"
+                        echo 警告：文件 %%~f 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
+                    )
+                    if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
+                        set "audio_consistent=0"
+                        echo 警告：文件 %%~f 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
+                    )
+                    echo 视频信息对比完成
 
                     set "target_timebase=!first_video_time_base:1/=!"
                     if not "!video_consistent!"=="1" (
-                        echo 重新编码视频: %%~f - !temp_file!
+                        echo 重新编码视频："%%~f" - "!temp_file!"
                         if not "!audio_consistent!"=="1" (
                             if not exist "!temp_file!" (
                                 "!ffmpeg_path!" -i "%%~f" ^
@@ -508,7 +527,7 @@ if "!file_consistent!"=="0" (
                         )
                         echo file '!temp_file!' >> "!work_dir!\file_list.txt"
                     ) else if not "!audio_consistent!"=="1" (
-                        echo 重新编码视频: %%~f - !temp_file!
+                        echo 重新编码视频："%%~f" - "!temp_file!"
                         if not exist "!temp_file!" (
                             "!ffmpeg_path!" -i "%%~f" ^
                                 -c:v copy ^
