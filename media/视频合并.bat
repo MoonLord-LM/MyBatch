@@ -91,7 +91,7 @@ if "%~1" == "" (
 
     if exist "!video_path!\" (
         set "work_dir=!video_path!"
-        echo 开始处理文件夹："!video_path!"
+        echo 开始处理文件夹："!work_dir!"
         echo.
     ) else (
         echo 错误：请拖入文件夹，不支持拖入文件
