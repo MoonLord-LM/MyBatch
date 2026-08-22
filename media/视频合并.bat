@@ -77,6 +77,9 @@ if "%~1" == "" (
     echo 开始处理当前文件夹："!work_dir!"
     echo.
 ) else (
+    REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
+    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
+
     setlocal disabledelayedexpansion
     set "video_path=%~1"
     setlocal enabledelayedexpansion
@@ -85,23 +88,28 @@ if "%~1" == "" (
     if not exist "!video_path!" (
         echo 错误：文件不存在："!video_path!"
         echo.
+        if exist "!temp_set!" ( del /f /q "!temp_set!" )
         pause
         exit /b 1
     )
 
     if exist "!video_path!\" (
-        set "work_dir=!video_path!"
-        echo 开始处理文件夹："!work_dir!"
+        echo set "work_dir=!video_path!">> "!temp_set!"
+        echo 开始处理文件夹："!video_path!"
         echo.
     ) else (
         echo 错误：请拖入文件夹，不支持拖入文件
         echo.
+        if exist "!temp_set!" ( del /f /q "!temp_set!" )
         pause
         exit /b 1
     )
 
     endlocal
     endlocal
+
+    REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
+    call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 )
 
 
@@ -124,6 +132,7 @@ set "first_video_time_base="
 echo 正在检查和处理 mkv 格式的视频
 for /l %%i in (1,1,999) do (
     for %%f in ("!work_dir!\%%i.mkv" "!work_dir!\0%%i.mkv" "!work_dir!\00%%i.mkv" "!work_dir!\第%%i集.mkv" "!work_dir!\第0%%i集.mkv" "!work_dir!\第00%%i集.mkv") do (
+        echo %%f
         if exist "%%~f" (
             set "temp_file=%%~dpnf.mp4"
             if not exist "!temp_file!" (
