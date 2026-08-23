@@ -94,6 +94,7 @@ for /f "usebackq delims=" %%i in ("!tmp_list1!") do (
         set "file2=%%j"
         set "size2=%%~zj"
         setlocal enabledelayedexpansion
+        REM echo 正在比对："!file1!" "!size1!" 和 "!file2!" "!size2!"
         if not "!file1!"=="!file2!" (
             if "!size1!"=="!size2!" (
                 if exist "!file1!" (

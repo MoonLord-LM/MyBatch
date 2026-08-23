@@ -110,6 +110,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         setlocal disabledelayedexpansion
         set "file2=%%g"
         setlocal enabledelayedexpansion
+        REM echo 正在比对："!file1!" 和 "!file2!"，文件大小为 "!size1!"
         if not "!file1!"=="!file2!" (
             if exist "!file1!" (
                 if exist "!file2!" (
