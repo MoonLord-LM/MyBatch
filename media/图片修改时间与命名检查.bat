@@ -1,7 +1,10 @@
 ﻿@echo off
 chcp 65001 >nul
+setlocal disabledelayedexpansion
+set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
-powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
+powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
 
@@ -18,18 +21,66 @@ echo.
 
 if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
-    cd /d "%~dp0"
+    cd /d "!script_dir!"
 )
 
 
 
 REM 检查结果记录到脚本所在文件夹
-set "log_file=%~dp0%~n0.log"
+set "log_file=!script_dir!!script_name!.log"
 
-if "%~1" == "" (
+if "!param1!" == "" (
     echo 开始处理当前文件夹："!cd!"
+    set "working_dir=!cd!"
     echo.
+) else (
+    if "!param1:~-1!"=="\" set "param1=!param1:~0,-1!"
+    if not exist "!param1!" (
+        echo 错误：路径不存在："!param1!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+    if exist "!param1!\" (
+        echo 开始处理文件夹："!param1!"
+        set "working_dir=!param1!"
+        echo.
+    ) else (
+        echo 开始处理文件："!param1!"
+        set "img_file=!param1_path!"
+        set "file_dir=!param1_dir!"
+        set "base_name=!param1_name!"
+        set "file_ext=!param1_ext!"
 
+        REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
+        set "formatted_time="
+        for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
+            set "formatted_time=%%t"
+        )
+
+        if "!formatted_time!"=="NOSTD" (
+            echo 文件名不是标准命名，跳过此文件
+        ) else if "!formatted_time!"=="NO_TIME" (
+            echo 文件名中的时间无效，跳过此文件
+        ) else (
+            echo 图片文件名中的时间："!formatted_time!"
+            set "check_result="
+            for /f "delims=" %%r in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
+                set "check_result=%%r"
+            )
+
+            if "!check_result!"=="ALREADY" (
+                echo 修改时间与文件名时间一致
+            ) else if "!check_result!"=="DIFF" (
+                echo 发现差异，已记录到日志："!log_file!"
+            ) else (
+                echo 检查失败
+            )
+        )
+    )
+)
+
+if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
@@ -39,7 +90,7 @@ if "%~1" == "" (
     set /a "no_time=0"
     set /a "check_failed=0"
     set /a "not_standard=0"
-    set "file_path=!cd!"
+    set "file_path=!working_dir!"
     set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
@@ -96,136 +147,10 @@ if "%~1" == "" (
         echo 差异明细已记录到日志："!log_file!"
     )
     echo 共计：!total! 个，一致：!already_ok! 个，不一致：!mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
-) else (
-    setlocal disabledelayedexpansion
-    set "img_file=%~1"
-    set "file_dir=%~dp1"
-    set "base_name=%~n1"
-    set "file_ext=%~x1"
-    setlocal enabledelayedexpansion
-    if "!img_file:~-1!"=="\" set "img_file=!img_file:~0,-1!"
-
-    if not exist "!img_file!" (
-        echo 错误：文件不存在："!img_file!"
-        echo.
-        pause
-        exit /b 1
-    )
-
-    if exist "!img_file!\" (
-        echo 开始处理文件夹："!img_file!"
-        echo.
-
-        REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
-        set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
-
-        set /a "total=0"
-        set /a "already_ok=0"
-        set /a "mismatch=0"
-        set /a "no_time=0"
-        set /a "check_failed=0"
-        set /a "not_standard=0"
-        set "file_path=!img_file!"
-        set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
-            setlocal disabledelayedexpansion
-            set "img_file=%%f"
-            set "file_dir=%%~dpf"
-            set "base_name=%%~nf"
-            set "file_ext=%%~xf"
-            setlocal enabledelayedexpansion
-
-            echo 处理文件："!img_file!"
-
-            REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
-            set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
-                set "formatted_time=%%t"
-            )
-
-            if "!formatted_time!"=="NOSTD" (
-                echo set /a "not_standard+=1">> "!temp_set!"
-                echo 文件名不是标准命名，跳过此文件
-            ) else if "!formatted_time!"=="NO_TIME" (
-                echo set /a "no_time+=1">> "!temp_set!"
-                echo 文件名中的时间无效，跳过此文件
-            ) else (
-                echo 图片文件名中的时间："!formatted_time!"
-                set "check_result="
-                for /f "delims=" %%r in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
-                    set "check_result=%%r"
-                )
-
-                if "!check_result!"=="ALREADY" (
-                    echo set /a "already_ok+=1">> "!temp_set!"
-                    echo 修改时间与文件名时间一致
-                ) else if "!check_result!"=="DIFF" (
-                    echo set /a "mismatch+=1">> "!temp_set!"
-                    echo 发现差异
-                ) else (
-                    echo set /a "check_failed+=1">> "!temp_set!"
-                    echo 检查失败
-                )
-            )
-            echo set /a "total+=1">> "!temp_set!"
-            echo.
-
-            endlocal
-            endlocal
-        )
-
-        REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
-        call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
-
-        echo 批量检查完成
-        if not "!mismatch!"=="0" (
-            echo 差异明细已记录到日志："!log_file!"
-        )
-        echo 共计：!total! 个，一致：!already_ok! 个，不一致：!mismatch! 个，非标准命名跳过 !not_standard! 个，未识别到时间 !no_time! 个，检查失败 !check_failed! 个
-    ) else (
-        set "ext_ok="
-        for /f "delims=" %%e in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
-        if not "!ext_ok!"=="ok" (
-            echo 错误：不支持的图片格式："!img_file!"
-            echo.
-            pause
-            exit /b 1
-        )
-        echo 开始处理文件："!img_file!"
-
-        REM 从标准命名中识别时间（Screenshot_/IMG_/mmexport_/QQ截图），识别不到则区分非标准命名与时间无效
-        set "formatted_time="
-        for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $t=''; $m=[regex]::Match($n,'^Screenshot_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^IMG_(\d{8})_(\d{6})_(\d{3})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value+'_'+$m.Groups[3].Value } else { $m=[regex]::Match($n,'^mmexport_(\d{8})_(\d{6})$'); if($m.Success){ $t=$m.Groups[1].Value+'_'+$m.Groups[2].Value } else { $m=[regex]::Match($n,'^QQ截图(\d{14})$'); if($m.Success){ $t=$m.Groups[1].Value.Substring(0,8)+'_'+$m.Groups[1].Value.Substring(8,6) } } } }; if($t -eq ''){ Write-Output 'NOSTD' } else { try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $null=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); Write-Output $t } catch { Write-Output 'NO_TIME' } }" 2^>nul') do (
-            set "formatted_time=%%t"
-        )
-
-        if "!formatted_time!"=="NOSTD" (
-            echo 文件名不是标准命名，跳过此文件
-        ) else if "!formatted_time!"=="NO_TIME" (
-            echo 文件名中的时间无效，跳过此文件
-        ) else (
-            echo 图片文件名中的时间："!formatted_time!"
-            set "check_result="
-            for /f "delims=" %%r in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $f=$env:img_file; $t=$env:formatted_time; $log=$env:log_file; try { $fmt='yyyyMMdd_HHmmss'; if($t.Length -gt 15){ $fmt='yyyyMMdd_HHmmss_fff' }; $dt=[datetime]::ParseExact($t,$fmt,[Globalization.CultureInfo]::InvariantCulture); $cur=(Get-Item -LiteralPath $f).LastWriteTime; if($cur.ToString($fmt) -eq $t){ Write-Output 'ALREADY' } else { [IO.File]::AppendAllText($log,$f+[Environment]::NewLine+$dt.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+$cur.ToString('yyyy-MM-dd HH:mm:ss.fff')+[Environment]::NewLine+[Environment]::NewLine,[Text.Encoding]::UTF8); Write-Output 'DIFF' } } catch { Write-Output 'FAIL' }" 2^>nul') do (
-                set "check_result=%%r"
-            )
-
-            if "!check_result!"=="ALREADY" (
-                echo 修改时间与文件名时间一致
-            ) else if "!check_result!"=="DIFF" (
-                echo 发现差异，已记录到日志："!log_file!"
-            ) else (
-                echo 检查失败
-            )
-        )
-    )
-
-    endlocal
-    endlocal
 )
 
 
 
 echo.
 pause
-exit /b
+endlocal & endlocal & exit /b

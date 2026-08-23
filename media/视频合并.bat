@@ -1,7 +1,10 @@
 @echo off
 chcp 65001 >nul
+setlocal disabledelayedexpansion
+set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
-powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
+powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
 
@@ -18,101 +21,100 @@ echo.
 
 if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
-    cd /d "%~dp0"
+    cd /d "!script_dir!"
 )
 
-REM 优先使用脚本所在文件夹中的 ffmpeg 和 ffprobe 组件
-set "ffmpeg_path=ffmpeg"
-if exist "%~dp0ffmpeg.exe" (
-    set "ffmpeg_path=%~dp0ffmpeg.exe"
+REM 检查 ffmpeg 组件
+if exist "!script_dir!ffmpeg.exe" (
+    set "ffmpeg_path=!script_dir!ffmpeg.exe"
 ) else if exist "!cd!\ffmpeg.exe" (
     set "ffmpeg_path=!cd!\ffmpeg.exe"
+) else if exist "!script_dir!..\ffmpeg.exe" (
+    set "ffmpeg_path=!script_dir!..\ffmpeg.exe"
+) else if exist "..\ffmpeg.exe" (
+    set "ffmpeg_path=..\ffmpeg.exe"
+) else (
+    set "ffmpeg_path=ffmpeg"
 )
-!ffmpeg_path! -version >nul 2>&1
+"!ffmpeg_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
-set "ffprobe_path=ffprobe"
-if exist "%~dp0ffprobe.exe" (
-    set "ffprobe_path=%~dp0ffprobe.exe"
+
+REM 检查 ffprobe 组件
+if exist "!script_dir!ffprobe.exe" (
+    set "ffprobe_path=!script_dir!ffprobe.exe"
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
+) else if exist "!script_dir!..\ffprobe.exe" (
+    set "ffprobe_path=!script_dir!..\ffprobe.exe"
+) else if exist "..\ffprobe.exe" (
+    set "ffprobe_path=..\ffprobe.exe"
+) else (
+    set "ffprobe_path=ffprobe"
 )
-!ffprobe_path! -version >nul 2>&1
+"!ffprobe_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
-REM 优先使用脚本所在文件夹中的 MediaInfo 组件
-set "mediainfo_path=mediainfo"
-if exist "%~dp0MediaInfo.exe" (
-    set "mediainfo_path=%~dp0MediaInfo.exe"
+REM 检查 MediaInfo 组件
+if exist "!script_dir!MediaInfo.exe" (
+    set "mediainfo_path=!script_dir!MediaInfo.exe"
 ) else if exist "!cd!\MediaInfo.exe" (
     set "mediainfo_path=!cd!\MediaInfo.exe"
+) else if exist "!script_dir!..\MediaInfo.exe" (
+    set "mediainfo_path=!script_dir!..\MediaInfo.exe"
+) else if exist "..\MediaInfo.exe" (
+    set "mediainfo_path=..\MediaInfo.exe"
+) else (
+    set "mediainfo_path=MediaInfo"
 )
-!mediainfo_path! --version >nul 2>&1
+"!mediainfo_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 MediaInfo 组件
     echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
 
 
-if "%~1" == "" (
-    set "work_dir=!cd!"
-    echo 开始处理当前文件夹："!work_dir!"
+if "!param1!" == "" (
+    echo 开始处理当前文件夹："!cd!"
+    set "working_dir=!cd!"
     echo.
 ) else (
-    REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
-    set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
-
-    setlocal disabledelayedexpansion
-    set "video_path=%~1"
-    setlocal enabledelayedexpansion
-    if "!video_path:~-1!"=="\" set "video_path=!video_path:~0,-1!"
-
-    if not exist "!video_path!" (
-        echo 错误：文件不存在："!video_path!"
+    if "!param1:~-1!"=="\" set "param1=!param1:~0,-1!"
+    if not exist "!param1!" (
+        echo 错误：路径不存在："!param1!"
         echo.
-        if exist "!temp_set!" ( del /f /q "!temp_set!" )
         pause
-        exit /b 1
+        endlocal & endlocal & exit /b 1
     )
-
-    if exist "!video_path!\" (
-        echo set "work_dir=!video_path!">> "!temp_set!"
-        echo 开始处理文件夹："!video_path!"
+    if exist "!param1!\" (
+        echo 开始处理文件夹："!param1!"
+        set "working_dir=!param1!"
         echo.
     ) else (
-        echo 错误：请拖入文件夹，不支持拖入文件
+        echo 错误：不支持拖入单个文件，请拖入文件夹或双击运行
         echo.
-        if exist "!temp_set!" ( del /f /q "!temp_set!" )
         pause
-        exit /b 1
+        endlocal & endlocal & exit /b 1
     )
-
-    endlocal
-    endlocal
-
-    REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
-    call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 )
-
-
 
 set "file_count=0"
 set "file_consistent=1"
@@ -131,7 +133,7 @@ set "first_video_time_base="
 
 echo 正在检查和处理 mkv 格式的视频
 for /l %%i in (1,1,999) do (
-    for %%f in ("!work_dir!\%%i.mkv" "!work_dir!\0%%i.mkv" "!work_dir!\00%%i.mkv" "!work_dir!\第%%i集.mkv" "!work_dir!\第0%%i集.mkv" "!work_dir!\第00%%i集.mkv") do (
+    for %%f in ("!working_dir!\%%i.mkv" "!working_dir!\0%%i.mkv" "!working_dir!\00%%i.mkv" "!working_dir!\第%%i集.mkv" "!working_dir!\第0%%i集.mkv" "!working_dir!\第00%%i集.mkv") do (
         echo %%f
         if exist "%%~f" (
             set "temp_file=%%~dpnf.mp4"
@@ -144,7 +146,7 @@ for /l %%i in (1,1,999) do (
 
 echo 正在检查和处理 ts 格式的视频
 for /l %%i in (1,1,999) do (
-    for %%f in ("!work_dir!\%%i.ts" "!work_dir!\0%%i.ts" "!work_dir!\00%%i.ts" "!work_dir!\第%%i集.ts" "!work_dir!\第0%%i集.ts" "!work_dir!\第00%%i集.ts") do (
+    for %%f in ("!working_dir!\%%i.ts" "!working_dir!\0%%i.ts" "!working_dir!\00%%i.ts" "!working_dir!\第%%i集.ts" "!working_dir!\第0%%i集.ts" "!working_dir!\第00%%i集.ts") do (
         if exist "%%~f" (
             set "temp_file=%%~dpnf.mp4"
             if not exist "!temp_file!" (
@@ -160,7 +162,7 @@ set "max_i=0"
 for /l %%i in (1,1,999) do (
     set "name_count=0"
     set "name_list="
-    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+    for %%f in ("!working_dir!\%%i.mp4" "!working_dir!\0%%i.mp4" "!working_dir!\00%%i.mp4" "!working_dir!\第%%i集.mp4" "!working_dir!\第0%%i集.mp4" "!working_dir!\第00%%i集.mp4") do (
         if exist "%%~f" (
             set /a "name_count+=1"
             if "!name_list!"=="" (
@@ -174,7 +176,7 @@ for /l %%i in (1,1,999) do (
         echo 错误：序号 %%i 存在多个命名方式相同的文件：!name_list!，请只保留其中一个文件
         echo.
         pause
-        exit /b 1
+        endlocal & endlocal & exit /b 1
     )
     if !name_count! gtr 0 (
         if "!min_i!"=="0" set "min_i=%%i"
@@ -184,7 +186,7 @@ for /l %%i in (1,1,999) do (
 set "missing_list="
 for /l %%i in (!min_i!,1,!max_i!) do (
     set "name_count=0"
-    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+    for %%f in ("!working_dir!\%%i.mp4" "!working_dir!\0%%i.mp4" "!working_dir!\00%%i.mp4" "!working_dir!\第%%i集.mp4" "!working_dir!\第0%%i集.mp4" "!working_dir!\第00%%i集.mp4") do (
         if exist "%%~f" set /a "name_count+=1"
     )
     if !name_count! equ 0 (
@@ -199,12 +201,12 @@ if not "!missing_list!"=="" (
     echo 错误：视频序号不连续，缺少以下序号：!missing_list!，请补齐缺失的视频文件
     echo.
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
 echo 正在清理 Time code 资源
 for /l %%i in (1,1,999) do (
-    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+    for %%f in ("!working_dir!\%%i.mp4" "!working_dir!\0%%i.mp4" "!working_dir!\00%%i.mp4" "!working_dir!\第%%i集.mp4" "!working_dir!\第0%%i集.mp4" "!working_dir!\第00%%i集.mp4") do (
         if exist "%%~f" (
             "!ffmpeg_path!" -v error -i "%%~f" -map 0 -f null - 2>nul
             if !errorlevel! neq 0 (
@@ -213,7 +215,7 @@ for /l %%i in (1,1,999) do (
                 pause
                 "!ffmpeg_path!" -v error -i "%%~f" -map 0 -f null -
                 pause
-                exit /b 1
+                endlocal & endlocal & exit /b 1
             )
 
             for /f "delims=" %%d in ('call "!ffprobe_path!" -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "%%~f" 2^>nul') do (
@@ -232,11 +234,11 @@ for /l %%i in (1,1,999) do (
 )
 
 echo 正在生成文件列表
-type nul > "!work_dir!\file_list.txt"
+type nul > "!working_dir!\file_list.txt"
 for /l %%i in (1,1,999) do (
-    for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+    for %%f in ("!working_dir!\%%i.mp4" "!working_dir!\0%%i.mp4" "!working_dir!\00%%i.mp4" "!working_dir!\第%%i集.mp4" "!working_dir!\第0%%i集.mp4" "!working_dir!\第00%%i集.mp4") do (
         if exist "%%~f" (
-            echo file '%%~f' >> "!work_dir!\file_list.txt"
+            echo file '%%~f' >> "!working_dir!\file_list.txt"
             set /a "file_count+=1"
             REM 解析参数
             for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "%%~f" 2^>^&1') do (
@@ -334,9 +336,9 @@ for /l %%i in (1,1,999) do (
 
 if "!file_count!"=="0" (
     echo 没有找到任何视频文件（01.mp4 到 999.mp4）
-    if exist "!work_dir!\file_list.txt" ( del /f /q "!work_dir!\file_list.txt" )
+    if exist "!working_dir!\file_list.txt" ( del /f /q "!working_dir!\file_list.txt" )
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
 set "file_count=0"
@@ -465,9 +467,9 @@ if "!file_consistent!"=="0" (
         pause
         echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
-        type nul > "!work_dir!\file_list.txt"
+        type nul > "!working_dir!\file_list.txt"
         for /l %%i in (1,1,999) do (
-            for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+            for %%f in ("!working_dir!\%%i.mp4" "!working_dir!\0%%i.mp4" "!working_dir!\00%%i.mp4" "!working_dir!\第%%i集.mp4" "!working_dir!\第0%%i集.mp4" "!working_dir!\第00%%i集.mp4") do (
                 if exist "%%~f" (
                     set "temp_file=%%~dpnf_h264_!suffix_safe!.mp4"
                     REM 从 "1/1000" 中提取分母 "1000" 作为 timescale；格式异常时回退原值
@@ -482,7 +484,7 @@ if "!file_consistent!"=="0" (
                             -c:a "aac" -ar "!first_audio_sample_rate!" ^
                             -map_metadata -1 -threads 1 "!temp_file!"
                     )
-                    echo file '!temp_file!' >> "!work_dir!\file_list.txt"
+                    echo file '!temp_file!' >> "!working_dir!\file_list.txt"
                 )
             )
         )
@@ -493,9 +495,9 @@ if "!file_consistent!"=="0" (
         pause
         echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
-        type nul > "!work_dir!\file_list.txt"
+        type nul > "!working_dir!\file_list.txt"
         for /l %%i in (1,1,999) do (
-            for %%f in ("!work_dir!\%%i.mp4" "!work_dir!\0%%i.mp4" "!work_dir!\00%%i.mp4" "!work_dir!\第%%i集.mp4" "!work_dir!\第0%%i集.mp4" "!work_dir!\第00%%i集.mp4") do (
+            for %%f in ("!working_dir!\%%i.mp4" "!working_dir!\0%%i.mp4" "!working_dir!\00%%i.mp4" "!working_dir!\第%%i集.mp4" "!working_dir!\第0%%i集.mp4" "!working_dir!\第00%%i集.mp4") do (
                 if exist "%%~f" (
                     set /a "file_count+=1"
                     REM 解析参数
@@ -600,7 +602,7 @@ if "!file_consistent!"=="0" (
                                     -map_metadata -1 -threads 1 "!temp_file!"
                             )
                         )
-                        echo file '!temp_file!' >> "!work_dir!\file_list.txt"
+                        echo file '!temp_file!' >> "!working_dir!\file_list.txt"
                     ) else if not "!audio_consistent!"=="1" (
                         echo 重新编码视频："%%~f" - "!temp_file!"
                         if not exist "!temp_file!" (
@@ -609,9 +611,9 @@ if "!file_consistent!"=="0" (
                                 -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
                                 -map_metadata -1 -threads 1 "!temp_file!"
                         )
-                        echo file '!temp_file!' >> "!work_dir!\file_list.txt"
+                        echo file '!temp_file!' >> "!working_dir!\file_list.txt"
                     ) else (
-                        echo file '%%~f' >> "!work_dir!\file_list.txt"
+                        echo file '%%~f' >> "!working_dir!\file_list.txt"
                     )
                 )
             )
@@ -620,59 +622,59 @@ if "!file_consistent!"=="0" (
 )
 
 echo 正在合并视频
-"!ffmpeg_path!" -y -f concat -safe 0 -i "!work_dir!\file_list.txt" -c copy -threads 1 "!work_dir!\merged.mp4"
+"!ffmpeg_path!" -y -f concat -safe 0 -i "!working_dir!\file_list.txt" -c copy -threads 1 "!working_dir!\merged.mp4"
 if !errorlevel! neq 0 (
     echo.
     echo 文件 merged.mp4 合并失败，请检查报错信息
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
-if exist "!work_dir!\merged.mp4" (
+if exist "!working_dir!\merged.mp4" (
     REM 兼容 webp 封面，自动转为 PNG 格式
-    if not exist "!work_dir!\0.png" (
-        if exist "!work_dir!\0.webp" (
+    if not exist "!working_dir!\0.png" (
+        if exist "!working_dir!\0.webp" (
             echo 检测到封面 0.webp，正在转换为 0.png
-            "!ffmpeg_path!" -y -i "!work_dir!\0.webp" "!work_dir!\0.png"
+            "!ffmpeg_path!" -y -i "!working_dir!\0.webp" "!working_dir!\0.png"
         )
     )
-    if not exist "!work_dir!\00.png" (
-        if exist "!work_dir!\00.webp" (
+    if not exist "!working_dir!\00.png" (
+        if exist "!working_dir!\00.webp" (
             echo 检测到封面 00.webp，正在转换为 00.png
-            "!ffmpeg_path!" -y -i "!work_dir!\00.webp" "!work_dir!\00.png"
+            "!ffmpeg_path!" -y -i "!working_dir!\00.webp" "!working_dir!\00.png"
         )
     )
-    if not exist "!work_dir!\000.png" (
-        if exist "!work_dir!\000.webp" (
+    if not exist "!working_dir!\000.png" (
+        if exist "!working_dir!\000.webp" (
             echo 检测到封面 000.webp，正在转换为 000.png
-            "!ffmpeg_path!" -y -i "!work_dir!\000.webp" "!work_dir!\000.png"
+            "!ffmpeg_path!" -y -i "!working_dir!\000.webp" "!working_dir!\000.png"
         )
     )
-    if not exist "!work_dir!\cover.png" (
-        if exist "!work_dir!\cover.webp" (
+    if not exist "!working_dir!\cover.png" (
+        if exist "!working_dir!\cover.webp" (
             echo 检测到封面 cover.webp，正在转换为 cover.png
-            "!ffmpeg_path!" -y -i "!work_dir!\cover.webp" "!work_dir!\cover.png"
+            "!ffmpeg_path!" -y -i "!working_dir!\cover.webp" "!working_dir!\cover.png"
         )
     )
 
     REM 查找封面文件，优先使用 PNG 格式
     set "cover_file="
-    if exist "!work_dir!\0.png" (
-        set "cover_file=!work_dir!\0.png"
-    ) else if exist "!work_dir!\00.png" (
-        set "cover_file=!work_dir!\00.png"
-    ) else if exist "!work_dir!\000.png" (
-        set "cover_file=!work_dir!\000.png"
-    ) else if exist "!work_dir!\0.jpg" (
-        set "cover_file=!work_dir!\0.jpg"
-    ) else if exist "!work_dir!\00.jpg" (
-        set "cover_file=!work_dir!\00.jpg"
-    ) else if exist "!work_dir!\000.jpg" (
-        set "cover_file=!work_dir!\000.jpg"
-    ) else if exist "!work_dir!\cover.png" (
-        set "cover_file=!work_dir!\cover.png"
-    ) else if exist "!work_dir!\cover.jpg" (
-        set "cover_file=!work_dir!\cover.jpg"
+    if exist "!working_dir!\0.png" (
+        set "cover_file=!working_dir!\0.png"
+    ) else if exist "!working_dir!\00.png" (
+        set "cover_file=!working_dir!\00.png"
+    ) else if exist "!working_dir!\000.png" (
+        set "cover_file=!working_dir!\000.png"
+    ) else if exist "!working_dir!\0.jpg" (
+        set "cover_file=!working_dir!\0.jpg"
+    ) else if exist "!working_dir!\00.jpg" (
+        set "cover_file=!working_dir!\00.jpg"
+    ) else if exist "!working_dir!\000.jpg" (
+        set "cover_file=!working_dir!\000.jpg"
+    ) else if exist "!working_dir!\cover.png" (
+        set "cover_file=!working_dir!\cover.png"
+    ) else if exist "!working_dir!\cover.jpg" (
+        set "cover_file=!working_dir!\cover.jpg"
     )
     if not "!cover_file!"=="" (
         for /f "delims=" %%p in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!cover_file!"') do (
@@ -688,36 +690,36 @@ if exist "!work_dir!\merged.mp4" (
                     echo.
                     echo 封面图片格式转换失败，请检查报错信息
                     pause
-                    exit /b 1
+                    endlocal & endlocal & exit /b 1
                 )
                 set "cover_file=!cover_file!.png"
             )
         )
 
         echo 正在添加封面图片 [!cover_file!]
-        "!ffmpeg_path!" -y -i "!work_dir!\merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!work_dir!\final.mp4"
+        "!ffmpeg_path!" -y -i "!working_dir!\merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!working_dir!\final.mp4"
         if !errorlevel! neq 0 (
             echo.
             echo 文件 final.mp4 合并失败，请检查报错信息
             pause
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
     ) else (
         echo 封面文件（0.png、0.jpg、cover.png 等）不存在，不添加封面
-        move /y "!work_dir!\merged.mp4" "!work_dir!\final.mp4"
+        move /y "!working_dir!\merged.mp4" "!working_dir!\final.mp4"
     )
-    echo 合并完成，已生成 !work_dir!\final.mp4 文件
+    echo 合并完成，已生成 !working_dir!\final.mp4 文件
 ) else (
     echo 合并失败，请检查报错信息
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
-if exist "!work_dir!\merged.mp4" ( del /f /q "!work_dir!\merged.mp4" )
-if exist "!work_dir!\file_list.txt" ( del /f /q "!work_dir!\file_list.txt" )
+if exist "!working_dir!\merged.mp4" ( del /f /q "!working_dir!\merged.mp4" )
+if exist "!working_dir!\file_list.txt" ( del /f /q "!working_dir!\file_list.txt" )
 
 
 
 echo.
 pause
-exit /b
+endlocal & endlocal & exit /b

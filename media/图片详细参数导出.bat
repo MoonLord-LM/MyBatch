@@ -1,7 +1,10 @@
 @echo off
 chcp 65001 >nul
+setlocal disabledelayedexpansion
+set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
-powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
+powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
 
@@ -15,32 +18,71 @@ echo.
 
 if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
-    cd /d "%~dp0"
+    cd /d "!script_dir!"
 )
 
-REM 优先使用脚本所在文件夹中的 MediaInfo 组件
-set "mediainfo_path=mediainfo"
-if exist "%~dp0MediaInfo.exe" (
-    set "mediainfo_path=%~dp0MediaInfo.exe"
+REM 检查 MediaInfo 组件
+if exist "!script_dir!MediaInfo.exe" (
+    set "mediainfo_path=!script_dir!MediaInfo.exe"
 ) else if exist "!cd!\MediaInfo.exe" (
     set "mediainfo_path=!cd!\MediaInfo.exe"
+) else if exist "!script_dir!..\MediaInfo.exe" (
+    set "mediainfo_path=!script_dir!..\MediaInfo.exe"
+) else if exist "..\MediaInfo.exe" (
+    set "mediainfo_path=..\MediaInfo.exe"
+) else (
+    set "mediainfo_path=mediainfo"
 )
-!mediainfo_path! --version >nul 2>&1
+"!mediainfo_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 MediaInfo 组件
     echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
 
 
-if "%~1" == "" (
+if "!param1!" == "" (
     echo 开始处理当前文件夹："!cd!"
+    set "working_dir=!cd!"
     echo.
+) else (
+    if "!param1:~-1!"=="\" set "param1=!param1:~0,-1!"
+    if not exist "!param1!" (
+        echo 错误：路径不存在："!param1!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+    if exist "!param1!\" (
+        echo 开始处理文件夹："!param1!"
+        set "working_dir=!param1!"
+        echo.
+    ) else (
+        echo 开始处理文件："!param1!"
+        set "file_dir=!param1_dir!"
+        set "base_name=!param1_name!"
+        set "file_ext=!param1_ext!"
 
+        set "json_file=!file_dir!!base_name!!file_ext!.json"
+        if exist "!json_file!" (
+            echo 已存在："!json_file!"，跳过此文件
+        ) else (
+            "!mediainfo_path!" --Output=JSON "!param1!" > "!json_file!"
+            if !errorlevel! neq 0 (
+                if exist "!json_file!" ( del /f /q "!json_file!" )
+                echo 图片解析报错
+            ) else (
+                echo 保存文件："!json_file!"
+            )
+        )
+    )
+)
+
+if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
@@ -48,7 +90,7 @@ if "%~1" == "" (
     set /a "succeeded=0"
     set /a "json_exist=0"
     set /a "parse_failed=0"
-    set "file_path=!cd!"
+    set "file_path=!working_dir!"
     set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
@@ -89,104 +131,10 @@ if "%~1" == "" (
     set /a "fail_total=json_exist+parse_failed"
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
     echo 其中，导出成功 !succeeded! 个，解析报错 !parse_failed! 个，json 文件已存在 !json_exist! 个
-) else (
-    setlocal disabledelayedexpansion
-    set "img_file=%~1"
-    set "file_dir=%~dp1"
-    set "base_name=%~n1"
-    set "file_ext=%~x1"
-    setlocal enabledelayedexpansion
-    if "!img_file:~-1!"=="\" set "img_file=!img_file:~0,-1!"
-
-    if not exist "!img_file!" (
-        echo 错误：文件不存在："!img_file!"
-        echo.
-        pause
-        exit /b 1
-    )
-
-    if exist "!img_file!\" (
-        echo 开始处理文件夹："!img_file!"
-        echo.
-
-        REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
-        set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
-
-        set /a "total=0"
-        set /a "succeeded=0"
-        set /a "json_exist=0"
-        set /a "parse_failed=0"
-        set "file_path=!img_file!"
-        set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
-            setlocal disabledelayedexpansion
-            set "img_file=%%f"
-            set "file_dir=%%~dpf"
-            set "base_name=%%~nf"
-            set "file_ext=%%~xf"
-            setlocal enabledelayedexpansion
-
-            echo 处理文件："!img_file!"
-            set "json_file=!file_dir!!base_name!!file_ext!.json"
-            if exist "!json_file!" (
-                echo set /a "json_exist+=1">> "!temp_set!"
-                echo 已存在："!json_file!"，跳过此文件
-            ) else (
-                "!mediainfo_path!" --Output=JSON "!img_file!" > "!json_file!"
-                if !errorlevel! neq 0 (
-                    echo set /a "parse_failed+=1">> "!temp_set!"
-                    if exist "!json_file!" ( del /f /q "!json_file!" )
-                    echo 图片解析报错
-                ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
-                    echo 保存文件："!json_file!"
-                )
-            )
-            echo set /a "total+=1">> "!temp_set!"
-            echo.
-
-            endlocal
-            endlocal
-        )
-
-        REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
-        call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
-
-        echo 批量处理完成
-        set /a "ok_total=succeeded"
-        set /a "fail_total=json_exist+parse_failed"
-        echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-        echo 其中，导出成功 !succeeded! 个，解析报错 !parse_failed! 个，json 文件已存在 !json_exist! 个
-    ) else (
-        set "ext_ok="
-        for /f "delims=" %%e in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ($env:file_ext -match '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$'){Write-Output 'ok'}" 2^>nul') do set "ext_ok=%%e"
-        if not "!ext_ok!"=="ok" (
-            echo 错误：不支持的图片格式："!img_file!"
-            echo.
-            pause
-            exit /b 1
-        )
-        echo 开始处理文件："!img_file!"
-        set "json_file=!file_dir!!base_name!!file_ext!.json"
-        if exist "!json_file!" (
-            echo 已存在："!json_file!"，跳过此文件
-        ) else (
-            "!mediainfo_path!" --Output=JSON "!img_file!" > "!json_file!"
-            if !errorlevel! neq 0 (
-                if exist "!json_file!" ( del /f /q "!json_file!" )
-                echo 图片解析报错
-            ) else (
-                echo 保存文件："!json_file!"
-            )
-        )
-    )
-
-    endlocal
-    endlocal
 )
 
 
 
 echo.
 pause
-exit /b
+endlocal & endlocal & exit /b

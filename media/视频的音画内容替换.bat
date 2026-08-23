@@ -1,7 +1,11 @@
 @echo off
 chcp 65001 >nul
+setlocal disabledelayedexpansion
+set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
+set "param2=%~2" & set "param2_path=%~f2" & set "param2_dir=%~dp2" & set "param2_name=%~n2" & set "param2_ext=%~x2" & set "param2_name_ext=%~nx2"
 setlocal enabledelayedexpansion
-powershell -NoProfile -Command "Write-Host '[ %~nx0 ]' -ForegroundColor Cyan" && echo.
+powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
 
@@ -15,47 +19,57 @@ echo.
 
 if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
-    cd /d "%~dp0"
+    cd /d "!script_dir!"
 )
 
-REM 优先使用脚本所在文件夹中的 ffmpeg 和 ffprobe 组件
-set "ffmpeg_path=ffmpeg"
-if exist "%~dp0ffmpeg.exe" (
-    set "ffmpeg_path=%~dp0ffmpeg.exe"
+REM 检查 ffmpeg 组件
+if exist "!script_dir!ffmpeg.exe" (
+    set "ffmpeg_path=!script_dir!ffmpeg.exe"
 ) else if exist "!cd!\ffmpeg.exe" (
     set "ffmpeg_path=!cd!\ffmpeg.exe"
+) else if exist "!script_dir!..\ffmpeg.exe" (
+    set "ffmpeg_path=!script_dir!..\ffmpeg.exe"
+) else if exist "..\ffmpeg.exe" (
+    set "ffmpeg_path=..\ffmpeg.exe"
+) else (
+    set "ffmpeg_path=ffmpeg"
 )
-!ffmpeg_path! -version >nul 2>&1
+"!ffmpeg_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 ffmpeg 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
-set "ffprobe_path=ffprobe"
-if exist "%~dp0ffprobe.exe" (
-    set "ffprobe_path=%~dp0ffprobe.exe"
+
+REM 检查 ffprobe 组件
+if exist "!script_dir!ffprobe.exe" (
+    set "ffprobe_path=!script_dir!ffprobe.exe"
 ) else if exist "!cd!\ffprobe.exe" (
     set "ffprobe_path=!cd!\ffprobe.exe"
+) else if exist "!script_dir!..\ffprobe.exe" (
+    set "ffprobe_path=!script_dir!..\ffprobe.exe"
+) else if exist "..\ffprobe.exe" (
+    set "ffprobe_path=..\ffprobe.exe"
+) else (
+    set "ffprobe_path=ffprobe"
 )
-!ffprobe_path! -version >nul 2>&1
+"!ffprobe_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 ffprobe 组件
     echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    exit /b 1
+    endlocal & endlocal & exit /b 1
 )
 
 
 
-setlocal disabledelayedexpansion
-set "video1=%~1"
-set "video2=%~2"
-setlocal enabledelayedexpansion
+set "video1=!param1!"
+set "video2=!param2!"
 
     :input_video1
     if "!video1!"=="" (
@@ -131,11 +145,8 @@ setlocal enabledelayedexpansion
         endlocal
     )
 
-endlocal
-endlocal
-
 
 
 echo.
 pause
-exit /b
+endlocal & endlocal & exit /b
