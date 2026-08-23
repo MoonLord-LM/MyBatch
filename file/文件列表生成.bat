@@ -66,12 +66,14 @@ if not "!working_dir!" == "" (
          "$lines = @($files | Sort-Object FullName | ForEach-Object { '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\"' -f $_.FullName, $_.Length, $_.LastWriteTime });" ^
          "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines);" ^
          "Write-Host ('处理完成，共计 ' + $files.Count + ' 个文件');"
-        echo.
         if !errorlevel! neq 0 (
+            echo.
             echo 列表生成失败
         ) else if exist "!output_file!" (
+            echo.
             echo 列表生成成功
         ) else (
+            echo.
             echo 文件夹中没有文件，未生成列表
         )
 
