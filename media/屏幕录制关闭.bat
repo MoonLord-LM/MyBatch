@@ -11,7 +11,6 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '双击运行，停止后台的屏幕录制' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '通过命名管道发送停止信号，实现 ffmpeg 的优雅退出' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '发送信号后，等待最多约 30 秒，超时则强制结束进程' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '记录录制进程的 PID 文件，保存在当前文件夹下' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '录制生成的 mp4 文件，保存在当前文件夹下' -ForegroundColor Green"
 echo.
 

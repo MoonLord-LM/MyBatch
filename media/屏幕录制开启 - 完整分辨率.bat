@@ -9,8 +9,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '双击运行，开始后台的屏幕录制，以完整的分辨率，后台录制为 mp4 文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '需要停止录制时，运行 “屏幕录制关闭.bat” 即可' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '记录录制进程的 PID 文件，保存在当前文件夹下' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '需要停止录制时，运行 “屏幕录制关闭.bat” 即可' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '录制生成的 mp4 文件，保存在当前文件夹下' -ForegroundColor Green"
 echo.
 
