@@ -8,10 +8,11 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '视频编码转换为 av1 格式（高质量 -crf 24 -preset 2）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '视频编码转换为 av1 格式（高质量 -crf 16 -preset 2）' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '自动跳过文件名中包含 _av1、_h264、_h265 的已转码过的视频' -ForegroundColor Green"
 echo.
 
 
@@ -88,50 +89,57 @@ if "!param1!" == "" (
         set "file_dir=!param1_dir!"
         set "base_name=!param1_name!"
 
-        set "is_av1=0"
-        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!param1!" 2^>nul') do (
-            if /i "%%c"=="av1" (
-                set "is_av1=1"
-            )
-        )
-
-        if "!is_av1!"=="1" (
-            echo 视频编码已经是 av1，跳过
+        set "clean_name=!base_name:_av1=!"
+        set "clean_name=!clean_name:_h264=!"
+        set "clean_name=!clean_name:_h265=!"
+        if not "!clean_name!"=="!base_name!" (
+            echo 该文件已是转码后的视频，跳过
         ) else (
-            set "output_file=!file_dir!!base_name!_av1.mp4"
-            if exist "!output_file!" (
-                echo 已存在："!output_file!"，跳过
+            set "is_av1=0"
+            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!param1!" 2^>nul') do (
+                if /i "%%c"=="av1" (
+                    set "is_av1=1"
+                )
+            )
+
+            if "!is_av1!"=="1" (
+                echo 视频编码已经是 av1，跳过
             ) else (
-                echo 正在转换为："!output_file!"
-
-                REM 检测音频编码格式
-                for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
-                    set "audio_codec=%%a"
-                )
-
-                REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
-                set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
-                set "need_convert=0"
-                for %%c in (!unsupported_codecs!) do (
-                    if /i "!audio_codec!"=="%%c" set "need_convert=1"
-                )
-
-                if "!need_convert!"=="1" (
-                    echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
-                    "!ffmpeg_path!" -i "!param1!" -c:v libsvtav1 -crf 24 -preset 2 -c:a flac -compression_level 8 "!output_file!"
-                    if !errorlevel! neq 0 (
-                        if exist "!output_file!" ( del /f /q "!output_file!" )
-                        echo 转换失败
-                    ) else (
-                        echo 转换成功（音频已转换）
-                    )
+                set "output_file=!file_dir!!base_name!_av1.mp4"
+                if exist "!output_file!" (
+                    echo 已存在："!output_file!"，跳过
                 ) else (
-                    "!ffmpeg_path!" -i "!param1!" -c:v libsvtav1 -crf 24 -preset 2 -c:a copy "!output_file!"
-                    if !errorlevel! neq 0 (
-                        if exist "!output_file!" ( del /f /q "!output_file!" )
-                        echo 转换失败
+                    echo 正在转换为："!output_file!"
+
+                    REM 检测音频编码格式
+                    for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+                        set "audio_codec=%%a"
+                    )
+
+                    REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
+                    set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
+                    set "need_convert=0"
+                    for %%c in (!unsupported_codecs!) do (
+                        if /i "!audio_codec!"=="%%c" set "need_convert=1"
+                    )
+
+                    if "!need_convert!"=="1" (
+                        echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
+                        "!ffmpeg_path!" -i "!param1!" -c:v libsvtav1 -crf 16 -preset 2 -c:a flac -compression_level 8 "!output_file!"
+                        if !errorlevel! neq 0 (
+                            if exist "!output_file!" ( del /f /q "!output_file!" )
+                            echo 转换失败
+                        ) else (
+                            echo 转换成功（音频已转换）
+                        )
                     ) else (
-                        echo 转换成功
+                        "!ffmpeg_path!" -i "!param1!" -c:v libsvtav1 -crf 16 -preset 2 -c:a copy "!output_file!"
+                        if !errorlevel! neq 0 (
+                            if exist "!output_file!" ( del /f /q "!output_file!" )
+                            echo 转换失败
+                        ) else (
+                            echo 转换成功
+                        )
                     )
                 )
             )
@@ -148,6 +156,7 @@ if not "!working_dir!" == "" (
     set /a "already_codec=0"
     set /a "output_exist=0"
     set /a "convert_failed=0"
+    set /a "skipped=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -159,56 +168,64 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
 
-        set "is_av1=0"
-        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
-            if /i "%%c"=="av1" (
-                set "is_av1=1"
-            )
-        )
-
-        if "!is_av1!"=="1" (
-            echo set /a "already_codec+=1">> "!temp_set!"
-            echo 视频编码已经是 av1，跳过
+        set "clean_name=!base_name:_av1=!"
+        set "clean_name=!clean_name:_h264=!"
+        set "clean_name=!clean_name:_h265=!"
+        if not "!clean_name!"=="!base_name!" (
+            echo set /a "skipped+=1">> "!temp_set!"
+            echo 该文件已是转码后的视频，跳过
         ) else (
-            set "output_file=!file_dir!!base_name!_av1.mp4"
-            if exist "!output_file!" (
-                echo set /a "output_exist+=1">> "!temp_set!"
-                echo 已存在："!output_file!"，跳过
+            set "is_av1=0"
+            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+                if /i "%%c"=="av1" (
+                    set "is_av1=1"
+                )
+            )
+
+            if "!is_av1!"=="1" (
+                echo set /a "already_codec+=1">> "!temp_set!"
+                echo 视频编码已经是 av1，跳过
             ) else (
-                echo 正在转换为："!output_file!"
-
-                REM 检测音频编码格式
-                for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-                    set "audio_codec=%%a"
-                )
-
-                REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
-                set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
-                set "need_convert=0"
-                for %%c in (!unsupported_codecs!) do (
-                    if /i "!audio_codec!"=="%%c" set "need_convert=1"
-                )
-
-                if "!need_convert!"=="1" (
-                    echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
-                    "!ffmpeg_path!" -i "!video_file!" -c:v libsvtav1 -crf 24 -preset 2 -c:a flac -compression_level 8 "!output_file!"
-                    if !errorlevel! neq 0 (
-                        echo set /a "convert_failed+=1">> "!temp_set!"
-                        if exist "!output_file!" ( del /f /q "!output_file!" )
-                        echo 转换失败
-                    ) else (
-                        echo set /a "succeeded+=1">> "!temp_set!"
-                        echo 转换成功（音频已转换）
-                    )
+                set "output_file=!file_dir!!base_name!_av1.mp4"
+                if exist "!output_file!" (
+                    echo set /a "output_exist+=1">> "!temp_set!"
+                    echo 已存在："!output_file!"，跳过
                 ) else (
-                    "!ffmpeg_path!" -i "!video_file!" -c:v libsvtav1 -crf 24 -preset 2 -c:a copy "!output_file!"
-                    if !errorlevel! neq 0 (
-                        echo set /a "convert_failed+=1">> "!temp_set!"
-                        if exist "!output_file!" ( del /f /q "!output_file!" )
-                        echo 转换失败
+                    echo 正在转换为："!output_file!"
+
+                    REM 检测音频编码格式
+                    for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                        set "audio_codec=%%a"
+                    )
+
+                    REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
+                    set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
+                    set "need_convert=0"
+                    for %%c in (!unsupported_codecs!) do (
+                        if /i "!audio_codec!"=="%%c" set "need_convert=1"
+                    )
+
+                    if "!need_convert!"=="1" (
+                        echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
+                        "!ffmpeg_path!" -i "!video_file!" -c:v libsvtav1 -crf 16 -preset 2 -c:a flac -compression_level 8 "!output_file!"
+                        if !errorlevel! neq 0 (
+                            echo set /a "convert_failed+=1">> "!temp_set!"
+                            if exist "!output_file!" ( del /f /q "!output_file!" )
+                            echo 转换失败
+                        ) else (
+                            echo set /a "succeeded+=1">> "!temp_set!"
+                            echo 转换成功（音频已转换）
+                        )
                     ) else (
-                        echo set /a "succeeded+=1">> "!temp_set!"
-                        echo 转换成功
+                        "!ffmpeg_path!" -i "!video_file!" -c:v libsvtav1 -crf 16 -preset 2 -c:a copy "!output_file!"
+                        if !errorlevel! neq 0 (
+                            echo set /a "convert_failed+=1">> "!temp_set!"
+                            if exist "!output_file!" ( del /f /q "!output_file!" )
+                            echo 转换失败
+                        ) else (
+                            echo set /a "succeeded+=1">> "!temp_set!"
+                            echo 转换成功
+                        )
                     )
                 )
             )
@@ -227,7 +244,7 @@ if not "!working_dir!" == "" (
     set /a "ok_total=succeeded+already_codec"
     set /a "fail_total=convert_failed+output_exist"
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
+    echo 其中，转换成功 !succeeded! 个，已是目标编码 !already_codec! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个，跳过已转码视频 !skipped! 个
 )
 
 
