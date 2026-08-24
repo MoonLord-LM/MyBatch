@@ -8,12 +8,11 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '根据输入的视频、开始时间、结束时间，对视频做无损的切片截取' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '根据输入的视频和截取时间，自动截取前后各 1 秒内的 10 帧画面，生成 20 张图片' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入视频文件的路径；也可以拖拽单个视频文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对一个文件处理完成后，可继续输入下一个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '视频如果是 ts 格式，会自动转为同名的 mp4 后再截取，避免音画不同步问题' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '开始和结束时间的格式为 HH:MM:SS.XXX，例如 00:01:23.456' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '截取时间的格式为 HH:MM:SS.XXX，例如 00:01:23.456' -ForegroundColor Green"
 echo.
 
 
@@ -52,8 +51,7 @@ if !errorlevel! neq 0 (
 set "video_file=!param1!"
 
 :loop
-    set "begin_time="
-    set "end_time="
+    set "screenshot_time="
 
     :input_file
     if "!video_file!"=="" (
@@ -77,21 +75,13 @@ set "video_file=!param1!"
         goto input_file
     )
 
-    :input_begin_time
+    :input_screenshot_time
     echo.
-    echo 请输入开始时间（格式: HH:MM:SS.XXX）：
-    set /p "begin_time="
-    if "!begin_time!"=="" (
-        echo 开始时间不能为空
-        goto input_begin_time
-    )
-
-    :input_end_time
-    echo 请输入结束时间（格式: HH:MM:SS.XXX）：
-    set /p "end_time="
-    if "!end_time!"=="" (
-        echo 结束时间不能为空
-        goto input_end_time
+    echo 请输入截取时间（格式: HH:MM:SS.XXX）：
+    set /p "screenshot_time="
+    if "!screenshot_time!"=="" (
+        echo 截取时间不能为空
+        goto input_screenshot_time
     )
 
     for %%i in ("!video_file!") do (
@@ -103,39 +93,57 @@ set "video_file=!param1!"
 
         echo.
         echo 处理文件："!video_file!" & REM
-        echo 截取时间：!begin_time! - !end_time!
+        echo 截取时间：!screenshot_time!
 
-        set "work_file=!video_file!"
-        if /i "!file_ext!"==".ts" (
-            set "work_file=!file_dir!!base_name!.mp4"
-            echo 检测到 ts 格式，先转为同名 mp4："!work_file!"
-            "!ffmpeg_path!" -y -i "!video_file!" -c copy "!work_file!" >nul 2>&1
-            if !errorlevel! neq 0 (
-                echo.
-                echo ts 转 mp4 失败，程序退出
-                echo.
-                pause
-                endlocal & endlocal & exit /b 1
-            )
-            echo ts 转 mp4 完成
-        )
+        REM 解析时间 HH:MM:SS.XXX，计算前 1 秒的起始时间（用 1!var! 技巧避免前导零被当作八进制）
+        set /a "t_hh=1!screenshot_time:~0,2! %% 100"
+        set /a "t_mm=1!screenshot_time:~3,2! %% 100"
+        set /a "t_ss=1!screenshot_time:~6,2! %% 100"
+        set /a "t_ms=1!screenshot_time:~9,3! %% 1000"
+        set /a "total_ms=t_hh*3600000 + t_mm*60000 + t_ss*1000 + t_ms"
+        set /a "prev_ms=total_ms-1000"
+        if !prev_ms! lss 0 set "prev_ms=0"
 
-        set "output_file=!file_dir!!base_name!_!begin_time::=!-!end_time::=!.mp4"
-        if exist "!output_file!" (
-            echo 已存在："!output_file!"，跳过
+        set /a "p_hh=prev_ms/3600000"
+        set /a "p_rem=prev_ms%%3600000"
+        set /a "p_mm=p_rem/60000"
+        set /a "p_rem=p_rem%%60000"
+        set /a "p_ss=p_rem/1000"
+        set /a "p_ms=p_rem%%1000"
+
+        set "p_hh=0!p_hh!" & set "p_hh=!p_hh:~-2!"
+        set "p_mm=0!p_mm!" & set "p_mm=!p_mm:~-2!"
+        set "p_ss=0!p_ss!" & set "p_ss=!p_ss:~-2!"
+        set "p_ms=00!p_ms!" & set "p_ms=!p_ms:~-3!"
+        set "prev_time=!p_hh!:!p_mm!:!p_ss!.!p_ms!"
+
+        set "t_compact=!t_hh!!t_mm!!t_ss!.!t_ms!"
+        set "front_dir=!file_dir!!base_name!_!t_compact!_前"
+        set "back_dir=!file_dir!!base_name!_!t_compact!_后"
+
+        echo.
+        echo 前 1 秒起始时间：!prev_time!
+
+        echo.
+        echo 正在截取前 1 秒的 10 帧画面：
+        "!ffmpeg_path!" -y -i "!video_file!" -ss "!prev_time!" -t 1 -vf fps=10 -frames:v 10 "!front_dir!_%%02d.png" >nul 2>&1
+        if !errorlevel! neq 0 (
+            echo 前 1 秒画面截取失败
         ) else (
-            echo 正在截取："!output_file!"
-            "!ffmpeg_path!" -ss "!begin_time!" -to "!end_time!" -i "!work_file!" -c copy "!output_file!" -movflags +faststart -y
-            if !errorlevel! neq 0 (
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo.
-                echo 视频截取失败
-            ) else (
-                echo.
-                echo 视频截取成功
-                echo 输出文件："!output_file!"
-            )
+            echo 前 1 秒画面截取完成
         )
+
+        echo 正在截取后 1 秒的 10 帧画面：
+        "!ffmpeg_path!" -y -i "!video_file!" -ss "!screenshot_time!" -t 1 -vf fps=10 -frames:v 10 "!back_dir!_%%02d.png" >nul 2>&1
+        if !errorlevel! neq 0 (
+            echo 后 1 秒画面截取失败
+        ) else (
+            echo 后 1 秒画面截取完成
+        )
+
+        echo.
+        echo 图片输出目录："!file_dir!"
+        echo 图片格式：!base_name!_!t_compact!_前_01.png ~ 前_10.png、后_01.png ~ 后_10.png
 
         endlocal
         endlocal
