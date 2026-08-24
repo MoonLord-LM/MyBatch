@@ -55,22 +55,25 @@ set "video_file=!param1!"
 
     :input_file
     if "!video_file!"=="" (
-        echo.
         echo 请输入要处理的视频文件：
         set /p "video_file="
+        echo.
     )
     if "!video_file!"=="" (
         echo 输入不能为空，请重新输入
+        echo.
         goto input_file
     )
     set "video_file=!video_file:"=!"
     if exist "!video_file!\" (
         echo 不支持文件夹 "!video_file!"，请重新输入
+        echo.
         set "video_file="
         goto input_file
     )
     if not exist "!video_file!" (
         echo 文件不存在 "!video_file!"，请重新输入
+        echo.
         set "video_file="
         goto input_file
     )
@@ -79,11 +82,11 @@ set "video_file=!param1!"
     echo.
 
     :input_begin_time
-    echo.
     echo 请输入开始时间（格式: HH:MM:SS.XXX）：
     set /p "begin_time="
     if "!begin_time!"=="" (
         echo 开始时间不能为空
+        echo.
         goto input_begin_time
     )
 
@@ -92,6 +95,7 @@ set "video_file=!param1!"
     set /p "end_time="
     if "!end_time!"=="" (
         echo 结束时间不能为空
+        echo.
         goto input_end_time
     )
 
@@ -102,9 +106,9 @@ set "video_file=!param1!"
         set "file_ext=%%~xi"
         setlocal enabledelayedexpansion
 
-        echo.
         echo 处理文件："!video_file!" & REM
         echo 截取时间：!begin_time! - !end_time!
+        echo.
 
         set "work_file=!video_file!"
         if /i "!file_ext!"==".ts" (
@@ -129,12 +133,12 @@ set "video_file=!param1!"
             "!ffmpeg_path!" -ss "!begin_time!" -to "!end_time!" -i "!work_file!" -c copy "!output_file!" -movflags +faststart -y
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo.
                 echo 视频截取失败
-            ) else (
                 echo.
+            ) else (
                 echo 视频截取成功
                 echo 输出文件："!output_file!"
+                echo.
             )
         )
 
@@ -144,6 +148,8 @@ set "video_file=!param1!"
 
     set "video_file="
 goto loop
+
+
 
 echo.
 pause

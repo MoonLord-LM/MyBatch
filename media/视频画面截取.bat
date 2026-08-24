@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '根据输入的视频和截取时间，自动截取 20 帧连续画面' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '根据输入的视频和截取时间，截取目标时间之后 2 秒内的 20 帧画面' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入视频文件的路径；也可以拖拽单个视频文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对一个文件处理完成后，可继续输入下一个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '视频如果是 ts 格式，会自动转为同名的 mp4 后再截取，避免音画不同步问题' -ForegroundColor Green"
@@ -54,22 +54,25 @@ set "video_file=!param1!"
 
     :input_file
     if "!video_file!"=="" (
-        echo.
         echo 请输入要处理的视频文件：
         set /p "video_file="
+        echo.
     )
     if "!video_file!"=="" (
         echo 输入不能为空，请重新输入
+        echo.
         goto input_file
     )
     set "video_file=!video_file:"=!"
     if exist "!video_file!\" (
         echo 不支持文件夹 "!video_file!"，请重新输入
+        echo.
         set "video_file="
         goto input_file
     )
     if not exist "!video_file!" (
         echo 文件不存在 "!video_file!"，请重新输入
+        echo.
         set "video_file="
         goto input_file
     )
@@ -78,11 +81,11 @@ set "video_file=!param1!"
     echo.
 
     :input_screenshot_time
-    echo.
     echo 请输入截取时间（格式: HH:MM:SS.XXX）：
     set /p "screenshot_time="
     if "!screenshot_time!"=="" (
         echo 截取时间不能为空
+        echo.
         goto input_screenshot_time
     )
 
@@ -93,24 +96,37 @@ set "video_file=!param1!"
         set "file_ext=%%~xi"
         setlocal enabledelayedexpansion
 
-        echo.
         echo 处理文件："!video_file!" & REM
-        echo 截取时间：!screenshot_time!
-
-        set "screenshot_time_std=!screenshot_time!"
-        if not "!screenshot_time_std:~8,1!"=="." set "screenshot_time_std=!screenshot_time_std!.000"
-
-        set "t_compact=!screenshot_time_std:~0,2!!screenshot_time_std:~3,2!!screenshot_time_std:~6,2!.!screenshot_time_std:~9,3!"
-        set "out_dir=!file_dir!!base_name!_!t_compact!"
-
+        echo 截取时间："!screenshot_time!"
         echo.
+
+        set "work_file=!video_file!"
+        if /i "!file_ext!"==".ts" (
+            set "work_file=!file_dir!!base_name!.mp4"
+            echo 检测到 ts 格式，先转为同名 mp4："!work_file!"
+            "!ffmpeg_path!" -y -i "!video_file!" -c copy "!work_file!" >nul 2>&1
+            if !errorlevel! neq 0 (
+                echo.
+                echo ts 转 mp4 失败，程序退出
+                echo.
+                pause
+                endlocal & endlocal & exit /b 1
+            )
+            echo ts 转 mp4 完成
+        )
+
+        REM 把截取时间的 : 和 . 替换为 _ 符号，作为输出文件名前缀
+        set "screenshot_name=!screenshot_time::=!"
+        set "screenshot_name=!screenshot_name:.=!"
+
         echo 正在截取目标时间之后 2 秒内的 20 帧画面：
-        "!ffmpeg_path!" -y -i "!video_file!" -ss "!screenshot_time_std!" -t 2 -vf "fps=10" -frames:v 20 "!out_dir!_%%02d.png" >nul 2>&1
+        "!ffmpeg_path!" -y -i "!work_file!" -ss "!screenshot_time!" -t 2 -vf "fps=10" -frames:v 20 "!file_dir!!base_name!_!screenshot_name!_%%02d.png" >nul 2>&1
         if !errorlevel! neq 0 (
             echo 截图失败
-        ) else (
             echo.
-            echo 截图完成，共 20 张：!out_dir!_01.png ~ !out_dir!_20.png
+        ) else (
+            echo 截图完成："!base_name!_!screenshot_name!_01.png" - "!base_name!_!screenshot_name!_20.png"
+            echo.
         )
 
         endlocal

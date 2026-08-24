@@ -539,7 +539,6 @@ if /i "!first_audio_codec_all!"=="AAC LC" ( set "target_audio_encoder=aac -profi
     pause
 )
 
-echo.
 echo 当前视频编码参数 !target_video_encoder!
 echo 当前音频编码参数 !target_audio_encoder!
 echo.
