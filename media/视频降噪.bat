@@ -13,7 +13,8 @@ powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '滤镜使用：nlmeans、hqdn3d、atadenoise、smartblur' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '编码格式使用 h264 格式（高质量 -crf 18 -preset slower）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '自动跳过文件名中包含 _smartblur_、_nlmeans_、_hqdn3d_、_atadenoise_ 的已降噪过的视频' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '输出视频使用 h264 格式（高质量 -crf 18 -preset slower）' -ForegroundColor Green"
 echo.
 
 
@@ -70,59 +71,67 @@ if "!param1!" == "" (
         set "file_dir=!param1_dir!"
         set "base_name=!param1_name!"
 
-        set "output_file=!file_dir!!base_name!_nlmeans_5_7_15.mp4"
-        if exist "!output_file!" (
-            echo 已存在："!output_file!"，跳过
+        set "clean_name=!base_name:_smartblur_=!"
+        set "clean_name=!clean_name:_nlmeans_=!"
+        set "clean_name=!clean_name:_hqdn3d_=!"
+        set "clean_name=!clean_name:_atadenoise_=!"
+        if not "!clean_name!"=="!base_name!" (
+            echo 该文件已是降噪后的视频，跳过
         ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_nlmeans_5_7_15.mp4"
+            if exist "!output_file!" (
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo 降噪成功
+                )
             )
-        )
 
-        set "output_file=!file_dir!!base_name!_hqdn3d_6_4_8_6.mp4"
-        if exist "!output_file!" (
-            echo 已存在："!output_file!"，跳过
-        ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_hqdn3d_6_4_8_6.mp4"
+            if exist "!output_file!" (
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo 降噪成功
+                )
             )
-        )
 
-        set "output_file=!file_dir!!base_name!_atadenoise_8_16_9.mp4"
-        if exist "!output_file!" (
-            echo 已存在："!output_file!"，跳过
-        ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_atadenoise_8_16_9.mp4"
+            if exist "!output_file!" (
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo 降噪成功
+                )
             )
-        )
 
-        set "output_file=!file_dir!!base_name!_smartblur_2_1_10.mp4"
-        if exist "!output_file!" (
-            echo 已存在："!output_file!"，跳过
-        ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf "smartblur=lr=2:ls=1:lt=10" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_smartblur_2_1_10.mp4"
+            if exist "!output_file!" (
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "smartblur=lr=2:ls=1:lt=10" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo 降噪成功
+                )
             )
         )
     )
@@ -136,6 +145,7 @@ if not "!working_dir!" == "" (
     set /a "succeeded=0"
     set /a "output_exist=0"
     set /a "convert_failed=0"
+    set /a "skipped=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
@@ -147,75 +157,84 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
 
-        set "output_file=!file_dir!!base_name!_nlmeans_5_7_15.mp4"
-        if exist "!output_file!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
-            echo 已存在："!output_file!"，跳过
+        set "clean_name=!base_name:_smartblur_=!"
+        set "clean_name=!clean_name:_nlmeans_=!"
+        set "clean_name=!clean_name:_hqdn3d_=!"
+        set "clean_name=!clean_name:_atadenoise_=!"
+        if not "!clean_name!"=="!base_name!" (
+            echo 该文件已是降噪后的视频，跳过
+            echo set /a "skipped+=1">> "!temp_set!"
         ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                echo set /a "convert_failed+=1">> "!temp_set!"
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_nlmeans_5_7_15.mp4"
+            if exist "!output_file!" (
+                echo set /a "output_exist+=1">> "!temp_set!"
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo 降噪成功
+                )
             )
-        )
 
-        set "output_file=!file_dir!!base_name!_hqdn3d_6_4_8_6.mp4"
-        if exist "!output_file!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
-            echo 已存在："!output_file!"，跳过
-        ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                echo set /a "convert_failed+=1">> "!temp_set!"
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_hqdn3d_6_4_8_6.mp4"
+            if exist "!output_file!" (
+                echo set /a "output_exist+=1">> "!temp_set!"
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo 降噪成功
+                )
             )
-        )
 
-        set "output_file=!file_dir!!base_name!_atadenoise_8_16_9.mp4"
-        if exist "!output_file!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
-            echo 已存在："!output_file!"，跳过
-        ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                echo set /a "convert_failed+=1">> "!temp_set!"
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_atadenoise_8_16_9.mp4"
+            if exist "!output_file!" (
+                echo set /a "output_exist+=1">> "!temp_set!"
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo 降噪成功
+                )
             )
-        )
 
-        set "output_file=!file_dir!!base_name!_smartblur_2_1_10.mp4"
-        if exist "!output_file!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
-            echo 已存在："!output_file!"，跳过
-        ) else (
-            echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=10" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
-            if !errorlevel! neq 0 (
-                echo set /a "convert_failed+=1">> "!temp_set!"
-                if exist "!output_file!" ( del /f /q "!output_file!" )
-                echo 降噪失败
+            set "output_file=!file_dir!!base_name!_smartblur_2_1_10.mp4"
+            if exist "!output_file!" (
+                echo set /a "output_exist+=1">> "!temp_set!"
+                echo 已存在："!output_file!"，跳过
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
-                echo 降噪成功
+                echo 正在生成："!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=10" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                if !errorlevel! neq 0 (
+                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    if exist "!output_file!" ( del /f /q "!output_file!" )
+                    echo 降噪失败
+                ) else (
+                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo 降噪成功
+                )
             )
-        )
 
-        echo set /a "total+=4">> "!temp_set!"
+            echo set /a "total+=4">> "!temp_set!"
+        )
         echo.
 
         endlocal
@@ -228,7 +247,7 @@ if not "!working_dir!" == "" (
     echo 批量处理完成
     set /a "fail_total=convert_failed+output_exist"
     echo 共计：!total! 个，成功：!succeeded! 个，失败：!fail_total! 个 & REM
-    echo 其中，降噪成功 !succeeded! 个，降噪失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
+    echo 其中，降噪成功 !succeeded! 个，降噪失败 !convert_failed! 个，输出文件已存在 !output_exist! 个，跳过已降噪视频 !skipped! 个
 )
 
 
