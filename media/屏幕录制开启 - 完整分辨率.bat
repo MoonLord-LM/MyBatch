@@ -72,7 +72,6 @@ for /f "usebackq delims=" %%r in (`
     "Write-Output ('screen_size={0}x{1}' -f $b.Width, $b.Height);"
 `) do set "%%r"
 echo 屏幕分辨率：!screen_size!
-echo 录制分辨率：!screen_size!
 
 for /f "usebackq delims=" %%t in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"`) do set "time_stamp=%%t"
 set "output_file=!script_dir!录屏_full_!time_stamp!.mp4"

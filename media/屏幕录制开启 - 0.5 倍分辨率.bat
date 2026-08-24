@@ -63,18 +63,15 @@ if exist "!pid_file!" (
     )
 )
 
+REM 获取屏幕分辨率
 for /f "usebackq delims=" %%r in (`
     powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
     "Add-Type -AssemblyName System.Windows.Forms;" ^
     "$b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds;" ^
-    "$w = ($b.Width -shr 1) -band -bnot 1;" ^
-    "$h = ($b.Height -shr 1) -band -bnot 1;" ^
-    "Write-Output ('record_size={0}x{1}' -f $w, $h);" ^
     "Write-Output ('screen_size={0}x{1}' -f $b.Width, $b.Height);"
 `) do set "%%r"
 echo 屏幕分辨率：!screen_size!
-echo 录制分辨率：!record_size!
 
 for /f "usebackq delims=" %%t in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"`) do set "time_stamp=%%t"
 set "output_file=!script_dir!录屏_0.5x_!time_stamp!.mp4"
@@ -85,7 +82,7 @@ start "" /b powershell -NoProfile -WindowStyle Hidden -Command ^
     "$pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);" ^
     "$psi = [Diagnostics.ProcessStartInfo]::new();" ^
     "$psi.FileName = $env:ffmpeg_path;" ^
-    "$psi.Arguments = '-y -f gdigrab -framerate 20 -draw_mouse 1 -i desktop -s ' + $env:record_size + ' -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart ' + $env:output_file;" ^
+    "$psi.Arguments = '-y -f gdigrab -framerate 20 -draw_mouse 1 -i desktop -vf scale=iw/2:ih/2 -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart ' + $env:output_file;" ^
     "$psi.UseShellExecute = $false;" ^
     "$psi.CreateNoWindow = $true;" ^
     "$psi.RedirectStandardInput = $true;" ^
