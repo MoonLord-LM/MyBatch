@@ -77,7 +77,7 @@ for /f "usebackq delims=" %%t in (`powershell -NoProfile -Command "[Console]::Ou
 set "output_file=!script_dir!录屏_0.5x_!time_stamp!.mp4"
 echo 输出文件："!output_file!"
 
-start "" /b powershell -NoProfile -WindowStyle Hidden -Command ^
+start "" powershell -NoProfile -WindowStyle Hidden -Command ^
     "$PID | Out-File -FilePath $env:pid_file -Encoding ascii;" ^
     "$pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);" ^
     "$psi = [Diagnostics.ProcessStartInfo]::new();" ^
@@ -88,7 +88,7 @@ start "" /b powershell -NoProfile -WindowStyle Hidden -Command ^
     "$psi.RedirectStandardInput = $true;" ^
     "$p = [Diagnostics.Process]::new();" ^
     "$p.StartInfo = $psi;" ^
-    "$p.Start();" ^
+    "$p.Start() | Out-Null;" ^
     "$pipe.WaitForConnection();" ^
     "$command = [IO.StreamReader]::new($pipe).ReadLine();" ^
     "if ($command -eq 'stop' -and -not $p.HasExited) {" ^
