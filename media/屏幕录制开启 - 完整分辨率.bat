@@ -86,7 +86,7 @@ goto :after_powershell_block
     $pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);
     $psi = [Diagnostics.ProcessStartInfo]::new();
     $psi.FileName = $env:ffmpeg_path;
-    $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -c:v libx264 -crf 18 -preset veryfast -movflags +faststart ' + $env:output_file;
+    $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -c:v libx265 -crf 22 -preset slower -pix_fmt yuv420p -movflags +faststart ' + $env:output_file;
     $psi.UseShellExecute = $false;
     $psi.CreateNoWindow = $true;
     $psi.RedirectStandardInput = $true;
