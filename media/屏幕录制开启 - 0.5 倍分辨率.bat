@@ -82,13 +82,13 @@ start "" /b powershell -NoProfile -WindowStyle Hidden -Command ^
     "$pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);" ^
     "$psi = [Diagnostics.ProcessStartInfo]::new();" ^
     "$psi.FileName = $env:ffmpeg_path;" ^
-    "$psi.Arguments = '-y -f gdigrab -framerate 20 -draw_mouse 1 -i desktop -vf scale=iw/2:ih/2 -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart ' + $env:output_file;" ^
+    "$psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -vf scale=iw/2:ih/2 -c:v libx264 -crf 18 -preset veryfast -tune screen -movflags +faststart ' + $env:output_file;" ^
     "$psi.UseShellExecute = $false;" ^
     "$psi.CreateNoWindow = $true;" ^
     "$psi.RedirectStandardInput = $true;" ^
     "$p = [Diagnostics.Process]::new();" ^
     "$p.StartInfo = $psi;" ^
-    "$p.Start() | Out-Null;" ^
+    "$p.Start();" ^
     "$pipe.WaitForConnection();" ^
     "$command = [IO.StreamReader]::new($pipe).ReadLine();" ^
     "if ($command -eq 'stop' -and -not $p.HasExited) {" ^

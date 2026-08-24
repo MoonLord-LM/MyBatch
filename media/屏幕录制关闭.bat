@@ -67,9 +67,11 @@ if !errorlevel! equ 0 (
         ) else (
             echo 录制已停止，录制进程已退出
         )
-        set "file_to_delete=!pid_file!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
-        echo 录制状态记录已清除
+        if exist "!pid_file!" (
+            set "file_to_delete=!pid_file!"
+            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+            echo 录制状态记录已清除
+        )
     ) else (
         echo 录制已停止，录制进程 PID 文件不存在
     )
