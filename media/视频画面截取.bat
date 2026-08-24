@@ -75,6 +75,9 @@ set "video_file=!param1!"
         goto input_file
     )
 
+    echo 开始处理文件："!video_file!"
+    echo.
+
     :input_screenshot_time
     echo.
     echo 请输入截取时间（格式: HH:MM:SS.XXX）：
