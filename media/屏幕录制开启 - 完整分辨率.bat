@@ -21,8 +21,6 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
 
-
-
 REM 检查 ffmpeg 组件
 if exist "!script_dir!ffmpeg.exe" (
     set "ffmpeg_path=!script_dir!ffmpeg.exe"
@@ -65,8 +63,6 @@ if exist "!pid_file!" (
     )
 )
 
-
-
 REM 获取屏幕分辨率
 for /f "usebackq delims=" %%r in (`
     powershell -NoProfile -Command ^
@@ -75,27 +71,19 @@ for /f "usebackq delims=" %%r in (`
     "$b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds;" ^
     "Write-Output ('screen_size={0}x{1}' -f $b.Width, $b.Height);"
 `) do set "%%r"
-
-
-
 echo 屏幕分辨率：!screen_size!
 echo 录制分辨率：!screen_size!
+
 for /f "usebackq delims=" %%t in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"`) do set "time_stamp=%%t"
 set "output_file=!script_dir!录屏_full_!time_stamp!.mp4"
 echo 输出文件："!output_file!"
 
-
-
-REM 传参给后台 PowerShell（环境变量方式，参考 media 下其它脚本写法）
-set "record_args=-y -f gdigrab -framerate 20 -draw_mouse 1 -i desktop -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart ""!output_file!"""
-
-REM 后台启动录制管理器：命名管道等待停止信号，收到后向 ffmpeg 发送 q 优雅退出
 start "" /b powershell -NoProfile -WindowStyle Hidden -Command ^
     "$PID | Out-File -FilePath $env:pid_file -Encoding ascii;" ^
     "$pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);" ^
     "$psi = [Diagnostics.ProcessStartInfo]::new();" ^
     "$psi.FileName = $env:ffmpeg_path;" ^
-    "$psi.Arguments = $env:record_args;" ^
+    "$psi.Arguments = '-y -f gdigrab -framerate 20 -draw_mouse 1 -i desktop -c:v libx264 -preset veryfast -crf 18 -pix_fmt yuv420p -movflags +faststart ' + $env:output_file;" ^
     "$psi.UseShellExecute = $false;" ^
     "$psi.CreateNoWindow = $true;" ^
     "$psi.RedirectStandardInput = $true;" ^
@@ -114,14 +102,14 @@ start "" /b powershell -NoProfile -WindowStyle Hidden -Command ^
     "    Add-Type -AssemblyName Microsoft.VisualBasic;" ^
     "    [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:pid_file, 'OnlyErrorDialogs', 'SendToRecycleBin');" ^
     "}"
-
-echo.
 if !errorlevel! neq 0 (
+    echo.
     echo 录制进程启动失败
     echo.
     pause
     endlocal & endlocal & exit /b 1
 ) else (
+    echo.
     echo 录制已开始，将在 3 秒后自动关闭本窗口... & REM
     echo 停止录制：请运行 “屏幕录制关闭.bat”
 )
