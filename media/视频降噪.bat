@@ -112,12 +112,12 @@ if "!param1!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_smartblur_2_1_0.mp4"
+        set "output_file=!file_dir!!base_name!_smartblur_2_1_10.mp4"
         if exist "!output_file!" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf "smartblur=lr=2:ls=1:lt=0" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!param1!" -vf "smartblur=lr=2:ls=1:lt=10" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 降噪失败
@@ -198,13 +198,13 @@ if not "!working_dir!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_smartblur_2_1_0.mp4"
+        set "output_file=!file_dir!!base_name!_smartblur_2_1_10.mp4"
         if exist "!output_file!" (
             echo set /a "output_exist+=1">> "!temp_set!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=0" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=10" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
