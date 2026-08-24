@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '视频分辨率扩大为 2 倍（默认质量 -crf 23 -preset medium）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '视频分辨率扩大为 2 倍（高质量 -crf 18 -preset slower）' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
@@ -72,7 +72,7 @@ if "!param1!" == "" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在扩大为："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!param1!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 扩大失败
@@ -108,7 +108,7 @@ if not "!working_dir!" == "" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在扩大为："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 23 -preset medium -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "resize_failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
