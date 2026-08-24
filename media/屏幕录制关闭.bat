@@ -48,6 +48,7 @@ if !errorlevel! equ 0 (
         set /p "rec_pid="< "!pid_file!"
         for /f "usebackq delims=" %%o in (`
             powershell -NoProfile -Command ^
+                "[Console]::OutputEncoding = [Text.Encoding]::UTF8;" ^
                 "$deadline = (Get-Date).AddSeconds(30);" ^
                 "$proc = Get-Process -Id $env:rec_pid -ErrorAction SilentlyContinue;" ^
                 "while ($proc -and (Get-Date) -lt $deadline) {" ^
