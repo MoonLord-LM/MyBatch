@@ -132,7 +132,8 @@ if "!param1!" == "" (
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                     echo 设置失败
                 ) else (
-                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:audio_file,'OnlyErrorDialogs','SendToRecycleBin')"
+                    set "file_to_delete=!audio_file!"
+                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     move /y "!temp_audio_file!" "!audio_file!" >nul
                     echo 设置成功
                 )
@@ -208,7 +209,8 @@ if not "!working_dir!" == "" (
                     echo 设置失败
                 ) else (
                     echo set /a "succeeded+=1">> "!temp_set!"
-                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:audio_file,'OnlyErrorDialogs','SendToRecycleBin')"
+                    set "file_to_delete=!audio_file!"
+                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     move /y "!temp_audio_file!" "!audio_file!" >nul
                     echo 设置成功
                 )

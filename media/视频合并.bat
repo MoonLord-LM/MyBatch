@@ -306,7 +306,8 @@ for /l %%i in (1,1,999) do (
                 if not exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" (
                     "!ffmpeg_path!" -i "!working_dir!\!name_file!" -c copy -map_metadata -1 -threads 1 "!working_dir!\!name_file:~0,-4!_tmp.mp4"
                 )
-                del /f /q "!working_dir!\!name_file!"
+                set "file_to_delete=!working_dir!\!name_file!"
+                powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                 ren "!working_dir!\!name_file:~0,-4!_tmp.mp4" "!name_file!"
             )
         )

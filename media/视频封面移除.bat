@@ -107,7 +107,8 @@ if "!param1!" == "" (
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
             ) else (
-                powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:param1,'OnlyErrorDialogs','SendToRecycleBin')"
+                set "file_to_delete=!param1!"
+                powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                 move /y "!temp_video_file!" "!param1!" >nul
                 echo 移除成功
             )
@@ -155,7 +156,8 @@ if not "!working_dir!" == "" (
                 echo 移除失败
             ) else (
                 echo set /a "succeeded+=1">> "!temp_set!"
-                powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:video_file,'OnlyErrorDialogs','SendToRecycleBin')"
+                set "file_to_delete=!video_file!"
+                powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                 move /y "!temp_video_file!" "!video_file!" >nul
                 echo 移除成功
             )
