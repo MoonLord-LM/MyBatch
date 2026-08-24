@@ -12,7 +12,7 @@ powershell -NoProfile -Command "Write-Host '视频降噪处理，使用 4 种滤
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '滤镜使用：nlmeans、hqdn3d、atadenoise、smartblur（默认参数）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '滤镜使用：nlmeans、hqdn3d、atadenoise、smartblur' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '编码格式使用 h264 格式（高质量 -crf 18 -preset slower）' -ForegroundColor Green"
 echo.
 
@@ -70,12 +70,12 @@ if "!param1!" == "" (
         set "file_dir=!param1_dir!"
         set "base_name=!param1_name!"
 
-        set "output_file=!file_dir!!base_name!_nlmeans.mp4"
+        set "output_file=!file_dir!!base_name!_nlmeans_5_7_15.mp4"
         if exist "!output_file!" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf nlmeans -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!param1!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 降噪失败
@@ -84,12 +84,12 @@ if "!param1!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_hqdn3d.mp4"
+        set "output_file=!file_dir!!base_name!_hqdn3d_6_4_8_6.mp4"
         if exist "!output_file!" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf hqdn3d -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!param1!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 降噪失败
@@ -98,12 +98,12 @@ if "!param1!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_atadenoise.mp4"
+        set "output_file=!file_dir!!base_name!_atadenoise_8_16_9.mp4"
         if exist "!output_file!" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf atadenoise -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!param1!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 降噪失败
@@ -112,12 +112,12 @@ if "!param1!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_smartblur.mp4"
+        set "output_file=!file_dir!!base_name!_smartblur_2_1_0.mp4"
         if exist "!output_file!" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf smartblur -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!param1!" -vf "smartblur=lr=2:ls=1:lt=0" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 降噪失败
