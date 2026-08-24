@@ -24,8 +24,6 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
 
-
-
 REM 检查 ffmpeg 组件
 if exist "!script_dir!ffmpeg.exe" (
     set "ffmpeg_path=!script_dir!ffmpeg.exe"

@@ -13,7 +13,7 @@ powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入视
 powershell -NoProfile -Command "Write-Host '对一个文件处理完成后，可继续输入下一个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '视频如果是 ts 格式，会自动转为同名的 mp4 后再截取，避免音画不同步问题' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '开始和结束时间的格式为 HH:MM:SS.XXX，例如 00:01:23.456' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '开始和结束时间的格式为 HH:MM:SS 或 HH:MM:SS.XXX，例如 00:01:23.456' -ForegroundColor Green"
 echo.
 
 
@@ -22,8 +22,6 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
     cd /d "!script_dir!"
 )
-
-
 
 REM 检查 ffmpeg 组件
 if exist "!script_dir!ffmpeg.exe" (
