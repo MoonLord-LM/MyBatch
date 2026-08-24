@@ -91,7 +91,8 @@ goto :after_powershell_block
     $pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);
     $psi = [Diagnostics.ProcessStartInfo]::new();
     $psi.FileName = $env:ffmpeg_path;
-    $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -c:v libx264rgb -preset ultrafast -crf 0 -pix_fmt bgra -movflags +faststart ' + $env:output_file;
+    $creation_time = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz');
+    $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -c:v libx264rgb -preset ultrafast -crf 0 -pix_fmt bgra -movflags +faststart -metadata creation_time="' + $creation_time + '" ' + $env:output_file;
     $psi.UseShellExecute = $false;
     $psi.CreateNoWindow = $true;
     $psi.RedirectStandardInput = $true;
@@ -137,7 +138,7 @@ if !errorlevel! neq 0 (
     endlocal & endlocal & exit /b 1
 ) else (
     echo.
-    echo 录制已开始，将在 3 秒后自动关闭本窗口... & REM
+    echo 录制已开始，将在 3 秒后自动关闭本窗口
 )
 
 
