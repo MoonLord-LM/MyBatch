@@ -147,13 +147,13 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
 
-        set "output_file=!file_dir!!base_name!_nlmeans.mp4"
+        set "output_file=!file_dir!!base_name!_nlmeans_5_7_15.mp4"
         if exist "!output_file!" (
             echo set /a "output_exist+=1">> "!temp_set!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf nlmeans -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -164,13 +164,13 @@ if not "!working_dir!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_hqdn3d.mp4"
+        set "output_file=!file_dir!!base_name!_hqdn3d_6_4_8_6.mp4"
         if exist "!output_file!" (
             echo set /a "output_exist+=1">> "!temp_set!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf hqdn3d -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -181,13 +181,13 @@ if not "!working_dir!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_atadenoise.mp4"
+        set "output_file=!file_dir!!base_name!_atadenoise_8_16_9.mp4"
         if exist "!output_file!" (
             echo set /a "output_exist+=1">> "!temp_set!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf atadenoise -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -198,13 +198,13 @@ if not "!working_dir!" == "" (
             )
         )
 
-        set "output_file=!file_dir!!base_name!_smartblur.mp4"
+        set "output_file=!file_dir!!base_name!_smartblur_2_1_0.mp4"
         if exist "!output_file!" (
             echo set /a "output_exist+=1">> "!temp_set!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在生成："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf smartblur -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=0" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">> "!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
