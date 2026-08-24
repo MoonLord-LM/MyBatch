@@ -79,7 +79,7 @@ for /f "delims=" %%r in ('
 echo 屏幕分辨率：!screen_size!
 
 for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"') do set "time_stamp=%%t"
-set "output_file=!script_dir!录屏_0.5x_!time_stamp!.mp4"
+set "output_file=!script_dir!录屏_!time_stamp!.mp4"
 echo 输出文件："!output_file!"
 
 
