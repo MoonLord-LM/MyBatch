@@ -129,7 +129,7 @@ set "video2=!param2!"
         echo 处理文件："!video1!" & REM
         echo 替换声音："!video2!"
 
-        "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 0:v? -map 1:a -map_metadata 0 -c copy "!temp_file!"
+        "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 0:v? -map 1:a -map 0:s? -map_metadata 0 -c copy "!temp_file!"
         if !errorlevel! neq 0 (
             if exist "!temp_file!" ( del /f /q "!temp_file!" )
             echo.
