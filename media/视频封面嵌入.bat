@@ -113,7 +113,18 @@ if "!param1!" == "" (
             if not "!cover_file!"=="" (
                 echo 找到封面："!cover_file!"
                 set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
-                "!ffmpeg_path!" -i "!param1!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
+                set "cover_codec="
+                for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!cover_file!" 2^>nul') do (
+                    set "cover_codec=%%c"
+                )
+                if /i "!cover_codec!"=="png" (
+                    set "cover_enc=png"
+                ) else if /i "!cover_codec!"=="mjpeg" (
+                    set "cover_enc=copy"
+                ) else (
+                    set "cover_enc=mjpeg"
+                )
+                "!ffmpeg_path!" -i "!param1!" -i "!cover_file!" -map 0 -map 1 -c copy -c:v:1 !cover_enc! -disposition:v:1 attached_pic "!temp_video_file!"
                 if !errorlevel! neq 0 (
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                     echo 设置失败
@@ -174,7 +185,18 @@ if not "!working_dir!" == "" (
             if not "!cover_file!"=="" (
                 echo 找到封面："!cover_file!"
                 set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
-                "!ffmpeg_path!" -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic "!temp_video_file!"
+                set "cover_codec="
+                for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!cover_file!" 2^>nul') do (
+                    set "cover_codec=%%c"
+                )
+                if /i "!cover_codec!"=="png" (
+                    set "cover_enc=png"
+                ) else if /i "!cover_codec!"=="mjpeg" (
+                    set "cover_enc=copy"
+                ) else (
+                    set "cover_enc=mjpeg"
+                )
+                "!ffmpeg_path!" -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -c:v:1 !cover_enc! -disposition:v:1 attached_pic "!temp_video_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "set_failed+=1">> "!temp_set!"
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )

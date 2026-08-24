@@ -112,10 +112,21 @@ if "!param1!" == "" (
             if not "!cover_file!"=="" (
                 echo 找到封面："!cover_file!"
                 set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
-                if /i "!file_ext!"==".flac" (
-                    "!ffmpeg_path!" -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v mjpeg -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
+                set "cover_codec="
+                for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!cover_file!" 2^>nul') do (
+                    set "cover_codec=%%c"
+                )
+                if /i "!cover_codec!"=="png" (
+                    set "cover_enc=png"
+                ) else if /i "!cover_codec!"=="mjpeg" (
+                    set "cover_enc=copy"
                 ) else (
-                    "!ffmpeg_path!" -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:1 attached_pic "!temp_audio_file!"
+                    set "cover_enc=mjpeg"
+                )
+                if /i "!file_ext!"==".flac" (
+                    "!ffmpeg_path!" -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
+                ) else (
+                    "!ffmpeg_path!" -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
@@ -175,10 +186,21 @@ if not "!working_dir!" == "" (
             if not "!cover_file!"=="" (
                 echo 找到封面："!cover_file!"
                 set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
-                if /i "!file_ext!"==".flac" (
-                    "!ffmpeg_path!" -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v mjpeg -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
+                set "cover_codec="
+                for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!cover_file!" 2^>nul') do (
+                    set "cover_codec=%%c"
+                )
+                if /i "!cover_codec!"=="png" (
+                    set "cover_enc=png"
+                ) else if /i "!cover_codec!"=="mjpeg" (
+                    set "cover_enc=copy"
                 ) else (
-                    "!ffmpeg_path!" -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c copy -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:1 attached_pic "!temp_audio_file!"
+                    set "cover_enc=mjpeg"
+                )
+                if /i "!file_ext!"==".flac" (
+                    "!ffmpeg_path!" -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
+                ) else (
+                    "!ffmpeg_path!" -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
                     echo set /a "set_failed+=1">> "!temp_set!"

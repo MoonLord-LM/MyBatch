@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '导出视频封面为同名的 png 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '导出视频封面为同名的 jpg 或 png 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
@@ -88,21 +88,35 @@ if "!param1!" == "" (
         set "file_dir=!param1_dir!"
         set "base_name=!param1_name!"
 
-        set "cover_file=!file_dir!!base_name!.png"
-        if exist "!cover_file!" (
-            echo 已存在："!cover_file!"，跳过此文件
-        ) else (
-            set "has_cover=0"
-            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!param1!" 2^>nul') do (
-                if "%%c"=="1" (
-                    set "has_cover=1"
-                )
+        set "has_cover=0"
+        set "cover_index="
+        set "cover_codec="
+        for /f "tokens=1,2,3 delims=," %%a in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=index^,codec_name:stream_disposition^=attached_pic -of csv^=p^=0 "!param1!" 2^>nul') do (
+            if "%%c"=="1" (
+                set "has_cover=1"
+                set "cover_index=%%a"
+                set "cover_codec=%%b"
             )
+        )
 
-            if "!has_cover!"=="0" (
-                echo 无封面
+        if "!has_cover!"=="0" (
+            echo 无封面
+        ) else (
+            if /i "!cover_codec!"=="mjpeg" (
+                set "cover_ext=.jpg"
+                set "cover_enc=copy"
+            ) else if /i "!cover_codec!"=="png" (
+                set "cover_ext=.png"
+                set "cover_enc=copy"
             ) else (
-                "!ffmpeg_path!" -i "!param1!" -map 0:v:1 -c:v copy "!cover_file!"
+                set "cover_ext=.png"
+                set "cover_enc=png"
+            )
+            set "cover_file=!file_dir!!base_name!!cover_ext!"
+            if exist "!cover_file!" (
+                echo 已存在："!cover_file!"，跳过此文件
+            ) else (
+                "!ffmpeg_path!" -i "!param1!" -map 0:!cover_index! -c:v !cover_enc! -frames:v 1 "!cover_file!"
                 if !errorlevel! neq 0 (
                     if exist "!cover_file!" ( del /f /q "!cover_file!" )
                     echo 导出失败
@@ -133,23 +147,37 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-        set "cover_file=!file_dir!!base_name!.png"
-        if exist "!cover_file!" (
-            echo set /a "cover_exist+=1">> "!temp_set!"
-            echo 已存在："!cover_file!"，跳过此文件
-        ) else (
-            set "has_cover=0"
-            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
-                if "%%c"=="1" (
-                    set "has_cover=1"
-                )
+        set "has_cover=0"
+        set "cover_index="
+        set "cover_codec="
+        for /f "tokens=1,2,3 delims=," %%a in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=index^,codec_name:stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            if "%%c"=="1" (
+                set "has_cover=1"
+                set "cover_index=%%a"
+                set "cover_codec=%%b"
             )
+        )
 
-            if "!has_cover!"=="0" (
-                echo set /a "no_cover+=1">> "!temp_set!"
-                echo 无封面
+        if "!has_cover!"=="0" (
+            echo set /a "no_cover+=1">> "!temp_set!"
+            echo 无封面
+        ) else (
+            if /i "!cover_codec!"=="mjpeg" (
+                set "cover_ext=.jpg"
+                set "cover_enc=copy"
+            ) else if /i "!cover_codec!"=="png" (
+                set "cover_ext=.png"
+                set "cover_enc=copy"
             ) else (
-                "!ffmpeg_path!" -i "!video_file!" -map 0:v:1 -c:v copy "!cover_file!"
+                set "cover_ext=.png"
+                set "cover_enc=png"
+            )
+            set "cover_file=!file_dir!!base_name!!cover_ext!"
+            if exist "!cover_file!" (
+                echo set /a "cover_exist+=1">> "!temp_set!"
+                echo 已存在："!cover_file!"，跳过此文件
+            ) else (
+                "!ffmpeg_path!" -i "!video_file!" -map 0:!cover_index! -c:v !cover_enc! -frames:v 1 "!cover_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "export_failed+=1">> "!temp_set!"
                     if exist "!cover_file!" ( del /f /q "!cover_file!" )

@@ -102,7 +102,7 @@ if "!param1!" == "" (
             echo 找到封面，正在移除
             set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
 
-            "!ffmpeg_path!" -i "!param1!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
+            "!ffmpeg_path!" -i "!param1!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy "!temp_video_file!"
             if !errorlevel! neq 0 (
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
@@ -148,7 +148,7 @@ if not "!working_dir!" == "" (
             echo 找到封面，正在移除
             set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
 
-            "!ffmpeg_path!" -i "!video_file!" -c copy -map 0:v:0 -map 0:a "!temp_video_file!"
+            "!ffmpeg_path!" -i "!video_file!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy "!temp_video_file!"
             if !errorlevel! neq 0 (
                 echo set /a "remove_failed+=1">> "!temp_set!"
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )

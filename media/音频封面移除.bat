@@ -91,8 +91,10 @@ if "!param1!" == "" (
         set "file_ext=!param1_ext!"
 
         set "has_cover=0"
-        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!param1!" 2^>nul') do (
-            set "has_cover=1"
+        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!param1!" 2^>nul') do (
+            if "%%c"=="1" (
+                set "has_cover=1"
+            )
         )
 
         if "!has_cover!"=="0" (
@@ -101,7 +103,7 @@ if "!param1!" == "" (
             echo 找到封面，正在移除
             set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
 
-            "!ffmpeg_path!" -i "!param1!" -map 0:a -c:a copy "!temp_audio_file!"
+            "!ffmpeg_path!" -i "!param1!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy "!temp_audio_file!"
             if !errorlevel! neq 0 (
                 if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                 echo 移除失败
@@ -134,8 +136,10 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!audio_file!"
         set "has_cover=0"
-        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=codec_name -of csv^=p^=0 "!audio_file!" 2^>nul') do (
-            set "has_cover=1"
+        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_disposition^=attached_pic -of csv^=p^=0 "!audio_file!" 2^>nul') do (
+            if "%%c"=="1" (
+                set "has_cover=1"
+            )
         )
 
         if "!has_cover!"=="0" (
@@ -145,7 +149,7 @@ if not "!working_dir!" == "" (
             echo 找到封面，正在移除
             set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
 
-            "!ffmpeg_path!" -i "!audio_file!" -map 0:a -c:a copy "!temp_audio_file!"
+            "!ffmpeg_path!" -i "!audio_file!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy "!temp_audio_file!"
             if !errorlevel! neq 0 (
                 echo set /a "remove_failed+=1">> "!temp_set!"
                 if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
