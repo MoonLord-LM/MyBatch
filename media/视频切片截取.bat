@@ -125,7 +125,12 @@ set "video_file=!param1!"
             echo ts 转 mp4 完成
         )
 
-        set "output_file=!file_dir!!base_name!_!begin_time::=!-!end_time::=!.mp4"
+        REM 把开始/结束时间里的 : 和 . 替换为空，作为输出文件名
+        set "begin=!begin_time::=!"
+        set "begin=!begin:.=!"
+        set "end=!end_time::=!"
+        set "end=!end:.=!"
+        set "output_file=!file_dir!!base_name!_!begin!-!end!.mp4"
         if exist "!output_file!" (
             echo 已存在："!output_file!"，跳过
         ) else (
