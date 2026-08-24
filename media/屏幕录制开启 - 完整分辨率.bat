@@ -64,16 +64,21 @@ if exist "!pid_file!" (
 )
 
 REM 获取屏幕分辨率
-for /f "usebackq delims=" %%r in (`
+for /f "delims=" %%r in ('
     powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "Add-Type -AssemblyName System.Windows.Forms;" ^
-    "$b = [System.Windows.Forms.Screen]::PrimaryScreen.Bounds;" ^
-    "Write-Output ('screen_size={0}x{1}' -f $b.Width, $b.Height);"
-`) do set "%%r"
+    "$source = 'using System.Runtime.InteropServices;' +" ^
+    "    'public static class ScreenMetrics {' +" ^
+    "    '[DllImport(\"user32.dll\")] public static extern bool SetProcessDPIAware();' +" ^
+    "    '[DllImport(\"user32.dll\")] public static extern int GetSystemMetrics(int nIndex);' +" ^
+    "    '}';" ^
+    "Add-Type -TypeDefinition $source;" ^
+    "[ScreenMetrics]::SetProcessDPIAware() | Out-Null;" ^
+    "Write-Output ('screen_size={0}x{1}' -f [ScreenMetrics]::GetSystemMetrics(0), [ScreenMetrics]::GetSystemMetrics(1));"
+') do set "%%r"
 echo 屏幕分辨率：!screen_size!
 
-for /f "usebackq delims=" %%t in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"`) do set "time_stamp=%%t"
+for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"') do set "time_stamp=%%t"
 set "output_file=!script_dir!录屏_full_!time_stamp!.mp4"
 echo 输出文件："!output_file!"
 

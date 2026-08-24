@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '双击运行，停止后台的屏幕录制' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '通过命名管道发送停止信号，实现 ffmpeg 的优雅退出' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '发送信号后，等待最多约 30 秒，超时则强制结束进程' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '发送信号后，等待最多约 600 秒，超时则强制结束进程' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '录制生成的 mp4 文件，保存在当前文件夹下' -ForegroundColor Green"
 echo.
 
@@ -41,14 +41,14 @@ powershell -NoProfile -Command ^
     "    exit 1;" ^
     "}"
 if !errorlevel! equ 0 (
-    echo 已发送停止信号，等待安全写入文件...
+    echo 已发送停止信号，等待文件写入完成...
     echo.
     if exist "!pid_file!" (
         set /p "rec_pid="< "!pid_file!"
-        for /f "usebackq delims=" %%o in (`
+        for /f "delims=" %%o in ('
             powershell -NoProfile -Command ^
                 "[Console]::OutputEncoding = [Text.Encoding]::UTF8;" ^
-                "$deadline = (Get-Date).AddSeconds(30);" ^
+                "$deadline = (Get-Date).AddSeconds(600);" ^
                 "$proc = Get-Process -Id $env:rec_pid -ErrorAction SilentlyContinue;" ^
                 "while ($proc -and (Get-Date) -lt $deadline) {" ^
                 "    Start-Sleep -Milliseconds 1000;" ^
@@ -60,11 +60,13 @@ if !errorlevel! equ 0 (
                 "} else {" ^
                 "    Write-Output 'graceful';" ^
                 "}"
-        `) do set "wait_result=%%o"
+        ') do set "wait_result=%%o"
         if "!wait_result!"=="forced" (
-            echo 等待时间已超过 30 秒，强制结束录制进程
+            echo 等待时间已超过 600 秒，强制结束录制进程
+        ) else if "!wait_result!"=="graceful" (
+            echo 录制完成，录制进程已退出
         ) else (
-            echo 录制已停止，录制进程已退出
+            echo 异常的命令输出
         )
         if exist "!pid_file!" (
             set "file_to_delete=!pid_file!"
