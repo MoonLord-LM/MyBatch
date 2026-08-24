@@ -77,14 +77,15 @@ if !errorlevel! equ 0 (
     )
 ) else (
     echo 发送停止信号失败
+    echo.
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding = [Text.Encoding]::UTF8;" ^
         "$all = Get-CimInstance Win32_Process;" ^
         "$targets = $all | Where-Object { $_.ProcessId -ne $PID -and ($_.Name -like 'ffmpeg*' -or ($_.Name -eq 'powershell.exe' -and $_.CommandLine -match 'MyBatchFFmpegScreenRecorder')) };" ^
         "if (-not $targets) {" ^
-        "    Write-Host '未发现录制相关进程' -ForegroundColor Yellow;" ^
+        "    Write-Host '未发现录制相关进程';" ^
         "} else {" ^
-        "    Write-Host '发现疑似录制相关进程：' -ForegroundColor Yellow;" ^
+        "    Write-Host '发现疑似录制相关进程：';" ^
         "    $targets | ForEach-Object {" ^
         "        $cmd = $_.CommandLine;" ^
         "        if ($cmd.Length -gt 160) { $cmd = $cmd.Substring(0, 160) + '...' };" ^
