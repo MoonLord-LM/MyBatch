@@ -106,7 +106,7 @@ if "!param1!" == "" (
             if "!is_av1!"=="1" (
                 echo 视频编码已经是 av1，跳过
             ) else (
-                set "output_file=!file_dir!!base_name!_av1.mp4"
+                set "output_file=!file_dir!!base_name!_av1_aom.mp4"
                 if exist "!output_file!" (
                     echo 已存在："!output_file!"，跳过
                 ) else (
@@ -187,7 +187,7 @@ if not "!working_dir!" == "" (
                 echo set /a "already_codec+=1">> "!temp_set!"
                 echo 视频编码已经是 av1，跳过
             ) else (
-                set "output_file=!file_dir!!base_name!_av1.mp4"
+                set "output_file=!file_dir!!base_name!_av1_aom.mp4"
                 if exist "!output_file!" (
                     echo set /a "output_exist+=1">> "!temp_set!"
                     echo 已存在："!output_file!"，跳过
