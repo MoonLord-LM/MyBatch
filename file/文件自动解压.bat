@@ -78,7 +78,7 @@ if !errorlevel! neq 0 (
 )
 
 REM 预置的公开密码
-set "public_password_list=@('theaic.cn','ixyg688.com')"
+set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
 
 
 
