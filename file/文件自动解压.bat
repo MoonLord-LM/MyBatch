@@ -8,12 +8,12 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '使用预置的密码，对压缩文件尝试进行解压' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '使用预置的在互联网上公开的密码，对压缩文件尝试进行解压' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的压缩文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个压缩文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 7z zip rar tar gz bz2 xz tgz tbz2' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '预置的密码保存在 password_list 变量中' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '文件会解压到与压缩包同名的文件夹中，如果输出文件夹已存在，则跳过不处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '文件会解压到与压缩文件同名的文件夹中，如果输出文件夹已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
 
@@ -105,7 +105,7 @@ if "!param1!" == "" (
         set "base_name=!param1_name!"
         set "file_ext=!param1_ext!"
 
-        REM 检查是否为支持的压缩包后缀：7z zip rar tar gz bz2 xz tgz tbz2
+        REM 检查是否为支持的压缩文件后缀：7z zip rar tar gz bz2 xz tgz tbz2
         set "is_archive="
         for %%e in (.7z .zip .rar .tar .gz .bz2 .xz .tgz .tbz2) do (
             if /i "!file_ext!"=="%%e" set "is_archive=1"
@@ -114,7 +114,7 @@ if "!param1!" == "" (
         if "!is_archive!"=="1" (
             set "output_dir=!file_dir!!base_name!"
             if exist "!output_dir!" (
-                echo 输出文件夹已存在："!output_dir!"，跳过此压缩包
+                echo 输出文件夹已存在："!output_dir!"，跳过此压缩文件
             ) else (
                 set "extracted=0"
                 set "used_password="
@@ -177,7 +177,7 @@ if "!param1!" == "" (
                 )
             )
         ) else (
-            echo 错误：不支持的文件后缀 "!file_ext!"，请拖入压缩包文件
+            echo 错误：不支持的文件后缀 "!file_ext!"，请拖入压缩文件
             echo.
             pause
             endlocal & endlocal & exit /b 1
@@ -204,11 +204,11 @@ if not "!working_dir!" == "" (
         set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
-        echo 处理压缩包："!archive_path!"
+        echo 处理压缩文件："!archive_path!"
         set "output_dir=!file_dir!!base_name!"
         if exist "!output_dir!" (
             echo set /a "output_exist+=1">> "!temp_set!"
-            echo 输出文件夹已存在："!output_dir!"，跳过此压缩包
+            echo 输出文件夹已存在："!output_dir!"，跳过此压缩文件
         ) else (
             set "extracted=0"
             set "used_password="
