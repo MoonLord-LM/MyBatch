@@ -12,7 +12,7 @@ powershell -NoProfile -Command "Write-Host '使用预置的在互联网上公开
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的压缩文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个压缩文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 7z zip rar tar gz bz2 xz tgz tbz2' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '预置的密码，保存在 public_password_list 变量中' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '预置的公开密码，保存在 public_password_list 变量中' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '文件会解压到与压缩文件同名的文件夹中，如果输出文件夹已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
@@ -77,7 +77,7 @@ if !errorlevel! neq 0 (
     endlocal & endlocal & exit /b 1
 )
 
-REM 预置的密码
+REM 预置的公开密码
 set "public_password_list=@('theaic.cn','ixyg688.com')"
 
 
