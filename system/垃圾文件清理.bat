@@ -155,6 +155,19 @@ if exist "!root_dir!" (
         "    Add-Content -LiteralPath $env:temp_list -Encoding UTF8;"
 )
 
+REM AMD 显卡着色器与缓存（仅清理 6 个月前的）
+set "root_dir=!LocalAppData!\AMD\DXCache"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"（仅清理 6 个月前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddDays(-180);" ^
+        "Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName } |" ^
+        "    Add-Content -LiteralPath $env:temp_list -Encoding UTF8;"
+)
+
 echo.
 echo 开始清理
 echo.
