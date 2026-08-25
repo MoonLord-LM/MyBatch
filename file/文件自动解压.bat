@@ -112,7 +112,11 @@ if "!param1!" == "" (
         )
 
         if "!is_archive!"=="1" (
-            set "output_dir=!file_dir!!base_name!"
+            if "!file_ext!"=="" (
+                set "output_dir=!file_dir!_!base_name!"
+            ) else (
+                set "output_dir=!file_dir!!base_name!"
+            )
             if exist "!output_dir!" (
                 echo 输出文件夹已存在："!output_dir!"，跳过此压缩文件
             ) else (
@@ -207,7 +211,11 @@ if not "!working_dir!" == "" (
             setlocal enabledelayedexpansion
 
             echo 处理压缩文件："!archive_path!"
-            set "output_dir=!file_dir!!base_name!"
+            if "!file_ext!"=="" (
+                set "output_dir=!file_dir!_!base_name!"
+            ) else (
+                set "output_dir=!file_dir!!base_name!"
+            )
             if exist "!output_dir!" (
                 echo set /a "output_exist+=1">> "!temp_set!"
                 echo 输出文件夹已存在："!output_dir!"，跳过此压缩文件
