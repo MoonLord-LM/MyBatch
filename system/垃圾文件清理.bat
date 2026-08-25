@@ -1,7 +1,6 @@
 @echo off
 chcp 65001 >nul
 setlocal disabledelayedexpansion
-call :AdministratorPrivileges "%~0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
@@ -17,7 +16,24 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
     cd /d "!script_dir!"
 )
-echo.
+
+REM 获取系统管理员权限
+net file >nul 2>&1
+if !errorlevel! equ 0 (
+    powershell -NoProfile -Command "Write-Host '已获取系统管理员权限' -ForegroundColor Green"
+    echo.
+) else (
+    powershell -NoProfile -Command "Write-Host '需要系统管理员权限，请确认……' -ForegroundColor Green"
+    echo.
+    powershell start -verb runas "%~f0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" >nul 2>&1
+    if !errorlevel! neq 0 ( REM TODO 报错信息：Access is denied.
+        powershell -NoProfile -Command "Write-Host '获取系统管理员权限失败……' -ForegroundColor Green"
+        echo.
+        pause
+        exit /b 1
+    )
+    exit /b
+)
 
 
 
@@ -94,14 +110,3 @@ echo.>> "!log_file!"
 echo.
 pause
 endlocal & endlocal & exit /b
-
-
-
-REM 获取系统管理员权限
-:AdministratorPrivileges
-    net file 1>nul 2>nul
-    if %errorlevel% equ 0 ( echo 已获取系统管理员权限 && echo. && goto :eof ) else ( echo 需要系统管理员权限，请确认…… && echo.)
-    powershell start -verb runas "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9" 1>nul 2>nul
-    if %errorlevel% neq 0 ( echo 获取系统管理员权限失败…… && echo. && goto :eof )
-    exit
-goto :eof
