@@ -87,7 +87,7 @@ echo 输出文件："!output_file!"
 REM 内嵌的 Powershell 代码块开始
 goto :after_powershell_block
     [Console]::OutputEncoding=[Text.Encoding]::UTF8;
-    $PID | Out-File -FilePath $env:pid_file -Encoding ascii;
+    $PID | Out-File -FilePath $env:pid_file -Encoding UTF8;
     $pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);
     $psi = [Diagnostics.ProcessStartInfo]::new();
     $psi.FileName = $env:ffmpeg_path;

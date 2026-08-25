@@ -3,6 +3,12 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 setlocal enabledelayedexpansion
+powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
+
+
+
+powershell -NoProfile -Command "Write-Host '双击运行，自动扫描和清理各种垃圾文件' -ForegroundColor Green"
+echo.
 
 
 
@@ -14,6 +20,10 @@ echo.
 
 
 
+set "log_file=!script_name!.log"
+echo 开始扫描，清理记录会保存到 "!log_file!" 文件中
+powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; ('-- ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' --') | Out-File -LiteralPath $env:log_file -Append -Encoding UTF8"
+
 REM 龙之谷 DragonNest
 set "reg_value="
 for /f "tokens=2,*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\SHENGQUGAMES\DN" /v "Loader"') do (
@@ -23,11 +33,15 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\
     setlocal enabledelayedexpansion
     if not "!reg_value!"=="" (
         echo 正在清理文件夹："!root_dir!"
+
         set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
-        dir /b /a-d "!root_dir!*.dmp" 2>nul >> "!temp_list!"
-        dir /b /a-d "!root_dir!Log\*.log" 2>nul >> "!temp_list!"
-        dir /b /a-d "!root_dir!TempRes\*.tmp" 2>nul >> "!temp_list!"
-        powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; Get-Content -Encoding UTF8 -LiteralPath $env:temp_list | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile((Join-Path $env:root_dir $_),'OnlyErrorDialogs','SendToRecycleBin') }"
+        dir /s /b /a-d "!root_dir!*.dmp" 2>nul >> "!temp_list!"
+        dir /s /b /a-d "!root_dir!Log\*.log" 2>nul >> "!temp_list!"
+        dir /s /b /a-d "!root_dir!TempRes\*.tmp" 2>nul >> "!temp_list!"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件') -ForegroundColor Green"
+
+        type "!temp_list!" >> "!log_file!"
+        echo.>> "!log_file!"
         if exist "!temp_list!" ( del /f /q "!temp_list!" )
     )
     endlocal
@@ -47,9 +61,13 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_
     if not "!reg_value!"=="" (
         if not "!root_dir:~-1!"=="\" set "root_dir=!root_dir!\"
         echo 正在清理文件夹："!root_dir!"
+
         set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
-        dir /b /a-d "!root_dir!Genshin Impact Game\*.dmp" 2>nul >> "!temp_list!"
-        powershell -NoProfile -Command "Add-Type -AssemblyName Microsoft.VisualBasic; Get-Content -Encoding UTF8 -LiteralPath $env:temp_list | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile((Join-Path $env:root_dir $_),'OnlyErrorDialogs','SendToRecycleBin') }"
+        dir /s /b /a-d "!root_dir!Genshin Impact Game\*.dmp" 2>nul >> "!temp_list!"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件') -ForegroundColor Green"
+
+        type "!temp_list!" >> "!log_file!"
+        echo.>> "!log_file!"
         if exist "!temp_list!" ( del /f /q "!temp_list!" )
     )
     endlocal

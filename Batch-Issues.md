@@ -75,7 +75,7 @@ if !errorlevel! neq 0 (
 调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
 如果只有简单的 Write-Host 命令，可以不加这段代码  
 
-调用 PowerShell 的 Get-Content、Set-Content 读写文件时，添加 `-Encoding UTF8` 参数，指定 UTF-8 编码  
+调用 PowerShell 的 Get-Content、Set-Content、Out-File 读写文件时，添加 `-Encoding UTF8` 参数，指定 UTF-8 编码  
 
 ### 5. 调用 PowerShell 命令
 
