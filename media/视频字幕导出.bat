@@ -133,7 +133,7 @@ if not "!working_dir!" == "" (
         echo 处理文件："!video_file!"
         set "sub_file=!file_dir!!base_name!.srt"
         if exist "!sub_file!" (
-            echo set /a "sub_exist+=1">> "!temp_set!"
+            echo set /a "sub_exist+=1">>"!temp_set!"
             echo 已存在："!sub_file!"，跳过此文件
         ) else (
             set "has_sub=0"
@@ -142,21 +142,21 @@ if not "!working_dir!" == "" (
                 set "stream_index=%%s"
             )
             if "!has_sub!"=="0" (
-                echo set /a "no_sub+=1">> "!temp_set!"
+                echo set /a "no_sub+=1">>"!temp_set!"
                 echo 无字幕
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -map 0:!stream_index! "!sub_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "export_failed+=1">> "!temp_set!"
+                    echo set /a "export_failed+=1">>"!temp_set!"
                     if exist "!sub_file!" ( del /f /q "!sub_file!" )
                     echo 导出失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 保存文件："!sub_file!"
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

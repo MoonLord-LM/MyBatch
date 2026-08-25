@@ -166,7 +166,7 @@ if not "!working_dir!" == "" (
         )
 
         if "!creation_time!"=="" (
-            echo set /a "no_time+=1">> "!temp_set!"
+            echo set /a "no_time+=1">>"!temp_set!"
             echo 未找到创建时间，跳过此文件
         ) else (
             set "formatted_time="
@@ -174,30 +174,30 @@ if not "!working_dir!" == "" (
                 set "formatted_time=%%t"
             )
             if "!formatted_time!"=="" (
-                echo set /a "no_time+=1">> "!temp_set!"
+                echo set /a "no_time+=1">>"!temp_set!"
                 echo 时间解析失败，跳过此文件
             ) else (
                 set "new_name=VID_!formatted_time!!file_ext!"
                 echo 目标文件名："!new_name!"
                 if /i "!video_file!"=="!file_dir!!new_name!" (
-                    echo set /a "already_ok+=1">> "!temp_set!"
+                    echo set /a "already_ok+=1">>"!temp_set!"
                     echo 文件名已符合规范，无需处理
                 ) else if exist "!file_dir!!new_name!" (
-                    echo set /a "name_conflict+=1">> "!temp_set!"
+                    echo set /a "name_conflict+=1">>"!temp_set!"
                     echo 目标文件已存在，跳过此文件
                 ) else (
                     ren "!video_file!" "!new_name!"
                     if !errorlevel! equ 0 (
-                        echo set /a "succeeded+=1">> "!temp_set!"
+                        echo set /a "succeeded+=1">>"!temp_set!"
                         echo 重命名成功
                     ) else (
-                        echo set /a "rename_failed+=1">> "!temp_set!"
+                        echo set /a "rename_failed+=1">>"!temp_set!"
                         echo 重命名失败
                     )
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

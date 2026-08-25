@@ -160,7 +160,7 @@ if not "!working_dir!" == "" (
         )
 
         if "!has_cover!"=="0" (
-            echo set /a "no_cover+=1">> "!temp_set!"
+            echo set /a "no_cover+=1">>"!temp_set!"
             echo 无封面
         ) else (
             if /i "!cover_codec!"=="mjpeg" (
@@ -175,21 +175,21 @@ if not "!working_dir!" == "" (
             )
             set "cover_file=!file_dir!!base_name!!cover_ext!"
             if exist "!cover_file!" (
-                echo set /a "cover_exist+=1">> "!temp_set!"
+                echo set /a "cover_exist+=1">>"!temp_set!"
                 echo 已存在："!cover_file!"，跳过此文件
             ) else (
                 "!ffmpeg_path!" -i "!audio_file!" -map 0:!cover_index! -c:v !cover_enc! -frames:v 1 "!cover_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "export_failed+=1">> "!temp_set!"
+                    echo set /a "export_failed+=1">>"!temp_set!"
                     if exist "!cover_file!" ( del /f /q "!cover_file!" )
                     echo 导出失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 保存文件："!cover_file!"
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

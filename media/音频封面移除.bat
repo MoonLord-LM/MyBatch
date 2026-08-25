@@ -144,7 +144,7 @@ if not "!working_dir!" == "" (
         )
 
         if "!has_cover!"=="0" (
-            echo set /a "no_cover+=1">> "!temp_set!"
+            echo set /a "no_cover+=1">>"!temp_set!"
             echo 无封面，跳过
         ) else (
             echo 找到封面，正在移除
@@ -152,18 +152,18 @@ if not "!working_dir!" == "" (
 
             "!ffmpeg_path!" -i "!audio_file!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy "!temp_audio_file!"
             if !errorlevel! neq 0 (
-                echo set /a "remove_failed+=1">> "!temp_set!"
+                echo set /a "remove_failed+=1">>"!temp_set!"
                 if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                 echo 移除失败
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
+                echo set /a "succeeded+=1">>"!temp_set!"
                 set "file_to_delete=!audio_file!"
                 powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                 move /y "!temp_audio_file!" "!audio_file!" >nul
                 echo 移除成功
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

@@ -152,7 +152,7 @@ if not "!working_dir!" == "" (
         echo 处理文件："!video_file!"
         set "output_file=!file_dir!!base_name!.mkv"
         if exist "!output_file!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
+            echo set /a "output_exist+=1">>"!temp_set!"
             echo 已存在："!output_file!"，跳过此文件
         ) else (
             echo 正在封装为："!output_file!"
@@ -173,26 +173,26 @@ if not "!working_dir!" == "" (
                 echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
                 "!ffmpeg_path!" -i "!video_file!" -c:v copy -c:a flac -compression_level 8 "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "mux_failed+=1">> "!temp_set!"
+                    echo set /a "mux_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 封装失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 封装成功（音频已转换）
                 )
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -c copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "mux_failed+=1">> "!temp_set!"
+                    echo set /a "mux_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 封装失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 封装成功
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

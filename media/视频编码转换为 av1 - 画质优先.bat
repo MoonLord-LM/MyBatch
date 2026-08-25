@@ -173,7 +173,7 @@ if not "!working_dir!" == "" (
         set "clean_name=!clean_name:_h264=!"
         set "clean_name=!clean_name:_h265=!"
         if not "!clean_name!"=="!base_name!" (
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "skipped+=1">>"!temp_set!"
             echo 该文件已是转码后的视频，跳过
         ) else (
             set "is_av1=0"
@@ -184,12 +184,12 @@ if not "!working_dir!" == "" (
             )
 
             if "!is_av1!"=="1" (
-                echo set /a "already_codec+=1">> "!temp_set!"
+                echo set /a "already_codec+=1">>"!temp_set!"
                 echo 视频编码已经是 av1，跳过
             ) else (
                 set "output_file=!file_dir!!base_name!_av1_aom.mp4"
                 if exist "!output_file!" (
-                    echo set /a "output_exist+=1">> "!temp_set!"
+                    echo set /a "output_exist+=1">>"!temp_set!"
                     echo 已存在："!output_file!"，跳过
                 ) else (
                     echo 正在转换为："!output_file!"
@@ -210,28 +210,28 @@ if not "!working_dir!" == "" (
                         echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
                         "!ffmpeg_path!" -i "!video_file!" -c:v libaom-av1 -crf 16 -cpu-used 2 -c:a flac -compression_level 8 "!output_file!"
                         if !errorlevel! neq 0 (
-                            echo set /a "convert_failed+=1">> "!temp_set!"
+                            echo set /a "convert_failed+=1">>"!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )
                             echo 转换失败
                         ) else (
-                            echo set /a "succeeded+=1">> "!temp_set!"
+                            echo set /a "succeeded+=1">>"!temp_set!"
                             echo 转换成功（音频已转换）
                         )
                     ) else (
                         "!ffmpeg_path!" -i "!video_file!" -c:v libaom-av1 -crf 16 -cpu-used 2 -c:a copy "!output_file!"
                         if !errorlevel! neq 0 (
-                            echo set /a "convert_failed+=1">> "!temp_set!"
+                            echo set /a "convert_failed+=1">>"!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )
                             echo 转换失败
                         ) else (
-                            echo set /a "succeeded+=1">> "!temp_set!"
+                            echo set /a "succeeded+=1">>"!temp_set!"
                             echo 转换成功
                         )
                     )
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

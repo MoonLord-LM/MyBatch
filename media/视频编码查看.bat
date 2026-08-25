@@ -102,20 +102,20 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-        "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul >> "!temp_video_codecs!"
+        "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul>>"!temp_video_codecs!"
         if !errorlevel! neq 0 (
-            echo set /a "parse_failed+=1">> "!temp_set!"
+            echo set /a "parse_failed+=1">>"!temp_set!"
             echo 视频编码解析失败
         ) else (
-            "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul >> "!temp_audio_codecs!"
+            "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul>>"!temp_audio_codecs!"
             if !errorlevel! neq 0 (
-                echo set /a "parse_failed+=1">> "!temp_set!"
+                echo set /a "parse_failed+=1">>"!temp_set!"
                 echo 音频编码解析失败
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
+                echo set /a "succeeded+=1">>"!temp_set!"
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

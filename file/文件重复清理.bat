@@ -91,7 +91,7 @@ for /f "usebackq delims=" %%i in ("!tmp_list1!") do (
     set "file1=%%i"
     set "size1=%%~zi"
     setlocal enabledelayedexpansion
-    echo set /a "total+=1">> "!temp_set!"
+    echo set /a "total+=1">>"!temp_set!"
     for /f "usebackq delims=" %%j in ("!tmp_list2!") do (
         setlocal disabledelayedexpansion
         set "file2=%%j"
@@ -110,10 +110,10 @@ for /f "usebackq delims=" %%i in ("!tmp_list1!") do (
                             powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                             if exist "!file1!" (
                                 echo 删除失败
-                                echo set /a "failed+=1">> "!temp_set!"
+                                echo set /a "failed+=1">>"!temp_set!"
                             ) else (
                                 echo 已删除到回收站
-                                echo set /a "deleted+=1">> "!temp_set!"
+                                echo set /a "deleted+=1">>"!temp_set!"
                             )
                         )
                     )

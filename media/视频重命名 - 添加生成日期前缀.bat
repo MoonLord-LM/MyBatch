@@ -158,7 +158,7 @@ if not "!working_dir!" == "" (
         )
 
         if "!creation_date!"=="" (
-            echo set /a "no_date+=1">> "!temp_set!"
+            echo set /a "no_date+=1">>"!temp_set!"
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
@@ -166,34 +166,34 @@ if not "!working_dir!" == "" (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
-                echo set /a "no_date+=1">> "!temp_set!"
+                echo set /a "no_date+=1">>"!temp_set!"
                 echo 时间解析失败，跳过此文件
             ) else (
                 set "prefix=!formatted_date!_"
                 echo 日期前缀："!prefix!"
                 if "!base_name:~0,9!"=="!prefix!" (
-                    echo set /a "already_ok+=1">> "!temp_set!"
+                    echo set /a "already_ok+=1">>"!temp_set!"
                     echo 文件名已包含日期前缀，跳过此文件
                 ) else (
                     set "new_name=!prefix!!base_name!!file_ext!"
                     echo 目标文件名："!new_name!"
                     if exist "!file_dir!!new_name!" (
-                        echo set /a "name_conflict+=1">> "!temp_set!"
+                        echo set /a "name_conflict+=1">>"!temp_set!"
                         echo 目标文件已存在，跳过此文件
                     ) else (
                         ren "!video_file!" "!new_name!"
                         if !errorlevel! equ 0 (
-                            echo set /a "succeeded+=1">> "!temp_set!"
+                            echo set /a "succeeded+=1">>"!temp_set!"
                             echo 重命名成功
                         ) else (
-                            echo set /a "rename_failed+=1">> "!temp_set!"
+                            echo set /a "rename_failed+=1">>"!temp_set!"
                             echo 重命名失败
                         )
                     )
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

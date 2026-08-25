@@ -108,7 +108,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     set "file1=%%f"
     set "size1=%%~zf"
     setlocal enabledelayedexpansion
-    echo set /a "total+=1">> "!temp_set!"
+    echo set /a "total+=1">>"!temp_set!"
     for /f "delims=" %%g in ('call "!es_path!" -path "!path2!" size:^=!size1!') do (
         setlocal disabledelayedexpansion
         set "file2=%%g"
@@ -125,10 +125,10 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
                         powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         if exist "!file1!" (
                             echo 删除失败
-                            echo set /a "failed+=1">> "!temp_set!"
+                            echo set /a "failed+=1">>"!temp_set!"
                         ) else (
                             echo 已删除到回收站
-                            echo set /a "deleted+=1">> "!temp_set!"
+                            echo set /a "deleted+=1">>"!temp_set!"
                         )
                     )
                 )

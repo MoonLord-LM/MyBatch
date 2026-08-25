@@ -173,16 +173,16 @@ if not "!working_dir!" == "" (
         )
 
         if /i "!base_name:~0,10!"=="Screenshot" (
-            echo set /a "other_prefix+=1">> "!temp_set!"
+            echo set /a "other_prefix+=1">>"!temp_set!"
             echo 文件名以 Screenshot 开头，跳过此文件
         ) else if /i "!base_name:~0,4!"=="QQ截图" (
-            echo set /a "other_prefix+=1">> "!temp_set!"
+            echo set /a "other_prefix+=1">>"!temp_set!"
             echo 文件名以 QQ截图 开头，跳过此文件
         ) else if /i "!base_name:~0,8!"=="mmexport" (
-            echo set /a "other_prefix+=1">> "!temp_set!"
+            echo set /a "other_prefix+=1">>"!temp_set!"
             echo 文件名以 mmexport 开头，跳过此文件
         ) else if not "!exif_time!"=="" (
-            echo set /a "has_exif+=1">> "!temp_set!"
+            echo set /a "has_exif+=1">>"!temp_set!"
             echo 图片带有拍摄时间，跳过此文件
         ) else (
             set "formatted_time="
@@ -192,7 +192,7 @@ if not "!working_dir!" == "" (
             )
 
             if "!formatted_time!"=="" (
-                echo set /a "no_time+=1">> "!temp_set!"
+                echo set /a "no_time+=1">>"!temp_set!"
                 echo 时间获取失败，跳过此文件
             ) else (
                 for /f "delims=" %%l in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $env:file_ext.ToLower()"') do (
@@ -201,24 +201,24 @@ if not "!working_dir!" == "" (
                 set "new_name=IMG_!formatted_time!!lower_file_ext!"
                 echo 目标文件名："!new_name!"
                 if /i "!img_file!"=="!file_dir!!new_name!" (
-                    echo set /a "already_ok+=1">> "!temp_set!"
+                    echo set /a "already_ok+=1">>"!temp_set!"
                     echo 文件名已符合规范，无需处理
                 ) else if exist "!file_dir!!new_name!" (
-                    echo set /a "name_conflict+=1">> "!temp_set!"
+                    echo set /a "name_conflict+=1">>"!temp_set!"
                     echo 目标文件已存在，跳过此文件
                 ) else (
                     ren "!img_file!" "!new_name!"
                     if !errorlevel! equ 0 (
-                        echo set /a "succeeded+=1">> "!temp_set!"
+                        echo set /a "succeeded+=1">>"!temp_set!"
                         echo 重命名成功
                     ) else (
-                        echo set /a "rename_failed+=1">> "!temp_set!"
+                        echo set /a "rename_failed+=1">>"!temp_set!"
                         echo 重命名失败
                     )
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

@@ -161,77 +161,77 @@ if not "!working_dir!" == "" (
         set "clean_name=!clean_name:_atadenoise_=!"
         if not "!clean_name!"=="!base_name!" (
             echo 该文件已是降噪后的视频，跳过
-            echo set /a "skipped+=1">> "!temp_set!"
+            echo set /a "skipped+=1">>"!temp_set!"
         ) else (
             set "output_file=!file_dir!!base_name!_nlmeans_5_7_15.mp4"
             if exist "!output_file!" (
-                echo set /a "output_exist+=1">> "!temp_set!"
+                echo set /a "output_exist+=1">>"!temp_set!"
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
                 "!ffmpeg_path!" -i "!video_file!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 降噪成功
                 )
             )
 
             set "output_file=!file_dir!!base_name!_hqdn3d_6_4_8_6.mp4"
             if exist "!output_file!" (
-                echo set /a "output_exist+=1">> "!temp_set!"
+                echo set /a "output_exist+=1">>"!temp_set!"
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
                 "!ffmpeg_path!" -i "!video_file!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 降噪成功
                 )
             )
 
             set "output_file=!file_dir!!base_name!_atadenoise_8_16_9.mp4"
             if exist "!output_file!" (
-                echo set /a "output_exist+=1">> "!temp_set!"
+                echo set /a "output_exist+=1">>"!temp_set!"
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
                 "!ffmpeg_path!" -i "!video_file!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 降噪成功
                 )
             )
 
             set "output_file=!file_dir!!base_name!_smartblur_2_1_5.mp4"
             if exist "!output_file!" (
-                echo set /a "output_exist+=1">> "!temp_set!"
+                echo set /a "output_exist+=1">>"!temp_set!"
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
                 "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=5" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "convert_failed+=1">> "!temp_set!"
+                    echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 降噪成功
                 )
             )
 
-            echo set /a "total+=4">> "!temp_set!"
+            echo set /a "total+=4">>"!temp_set!"
         )
         echo.
 

@@ -333,7 +333,7 @@ for /l %%i in (1,1,999) do (
     )
     if not "!name_file!"=="" (
         set "name_path=!working_dir!\!name_file!"
-        echo file '!name_path!' >> "!working_dir!\_tmp_file_list.txt"
+        echo file '!name_path!'>>"!working_dir!\_tmp_file_list.txt"
         set /a "file_count+=1"
         REM 解析参数
         for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "!name_path!" 2^>^&1') do (
@@ -590,7 +590,7 @@ if "!file_consistent!"=="0" (
                         -c:a "aac" -ar "!first_audio_sample_rate!" ^
                         -map_metadata -1 -threads 1 "!name_path:~0,-4!_h264_!suffix_safe!.mp4"
                 )
-                echo file '!name_path:~0,-4!_h264_!suffix_safe!.mp4' >> "!working_dir!\_tmp_file_list.txt"
+                echo file '!name_path:~0,-4!_h264_!suffix_safe!.mp4'>>"!working_dir!\_tmp_file_list.txt"
             )
         )
     ) else (
@@ -720,7 +720,7 @@ if "!file_consistent!"=="0" (
                                 -map_metadata -1 -threads 1 "!name_path:~0,-4!_!suffix_safe!.mp4"
                         )
                     )
-                    echo file '!name_path:~0,-4!_!suffix_safe!.mp4' >> "!working_dir!\_tmp_file_list.txt"
+                    echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!working_dir!\_tmp_file_list.txt"
                 ) else if not "!audio_consistent!"=="1" (
                     echo 重新编码视频："!name_path!" - "!name_path:~0,-4!_!suffix_safe!.mp4"
                     if not exist "!name_path:~0,-4!_!suffix_safe!.mp4" (
@@ -729,9 +729,9 @@ if "!file_consistent!"=="0" (
                             -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
                             -map_metadata -1 -threads 1 "!name_path:~0,-4!_!suffix_safe!.mp4"
                     )
-                    echo file '!name_path:~0,-4!_!suffix_safe!.mp4' >> "!working_dir!\_tmp_file_list.txt"
+                    echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!working_dir!\_tmp_file_list.txt"
                 ) else (
-                    echo file '!name_path!' >> "!working_dir!\_tmp_file_list.txt"
+                    echo file '!name_path!'>>"!working_dir!\_tmp_file_list.txt"
                 )
             )
         )

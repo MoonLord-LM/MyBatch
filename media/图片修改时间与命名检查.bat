@@ -109,10 +109,10 @@ if not "!working_dir!" == "" (
         )
 
         if "!formatted_time!"=="NOSTD" (
-            echo set /a "not_standard+=1">> "!temp_set!"
+            echo set /a "not_standard+=1">>"!temp_set!"
             echo 文件名不是标准命名，跳过此文件
         ) else if "!formatted_time!"=="NO_TIME" (
-            echo set /a "no_time+=1">> "!temp_set!"
+            echo set /a "no_time+=1">>"!temp_set!"
             echo 文件名中的时间无效，跳过此文件
         ) else (
             echo 图片文件名中的时间："!formatted_time!"
@@ -122,17 +122,17 @@ if not "!working_dir!" == "" (
             )
 
             if "!check_result!"=="ALREADY" (
-                echo set /a "already_ok+=1">> "!temp_set!"
+                echo set /a "already_ok+=1">>"!temp_set!"
                 echo 修改时间与文件名时间一致
             ) else if "!check_result!"=="DIFF" (
-                echo set /a "mismatch+=1">> "!temp_set!"
+                echo set /a "mismatch+=1">>"!temp_set!"
                 echo 发现差异
             ) else (
-                echo set /a "check_failed+=1">> "!temp_set!"
+                echo set /a "check_failed+=1">>"!temp_set!"
                 echo 检查失败
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

@@ -161,7 +161,7 @@ if not "!working_dir!" == "" (
         )
 
         if "!audio_codec!"=="" (
-            echo set /a "no_audio+=1">> "!temp_set!"
+            echo set /a "no_audio+=1">>"!temp_set!"
             echo 无音频
         ) else (
             set "audio_ext=m4a"
@@ -188,21 +188,21 @@ if not "!working_dir!" == "" (
 
             set "audio_file=!file_dir!!base_name!.!audio_ext!"
             if exist "!audio_file!" (
-                echo set /a "audio_exist+=1">> "!temp_set!"
+                echo set /a "audio_exist+=1">>"!temp_set!"
                 echo 已存在："!audio_file!"，跳过此文件
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -vn !audio_enc! "!audio_file!"
                 if !errorlevel! neq 0 (
-                    echo set /a "export_failed+=1">> "!temp_set!"
+                    echo set /a "export_failed+=1">>"!temp_set!"
                     if exist "!audio_file!" ( del /f /q "!audio_file!" )
                     echo 导出失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     echo 保存文件："!audio_file!"
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

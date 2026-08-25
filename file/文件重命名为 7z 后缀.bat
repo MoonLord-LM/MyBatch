@@ -111,7 +111,7 @@ if not "!working_dir!" == "" (
         )
 
         if "!is_skip_ext!"=="1" (
-            echo set /a "ext_skip+=1">> "!temp_set!"
+            echo set /a "ext_skip+=1">>"!temp_set!"
             echo 文件后缀 "!file_ext!"，跳过此文件
         ) else (
             REM 跳过隐藏文件、系统文件
@@ -120,30 +120,30 @@ if not "!working_dir!" == "" (
             attrib "!file_path!" | findstr /b /r /i "....H" >nul && set "is_hidden=1"
             attrib "!file_path!" | findstr /b /r /i "...S" >nul && set "is_system=1"
             if "!is_hidden!"=="1" (
-                echo set /a "hidden_skip+=1">> "!temp_set!"
+                echo set /a "hidden_skip+=1">>"!temp_set!"
                 echo 隐藏文件，跳过此文件
             ) else if "!is_system!"=="1" (
-                echo set /a "system_skip+=1">> "!temp_set!"
+                echo set /a "system_skip+=1">>"!temp_set!"
                 echo 系统文件，跳过此文件
             ) else (
                 set "new_name=!base_name!!file_ext!.7z"
                 echo 目标文件名："!new_name!"
                 if exist "!file_dir!!new_name!" (
-                    echo set /a "name_conflict+=1">> "!temp_set!"
+                    echo set /a "name_conflict+=1">>"!temp_set!"
                     echo 目标文件已存在，跳过此文件
                 ) else (
                     ren "!file_path!" "!new_name!"
                     if !errorlevel! equ 0 (
-                        echo set /a "succeeded+=1">> "!temp_set!"
+                        echo set /a "succeeded+=1">>"!temp_set!"
                         echo 重命名成功
                     ) else (
-                        echo set /a "rename_failed+=1">> "!temp_set!"
+                        echo set /a "rename_failed+=1">>"!temp_set!"
                         echo 重命名失败
                     )
                 )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

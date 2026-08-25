@@ -103,20 +103,20 @@ if not "!working_dir!" == "" (
         echo 处理文件："!img_file!"
         set "json_file=!file_dir!!base_name!!file_ext!.json"
         if exist "!json_file!" (
-            echo set /a "json_exist+=1">> "!temp_set!"
+            echo set /a "json_exist+=1">>"!temp_set!"
             echo 已存在："!json_file!"，跳过此文件
         ) else (
             "!mediainfo_path!" --Output=JSON "!img_file!" > "!json_file!"
             if !errorlevel! neq 0 (
-                echo set /a "parse_failed+=1">> "!temp_set!"
+                echo set /a "parse_failed+=1">>"!temp_set!"
                 if exist "!json_file!" ( del /f /q "!json_file!" )
                 echo 图片解析报错
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
+                echo set /a "succeeded+=1">>"!temp_set!"
                 echo 保存文件："!json_file!"
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

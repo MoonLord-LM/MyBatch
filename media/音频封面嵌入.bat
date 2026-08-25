@@ -170,7 +170,7 @@ if not "!working_dir!" == "" (
         )
 
         if "!has_cover!"=="1" (
-            echo set /a "has_cover+=1">> "!temp_set!"
+            echo set /a "has_cover+=1">>"!temp_set!"
             echo 已有封面，跳过
         ) else (
             set "cover_file="
@@ -204,22 +204,22 @@ if not "!working_dir!" == "" (
                     "!ffmpeg_path!" -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
-                    echo set /a "set_failed+=1">> "!temp_set!"
+                    echo set /a "set_failed+=1">>"!temp_set!"
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                     echo 设置失败
                 ) else (
-                    echo set /a "succeeded+=1">> "!temp_set!"
+                    echo set /a "succeeded+=1">>"!temp_set!"
                     set "file_to_delete=!audio_file!"
                     powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     move /y "!temp_audio_file!" "!audio_file!" >nul
                     echo 设置成功
                 )
             ) else (
-                echo set /a "no_cover_file+=1">> "!temp_set!"
+                echo set /a "no_cover_file+=1">>"!temp_set!"
                 echo 未找到封面图片，跳过
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

@@ -116,10 +116,10 @@ if not "!working_dir!" == "" (
         set "srt_file=!file_dir!!base_name!.srt"
         set "sub_embed_output=!file_dir!!base_name![内嵌字幕]!file_ext!"
         if not exist "!srt_file!" (
-            echo set /a "no_srt+=1">> "!temp_set!"
+            echo set /a "no_srt+=1">>"!temp_set!"
             echo 未找到对应的 .srt 字幕文件："!srt_file!"，跳过此文件
         ) else if exist "!sub_embed_output!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
+            echo set /a "output_exist+=1">>"!temp_set!"
             echo 输出文件已存在："!sub_embed_output!"，跳过此文件
         ) else (
             if /i "!file_ext!"==".mp4" (
@@ -132,15 +132,15 @@ if not "!working_dir!" == "" (
             echo 字幕编码器："!sub_codec!"
             "!ffmpeg_path!" -i "!video_file!" -i "!srt_file!" -map 0 -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!sub_embed_output!"
             if !errorlevel! neq 0 (
-                echo set /a "embed_failed+=1">> "!temp_set!"
+                echo set /a "embed_failed+=1">>"!temp_set!"
                 if exist "!sub_embed_output!" ( del /f /q "!sub_embed_output!" )
                 echo 嵌入失败
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
+                echo set /a "succeeded+=1">>"!temp_set!"
                 echo 输出文件："!sub_embed_output!"
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

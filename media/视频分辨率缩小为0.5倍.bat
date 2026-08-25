@@ -104,21 +104,21 @@ if not "!working_dir!" == "" (
         echo 处理文件："!video_file!"
         set "output_file=!file_dir!!base_name!_0.5x!file_ext!"
         if exist "!output_file!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
+            echo set /a "output_exist+=1">>"!temp_set!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在缩小为："!output_file!"
             "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw/2:ih/2" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
             if !errorlevel! neq 0 (
-                echo set /a "resize_failed+=1">> "!temp_set!"
+                echo set /a "resize_failed+=1">>"!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 缩小失败
             ) else (
-                echo set /a "succeeded+=1">> "!temp_set!"
+                echo set /a "succeeded+=1">>"!temp_set!"
                 echo 缩小成功
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal

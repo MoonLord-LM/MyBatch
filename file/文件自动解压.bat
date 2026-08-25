@@ -194,6 +194,9 @@ if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
+    REM 记录已处理过的文件路径，用于去重
+    set "temp_skip=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_skip!"
+
     set /a "total=0"
     set /a "succeeded=0"
     set /a "password_succeeded=0"
@@ -202,7 +205,7 @@ if not "!working_dir!" == "" (
     set "file_path=!working_dir!"
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2)$"
     for /l %%d in (1,1,5) do (
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $name = $_.BaseName; if ($_.Extension -eq '') { $name = '_' + $name }; $target = Join-Path $_.DirectoryName $name; (($_.Extension -match $env:ext_filter -or $_.Extension -eq '') -and (-not (Test-Path $target))) } | ForEach-Object { $_.FullName }"') do (
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "archive_path=%%f"
             set "file_dir=%%~dpf"
@@ -210,54 +213,35 @@ if not "!working_dir!" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            echo 处理压缩文件："!archive_path!"
-            if "!file_ext!"=="" (
-                set "output_dir=!file_dir!_!base_name!"
-            ) else (
-                set "output_dir=!file_dir!!base_name!"
-            )
-            if exist "!output_dir!" (
-                echo set /a "output_exist+=1">> "!temp_set!"
-                echo 输出文件夹已存在："!output_dir!"，跳过此压缩文件
-            ) else (
-                set "extracted=0"
-                set "used_password="
-
-                REM 先测试无密码是否可解压
-                "!seven_zip!" t -y "!archive_path!" <nul >nul 2>&1
-                if !errorlevel! equ 0 (
-                    "!seven_zip!" x -y -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
-                    if !errorlevel! equ 0 set "extracted=1"
+            REM 去重：已处理过的文件路径不再重复统计
+            findstr /l /x /c:"!archive_path!" "!temp_skip!" >nul 2>&1
+            if !errorlevel! neq 0 (
+                echo 处理压缩文件："!archive_path!"
+                echo "!archive_path!">>"!temp_skip!" 
+                if "!file_ext!"=="" (
+                    set "output_dir=!file_dir!_!base_name!"
                 ) else (
-                    REM 依次测试密码列表中的密码
-                    for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
-                        if "!extracted!"=="0" (
-                            "!seven_zip!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
-                            if !errorlevel! equ 0 (
-                                "!seven_zip!" x -y -p"%%p" -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
-                                if !errorlevel! equ 0 (
-                                    set "extracted=1"
-                                    set "used_password=%%p"
-                                )
-                            )
-                        )
-                    )
+                    set "output_dir=!file_dir!!base_name!"
                 )
+                if exist "!output_dir!" (
+                    echo set /a "output_exist+=1">>"!temp_set!"
+                    echo 输出文件夹已存在："!output_dir!"，跳过此压缩文件
+                ) else (
+                    set "extracted=0"
+                    set "used_password="
 
-                REM 7-Zip 无法处理时，用 WinRAR 尝试
-                if "!extracted!"=="0" (
                     REM 先测试无密码是否可解压
-                    "!unrar!" t -y "!archive_path!" <nul >nul 2>&1
+                    "!seven_zip!" t -y "!archive_path!" <nul >nul 2>&1
                     if !errorlevel! equ 0 (
-                        "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                        "!seven_zip!" x -y -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
                         if !errorlevel! equ 0 set "extracted=1"
                     ) else (
                         REM 依次测试密码列表中的密码
                         for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
                             if "!extracted!"=="0" (
-                                "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
+                                "!seven_zip!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                                 if !errorlevel! equ 0 (
-                                    "!unrar!" x -y -p"%%p" "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                                    "!seven_zip!" x -y -p"%%p" -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
                                     if !errorlevel! equ 0 (
                                         set "extracted=1"
                                         set "used_password=%%p"
@@ -266,23 +250,47 @@ if not "!working_dir!" == "" (
                             )
                         )
                     )
-                )
 
-                if "!extracted!"=="1" (
-                    if "!used_password!"=="" (
-                        echo set /a "succeeded+=1">> "!temp_set!"
-                        echo 解压成功（无密码）
-                    ) else (
-                        echo set /a "password_succeeded+=1">> "!temp_set!"
-                        echo 解压成功，密码为："!used_password!"
+                    REM 7-Zip 无法处理时，用 WinRAR 尝试
+                    if "!extracted!"=="0" (
+                        REM 先测试无密码是否可解压
+                        "!unrar!" t -y "!archive_path!" <nul >nul 2>&1
+                        if !errorlevel! equ 0 (
+                            "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                            if !errorlevel! equ 0 set "extracted=1"
+                        ) else (
+                            REM 依次测试密码列表中的密码
+                            for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
+                                if "!extracted!"=="0" (
+                                    "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
+                                    if !errorlevel! equ 0 (
+                                        "!unrar!" x -y -p"%%p" "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                                        if !errorlevel! equ 0 (
+                                            set "extracted=1"
+                                            set "used_password=%%p"
+                                        )
+                                    )
+                                )
+                            )
+                        )
                     )
-                ) else (
-                    echo set /a "extract_failed+=1">> "!temp_set!"
-                    echo 解压失败：密码都不正确或文件损坏
+
+                    if "!extracted!"=="1" (
+                        if "!used_password!"=="" (
+                            echo set /a "succeeded+=1">>"!temp_set!"
+                            echo 解压成功（无密码）
+                        ) else (
+                            echo set /a "password_succeeded+=1">>"!temp_set!"
+                            echo 解压成功，密码为："!used_password!"
+                        )
+                    ) else (
+                        echo set /a "extract_failed+=1">>"!temp_set!"
+                        echo 解压失败：密码都不正确或文件损坏
+                    )
                 )
+                echo set /a "total+=1">>"!temp_set!"
+                echo.
             )
-            echo set /a "total+=1">> "!temp_set!"
-            echo.
 
             endlocal
             endlocal
@@ -291,6 +299,8 @@ if not "!working_dir!" == "" (
 
     REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
+
+    if exist "!temp_skip!" ( del /f /q "!temp_skip!" )
 
     echo 批量处理完成
     set /a "ok_total=succeeded+password_succeeded"

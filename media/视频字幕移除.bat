@@ -103,20 +103,20 @@ if not "!working_dir!" == "" (
         echo 处理文件："!video_file!"
         set "out_file=!file_dir!!base_name![去字幕]!file_ext!"
         if exist "!out_file!" (
-            echo set /a "output_exist+=1">> "!temp_set!"
+            echo set /a "output_exist+=1">>"!temp_set!"
             echo 目标文件已存在："!out_file!"，跳过此文件
         ) else (
             "!ffmpeg_path!" -i "!video_file!" -map 0 -map -0:s -c copy "!out_file!"
             if !errorlevel! equ 0 (
-                echo set /a "succeeded+=1">> "!temp_set!"
+                echo set /a "succeeded+=1">>"!temp_set!"
                 echo 输出文件："!out_file!"
             ) else (
-                echo set /a "process_failed+=1">> "!temp_set!"
+                echo set /a "process_failed+=1">>"!temp_set!"
                 echo 处理失败
                 if exist "!out_file!" ( del /f /q "!out_file!" )
             )
         )
-        echo set /a "total+=1">> "!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
         echo.
 
         endlocal
