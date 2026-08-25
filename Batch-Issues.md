@@ -42,7 +42,12 @@ endlocal & endlocal & exit /b
 
 ```
 
-### 2. 判断上一个命令是否执行成功
+### 2. 注释代码
+
+统一用 `REM` 开头的注释  
+避免用 `::` 开头的注释，这种代码本质是按标签解析的，部分场景下会导致错误  
+
+### 3. 判断上一个命令是否执行成功
 
 需要考虑到一些程序的异常退出码可能是负数，因此不建议使用 `if errorlevel 1` 的写法，这种写法是判断大于等于 1，才认为属于异常  
 推荐使用 `if !errorlevel! neq 0` 的写法，不等于 0，就认为属于异常  
@@ -59,7 +64,7 @@ if !errorlevel! neq 0 (
 )
 ```
 
-### 3. 输出中文乱码问题
+### 4. 输出中文乱码问题
 
 首先，脚本需要保存为 UTF-8 without BOM 格式  
 然后，中文系统的默认代码页为 936（GBK），需要使用 chcp 65001 将当前的代码页设置为 65001（UTF-8）  
@@ -70,7 +75,7 @@ if !errorlevel! neq 0 (
 调用 PowerShell 时，建议在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
 如果只有简单的 Write-Host 命令，可以不加这段代码  
 
-### 4. 调用 PowerShell 命令
+### 5. 调用 PowerShell 命令
 
 代码示例如下：  
 
@@ -79,7 +84,7 @@ powershell -NoProfile -Command "这里是 PowerShell 命令，传参可以用 $e
 powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本文件的路径"
 ```
 
-### 5. 遍历文件时，处理路径的特殊符号
+### 6. 遍历文件时，处理路径的特殊符号
 
 文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  
 因此，需要切换到 disabledelayedexpansion 的环境中，才能正确读取路径信息  
@@ -133,7 +138,7 @@ call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 REM 这里可以获取到内层的 "!total!" 的值
 ```
 
-### 6. 调用外部程序并读取输出内容
+### 7. 调用外部程序并读取输出内容
 
 常用的写法为 for /f "delims=" %%a in ('外部程序命令') do set "变量名=%%a"  
 例如，调用 ffprobe.exe 获取视频文件的第一个音频流的编码格式，代码示例如下：
