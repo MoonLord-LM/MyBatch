@@ -39,7 +39,6 @@ if exist "!script_dir!7za.exe" (
 ) else (
     set "seven_zip=7z"
 )
-echo "!seven_zip!"
 "!seven_zip!" i >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 7-Zip 组件
@@ -66,7 +65,6 @@ if exist "!script_dir!UnRAR.exe" (
 ) else (
     set "unrar=UnRAR"
 )
-echo "!unrar!"
 "!unrar!" -iver >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 WinRAR 组件
