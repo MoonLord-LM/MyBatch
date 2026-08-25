@@ -7,7 +7,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '双击运行，自动扫描和清理各种垃圾文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行，自动扫描和清理各种垃圾文件，删除到回收站' -ForegroundColor Green"
 echo.
 
 
@@ -116,7 +116,7 @@ powershell -NoProfile -Command ^
 if exist "!temp_list!" ( del /f /q "!temp_list!" )
 
 echo.
-echo 已完成清理，文件已删除到回收站中，清理记录已保存到 "!log_file!" 中
+echo 已完成清理，记录已保存到 "!log_file!" 中
 echo.>> "!log_file!"
 
 
