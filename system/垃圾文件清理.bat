@@ -42,6 +42,7 @@ if !errorlevel! equ 0 (
 echo 开始扫描
 echo.
 set "log_file=!script_name!.log"
+set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
 powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; ('-- ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' --') | Out-File -LiteralPath $env:log_file -Append -Encoding UTF8"
 
 REM 龙之谷 DragonNest
@@ -53,16 +54,10 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\
     setlocal enabledelayedexpansion
     if not "!reg_value!"=="" (
         if "!root_dir:~-1!"=="\" set "root_dir=!root_dir:~0,-1!"
-        echo 正在清理文件夹："!root_dir!"
-
-        set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
+        echo 正在扫描文件夹："!root_dir!"
         dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
         dir /s /b /a-d "!root_dir!\Log\*.log" 2>nul >> "!temp_list!"
         dir /s /b /a-d "!root_dir!\TempRes\*.tmp" 2>nul >> "!temp_list!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $ok=0; $fail=0; foreach($f in $files){ try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f,'OnlyErrorDialogs','SendToRecycleBin'); $ok++ } catch { $fail++ } }; Write-Host ('删除成功 ' + $ok + ' 个文件，删除失败 ' + $fail + ' 个文件')"
-
-        type "!temp_list!" >> "!log_file!"
-        if exist "!temp_list!" ( del /f /q "!temp_list!" )
     )
     endlocal
     endlocal
@@ -77,14 +72,8 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_
     setlocal enabledelayedexpansion
     if not "!reg_value!"=="" (
         if "!root_dir:~-1!"=="\" set "root_dir=!root_dir:~0,-1!"
-        echo 正在清理文件夹："!root_dir!"
-
-        set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
+        echo 正在扫描文件夹："!root_dir!"
         dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $ok=0; $fail=0; foreach($f in $files){ try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f,'OnlyErrorDialogs','SendToRecycleBin'); $ok++ } catch { $fail++ } }; Write-Host ('删除成功 ' + $ok + ' 个文件，删除失败 ' + $fail + ' 个文件')"
-
-        type "!temp_list!" >> "!log_file!"
-        if exist "!temp_list!" ( del /f /q "!temp_list!" )
     )
     endlocal
     endlocal
@@ -93,18 +82,41 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_
 REM Intel Extreme Tuning Utility
 set "root_dir=C:\ProgramData\Intel\Intel Extreme Tuning Utility"
 if exist "!root_dir!" (
-    echo 正在清理文件夹："!root_dir!"
-
-    set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
+    echo 正在扫描文件夹："!root_dir!"
     dir /s /b /a-d "!root_dir!\Logs\*.log" 2>nul >> "!temp_list!"
-    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $ok=0; $fail=0; foreach($f in $files){ try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f,'OnlyErrorDialogs','SendToRecycleBin'); $ok++ } catch { $fail++ } }; Write-Host ('删除成功 ' + $ok + ' 个文件，删除失败 ' + $fail + ' 个文件')"
-
-    type "!temp_list!" >> "!log_file!"
-    if exist "!temp_list!" ( del /f /q "!temp_list!" )
 )
 
 echo.
-echo 完成扫描，清理记录已保存到 "!log_file!" 文件中
+echo 开始清理
+echo.
+powershell -NoProfile -Command ^
+    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "Add-Type -AssemblyName Microsoft.VisualBasic;" ^
+    "$files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list;" ^
+    "$ok = 0; $fail = 0; $skip = 0;" ^
+    "foreach ($f in $files) {" ^
+    "    try {" ^
+    "        $fs = [IO.File]::Open($f, 'Open', 'Read', 'None');" ^
+    "        $fs.Close();" ^
+    "    } catch {" ^
+    "        $skip++;" ^
+    "        continue;" ^
+    "    }" ^
+    "    try {" ^
+    "        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f, 'OnlyErrorDialogs', 'SendToRecycleBin');" ^
+    "        $ok++;" ^
+    "        try {" ^
+    "            Add-Content -LiteralPath $env:log_file -Value $f -Encoding UTF8;" ^
+    "        } catch {}" ^
+    "    } catch {" ^
+    "        $fail++;" ^
+    "    }" ^
+    "}" ^
+    "Write-Host ('删除成功 ' + $ok + ' 个文件，删除失败 ' + $fail + ' 个文件，跳过 ' + $skip + ' 个被占用文件');"
+if exist "!temp_list!" ( del /f /q "!temp_list!" )
+
+echo.
+echo 已完成清理，文件已删除到回收站中，清理记录已保存到 "!log_file!" 中
 echo.>> "!log_file!"
 
 
