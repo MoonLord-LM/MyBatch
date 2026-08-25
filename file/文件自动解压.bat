@@ -12,7 +12,7 @@ powershell -NoProfile -Command "Write-Host '使用预置的在互联网上公开
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的压缩文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个压缩文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 7z zip rar tar gz bz2 xz tgz tbz2' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '预置的密码保存在 password_list 变量中' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '预置的密码，保存在 public_password_list 变量中' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '文件会解压到与压缩文件同名的文件夹中，如果输出文件夹已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
@@ -78,7 +78,7 @@ if !errorlevel! neq 0 (
 )
 
 REM 预置的密码
-set "password_list=theaic.cn ixyg688.com"
+set "public_password_list=@('theaic.cn','ixyg688.com')"
 
 
 
@@ -119,14 +119,14 @@ if "!param1!" == "" (
                 set "extracted=0"
                 set "used_password="
 
-                REM 先测试无密码是否可解压（<nul 防止 7z 交互式等待输入密码）
+                REM 先测试无密码是否可解压
                 "!seven_zip!" t -y "!archive_path!" <nul >nul 2>&1
                 if !errorlevel! equ 0 (
                     "!seven_zip!" x -y -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
                     if !errorlevel! equ 0 set "extracted=1"
                 ) else (
-                    REM 依次测试密码列表中的密码，测试通过后再用该密码解压
-                    for %%p in (!password_list!) do (
+                    REM 依次测试密码列表中的密码
+                    for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
                         if "!extracted!"=="0" (
                             "!seven_zip!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                             if !errorlevel! equ 0 (
@@ -149,8 +149,8 @@ if "!param1!" == "" (
                             "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
                             if !errorlevel! equ 0 set "extracted=1"
                         ) else (
-                            REM 依次测试密码列表中的密码，测试通过后再用该密码解压
-                            for %%p in (!password_list!) do (
+                            REM 依次测试密码列表中的密码
+                            for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
                                 if "!extracted!"=="0" (
                                     "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                                     if !errorlevel! equ 0 (
@@ -213,14 +213,14 @@ if not "!working_dir!" == "" (
             set "extracted=0"
             set "used_password="
 
-            REM 先测试无密码是否可解压（<nul 防止 7z 交互式等待输入密码）
+            REM 先测试无密码是否可解压
             "!seven_zip!" t -y "!archive_path!" <nul >nul 2>&1
             if !errorlevel! equ 0 (
                 "!seven_zip!" x -y -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
                 if !errorlevel! equ 0 set "extracted=1"
             ) else (
-                REM 依次测试密码列表中的密码，测试通过后再用该密码解压
-                for %%p in (!password_list!) do (
+                REM 依次测试密码列表中的密码
+                for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
                     if "!extracted!"=="0" (
                         "!seven_zip!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                         if !errorlevel! equ 0 (
@@ -243,8 +243,8 @@ if not "!working_dir!" == "" (
                         "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
                         if !errorlevel! equ 0 set "extracted=1"
                     ) else (
-                        REM 依次测试密码列表中的密码，测试通过后再用该密码解压
-                        for %%p in (!password_list!) do (
+                        REM 依次测试密码列表中的密码
+                        for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
                             if "!extracted!"=="0" (
                                 "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                                 if !errorlevel! equ 0 (
