@@ -70,6 +70,19 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_
     endlocal
 )
 
+REM Intel Extreme Tuning Utility
+set "root_dir=C:\ProgramData\Intel\Intel Extreme Tuning Utility\"
+if exist "!root_dir!Logs\*.log" (
+    echo 正在清理文件夹："!root_dir!"
+
+    set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
+    dir /s /b /a-d "!root_dir!Logs\*.log" 2>nul >> "!temp_list!"
+    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件') -ForegroundColor Green"
+
+    type "!temp_list!" >> "!log_file!"
+    if exist "!temp_list!" ( del /f /q "!temp_list!" )
+)
+
 echo.
 echo 完成扫描，清理记录已保存到 "!log_file!" 文件中
 echo.>> "!log_file!"
