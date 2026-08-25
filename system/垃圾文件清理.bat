@@ -26,7 +26,7 @@ if !errorlevel! equ 0 (
     powershell -NoProfile -Command "Write-Host '需要系统管理员权限，请确认……' -ForegroundColor Green"
     echo.
     setlocal disabledelayedexpansion
-    powershell start -verb runas "%~f0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" >nul 2>&1
+    powershell start -verb runas "%~f0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9" >nul 2>&1
     endlocal
     if !errorlevel! neq 0 (
         powershell -NoProfile -Command "Write-Host '获取系统管理员权限失败' -ForegroundColor Green"
