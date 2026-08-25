@@ -80,10 +80,31 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_
 )
 
 REM Intel Extreme Tuning Utility
-set "root_dir=C:\ProgramData\Intel\Intel Extreme Tuning Utility"
+set "root_dir=!ProgramData!\Intel\Intel Extreme Tuning Utility"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"
     dir /s /b /a-d "!root_dir!\Logs\*.log" 2>nul >> "!temp_list!"
+)
+
+REM Crash Dump
+set "root_dir=!LocalAppData!\CrashDumps"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"
+    dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
+)
+
+REM 用户临时文件
+set "root_dir=!temp!"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"
+    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+)
+
+REM 系统临时文件
+set "root_dir=!SystemRoot!\Temp"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"
+    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
 )
 
 echo.
@@ -92,8 +113,10 @@ echo.
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
     "Add-Type -AssemblyName Microsoft.VisualBasic;" ^
-    "$files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list;" ^
-    "$ok = 0; $fail = 0; $skip = 0;" ^
+    "$files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list | Where-Object { $_ -ne $env:temp_list };" ^
+    "$ok = 0;" ^
+    "$fail = 0;" ^
+    "$skip = 0;" ^
     "foreach ($f in $files) {" ^
     "    try {" ^
     "        $fs = [IO.File]::Open($f, 'Open', 'Read', 'None');" ^
