@@ -135,7 +135,7 @@ if exist "!root_dir!" (
     dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
 )
 
-REM 夸克浏览器缓存
+REM 夸克 浏览器缓存
 set "root_dir=!LocalAppData!\Quark\User Data\Default\Cache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"
