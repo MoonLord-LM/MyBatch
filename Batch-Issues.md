@@ -8,9 +8,18 @@
 
 ## 问题清单
 
-### 1. 编码规范
+### 1. 基本编码规范
 
-批处理脚本最佳实践的代码示例如下：  
+批处理脚本最佳实践：  
+
+    关闭命令回显  
+    使用 UTF-8 编码  
+    使用 setlocal 和 endlocal 管理变量作用域和处理特殊符号转义问题  
+    开头位置，使用 powershell 显示带颜色的提示信息  
+    正常退出和异常退出时，使用不同的 exit /b 退出码  
+    结尾使用 pause 来保证异常信息可以显示  
+
+代码示例如下：  
 ```batch
 @echo off
 chcp 65001 >nul
@@ -22,7 +31,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-REM 这里是代码主体功能部分，与其它代码用 3 个空行分开
+REM 这里是代码主体功能部分，与首尾部分的代码用 3 个空行分开
 
 
 
@@ -32,7 +41,21 @@ endlocal & endlocal & exit /b
 
 ```
 
-### 2. 输出中文乱码问题
+### 2. 判断上一个命令是否执行成功
+
+考虑到一些程序的异常退出码可能是负数，因此不建议使用 `if errorlevel 1` 的写法，推荐使用 `if !errorlevel! neq 0` 的写法  
+代码示例如下：  
+```batch
+REM 这里是上一个命令，注意要和下面的代码紧挨着
+if !errorlevel! neq 0 (
+    echo 错误：XXXXXX
+    echo.
+    pause
+    exit /b 1
+)
+```
+
+### 3. 输出中文乱码问题
 
 首先，脚本需要保存为 UTF-8 without BOM 格式  
 然后，中文系统的默认代码页为 936（GBK），需要使用 chcp 65001 将当前的代码页设置为 65001（UTF-8）  
@@ -43,7 +66,7 @@ endlocal & endlocal & exit /b
 调用 PowerShell 时，建议在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
 如果只有简单的 Write-Host 命令，可以不加这段代码  
 
-### 3. 遍历文件时，处理路径的特殊符号
+### 4. 遍历文件时，处理路径的特殊符号
 
 文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  
 因此，需要切换到 disabledelayedexpansion 的环境中，才能正确读取路径信息  
@@ -95,7 +118,7 @@ call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 REM 这里可以获取到内层的 "!total!" 的值
 ```
 
-### 4. 调用外部程序并读取输出内容
+### 5. 调用外部程序并读取输出内容
 
 常用的写法为 for /f "delims=" %%a in ('外部程序命令') do set "变量名=%%a"  
 例如，调用 ffprobe.exe 获取视频文件的第一个音频流的编码格式，代码示例如下：
