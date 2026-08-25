@@ -86,8 +86,15 @@ if exist "!root_dir!" (
     dir /s /b /a-d "!root_dir!\Logs\*.log" 2>nul >> "!temp_list!"
 )
 
-REM Crash Dump
+REM 系统 Crash Dump
 set "root_dir=!LocalAppData!\CrashDumps"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"
+    dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
+)
+
+REM 系统 Live Kernel Reports
+set "root_dir=!SystemRoot!\LiveKernelReports"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"
     dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
@@ -102,6 +109,20 @@ if exist "!root_dir!" (
 
 REM 系统临时文件
 set "root_dir=!SystemRoot!\Temp"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"
+    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+)
+
+REM Edge 浏览器缓存
+set "root_dir=!LocalAppData!\Application Data\Microsoft\Edge\User Data\Default\Cache"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"
+    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+)
+
+REM 360Chrome 浏览器缓存
+set "root_dir=!LocalAppData!\360ChromeX\Chrome\User Data\Default\Cache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"
     dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
