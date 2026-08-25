@@ -213,11 +213,10 @@ if not "!working_dir!" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            REM 去重：已处理过的文件路径不再重复统计
-            findstr /l /x /c:"!archive_path!" "!temp_skip!" >nul 2>&1
+            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ((Get-Content -LiteralPath $env:temp_skip -Encoding UTF8) -contains $env:archive_path) { exit 0 } else { exit 1 }"
             if !errorlevel! neq 0 (
                 echo 处理压缩文件："!archive_path!"
-                echo "!archive_path!">>"!temp_skip!" 
+                echo !archive_path!>>"!temp_skip!"
                 if "!file_ext!"=="" (
                     set "output_dir=!file_dir!_!base_name!"
                 ) else (
