@@ -124,7 +124,7 @@ REM 内嵌的 Powershell 代码块结束
 
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "$lines = Get-Content -LiteralPath $env:script_path;" ^
+    "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
     "$a = ($lines | Select-String -Pattern '^goto :after_powershell_block\s*$' | Select-Object -First 1).LineNumber;" ^
     "$b = ($lines | Select-String -Pattern '^:after_powershell_block\s*$' | Select-Object -First 1).LineNumber;" ^
     "$code = ($lines[$a..($b - 1)] -join [Environment]::NewLine);" ^

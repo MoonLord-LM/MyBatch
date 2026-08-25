@@ -213,7 +213,7 @@ if not "!working_dir!" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ((Get-Content -LiteralPath $env:temp_skip -Encoding UTF8) -contains $env:archive_path) { exit 0 } else { exit 1 }"
+            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; if ((Get-Content -Encoding UTF8 -LiteralPath $env:temp_skip) -contains $env:archive_path) { exit 0 } else { exit 1 }"
             if !errorlevel! neq 0 (
                 echo 处理压缩文件："!archive_path!"
                 echo !archive_path!>>"!temp_skip!"
