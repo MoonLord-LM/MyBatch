@@ -202,7 +202,7 @@ if not "!working_dir!" == "" (
     set "file_path=!working_dir!"
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2)$"
     for /l %%d in (1,1,5) do (
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { (($_.Extension -match $env:ext_filter -or $_.Extension -eq '') -and (-not (Test-Path (Join-Path $_.DirectoryName $_.BaseName)))) } | ForEach-Object { $_.FullName }"') do (
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $name = $_.BaseName; if ($_.Extension -eq '') { $name = '_' + $name }; $target = Join-Path $_.DirectoryName $name; (($_.Extension -match $env:ext_filter -or $_.Extension -eq '') -and (-not (Test-Path $target))) } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "archive_path=%%f"
             set "file_dir=%%~dpf"
