@@ -12,6 +12,7 @@ powershell -NoProfile -Command "Write-Host '递归扫描文件夹中的所有文
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '列表文件的内容为：完整路径 + 字节数 + 修改时间，每个文件一行' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '文件实际上符合 CSV 格式，但是需要额外添加 UTF-8 BOM 头，才能在 Excel 中正确打开' -ForegroundColor Green"
 echo.
 
 
