@@ -474,8 +474,12 @@ REM H.264 (AVC) Level 对应关系 x10
 REM H.265 (HEVC) Level 对应关系 x30
 if /i "!first_video_codec!"=="H264" (
     if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
+    ) else if /i "!first_video_codec_level!"=="11" ( set "target_video_encoder=!target_video_encoder! -level:v 1.1"
+    ) else if /i "!first_video_codec_level!"=="12" ( set "target_video_encoder=!target_video_encoder! -level:v 1.2"
     ) else if /i "!first_video_codec_level!"=="13" ( set "target_video_encoder=!target_video_encoder! -level:v 1.3"
     ) else if /i "!first_video_codec_level!"=="20" ( set "target_video_encoder=!target_video_encoder! -level:v 2.0"
+    ) else if /i "!first_video_codec_level!"=="21" ( set "target_video_encoder=!target_video_encoder! -level:v 2.1"
+    ) else if /i "!first_video_codec_level!"=="22" ( set "target_video_encoder=!target_video_encoder! -level:v 2.2"
     ) else if /i "!first_video_codec_level!"=="30" ( set "target_video_encoder=!target_video_encoder! -level:v 3.0"
     ) else if /i "!first_video_codec_level!"=="31" ( set "target_video_encoder=!target_video_encoder! -level:v 3.1"
     ) else if /i "!first_video_codec_level!"=="32" ( set "target_video_encoder=!target_video_encoder! -level:v 3.2"
@@ -485,6 +489,9 @@ if /i "!first_video_codec!"=="H264" (
     ) else if /i "!first_video_codec_level!"=="50" ( set "target_video_encoder=!target_video_encoder! -level:v 5.0"
     ) else if /i "!first_video_codec_level!"=="51" ( set "target_video_encoder=!target_video_encoder! -level:v 5.1"
     ) else if /i "!first_video_codec_level!"=="52" ( set "target_video_encoder=!target_video_encoder! -level:v 5.2"
+    ) else if /i "!first_video_codec_level!"=="60" ( set "target_video_encoder=!target_video_encoder! -level:v 6.0"
+    ) else if /i "!first_video_codec_level!"=="61" ( set "target_video_encoder=!target_video_encoder! -level:v 6.1"
+    ) else if /i "!first_video_codec_level!"=="62" ( set "target_video_encoder=!target_video_encoder! -level:v 6.2"
     ) else (
         echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
         pause
