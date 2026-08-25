@@ -33,13 +33,14 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\
     set "root_dir=%%~dpb"
     setlocal enabledelayedexpansion
     if not "!reg_value!"=="" (
+        if "!root_dir:~-1!"=="\" set "root_dir=!root_dir:~0,-1!"
         echo 正在清理文件夹："!root_dir!"
 
         set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
-        dir /s /b /a-d "!root_dir!*.dmp" 2>nul >> "!temp_list!"
-        dir /s /b /a-d "!root_dir!Log\*.log" 2>nul >> "!temp_list!"
-        dir /s /b /a-d "!root_dir!TempRes\*.tmp" 2>nul >> "!temp_list!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件') -ForegroundColor Green"
+        dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
+        dir /s /b /a-d "!root_dir!\Log\*.log" 2>nul >> "!temp_list!"
+        dir /s /b /a-d "!root_dir!\TempRes\*.tmp" 2>nul >> "!temp_list!"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件')"
 
         type "!temp_list!" >> "!log_file!"
         if exist "!temp_list!" ( del /f /q "!temp_list!" )
@@ -56,12 +57,12 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_
     set "root_dir=%%b"
     setlocal enabledelayedexpansion
     if not "!reg_value!"=="" (
-        if not "!root_dir:~-1!"=="\" set "root_dir=!root_dir!\"
+        if "!root_dir:~-1!"=="\" set "root_dir=!root_dir:~0,-1!"
         echo 正在清理文件夹："!root_dir!"
 
         set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
-        dir /s /b /a-d "!root_dir!*.dmp" 2>nul >> "!temp_list!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件') -ForegroundColor Green"
+        dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件')"
 
         type "!temp_list!" >> "!log_file!"
         if exist "!temp_list!" ( del /f /q "!temp_list!" )
@@ -71,13 +72,13 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_
 )
 
 REM Intel Extreme Tuning Utility
-set "root_dir=C:\ProgramData\Intel\Intel Extreme Tuning Utility\"
-if exist "!root_dir!Logs\*.log" (
+set "root_dir=C:\ProgramData\Intel\Intel Extreme Tuning Utility"
+if exist "!root_dir!" (
     echo 正在清理文件夹："!root_dir!"
 
     set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
-    dir /s /b /a-d "!root_dir!Logs\*.log" 2>nul >> "!temp_list!"
-    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件') -ForegroundColor Green"
+    dir /s /b /a-d "!root_dir!\Logs\*.log" 2>nul >> "!temp_list!"
+    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; $files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list; $files | ForEach-Object { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin') }; Write-Host ('删除完成，共删除 ' + $files.Count + ' 个文件')"
 
     type "!temp_list!" >> "!log_file!"
     if exist "!temp_list!" ( del /f /q "!temp_list!" )
