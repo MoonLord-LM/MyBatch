@@ -112,18 +112,18 @@ if "!param1!" == "" (
                 "            $vd=$json.videoData;" ^
                 "            if($vd -and $vd.pubdate -gt 0) {" ^
                 "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
-                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'))" ^
-                "                Write-Host ('[av'+$cur+'] URL: '+$url)" ^
+                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
+                "                Write-Host ('[av'+$cur+'] URL: '+$url);" ^
                 "                $out=$dt.ToString('yyyyMMdd');" ^
                 "                break;" ^
                 "            } else {" ^
-                "                Write-Host ('[av'+$cur+'] no valid data')" ^
+                "                Write-Host ('[av'+$cur+'] no valid data');" ^
                 "            }" ^
                 "        } else {" ^
-                "            Write-Host ('[av'+$cur+'] data not found')" ^
+                "            Write-Host ('[av'+$cur+'] data not found');" ^
                 "        }" ^
                 "    } catch {" ^
-                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message)" ^
+                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message);" ^
                 "    }" ^
                 "}" ^
                 "if($out) { Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline; }"
@@ -232,18 +232,18 @@ if not "!working_dir!" == "" (
                 "            $vd=$json.videoData;" ^
                 "            if($vd -and $vd.pubdate -gt 0) {" ^
                 "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
-                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'))" ^
-                "                Write-Host ('[av'+$cur+'] URL: '+$url)" ^
+                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
+                "                Write-Host ('[av'+$cur+'] URL: '+$url);" ^
                 "                $out=$dt.ToString('yyyyMMdd');" ^
                 "                break;" ^
                 "            } else {" ^
-                "                Write-Host ('[av'+$cur+'] no valid data')" ^
+                "                Write-Host ('[av'+$cur+'] no valid data');" ^
                 "            }" ^
                 "        } else {" ^
-                "            Write-Host ('[av'+$cur+'] data not found')" ^
+                "            Write-Host ('[av'+$cur+'] data not found');" ^
                 "        }" ^
                 "    } catch {" ^
-                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message)" ^
+                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message);" ^
                 "    }" ^
                 "}" ^
                 "if($out) { Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline; }"
