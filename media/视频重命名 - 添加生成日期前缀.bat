@@ -68,9 +68,9 @@ if "!param1!" == "" (
         set "file_ext=!param1_ext!"
 
         set "creation_date="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
             set "creation_date=%%x"
-            echo 苹果 QuickTime 格式标记："!creation_date!"
+            echo 视频容器 date 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
@@ -85,9 +85,9 @@ if "!param1!" == "" (
             )
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
                 set "creation_date=%%x"
-                echo 视频容器 date 标记："!creation_date!"
+                echo 苹果 QuickTime 格式标记："!creation_date!"
             )
         )
 
@@ -146,9 +146,9 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
         set "creation_date="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
             set "creation_date=%%x"
-            echo 苹果 QuickTime 格式标记："!creation_date!"
+            echo 视频容器 date 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
@@ -163,9 +163,9 @@ if not "!working_dir!" == "" (
             )
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_date=%%x"
-                echo 视频容器 date 标记："!creation_date!"
+                echo 苹果 QuickTime 格式标记："!creation_date!"
             )
         )
 
