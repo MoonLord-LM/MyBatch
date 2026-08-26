@@ -12,6 +12,7 @@ powershell -NoProfile -Command "Write-Host '给视频文件添加生成日期前
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '特殊场景 1：没有内置的时间信息标记时，尝试识别文件名末尾的 [av数字] 标记，联网查询 B 站最相邻 av 号的视频的发布时间' -ForegroundColor Green"
 echo.
 
 
@@ -90,6 +91,49 @@ if "!param1!" == "" (
                 echo 苹果 QuickTime 格式标记："!creation_date!"
             )
         )
+        if "!creation_date!"=="" (
+            REM 联网查询 B 站最相邻 av 号的视频的发布时间
+            REM 联网超时时间 30 秒，av 号最多尝试 10 个
+            set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+            powershell -NoProfile -Command ^
+                "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+                "$bn=$env:base_name;" ^
+                "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
+                "if(-not $m.Success){exit};" ^
+                "$av=[int64]$m.Groups[1].Value;" ^
+                "$out='';" ^
+                "for($k=0;$k -lt 10;$k++){" ^
+                "    $cur=$av-$k;" ^
+                "    $url='https://www.bilibili.com/video/av'+$cur+'/';" ^
+                "    try{" ^
+                "        $html=(Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30).Content;" ^
+                "        $mm=[regex]::Match($html,'__INITIAL_STATE__\s*=\s*(\{.*?\});\(function','Singleline');" ^
+                "        if($mm.Success){" ^
+                "            $json=$mm.Groups[1].Value|ConvertFrom-Json;" ^
+                "            $vd=$json.videoData;" ^
+                "            if($vd -and $vd.pubdate -gt 0){" ^
+                "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
+                "                Write-Host ('URL: '+$url);" ^
+                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
+                "                $out=$dt.ToString('yyyyMMdd');" ^
+                "                break" ^
+                "            } else {" ^
+                "                Write-Host ('[av'+$cur+'] no valid data')" ^
+                "            }" ^
+                "        } else {" ^
+                "            Write-Host ('[av'+$cur+'] data not found')" ^
+                "        }" ^
+                "    } catch {" ^
+                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message)" ^
+                "    }" ^
+                "}" ^
+                "if($out){Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline}"
+            if exist "!bili_out_file!" ( set /p "creation_date="<"!bili_out_file!" )
+            if exist "!bili_out_file!" ( del /f /q "!bili_out_file!" )
+            if not "!creation_date!"=="" (
+                echo 尝试获取 B 站 av 号的发布时间："!creation_date!"
+            )
+        )
 
         if "!creation_date!"=="" (
             echo 未找到生成日期，跳过此文件
@@ -166,6 +210,49 @@ if not "!working_dir!" == "" (
             for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
                 set "creation_date=%%x"
                 echo 苹果 QuickTime 格式标记："!creation_date!"
+            )
+        )
+        if "!creation_date!"=="" (
+            REM 联网查询 B 站最相邻 av 号的视频的发布时间
+            REM 联网超时时间 30 秒，av 号最多尝试 10 个
+            set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+            powershell -NoProfile -Command ^
+                "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+                "$bn=$env:base_name;" ^
+                "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
+                "if(-not $m.Success){exit};" ^
+                "$av=[int64]$m.Groups[1].Value;" ^
+                "$out='';" ^
+                "for($k=0;$k -lt 10;$k++){" ^
+                "    $cur=$av-$k;" ^
+                "    $url='https://www.bilibili.com/video/av'+$cur+'/';" ^
+                "    try{" ^
+                "        $html=(Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30).Content;" ^
+                "        $mm=[regex]::Match($html,'__INITIAL_STATE__\s*=\s*(\{.*?\});\(function','Singleline');" ^
+                "        if($mm.Success){" ^
+                "            $json=$mm.Groups[1].Value|ConvertFrom-Json;" ^
+                "            $vd=$json.videoData;" ^
+                "            if($vd -and $vd.pubdate -gt 0){" ^
+                "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
+                "                Write-Host ('URL: '+$url);" ^
+                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
+                "                $out=$dt.ToString('yyyyMMdd');" ^
+                "                break" ^
+                "            } else {" ^
+                "                Write-Host ('[av'+$cur+'] no valid data')" ^
+                "            }" ^
+                "        } else {" ^
+                "            Write-Host ('[av'+$cur+'] data not found')" ^
+                "        }" ^
+                "    } catch {" ^
+                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message)" ^
+                "    }" ^
+                "}" ^
+                "if($out){Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline}"
+            if exist "!bili_out_file!" ( set /p "creation_date="<"!bili_out_file!" )
+            if exist "!bili_out_file!" ( del /f /q "!bili_out_file!" )
+            if not "!creation_date!"=="" (
+                echo 尝试获取 B 站 av 号的发布时间："!creation_date!"
             )
         )
 
