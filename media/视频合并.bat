@@ -301,7 +301,7 @@ if not "!working_dir!" == "" (
             set "name_file=第00%%i集.mp4"
         )
         if not "!name_file!"=="" (
-            for /f "delims=" %%d in ('call "!ffprobe_path!" -v error -select_streams d -show_entries stream^=codec_tag_string -of csv^=p^=0 "!working_dir!\!name_file!" 2^>nul') do (
+            for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams d -show_entries stream=codec_tag_string -of csv=p=0 $env:name_file 2>$null"') do (
                 if "%%d"=="tmcd" (
                     echo 警告：文件包含 Time code 流，需要进行清理
                     if not exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" (
@@ -337,44 +337,44 @@ if not "!working_dir!" == "" (
             echo file '!name_path!'>>"!working_dir!\_tmp_file_list.txt"
             set /a "file_count+=1"
             REM 解析参数
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_width=%%v"
             )
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_height=%%v"
             )
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_codec=%%v"
             )
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_tag_string -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_tag_string -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_codec_tag=%%v"
             )
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=profile -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=profile -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_codec_profile=%%v"
             )
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=level -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=level -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_codec_level=%%v"
             )
             REM "!mediainfo_path!" 用于获取视频编码的 Tier 信息
-            for /f "tokens=*" %%v in ('call "!mediainfo_path!" --Inform^="Video;%%Format_Profile%%" "!name_path!" 2^>^&1') do (
+            for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:name_path 2>$null"') do (
                 set "temp_profile=%%v"
                 set "temp_profile=!temp_profile:*@=!"
                 set "temp_profile=!temp_profile:*@=!"
                 set "current_video_codec_tier=!temp_profile!"
             )
-            for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_audio_codec=%%a"
             )
-            for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=profile -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=profile -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_audio_codec_profile=%%a"
             )
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=r_frame_rate -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_fps=%%v"
             )
-            for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=sample_rate -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_audio_sample_rate=%%a"
             )
-            for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_time_base=%%v"
             )
             set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
@@ -628,44 +628,44 @@ if not "!working_dir!" == "" (
                     set "name_path=!working_dir!\!name_file!"
                     set /a "file_count+=1"
                     REM 解析参数
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=width -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_width=%%v"
                     )
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=height -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=height -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_height=%%v"
                     )
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_codec=%%v"
                     )
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_tag_string -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_tag_string -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_codec_tag=%%v"
                     )
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=profile -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=profile -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_codec_profile=%%v"
                     )
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=level -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=level -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_codec_level=%%v"
                     )
                     REM "!mediainfo_path!" 用于获取视频编码的 Tier 信息
-                    for /f "tokens=*" %%v in ('call "!mediainfo_path!" --Inform^="Video;%%Format_Profile%%" "!name_path!" 2^>^&1') do (
+                    for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:name_path 2>$null"') do (
                         set "temp_profile=%%v"
                         set "temp_profile=!temp_profile:*@=!"
                         set "temp_profile=!temp_profile:*@=!"
                         set "current_video_codec_tier=!temp_profile!"
                     )
-                    for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_audio_codec=%%a"
                     )
-                    for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=profile -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=profile -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_audio_codec_profile=%%a"
                     )
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=r_frame_rate -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=r_frame_rate -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_fps=%%v"
                     )
-                    for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=sample_rate -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=sample_rate -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_audio_sample_rate=%%a"
                     )
-                    for /f "delims=" %%v in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=time_base -of csv^=p^=0 "!name_path!" 2^>^&1') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_time_base=%%v"
                     )
                     set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
@@ -802,7 +802,7 @@ if not "!working_dir!" == "" (
             set "cover_file=!working_dir!\cover.jpg"
         )
         if not "!cover_file!"=="" (
-            for /f "delims=" %%p in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!cover_file!"') do (
+            for /f "delims=" %%p in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"') do (
                 set "cover_file_type=%%p"
                 echo 封面图片编码：[!cover_file_type!]
             )

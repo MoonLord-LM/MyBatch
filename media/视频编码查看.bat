@@ -66,10 +66,10 @@ if "!param1!" == "" (
 
         set "video_codec="
         set "audio_codec="
-        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name^,profile^,level -of csv^=p^=0 "!param1!" 2^>nul') do (
+        for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 $env:param1 2>$null"') do (
             set "video_codec=%%c"
         )
-        for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name^,profile -of csv^=p^=0 "!param1!" 2^>nul') do (
+        for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 $env:param1 2>$null"') do (
             set "audio_codec=%%c"
         )
         if "!video_codec!" == "" (
@@ -102,12 +102,12 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-        "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 "!video_file!" 2>nul>>"!temp_video_codecs!"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 $env:video_file 2>$null" >>"!temp_video_codecs!"
         if !errorlevel! neq 0 (
             echo set /a "parse_failed+=1">>"!temp_set!"
             echo 视频编码解析失败
         ) else (
-            "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 "!video_file!" 2>nul>>"!temp_audio_codecs!"
+            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 $env:video_file 2>$null" >>"!temp_audio_codecs!"
             if !errorlevel! neq 0 (
                 echo set /a "parse_failed+=1">>"!temp_set!"
                 echo 音频编码解析失败

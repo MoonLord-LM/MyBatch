@@ -68,25 +68,25 @@ if "!param1!" == "" (
         set "file_ext=!param1_ext!"
 
         set "creation_time="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
             set "creation_time=%%x"
             echo 视频容器 creation_time 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
                 set "creation_time=%%x"
                 echo 视频流 creation_time 标记："!creation_time!"
             )
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
                 set "creation_time=%%x"
                 echo 苹果 QuickTime 格式标记："!creation_time!"
             )
         )
 
         set "duration="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
             set "duration=%%x"
             echo 视频时长："!duration!"
         )
@@ -142,25 +142,25 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
         set "creation_time="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
             set "creation_time=%%x"
             echo 视频容器 creation_time 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_time=%%x"
                 echo 视频流 creation_time 标记："!creation_time!"
             )
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_time=%%x"
                 echo 苹果 QuickTime 格式标记："!creation_time!"
             )
         )
 
         set "duration="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format^=duration -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format=duration -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
             set "duration=%%x"
             echo 视频时长："!duration!"
         )

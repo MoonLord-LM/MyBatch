@@ -109,7 +109,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     set "size1=%%~zf"
     setlocal enabledelayedexpansion
     echo set /a "total+=1">>"!temp_set!"
-    for /f "delims=" %%g in ('call "!es_path!" -path "!path2!" size:^=!size1!') do (
+    for /f "delims=" %%g in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:es_path -path $env:path2 size:=$env:size1 2>$null"') do (
         setlocal disabledelayedexpansion
         set "file2=%%g"
         setlocal enabledelayedexpansion

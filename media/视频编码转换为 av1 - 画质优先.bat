@@ -97,7 +97,7 @@ if "!param1!" == "" (
             echo 该文件已是转码后的视频，跳过
         ) else (
             set "is_av1=0"
-            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!param1!" 2^>nul') do (
+            for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 $env:param1 2>$null"') do (
                 if /i "%%c"=="av1" (
                     set "is_av1=1"
                 )
@@ -113,7 +113,7 @@ if "!param1!" == "" (
                     echo 正在转换为："!output_file!"
 
                     REM 检测音频编码格式
-                    for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+                    for /f "tokens=*" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
                         set "audio_codec=%%a"
                     )
 
@@ -177,7 +177,7 @@ if not "!working_dir!" == "" (
             echo 该文件已是转码后的视频，跳过
         ) else (
             set "is_av1=0"
-            for /f "delims=" %%c in ('call "!ffprobe_path!" -v error -select_streams v:0 -show_entries stream^=codec_name -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of csv=p=0 $env:video_file 2>$null"') do (
                 if /i "%%c"=="av1" (
                     set "is_av1=1"
                 )
@@ -195,7 +195,7 @@ if not "!working_dir!" == "" (
                     echo 正在转换为："!output_file!"
 
                     REM 检测音频编码格式
-                    for /f "tokens=*" %%a in ('call "!ffprobe_path!" -v error -select_streams a -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                    for /f "tokens=*" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                         set "audio_codec=%%a"
                     )
 

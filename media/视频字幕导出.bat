@@ -93,7 +93,7 @@ if "!param1!" == "" (
             echo 已存在："!sub_file!"，跳过此文件
         ) else (
             set "has_sub=0"
-            for /f "delims=" %%s in ('call "!ffprobe_path!" -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!param1!" 2^>nul') do (
+            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:param1 2>$null"') do (
                 set "has_sub=1"
                 set "stream_index=%%s"
             )
@@ -137,7 +137,7 @@ if not "!working_dir!" == "" (
             echo 已存在："!sub_file!"，跳过此文件
         ) else (
             set "has_sub=0"
-            for /f "delims=" %%s in ('call "!ffprobe_path!" -v error -select_streams s -show_entries stream^=index -of csv^=p^=0 "!video_file!" 2^>nul') do (
+            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:video_file 2>$null"') do (
                 set "has_sub=1"
                 set "stream_index=%%s"
             )

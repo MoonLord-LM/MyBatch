@@ -73,12 +73,12 @@ if "!param1!" == "" (
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
         set "creation_time="
-        for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!param1!" 2^>nul') do (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:param1 2>$null"') do (
             set "creation_time=%%x"
             echo 图片 Recorded_Date 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!param1!" 2^>nul') do (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:param1 2>$null"') do (
                 set "creation_time=%%x"
                 echo 图片 Encoded_Date 标记："!creation_time!"
             )
@@ -164,12 +164,12 @@ if not "!working_dir!" == "" (
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
         set "creation_time="
-        for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Recorded_Date%%" "!img_file!" 2^>nul') do (
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:img_file 2>$null"') do (
             set "creation_time=%%x"
             echo 图片 Recorded_Date 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('call "!mediainfo_path!" --Output^="General;%%Encoded_Date%%" "!img_file!" 2^>nul') do (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:img_file 2>$null"') do (
                 set "creation_time=%%x"
                 echo 图片 Encoded_Date 标记："!creation_time!"
             )

@@ -91,7 +91,7 @@ if "!param1!" == "" (
         set "has_cover=0"
         set "cover_index="
         set "cover_codec="
-        for /f "tokens=1,2,3 delims=," %%a in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=index^,codec_name:stream_disposition^=attached_pic -of csv^=p^=0 "!param1!" 2^>nul') do (
+        for /f "tokens=1,2,3 delims=," %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=index,codec_name:stream_disposition=attached_pic -of csv=p=0 $env:param1 2>$null"') do (
             if "%%c"=="1" (
                 set "has_cover=1"
                 set "cover_index=%%a"
@@ -150,7 +150,7 @@ if not "!working_dir!" == "" (
         set "has_cover=0"
         set "cover_index="
         set "cover_codec="
-        for /f "tokens=1,2,3 delims=," %%a in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream^=index^,codec_name:stream_disposition^=attached_pic -of csv^=p^=0 "!video_file!" 2^>nul') do (
+        for /f "tokens=1,2,3 delims=," %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=index,codec_name:stream_disposition=attached_pic -of csv=p=0 $env:video_file 2>$null"') do (
             if "%%c"=="1" (
                 set "has_cover=1"
                 set "cover_index=%%a"
