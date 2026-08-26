@@ -86,6 +86,9 @@ powershell -NoProfile -Command "这里是 PowerShell 命令，传参可以用 $e
 powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本文件的路径"
 ```
 
+调用 PowerShell 的 Invoke-WebRequest 方法时，屏幕可能会出现闪烁和文字错乱  
+需要在前面添加 `$ProgressPreference='SilentlyContinue';` 代码，来关闭进度条显示  
+
 ### 6. 遍历文件时，处理路径的特殊符号
 
 文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  

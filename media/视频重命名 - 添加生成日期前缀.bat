@@ -105,6 +105,7 @@ if "!param1!" == "" (
                 "for($k=0;$k -lt 10;$k++) {" ^
                 "    $cur=$av-$k;" ^
                 "    $url='https://www.bilibili.com/video/av'+$cur+'/';" ^
+                "    $ProgressPreference='SilentlyContinue';" ^
                 "    try {" ^
                 "        $html=(Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30).Content;" ^
                 "        $mm=[regex]::Match($html,'__INITIAL_STATE__\s*=\s*(\{.*?\});\(function','Singleline');" ^
@@ -225,6 +226,7 @@ if not "!working_dir!" == "" (
                 "for($k=0;$k -lt 10;$k++) {" ^
                 "    $cur=$av-$k;" ^
                 "    $url='https://www.bilibili.com/video/av'+$cur+'/';" ^
+                "    $ProgressPreference='SilentlyContinue';" ^
                 "    try {" ^
                 "        $html=(Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30).Content;" ^
                 "        $mm=[regex]::Match($html,'__INITIAL_STATE__\s*=\s*(\{.*?\});\(function','Singleline');" ^
