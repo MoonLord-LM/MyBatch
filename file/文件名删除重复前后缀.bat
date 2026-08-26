@@ -106,14 +106,24 @@ if not "!working_dir!" == "" (
      "    };" ^
      "    $cutPrefix = $prefix;" ^
      "    if ($keepPrefix.Length -gt 0) { $cutPrefix = $prefix.Substring(0, $prefix.Length - $keepPrefix.Length) };" ^
-     "    if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，仅消除 \"' + $cutPrefix + '\"'); };" ^
+     "    if ($prefix.Length -gt 0) {" ^
+     "        if ($cutPrefix.Length -gt 0) {" ^
+     "            if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，仅消除 \"' + $cutPrefix + '\"'); } else { Write-Host ('  公共前缀 \"' + $cutPrefix + '\" 予以消除'); };" ^
+     "        } else { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，消除部分为空，不做处理'); };" ^
+     "    };" ^
      "    $keepSuffix = '';" ^
      "    $i = 0;" ^
      "    while ($i -lt $suffix.Length) {" ^
      "        $ch = $suffix[$i];" ^
      "        if ('}）)]】'.Contains($ch)) { $keepSuffix += $ch; $i++ } else { break };" ^
      "    };" ^
-     "    if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留'); };" ^
+     "    $cutSuffix = $suffix;" ^
+     "    if ($keepSuffix.Length -gt 0) { $cutSuffix = $suffix.Substring($keepSuffix.Length) };" ^
+     "    if ($suffix.Length -gt 0) {" ^
+     "        if ($cutSuffix.Length -gt 0) {" ^
+     "            if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，仅消除 \"' + $cutSuffix + '\"'); } else { Write-Host ('  公共后缀 \"' + $cutSuffix + '\" 予以消除'); };" ^
+     "        } else { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，消除部分为空，不做处理'); };" ^
+     "    };" ^
      "    $coreNames = @();" ^
      "    foreach ($f in $g.Group) {" ^
      "        $core = $f.BaseName;" ^
