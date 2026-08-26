@@ -73,44 +73,56 @@ set "video2=!param2!"
 
     :input_video1
     if "!video1!"=="" (
-        echo.
         echo 请输入要保留声音和元数据信息的文件
         set /p "video1="
+        echo.
+    ) else (
+        echo 要保留声音和元数据信息的文件："!video1!"
+        echo.
     )
     if "!video1!"=="" (
         echo 输入不能为空，请重新输入
+        echo.
         goto input_video1
     )
     set "video1=!video1:"=!"
     if exist "!video1!\" (
         echo 不支持文件夹 "!video1!"，请重新输入
+        echo.
         set "video1="
         goto input_video1
     )
     if not exist "!video1!" (
         echo 文件不存在 "!video1!"，请重新输入
+        echo.
         set "video1="
         goto input_video1
     )
 
     :input_video2
     if "!video2!"=="" (
-        echo.
         echo 请输入提供画面内容的文件
         set /p "video2="
+        echo.
+    ) else (
+        echo 提供画面内容的文件："!video2!"
+        echo.
     )
     if "!video2!"=="" (
         echo 输入不能为空，请重新输入
+        echo.
         goto input_video2
     )
     set "video2=!video2:"=!"
     if exist "!video2!\" (
         echo 不支持文件夹 "!video2!"，请重新输入
+        echo.
         set "video2="
         goto input_video2
     )
     if not exist "!video2!" (
         echo 文件不存在 "!video2!"，请重新输入
+        echo.
         set "video2="
         goto input_video2
     )

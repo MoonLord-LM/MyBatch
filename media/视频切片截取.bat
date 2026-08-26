@@ -58,6 +58,9 @@ set "video_file=!param1!"
         echo 请输入要处理的视频文件：
         set /p "video_file="
         echo.
+    ) else (
+        echo 要处理的视频文件："!video_file!"
+        echo.
     )
     if "!video_file!"=="" (
         echo 输入不能为空，请重新输入

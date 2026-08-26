@@ -33,6 +33,9 @@ if "!path1!"=="" (
     echo 请输入要清理多余文件的文件夹
     set /p "path1="
     echo.
+) else (
+    echo 要清理多余文件的文件夹："!path1!"
+    echo.
 )
 if "!path1!"=="" (
     echo 输入不能为空，请重新输入
@@ -52,6 +55,9 @@ if not exist "!path1!\" (
 if "!path2!"=="" (
     echo 请输入作为参考的文件夹，仅用于文件比对
     set /p "path2="
+    echo.
+) else (
+    echo 作为参考的文件夹，仅用于文件比对："!path2!"
     echo.
 )
 if "!path2!"=="" (
