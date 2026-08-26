@@ -13,7 +13,8 @@ powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '按格式对文件分组，每种格式单独分析处理' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '特殊场景：如果公共前缀是以数字结尾，那么保留这部分数字，避免破坏日期等命名格式' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '特殊场景 1：如果公共前缀是以数字结尾，那么保留这部分数字，避免破坏日期等格式' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '特殊场景 2：公共前缀末尾的 [【(（{ 符号，公共后缀开头的 }）)]】 符号，不做替换，避免破坏格式' -ForegroundColor Green"
 echo.
 
 
@@ -97,16 +98,27 @@ if not "!working_dir!" == "" (
      "        continue;" ^
      "    };" ^
      "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
-     "    $keepDigits = '';" ^
-     "    if ($prefix -match '(\d+)$') { $keepDigits = $matches[1] };" ^
+     "    $keepPrefix = '';" ^
+     "    $i = $prefix.Length - 1;" ^
+     "    while ($i -ge 0) {" ^
+     "        $ch = $prefix[$i];" ^
+     "        if ('0123456789[【(（{'.Contains($ch)) { $keepPrefix = $ch + $keepPrefix; $i-- } else { break };" ^
+     "    };" ^
      "    $cutPrefix = $prefix;" ^
-     "    if ($keepDigits.Length -gt 0) { $cutPrefix = $prefix.Substring(0, $prefix.Length - $keepDigits.Length) };" ^
-     "    if ($keepDigits.Length -gt 0) { Write-Host ('  公共前缀以数字 \"' + $keepDigits + '\" 结尾，予以保留，仅消除 \"' + $cutPrefix + '\"'); };" ^
+     "    if ($keepPrefix.Length -gt 0) { $cutPrefix = $prefix.Substring(0, $prefix.Length - $keepPrefix.Length) };" ^
+     "    if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，仅消除 \"' + $cutPrefix + '\"'); };" ^
+     "    $keepSuffix = '';" ^
+     "    $i = 0;" ^
+     "    while ($i -lt $suffix.Length) {" ^
+     "        $ch = $suffix[$i];" ^
+     "        if ('}）)]】'.Contains($ch)) { $keepSuffix += $ch; $i++ } else { break };" ^
+     "    };" ^
+     "    if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留'); };" ^
      "    $coreNames = @();" ^
      "    foreach ($f in $g.Group) {" ^
      "        $core = $f.BaseName;" ^
-     "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepDigits + $core.Substring($prefix.Length) };" ^
-     "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) };" ^
+     "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) };" ^
+     "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix };" ^
      "        if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName };" ^
      "        $coreNames += $core;" ^
      "    };" ^
@@ -114,8 +126,8 @@ if not "!working_dir!" == "" (
      "    foreach ($cn in $coreNames) { if ($cn -match '^\d+$' -and $cn.Length -gt $maxDigits) { $maxDigits = $cn.Length } };" ^
      "    foreach ($f in $g.Group) {" ^
      "        $core = $f.BaseName;" ^
-     "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepDigits + $core.Substring($prefix.Length) };" ^
-     "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) };" ^
+     "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) };" ^
+     "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix };" ^
      "        if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName };" ^
      "        if ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') };" ^
      "        $newName = $core + $f.Extension;" ^
