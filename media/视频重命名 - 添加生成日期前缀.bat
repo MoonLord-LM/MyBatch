@@ -98,35 +98,35 @@ if "!param1!" == "" (
                 "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
                 "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
-                "if(-not $m.Success){exit};" ^
+                "if(-not $m.Success) { exit; }" ^
                 "$av=[int64]$m.Groups[1].Value;" ^
                 "$out='';" ^
-                "for($k=0;$k -lt 10;$k++){" ^
+                "for($k=0;$k -lt 10;$k++) {" ^
                 "    $cur=$av-$k;" ^
                 "    $url='https://www.bilibili.com/video/av'+$cur+'/';" ^
-                "    try{" ^
+                "    try {" ^
                 "        $html=(Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30).Content;" ^
                 "        $mm=[regex]::Match($html,'__INITIAL_STATE__\s*=\s*(\{.*?\});\(function','Singleline');" ^
-                "        if($mm.Success){" ^
+                "        if($mm.Success) {" ^
                 "            $json=$mm.Groups[1].Value|ConvertFrom-Json;" ^
                 "            $vd=$json.videoData;" ^
-                "            if($vd -and $vd.pubdate -gt 0){" ^
+                "            if($vd -and $vd.pubdate -gt 0) {" ^
                 "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
-                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
-                "                Write-Host ('[av'+$cur+'] URL: '+$url);" ^
+                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'))" ^
+                "                Write-Host ('[av'+$cur+'] URL: '+$url)" ^
                 "                $out=$dt.ToString('yyyyMMdd');" ^
                 "                break;" ^
                 "            } else {" ^
-                "                Write-Host ('[av'+$cur+'] no valid data');" ^
+                "                Write-Host ('[av'+$cur+'] no valid data')" ^
                 "            }" ^
                 "        } else {" ^
-                "            Write-Host ('[av'+$cur+'] data not found');" ^
+                "            Write-Host ('[av'+$cur+'] data not found')" ^
                 "        }" ^
                 "    } catch {" ^
-                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message);" ^
+                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message)" ^
                 "    }" ^
                 "}" ^
-                "if($out){ Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline; }"
+                "if($out) { Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline; }"
             if exist "!bili_out_file!" ( set /p "creation_date="<"!bili_out_file!" )
             if exist "!bili_out_file!" ( del /f /q "!bili_out_file!" )
             if not "!creation_date!"=="" (
@@ -138,7 +138,7 @@ if "!param1!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($timeStr) try { if ($timeStr.Length -eq 8) { $dt = [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture) } else { $dt = [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal) }; Write-Output $dt.ToLocalTime().ToString('yyyyMMdd') } catch {} } -timeStr '!creation_date!'" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($timeStr) try { Write-Output $(if ($timeStr.Length -eq 8) { [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -timeStr '!creation_date!'" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
@@ -218,24 +218,24 @@ if not "!working_dir!" == "" (
                 "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
                 "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
-                "if(-not $m.Success){exit};" ^
+                "if(-not $m.Success) { exit; }" ^
                 "$av=[int64]$m.Groups[1].Value;" ^
                 "$out='';" ^
-                "for($k=0;$k -lt 10;$k++){" ^
+                "for($k=0;$k -lt 10;$k++) {" ^
                 "    $cur=$av-$k;" ^
                 "    $url='https://www.bilibili.com/video/av'+$cur+'/';" ^
-                "    try{" ^
+                "    try {" ^
                 "        $html=(Invoke-WebRequest -Uri $url -UseBasicParsing -TimeoutSec 30).Content;" ^
                 "        $mm=[regex]::Match($html,'__INITIAL_STATE__\s*=\s*(\{.*?\});\(function','Singleline');" ^
-                "        if($mm.Success){" ^
+                "        if($mm.Success) {" ^
                 "            $json=$mm.Groups[1].Value|ConvertFrom-Json;" ^
                 "            $vd=$json.videoData;" ^
-                "            if($vd -and $vd.pubdate -gt 0){" ^
+                "            if($vd -and $vd.pubdate -gt 0) {" ^
                 "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
-                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
-                "                Write-Host ('[av'+$cur+'] URL: '+$url);" ^
+                "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'))" ^
+                "                Write-Host ('[av'+$cur+'] URL: '+$url)" ^
                 "                $out=$dt.ToString('yyyyMMdd');" ^
-                "                break" ^
+                "                break;" ^
                 "            } else {" ^
                 "                Write-Host ('[av'+$cur+'] no valid data')" ^
                 "            }" ^
@@ -246,7 +246,7 @@ if not "!working_dir!" == "" (
                 "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message)" ^
                 "    }" ^
                 "}" ^
-                "if($out){Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline}"
+                "if($out) { Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline; }"
             if exist "!bili_out_file!" ( set /p "creation_date="<"!bili_out_file!" )
             if exist "!bili_out_file!" ( del /f /q "!bili_out_file!" )
             if not "!creation_date!"=="" (
@@ -259,7 +259,7 @@ if not "!working_dir!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($timeStr) try { if ($timeStr.Length -eq 8) { $dt = [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture) } else { $dt = [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal) }; Write-Output $dt.ToLocalTime().ToString('yyyyMMdd') } catch {} } -timeStr '!creation_date!'" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($timeStr) try { Write-Output $(if ($timeStr.Length -eq 8) { [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -timeStr '!creation_date!'" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
