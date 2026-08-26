@@ -3,6 +3,7 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
+set "param2=%~2"
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
@@ -48,9 +49,9 @@ if !errorlevel! neq 0 (
 
 
 set "video_file=!param1!"
+set "screenshot_time=!param2!"
 
 :loop
-    set "screenshot_time="
 
     :input_file
     if "!video_file!"=="" (
@@ -80,12 +81,15 @@ set "video_file=!param1!"
         goto input_file
     )
 
-    echo 开始处理文件："!video_file!"
-    echo.
-
     :input_screenshot_time
-    echo 请输入截取时间（格式: HH:MM:SS.XXX）：
-    set /p "screenshot_time="
+    if "!screenshot_time!"=="" (
+        echo 请输入截取时间（格式: HH:MM:SS.XXX）：
+        set /p "screenshot_time="
+        echo.
+    ) else (
+        echo 截取时间："!screenshot_time!"
+        echo.
+    )
     if "!screenshot_time!"=="" (
         echo 截取时间不能为空
         echo.
@@ -137,6 +141,7 @@ set "video_file=!param1!"
     )
 
     set "video_file="
+    set "screenshot_time="
 goto loop
 
 

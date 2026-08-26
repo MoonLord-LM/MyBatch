@@ -3,6 +3,8 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
+set "param2=%~2"
+set "param3=%~3"
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
@@ -48,10 +50,10 @@ if !errorlevel! neq 0 (
 
 
 set "video_file=!param1!"
+set "begin_time=!param2!"
+set "end_time=!param3!"
 
 :loop
-    set "begin_time="
-    set "end_time="
 
     :input_file
     if "!video_file!"=="" (
@@ -81,12 +83,15 @@ set "video_file=!param1!"
         goto input_file
     )
 
-    echo 开始处理文件："!video_file!"
-    echo.
-
     :input_begin_time
-    echo 请输入开始时间（格式: HH:MM:SS.XXX）：
-    set /p "begin_time="
+    if "!begin_time!"=="" (
+        echo 请输入开始时间（格式: HH:MM:SS.XXX）：
+        set /p "begin_time="
+        echo.
+    ) else (
+        echo 开始时间："!begin_time!"
+        echo.
+    )
     if "!begin_time!"=="" (
         echo 开始时间不能为空
         echo.
@@ -94,8 +99,14 @@ set "video_file=!param1!"
     )
 
     :input_end_time
-    echo 请输入结束时间（格式: HH:MM:SS.XXX）：
-    set /p "end_time="
+    if "!end_time!"=="" (
+        echo 请输入结束时间（格式: HH:MM:SS.XXX）：
+        set /p "end_time="
+        echo.
+    ) else (
+        echo 结束时间："!end_time!"
+        echo.
+    )
     if "!end_time!"=="" (
         echo 结束时间不能为空
         echo.
@@ -155,6 +166,8 @@ set "video_file=!param1!"
     )
 
     set "video_file="
+    set "begin_time="
+    set "end_time="
 goto loop
 
 
