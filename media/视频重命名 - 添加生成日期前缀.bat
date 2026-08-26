@@ -12,7 +12,7 @@ powershell -NoProfile -Command "Write-Host '给视频文件添加生成日期前
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '特殊场景 1：没有内置的时间信息标记时，尝试识别文件名末尾的 [av数字] 标记，联网查询 B 站最相邻 av 号的视频的发布时间' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '特殊场景：没有内置的时间信息标记时，尝试识别文件名末尾的 [av数字] 标记，联网查询 B 站最相邻 av 号的视频的发布时间' -ForegroundColor Green"
 echo.
 
 
@@ -92,8 +92,7 @@ if "!param1!" == "" (
             )
         )
         if "!creation_date!"=="" (
-            REM 联网查询 B 站最相邻 av 号的视频的发布时间
-            REM 联网超时时间 30 秒，av 号最多尝试 10 个
+            REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
             set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
             powershell -NoProfile -Command ^
                 "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
@@ -113,21 +112,21 @@ if "!param1!" == "" (
                 "            $vd=$json.videoData;" ^
                 "            if($vd -and $vd.pubdate -gt 0){" ^
                 "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
-                "                Write-Host ('URL: '+$url);" ^
                 "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
+                "                Write-Host ('[av'+$cur+'] URL: '+$url);" ^
                 "                $out=$dt.ToString('yyyyMMdd');" ^
-                "                break" ^
+                "                break;" ^
                 "            } else {" ^
-                "                Write-Host ('[av'+$cur+'] no valid data')" ^
+                "                Write-Host ('[av'+$cur+'] no valid data');" ^
                 "            }" ^
                 "        } else {" ^
-                "            Write-Host ('[av'+$cur+'] data not found')" ^
+                "            Write-Host ('[av'+$cur+'] data not found');" ^
                 "        }" ^
                 "    } catch {" ^
-                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message)" ^
+                "        Write-Host ('[av'+$cur+'] error: '+$_.Exception.Message);" ^
                 "    }" ^
                 "}" ^
-                "if($out){Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline}"
+                "if($out){ Set-Content -LiteralPath $env:bili_out_file -Value $out -Encoding UTF8 -NoNewline; }"
             if exist "!bili_out_file!" ( set /p "creation_date="<"!bili_out_file!" )
             if exist "!bili_out_file!" ( del /f /q "!bili_out_file!" )
             if not "!creation_date!"=="" (
@@ -213,8 +212,7 @@ if not "!working_dir!" == "" (
             )
         )
         if "!creation_date!"=="" (
-            REM 联网查询 B 站最相邻 av 号的视频的发布时间
-            REM 联网超时时间 30 秒，av 号最多尝试 10 个
+            REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
             set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
             powershell -NoProfile -Command ^
                 "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
@@ -234,8 +232,8 @@ if not "!working_dir!" == "" (
                 "            $vd=$json.videoData;" ^
                 "            if($vd -and $vd.pubdate -gt 0){" ^
                 "                $dt=([datetime]'1970-01-01').AddSeconds($vd.pubdate).ToLocalTime();" ^
-                "                Write-Host ('URL: '+$url);" ^
                 "                Write-Host ('[av'+$cur+'] '+$vd.title+' / '+$vd.owner.name+' / '+$dt.ToString('yyyy-MM-dd HH:mm:ss'));" ^
+                "                Write-Host ('[av'+$cur+'] URL: '+$url);" ^
                 "                $out=$dt.ToString('yyyyMMdd');" ^
                 "                break" ^
                 "            } else {" ^
