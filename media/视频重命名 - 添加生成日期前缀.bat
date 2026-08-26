@@ -69,27 +69,28 @@ if "!param1!" == "" (
         set "file_ext=!param1_ext!"
 
         set "creation_date="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
-            set "creation_date=%%x"
-            echo 视频容器 date 标记："!creation_date!"
+        set "video_file=!param1!"
+        for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            set "creation_date=%%a"
+        )
+        if not "!creation_date!"=="" echo 视频容器 date 标记："!creation_date!"
+        if "!creation_date!"=="" (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "creation_date=%%a"
+            )
+            if not "!creation_date!"=="" echo 视频容器 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
-                set "creation_date=%%x"
-                echo 视频容器 creation_time 标记："!creation_date!"
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "creation_date=%%a"
             )
+            if not "!creation_date!"=="" echo 视频流 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
-                set "creation_date=%%x"
-                echo 视频流 creation_time 标记："!creation_date!"
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "creation_date=%%a"
             )
-        )
-        if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
-                set "creation_date=%%x"
-                echo 苹果 QuickTime 格式标记："!creation_date!"
-            )
+            if not "!creation_date!"=="" echo 苹果 QuickTime 格式标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
@@ -189,27 +190,27 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
         set "creation_date="
-        for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-            set "creation_date=%%x"
-            echo 视频容器 date 标记："!creation_date!"
+        for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            set "creation_date=%%a"
+        )
+        if not "!creation_date!"=="" echo 视频容器 date 标记："!creation_date!"
+        if "!creation_date!"=="" (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "creation_date=%%a"
+            )
+            if not "!creation_date!"=="" echo 视频容器 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-                set "creation_date=%%x"
-                echo 视频容器 creation_time 标记："!creation_date!"
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "creation_date=%%a"
             )
+            if not "!creation_date!"=="" echo 视频流 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -select_streams v -show_entries stream_tags^=creation_time -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-                set "creation_date=%%x"
-                echo 视频流 creation_time 标记："!creation_date!"
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "creation_date=%%a"
             )
-        )
-        if "!creation_date!"=="" (
-            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=com.apple.quicktime.creationdate -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
-                set "creation_date=%%x"
-                echo 苹果 QuickTime 格式标记："!creation_date!"
-            )
+            if not "!creation_date!"=="" echo 苹果 QuickTime 格式标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
