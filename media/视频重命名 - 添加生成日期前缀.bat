@@ -84,12 +84,18 @@ if "!param1!" == "" (
                 echo 视频流 creation_time 标记："!creation_date!"
             )
         )
+        if "!creation_date!"=="" (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!param1!" 2^>nul') do (
+                set "creation_date=%%x"
+                echo 视频容器 date 标记："!creation_date!"
+            )
+        )
 
         if "!creation_date!"=="" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($timeStr) try { $dt = [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); Write-Output $dt.ToLocalTime().ToString(''yyyyMMdd'') } catch {} } -timeStr '!creation_date!'" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($timeStr) try { if ($timeStr.Length -eq 8) { $dt = [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture) } else { $dt = [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal) }; Write-Output $dt.ToLocalTime().ToString('yyyyMMdd') } catch {} } -timeStr '!creation_date!'" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
@@ -156,13 +162,19 @@ if not "!working_dir!" == "" (
                 echo 视频流 creation_time 标记："!creation_date!"
             )
         )
+        if "!creation_date!"=="" (
+            for /f "delims=" %%x in ('call "!ffprobe_path!" -v error -show_entries format_tags^=date -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
+                set "creation_date=%%x"
+                echo 视频容器 date 标记："!creation_date!"
+            )
+        )
 
         if "!creation_date!"=="" (
             echo set /a "no_date+=1">>"!temp_set!"
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($timeStr) try { $dt = [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); Write-Output $dt.ToLocalTime().ToString(''yyyyMMdd'') } catch {} } -timeStr '!creation_date!'" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($timeStr) try { if ($timeStr.Length -eq 8) { $dt = [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture) } else { $dt = [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal) }; Write-Output $dt.ToLocalTime().ToString('yyyyMMdd') } catch {} } -timeStr '!creation_date!'" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
