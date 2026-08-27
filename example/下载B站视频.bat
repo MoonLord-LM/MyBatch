@@ -19,6 +19,8 @@ setlocal enabledelayedexpansion
 :: 打开浏览器控制台，搜索并复制 search 请求，Copy as fetch
 :: 然后在后面拼接以下代码并执行：.then(response => response.json()).then(data => { if (data && data.data && data.data.list && data.data.list.vlist) { const videoList = data.data.list.vlist; let allLinks = ''; videoList.forEach(video => { allLinks += `https://www.bilibili.com/video/${video.bvid}/\n`; }); console.log(allLinks); } else { console.error('未能找到有效的视频列表数据'); } }).catch(error => console.error('Error:', error));
 
+:: 支持这种链接：https://www.bilibili.com/festival/2021bnj?bvid=BV12o4y1o7Sb
+
 
 
 call :init
@@ -34,9 +36,15 @@ exit /b
 :download_video
     set "url=%~1"
 
-    :: 删除 ? 和后面的内容
-    if "!url!" neq "!url:?=!" (
-        for /f "tokens=1 delims=?" %%i in ("!url!") do set "url=%%i"
+    :: festival 活动页链接（同时含 /festival/ 和 ?bvid=）直接原样传入 yt-dlp，不做处理
+    set "skip_strip=0"
+    echo "!url!" | findstr /C:"/festival/" >nul && echo "!url!" | findstr /C:"?bvid=" >nul && set "skip_strip=1"
+
+    :: 其他链接删除 ? 和后面的内容
+    if "!skip_strip!"=="0" (
+        if "!url!" neq "!url:?=!" (
+            for /f "tokens=1 delims=?" %%i in ("!url!") do set "url=%%i"
+        )
     )
 
     :: 检查并确保 /video 的链接是以 / 结束的
