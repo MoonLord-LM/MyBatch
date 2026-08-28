@@ -95,6 +95,7 @@ if not "!working_dir!" == "" (
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
+        set "video_name=%%~nxf"
         setlocal enabledelayedexpansion
 
         set "has_cover=0"
@@ -103,17 +104,18 @@ if not "!working_dir!" == "" (
         )
         if "!has_cover!"=="1" (
             echo set /a "with_cover+=1">>"!temp_set!"
-            echo 有封面："!video_file!"
+            echo 有封面：!video_name!
         ) else (
             echo set /a "no_cover+=1">>"!temp_set!"
             echo "!video_file!">>"!temp_list!"
-            echo 无封面："!video_file!"
+            echo 无封面：!video_name!
         )
         echo set /a "total+=1">>"!temp_set!"
 
         endlocal
         endlocal
     )
+    echo.
 
     REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
@@ -130,6 +132,7 @@ if not "!working_dir!" == "" (
     ) else (
         echo 未发现缺失封面的视频
     )
+
     if exist "!temp_list!" ( del /f /q "!temp_list!" )
 )
 
