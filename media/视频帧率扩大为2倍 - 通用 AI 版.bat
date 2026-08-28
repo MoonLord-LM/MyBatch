@@ -99,7 +99,7 @@ if "!param1!" == "" (
             if !errorlevel! equ 0 (
                 echo 扩大成功
             ) else if exist "!output_file!" (
-                echo 扩大失败，video2x 退出异常，请检查 "!output_file!" 文件
+                echo 扩大失败，请检查 "!output_file!" 文件
             ) else (
                 echo 扩大失败
             )
@@ -138,7 +138,7 @@ if not "!working_dir!" == "" (
                 echo 扩大成功
             ) else if exist "!output_file!" (
                 echo set /a "resize_failed+=1">>"!temp_set!"
-                echo 扩大失败，video2x 退出异常，请检查 "!output_file!" 文件
+                echo 扩大失败，请检查 "!output_file!" 文件
             ) else (
                 echo set /a "resize_failed+=1">>"!temp_set!"
                 echo 扩大失败
