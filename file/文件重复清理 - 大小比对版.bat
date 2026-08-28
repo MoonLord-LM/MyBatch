@@ -102,14 +102,14 @@ powershell -NoProfile -Command ^
     "    } } }" ^
     "} else {" ^
     "    $map=@{};" ^
-    "    Get-ChildItem -LiteralPath $p2 -File -Recurse | ForEach-Object { $map[$_.Name+'|'+$_.Length]=$true }" ^
+    "    Get-ChildItem -LiteralPath $p2 -File -Recurse | ForEach-Object { $map[$_.Name+'|'+$_.Length]=$true };" ^
     "    foreach ($f in $files1) { $k=$f.Name+'|'+$f.Length; if ($map.ContainsKey($k)) {" ^
     "        Write-Host ('删除: '+$f.FullName);" ^
     "        try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f.FullName,'OnlyErrorDialogs','SendToRecycleBin'); $deleted++ } catch { $failed++ }" ^
     "    } }" ^
     "}" ^
     "Write-Host '';" ^
-    "Write-Host ('共计: '+$total+' 个，删除成功: '+$deleted+' 个，删除失败: '+$failed+' 个')"
+    "Write-Host ('共计: '+$total+' 个，删除成功: '+$deleted+' 个，删除失败: '+$failed+' 个');"
 
 
 
