@@ -145,6 +145,7 @@ if not "!working_dir!" == "" (
                     echo set /a "succeeded+=1">>"!temp_set!"
                     echo 扩大成功
                 ) else (
+                    echo set /a "resize_failed+=1">>"!temp_set!"
                     echo 扩大失败
                 )
             ) else (
