@@ -101,12 +101,13 @@ if not "!working_dir!" == "" (
         for /f "tokens=1,2,3 delims=," %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=index,codec_name:stream_disposition=attached_pic -of csv=p=0 $env:video_file 2>$null"') do (
             if "%%c"=="1" set "has_cover=1"
         )
-
         if "!has_cover!"=="1" (
             echo set /a "with_cover+=1">>"!temp_set!"
+            echo 有封面："!video_file!"
         ) else (
             echo set /a "no_cover+=1">>"!temp_set!"
             echo "!video_file!">>"!temp_list!"
+            echo 无封面："!video_file!"
         )
         echo set /a "total+=1">>"!temp_set!"
 
