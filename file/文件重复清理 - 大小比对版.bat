@@ -93,6 +93,7 @@ powershell -NoProfile -Command ^
     "$p2=$env:path2;" ^
     "$files1=@(Get-ChildItem -LiteralPath $p1 -File -Recurse);" ^
     "$total=$files1.Count;" ^
+    "$duplicate=0;" ^
     "$deleted=0;" ^
     "$failed=0;" ^
     "if ($p1 -eq $p2) {" ^
@@ -105,6 +106,7 @@ powershell -NoProfile -Command ^
     "    foreach ($k in $group.Keys) {" ^
     "        if ($group[$k].Count -ge 2) {" ^
     "            $group[$k] | Select-Object -Skip 1 | ForEach-Object {" ^
+    "                $duplicate++;" ^
     "                Write-Host ('删除: '+$_);" ^
     "                try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_, 'OnlyErrorDialogs', 'SendToRecycleBin'); $deleted++ } catch { $failed++ };" ^
     "            };" ^
@@ -116,13 +118,14 @@ powershell -NoProfile -Command ^
     "    foreach ($f in $files1) {" ^
     "        $k=$f.Name+'|'+$f.Length;" ^
     "        if ($map.ContainsKey($k)) {" ^
+    "            $duplicate++;" ^
     "            Write-Host ('删除: '+$f.FullName);" ^
     "            try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f.FullName, 'OnlyErrorDialogs', 'SendToRecycleBin'); $deleted++ } catch { $failed++ };" ^
     "        };" ^
     "    };" ^
     "}" ^
     "Write-Host '';" ^
-    "Write-Host ('共计: '+$total+' 个，删除成功: '+$deleted+' 个，删除失败: '+$failed+' 个');"
+    "Write-Host ('共计: '+$total+' 个文件，重复: '+$duplicate+' 个，删除成功: '+$deleted+' 个，删除失败: '+$failed+' 个');"
 
 
 

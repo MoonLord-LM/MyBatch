@@ -94,6 +94,7 @@ REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_se
 set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
 set /a "total=0"
+set /a "duplicate=0"
 set /a "deleted=0"
 set /a "failed=0"
 for /f "usebackq delims=" %%i in ("!tmp_list1!") do (
@@ -116,6 +117,7 @@ for /f "usebackq delims=" %%i in ("!tmp_list1!") do (
                         if !errorlevel! equ 0 (
                             echo 准备删除："!file1!"
                             echo 重复文件："!file2!"
+                            echo set /a "duplicate+=1">>"!temp_set!"
                             set "file_to_delete=!file1!"
                             powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                             if exist "!file1!" (
@@ -145,7 +147,7 @@ if exist "!tmp_list1!" ( del /f /q "!tmp_list1!" )
 if exist "!tmp_list2!" ( del /f /q "!tmp_list2!" )
 
 echo 处理完成
-echo 共计：!total! 个文件，删除成功：!deleted! 个，删除失败：!failed! 个
+echo 共计：!total! 个文件，重复：!duplicate! 个，删除成功：!deleted! 个，删除失败：!failed! 个
 
 
 

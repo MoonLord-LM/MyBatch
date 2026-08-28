@@ -111,6 +111,7 @@ REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_se
 set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
 set /a "total=0"
+set /a "duplicate=0"
 set /a "deleted=0"
 set /a "failed=0"
 for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }"') do (
@@ -131,6 +132,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
                     if !errorlevel! equ 0 (
                         echo 准备删除："!file1!"
                         echo 重复文件："!file2!"
+                        echo set /a "duplicate+=1">>"!temp_set!"
                         set "file_to_delete=!file1!"
                         powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         if exist "!file1!" (
@@ -156,7 +158,7 @@ REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
 call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
 echo 处理完成
-echo 共计：!total! 个文件，删除成功：!deleted! 个，删除失败：!failed! 个
+echo 共计：!total! 个文件，重复：!duplicate! 个，删除成功：!deleted! 个，删除失败：!failed! 个
 
 
 
