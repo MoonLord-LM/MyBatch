@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '图片分辨率扩大为 4 倍（动漫 AI 版，使用 RealESRGAN realesrgan-plus-anime 模型）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '图片分辨率扩大为 4 倍（通用 AI 版，使用 RealESRGAN realesrgan-plus 模型）' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
@@ -96,7 +96,7 @@ if "!param1!" == "" (
         ) else (
             echo 正在扩大为："!output_file!"
             set "temp_video=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.mp4"
-            "!video2x_path!" -i "!param1!" -o "!temp_video!" -s 4 -p "realesrgan" --realesrgan-model "realesrgan-plus-anime" -c libx264rgb -e crf=0 -e preset=ultrafast
+            "!video2x_path!" -i "!param1!" -o "!temp_video!" -s 4 -p "realesrgan" --realesrgan-model "realesrgan-plus" -c libx264rgb -e crf=0 -e preset=ultrafast
             if exist "!temp_video!" (
                 "!ffmpeg_path!" -y -i "!temp_video!" -frames:v 1 "!output_file!"
                 if !errorlevel! equ 0 (
@@ -138,7 +138,7 @@ if not "!working_dir!" == "" (
         ) else (
             echo 正在扩大为："!output_file!"
             set "temp_video=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.mp4"
-            "!video2x_path!" -i "!image_file!" -o "!temp_video!" -s 4 -p "realesrgan" --realesrgan-model "realesrgan-plus-anime" -c libx264rgb -e crf=0 -e preset=ultrafast
+            "!video2x_path!" -i "!image_file!" -o "!temp_video!" -s 4 -p "realesrgan" --realesrgan-model "realesrgan-plus" -c libx264rgb -e crf=0 -e preset=ultrafast
             if exist "!temp_video!" (
                 "!ffmpeg_path!" -y -i "!temp_video!" -frames:v 1 "!output_file!"
                 if !errorlevel! equ 0 (
