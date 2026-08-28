@@ -124,7 +124,7 @@ if not "!working_dir!" == "" (
         echo 缺失封面的完整路径列表：
         echo.
         for /f "usebackq delims=" %%i in ("!temp_list!") do (
-            echo %%i
+            echo %%i & REM
         )
         echo.
     ) else (
