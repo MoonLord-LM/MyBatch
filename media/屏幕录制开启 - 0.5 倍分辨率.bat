@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '双击运行，开始屏幕录制，以缩小为 0.5 倍的分辨率，录制为无损的 mp4 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行，开始屏幕录制，以缩小为 0.5 倍的分辨率 + 最高 30 的帧率，录制为无损的 mp4 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '记录录制进程的 PID 文件，保存在当前文件夹下' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '需要停止录制时，运行 “屏幕录制关闭.bat” 即可' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '录制生成的 mp4 文件，保存在当前文件夹下' -ForegroundColor Green"
@@ -92,7 +92,7 @@ goto :after_powershell_block
     $psi = [Diagnostics.ProcessStartInfo]::new();
     $psi.FileName = $env:ffmpeg_path;
     $creation_time = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz');
-    $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -vf scale=iw/2:ih/2 -c:v libx264rgb -preset ultrafast -crf 0 -pix_fmt bgra -movflags +faststart -metadata creation_time="' + $creation_time + '" ' + $env:output_file;
+    $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -vf scale=iw/2:ih/2 -c:v libx264rgb -preset ultrafast -crf 0 -pix_fmt bgr0 -movflags +faststart -metadata creation_time="' + $creation_time + '" ' + $env:output_file;
     $psi.UseShellExecute = $false;
     $psi.CreateNoWindow = $true;
     $psi.RedirectStandardInput = $true;
