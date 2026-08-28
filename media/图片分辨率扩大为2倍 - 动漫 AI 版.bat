@@ -101,10 +101,8 @@ if "!param1!" == "" (
                 "!ffmpeg_path!" -y -i "!temp_video!" -frames:v 1 "!output_file!"
                 if !errorlevel! equ 0 (
                     echo 扩大成功
-                ) else if exist "!output_file!" (
-                    echo 扩大失败，程序 ffmpeg 异常退出码 !errorlevel!，请检查 "!output_file!" 文件
                 ) else (
-                    echo 扩大失败，程序 ffmpeg 异常退出码 !errorlevel!
+                    echo 扩大失败
                 )
             ) else (
                 echo 扩大失败
@@ -146,12 +144,8 @@ if not "!working_dir!" == "" (
                 if !errorlevel! equ 0 (
                     echo set /a "succeeded+=1">>"!temp_set!"
                     echo 扩大成功
-                ) else if exist "!output_file!" (
-                    echo set /a "resize_failed+=1">>"!temp_set!"
-                    echo 扩大失败，程序 ffmpeg 异常退出码 !errorlevel!，请检查 "!output_file!" 文件
                 ) else (
-                    echo set /a "resize_failed+=1">>"!temp_set!"
-                    echo 扩大失败，程序 ffmpeg 异常退出码 !errorlevel!
+                    echo 扩大失败
                 )
             ) else (
                 echo set /a "resize_failed+=1">>"!temp_set!"
