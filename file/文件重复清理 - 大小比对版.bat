@@ -92,21 +92,34 @@ powershell -NoProfile -Command ^
     "$p1=$env:path1;" ^
     "$p2=$env:path2;" ^
     "$files1=@(Get-ChildItem -LiteralPath $p1 -File -Recurse);" ^
-    "$total=$files1.Count; $deleted=0; $failed=0;" ^
+    "$total=$files1.Count;" ^
+    "$deleted=0;" ^
+    "$failed=0;" ^
     "if ($p1 -eq $p2) {" ^
     "    $group=@{};" ^
-    "    foreach ($f in $files1) { $k=$f.Name+'|'+$f.Length; if (-not $group.ContainsKey($k)) { $group[$k]=@() }; $group[$k]+=$f.FullName }" ^
-    "    foreach ($k in $group.Keys) { if ($group[$k].Count -ge 2) { $group[$k] | Select-Object -Skip 1 | ForEach-Object {" ^
-    "        Write-Host ('删除: '+$_);" ^
-    "        try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_,'OnlyErrorDialogs','SendToRecycleBin'); $deleted++ } catch { $failed++ }" ^
-    "    } } }" ^
+    "    foreach ($f in $files1) {" ^
+    "        $k=$f.Name+'|'+$f.Length;" ^
+    "        if (-not $group.ContainsKey($k)) { $group[$k]=@() };" ^
+    "        $group[$k]+=$f.FullName;" ^
+    "    };" ^
+    "    foreach ($k in $group.Keys) {" ^
+    "        if ($group[$k].Count -ge 2) {" ^
+    "            $group[$k] | Select-Object -Skip 1 | ForEach-Object {" ^
+    "                Write-Host ('删除: '+$_);" ^
+    "                try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_, 'OnlyErrorDialogs', 'SendToRecycleBin'); $deleted++ } catch { $failed++ };" ^
+    "            };" ^
+    "        };" ^
+    "    };" ^
     "} else {" ^
     "    $map=@{};" ^
     "    Get-ChildItem -LiteralPath $p2 -File -Recurse | ForEach-Object { $map[$_.Name+'|'+$_.Length]=$true };" ^
-    "    foreach ($f in $files1) { $k=$f.Name+'|'+$f.Length; if ($map.ContainsKey($k)) {" ^
-    "        Write-Host ('删除: '+$f.FullName);" ^
-    "        try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f.FullName,'OnlyErrorDialogs','SendToRecycleBin'); $deleted++ } catch { $failed++ }" ^
-    "    } }" ^
+    "    foreach ($f in $files1) {" ^
+    "        $k=$f.Name+'|'+$f.Length;" ^
+    "        if ($map.ContainsKey($k)) {" ^
+    "            Write-Host ('删除: '+$f.FullName);" ^
+    "            try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f.FullName, 'OnlyErrorDialogs', 'SendToRecycleBin'); $deleted++ } catch { $failed++ };" ^
+    "        };" ^
+    "    };" ^
     "}" ^
     "Write-Host '';" ^
     "Write-Host ('共计: '+$total+' 个，删除成功: '+$deleted+' 个，删除失败: '+$failed+' 个');"
