@@ -121,6 +121,7 @@ video2x
 *.tbz2
 
 # Temp Files
+.codebuddy
 *.LOG
 *.log
 *.TXT
