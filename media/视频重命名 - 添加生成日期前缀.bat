@@ -94,7 +94,7 @@ if "!param1!" == "" (
         )
         if "!creation_date!"=="" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
-            set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+            set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!bili_out_file!"
             powershell -NoProfile -Command ^
                 "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
@@ -215,7 +215,7 @@ if not "!working_dir!" == "" (
         )
         if "!creation_date!"=="" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
-            set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+            set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!bili_out_file!"
             powershell -NoProfile -Command ^
                 "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
