@@ -13,7 +13,7 @@ powershell -NoProfile -Command "Write-Host '搜索和清理重复文件，将会
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个文件夹路径' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '也可以选中两个文件夹，拖拽到此脚本上，自动识别处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '当两次输入的文件夹路径相同时，则清理该文件夹自身的重复文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '文件比对一致后，将重复文件删除到回收站' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '文件名称和内容比对一致后，将重复文件删除到回收站' -ForegroundColor Green"
 echo.
 
 
@@ -79,6 +79,10 @@ if not exist "!path2!\" (
 echo 清理文件夹："!path1!"
 echo 参考文件夹："!path2!"
 echo.
+if /i "!path1!"=="!path2!" (
+    echo 提示：两次输入的文件夹相同，将清理该文件夹自身的重复文件
+    echo.
+)
 
 REM 将两个文件夹的文件列表分别缓存到临时文件，只枚举一次，避免对每个文件重复扫描
 set "tmp_list1=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_list1!"

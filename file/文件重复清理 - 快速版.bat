@@ -14,7 +14,7 @@ powershell -NoProfile -Command "Write-Host '依赖 Everything 的命令行工具
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个文件夹路径' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '也可以选中两个文件夹，拖拽到此脚本上，自动识别处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '当两次输入的文件夹路径相同时，则清理该文件夹自身的重复文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '文件比对一致后，将重复文件删除到回收站' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '文件名称和内容比对一致后，将重复文件删除到回收站' -ForegroundColor Green"
 echo.
 
 
@@ -102,6 +102,10 @@ if not exist "!path2!\" (
 echo 清理文件夹："!path1!"
 echo 参考文件夹："!path2!"
 echo.
+if /i "!path1!"=="!path2!" (
+    echo 提示：两次输入的文件夹相同，将清理该文件夹自身的重复文件
+    echo.
+)
 
 REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
 set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
