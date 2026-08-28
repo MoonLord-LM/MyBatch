@@ -9,7 +9,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '保留第 1 个文件的元数据信息，将第 2 个文件的画面和声音内容，替换到第 1 个文件中，生成一个新的文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '保留第 1 个文件的封面、字幕和元数据信息，将第 2 个文件的画面和声音内容，替换到第 1 个文件中，生成新文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个视频文件的路径' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '也可以选中两个视频文件，拖拽到此脚本上，自动识别处理；不支持拖入文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
@@ -141,7 +141,9 @@ for %%i in ("!video1!") do (
     echo 处理文件："!video1!" & REM
     echo 替换画面和声音："!video2!"
 
-    "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:v -map 1:a -map 1:s? -map_metadata 0 -c copy "!temp_file!"
+    :: 小写 v 匹配所有视频流，大写 V 只匹配除封面之外的纯视频流
+    :: 画面和声音取第 2 个文件的，封面和字幕保留第 1 个文件的
+    "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:V -map 1:a -map 0:v? -map -0:V -map 0:s? -map_metadata 0 -c copy "!temp_file!"
     if !errorlevel! neq 0 (
         if exist "!temp_file!" ( del /f /q "!temp_file!" )
         echo.
