@@ -64,104 +64,104 @@ if not "!working_dir!" == "" (
     set /a "rename_failed=0"
 
     powershell -NoProfile -Command ^
-     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-     "$ext_filter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$';" ^
-     "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match $ext_filter });" ^
-     "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 }" ^
-     "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
-     "foreach ($g in ($files | Group-Object Extension)) {" ^
-     "    if ($g.Count -eq 1) {" ^
-     "        Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
-     "        Write-Host ('跳过，单文件，无公共前后缀：\"' + $g.Group[0].Name + '\"');" ^
-     "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
-     "        continue;" ^
-     "    }" ^
-     "    $names = @($g.Group | ForEach-Object { $_.BaseName });" ^
-     "    $prefix = $names[0];" ^
-     "    foreach ($n in $names) {" ^
-     "        while ($prefix.Length -gt 0 -and -not $n.StartsWith($prefix)) { $prefix = $prefix.Substring(0, $prefix.Length - 1) }" ^
-     "        if ($prefix.Length -eq 0) { break }" ^
-     "    }" ^
-     "    $suffix = '';" ^
-     "    $minLength = ($names | Measure-Object -Property Length -Minimum).Minimum;" ^
-     "    for ($i = 1; $i -le $minLength; $i++) {" ^
-     "        $ch = $names[0][$names[0].Length - $i];" ^
-     "        $allMatch = $true;" ^
-     "        foreach ($n in $names) { if ($n[$n.Length - $i] -ne $ch) { $allMatch = $false; break } }" ^
-     "        if (-not $allMatch) { break }" ^
-     "        $suffix = $ch + $suffix;" ^
-     "    }" ^
-     "    if ($prefix.Length -eq 0 -and $suffix.Length -eq 0) {" ^
-     "        Write-Host ('跳过，无公共前后缀：\"' + $g.Name + '\"，共 ' + $g.Count + ' 个文件');" ^
-     "        Add-Content -LiteralPath $env:temp_set -Value ('set /a skipped+=' + $g.Count);" ^
-     "        Add-Content -LiteralPath $env:temp_set -Value ('set /a total+=' + $g.Count);" ^
-     "        continue;" ^
-     "    }" ^
-     "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
-     "    $keepPrefix = '';" ^
-     "    $i = $prefix.Length - 1;" ^
-     "    while ($i -ge 0) {" ^
-     "        $ch = $prefix[$i];" ^
-     "        if ('0123456789[【(（{'.Contains($ch)) { $keepPrefix = $ch + $keepPrefix; $i-- } else { break }" ^
-     "    }" ^
-     "    $cutPrefix = $prefix;" ^
-     "    if ($keepPrefix.Length -gt 0) { $cutPrefix = $prefix.Substring(0, $prefix.Length - $keepPrefix.Length) }" ^
-     "    if ($prefix.Length -gt 0) {" ^
-     "        if ($cutPrefix.Length -gt 0) {" ^
-     "            if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，仅消除 \"' + $cutPrefix + '\"') } else { Write-Host ('  公共前缀 \"' + $cutPrefix + '\" 予以消除') }" ^
-     "        } else { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，消除部分为空，不做处理') }" ^
-     "    }" ^
-     "    $keepSuffix = '';" ^
-     "    $i = 0;" ^
-     "    while ($i -lt $suffix.Length) {" ^
-     "        $ch = $suffix[$i];" ^
-     "        if ('}）)]】'.Contains($ch)) { $keepSuffix += $ch; $i++ } else { break }" ^
-     "    }" ^
-     "    $cutSuffix = $suffix;" ^
-     "    if ($keepSuffix.Length -gt 0) { $cutSuffix = $suffix.Substring($keepSuffix.Length) }" ^
-     "    if ($suffix.Length -gt 0) {" ^
-     "        if ($cutSuffix.Length -gt 0) {" ^
-     "            if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，仅消除 \"' + $cutSuffix + '\"') } else { Write-Host ('  公共后缀 \"' + $cutSuffix + '\" 予以消除') }" ^
-     "        } else { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，消除部分为空，不做处理') }" ^
-     "    }" ^
-     "    $coreNames = @();" ^
-     "    foreach ($f in $g.Group) {" ^
-     "        $core = $f.BaseName;" ^
-     "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) }" ^
-     "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix }" ^
-     "        if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName }" ^
-     "        $coreNames += $core;" ^
-     "    }" ^
-     "    $maxDigits = 0;" ^
-     "    foreach ($cn in $coreNames) { if ($cn -match '^\d+$' -and $cn.Length -gt $maxDigits) { $maxDigits = $cn.Length } }" ^
-     "    foreach ($f in $g.Group) {" ^
-     "        $core = $f.BaseName;" ^
-     "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) }" ^
-     "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix }" ^
-     "        if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName }" ^
-     "        if ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') }" ^
-     "        $newName = $core + $f.Extension;" ^
-     "        if ($newName -eq $f.Name) {" ^
-     "            Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
-     "            Write-Host ('跳过，无需更改：\"' + $f.Name + '\"');" ^
-     "        } else {" ^
-     "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
-     "                Add-Content -LiteralPath $env:temp_set -Value 'set /a name_conflict+=1';" ^
-     "                Write-Host ('跳过，目标已存在：\"' + $f.Name + '\" -> \"' + $newName + '\"');" ^
-     "            } else {" ^
-     "                try {" ^
-     "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
-     "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a succeeded+=1';" ^
-     "                    Write-Host ('重命名成功：\"' + $f.Name + '\" -> \"' + $newName + '\"');" ^
-     "                } catch {" ^
-     "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a rename_failed+=1';" ^
-     "                    Write-Host ('重命名失败：\"' + $f.Name + '\" -> \"' + $newName + '\"，报错信息：' + $_.Exception.Message);" ^
-     "                }" ^
-     "            }" ^
-     "        }" ^
-     "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
-     "    }" ^
-     "}"
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$ext_filter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico)$';" ^
+        "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -match $ext_filter });" ^
+        "if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 }" ^
+        "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
+        "foreach ($g in ($files | Group-Object Extension)) {" ^
+        "    if ($g.Count -eq 1) {" ^
+        "        Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
+        "        Write-Host ('跳过，单文件，无公共前后缀：\"' + $g.Group[0].Name + '\"');" ^
+        "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
+        "        continue;" ^
+        "    }" ^
+        "    $names = @($g.Group | ForEach-Object { $_.BaseName });" ^
+        "    $prefix = $names[0];" ^
+        "    foreach ($n in $names) {" ^
+        "        while ($prefix.Length -gt 0 -and -not $n.StartsWith($prefix)) { $prefix = $prefix.Substring(0, $prefix.Length - 1) }" ^
+        "        if ($prefix.Length -eq 0) { break }" ^
+        "    }" ^
+        "    $suffix = '';" ^
+        "    $minLength = ($names | Measure-Object -Property Length -Minimum).Minimum;" ^
+        "    for ($i = 1; $i -le $minLength; $i++) {" ^
+        "        $ch = $names[0][$names[0].Length - $i];" ^
+        "        $allMatch = $true;" ^
+        "        foreach ($n in $names) { if ($n[$n.Length - $i] -ne $ch) { $allMatch = $false; break } }" ^
+        "        if (-not $allMatch) { break }" ^
+        "        $suffix = $ch + $suffix;" ^
+        "    }" ^
+        "    if ($prefix.Length -eq 0 -and $suffix.Length -eq 0) {" ^
+        "        Write-Host ('跳过，无公共前后缀：\"' + $g.Name + '\"，共 ' + $g.Count + ' 个文件');" ^
+        "        Add-Content -LiteralPath $env:temp_set -Value ('set /a skipped+=' + $g.Count);" ^
+        "        Add-Content -LiteralPath $env:temp_set -Value ('set /a total+=' + $g.Count);" ^
+        "        continue;" ^
+        "    }" ^
+        "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
+        "    $keepPrefix = '';" ^
+        "    $i = $prefix.Length - 1;" ^
+        "    while ($i -ge 0) {" ^
+        "        $ch = $prefix[$i];" ^
+        "        if ('0123456789[【(（{'.Contains($ch)) { $keepPrefix = $ch + $keepPrefix; $i-- } else { break }" ^
+        "    }" ^
+        "    $cutPrefix = $prefix;" ^
+        "    if ($keepPrefix.Length -gt 0) { $cutPrefix = $prefix.Substring(0, $prefix.Length - $keepPrefix.Length) }" ^
+        "    if ($prefix.Length -gt 0) {" ^
+        "        if ($cutPrefix.Length -gt 0) {" ^
+        "            if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，仅消除 \"' + $cutPrefix + '\"') } else { Write-Host ('  公共前缀 \"' + $cutPrefix + '\" 予以消除') }" ^
+        "        } else { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，消除部分为空，不做处理') }" ^
+        "    }" ^
+        "    $keepSuffix = '';" ^
+        "    $i = 0;" ^
+        "    while ($i -lt $suffix.Length) {" ^
+        "        $ch = $suffix[$i];" ^
+        "        if ('}）)]】'.Contains($ch)) { $keepSuffix += $ch; $i++ } else { break }" ^
+        "    }" ^
+        "    $cutSuffix = $suffix;" ^
+        "    if ($keepSuffix.Length -gt 0) { $cutSuffix = $suffix.Substring($keepSuffix.Length) }" ^
+        "    if ($suffix.Length -gt 0) {" ^
+        "        if ($cutSuffix.Length -gt 0) {" ^
+        "            if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，仅消除 \"' + $cutSuffix + '\"') } else { Write-Host ('  公共后缀 \"' + $cutSuffix + '\" 予以消除') }" ^
+        "        } else { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，消除部分为空，不做处理') }" ^
+        "    }" ^
+        "    $coreNames = @();" ^
+        "    foreach ($f in $g.Group) {" ^
+        "        $core = $f.BaseName;" ^
+        "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) }" ^
+        "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix }" ^
+        "        if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName }" ^
+        "        $coreNames += $core;" ^
+        "    }" ^
+        "    $maxDigits = 0;" ^
+        "    foreach ($cn in $coreNames) { if ($cn -match '^\d+$' -and $cn.Length -gt $maxDigits) { $maxDigits = $cn.Length } }" ^
+        "    foreach ($f in $g.Group) {" ^
+        "        $core = $f.BaseName;" ^
+        "        if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) }" ^
+        "        if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix }" ^
+        "        if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName }" ^
+        "        if ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') }" ^
+        "        $newName = $core + $f.Extension;" ^
+        "        if ($newName -eq $f.Name) {" ^
+        "            Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
+        "            Write-Host ('跳过，无需更改：\"' + $f.Name + '\"');" ^
+        "        } else {" ^
+        "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
+        "                Add-Content -LiteralPath $env:temp_set -Value 'set /a name_conflict+=1';" ^
+        "                Write-Host ('跳过，目标已存在：\"' + $f.Name + '\" -> \"' + $newName + '\"');" ^
+        "            } else {" ^
+        "                try {" ^
+        "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
+        "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a succeeded+=1';" ^
+        "                    Write-Host ('重命名成功：\"' + $f.Name + '\" -> \"' + $newName + '\"');" ^
+        "                } catch {" ^
+        "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a rename_failed+=1';" ^
+        "                    Write-Host ('重命名失败：\"' + $f.Name + '\" -> \"' + $newName + '\"，报错信息：' + $_.Exception.Message);" ^
+        "                }" ^
+        "            }" ^
+        "        }" ^
+        "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
+        "    }" ^
+        "}"
     echo.
 
     REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递

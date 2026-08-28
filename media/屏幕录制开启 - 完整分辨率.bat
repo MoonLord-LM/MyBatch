@@ -66,15 +66,15 @@ if exist "!pid_file!" (
 REM 获取屏幕分辨率
 for /f "delims=" %%r in ('
     powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "$source = 'using System.Runtime.InteropServices;' +" ^
-    "    'public static class ScreenMetrics {' +" ^
-    "    '[DllImport(\"user32.dll\")] public static extern bool SetProcessDPIAware();' +" ^
-    "    '[DllImport(\"user32.dll\")] public static extern int GetSystemMetrics(int nIndex);' +" ^
-    "    '}';" ^
-    "Add-Type -TypeDefinition $source;" ^
-    "[ScreenMetrics]::SetProcessDPIAware() | Out-Null;" ^
-    "Write-Output ('screen_size={0}x{1}' -f [ScreenMetrics]::GetSystemMetrics(0), [ScreenMetrics]::GetSystemMetrics(1));"
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$source = 'using System.Runtime.InteropServices;' +" ^
+        "    'public static class ScreenMetrics {' +" ^
+        "    '[DllImport(\"user32.dll\")] public static extern bool SetProcessDPIAware();' +" ^
+        "    '[DllImport(\"user32.dll\")] public static extern int GetSystemMetrics(int nIndex);' +" ^
+        "    '}';" ^
+        "Add-Type -TypeDefinition $source;" ^
+        "[ScreenMetrics]::SetProcessDPIAware() | Out-Null;" ^
+        "Write-Output ('screen_size={0}x{1}' -f [ScreenMetrics]::GetSystemMetrics(0), [ScreenMetrics]::GetSystemMetrics(1));"
 ') do set "%%r"
 echo 屏幕分辨率：!screen_size!
 
