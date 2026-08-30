@@ -88,8 +88,8 @@ for %%i in ("!input_path!") do (
     if exist "!output_path!" (
         echo 输出压缩包已存在："!output_path!"，跳过不处理
     ) else (
-        REM 压缩并静默输出，-y 自动确认，<nul 防止 7-Zip 交互等待
-        "!seven_zip!" a %zip_params% -y -bso0 -bsp0 "!output_path!" "!input_path!" <nul
+        REM -y 自动确认，<nul 防止 7-Zip 交互等待
+        "!seven_zip!" a %zip_params% -y "!output_path!" "!input_path!" <nul
         if !errorlevel! equ 0 (
             for %%j in ("!output_path!") do (
                 setlocal disabledelayedexpansion
