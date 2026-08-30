@@ -36,13 +36,16 @@ exit /b
     )
 
     echo 在新窗口中下载: "!url!"
+
     set command1=yt-dlp.exe ^
      --cookies ""www.youtube.com_cookies.txt"" ^
+     --extractor-args ""youtube:player_client=all"" ^
      --list-formats ^
      --verbose ^
      ""!url!""
     set command2=yt-dlp.exe ^
      --cookies ""www.youtube.com_cookies.txt"" ^
+     --extractor-args ""youtube:player_client=all"" ^
      --concurrent-fragments 20 ^
      -f ""bestvideo+bestaudio/best"" ^
      --merge-output-format mp4 ^
@@ -53,6 +56,7 @@ exit /b
      --embed-info-json ^
      --verbose ^
      ""!url!""
+
     start "" cmd /c "%command1% & %command2% || pause"
     echo.
 exit /b
