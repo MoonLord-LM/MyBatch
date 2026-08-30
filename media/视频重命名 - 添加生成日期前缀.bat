@@ -12,6 +12,7 @@ powershell -NoProfile -Command "Write-Host '给视频文件添加生成日期前
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '特殊场景：没有内置的时间信息标记时，如果文件名符合微信导出的 mmexport + 13 位时间戳 的格式，从文件名识别导出时间' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '特殊场景：没有内置的时间信息标记时，尝试识别文件名末尾的 [av数字] 标记，联网查询 B 站最相邻 av 号的视频的发布时间' -ForegroundColor Green"
 echo.
 
@@ -91,6 +92,13 @@ if "!param1!" == "" (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 苹果 QuickTime 格式标记："!creation_date!"
+        )
+        if "!creation_date!"=="" (
+            REM 识别微信导出视频文件名中的保存时间（mmexport + 13 位毫秒时间戳，UTC），转换为系统时区日期
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
+                set "creation_date=%%a"
+            )
+            if not "!creation_date!"=="" echo 微信文件名的导出时间："!creation_date!"
         )
         if "!creation_date!"=="" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
@@ -212,6 +220,13 @@ if not "!working_dir!" == "" (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 苹果 QuickTime 格式标记："!creation_date!"
+        )
+        if "!creation_date!"=="" (
+            REM 识别微信导出视频文件名中的保存时间（mmexport + 13 位毫秒时间戳，UTC），转换为系统时区日期
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
+                set "creation_date=%%a"
+            )
+            if not "!creation_date!"=="" echo 微信文件名的导出时间："!creation_date!"
         )
         if "!creation_date!"=="" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
