@@ -509,6 +509,9 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_video_codec_level!"=="150" ( set "x265_level=50"
         ) else if /i "!first_video_codec_level!"=="153" ( set "x265_level=51"
         ) else if /i "!first_video_codec_level!"=="156" ( set "x265_level=52"
+        ) else if /i "!first_video_codec_level!"=="180" ( set "x265_level=60"
+        ) else if /i "!first_video_codec_level!"=="183" ( set "x265_level=61"
+        ) else if /i "!first_video_codec_level!"=="186" ( set "x265_level=62"
         ) else (
             echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
             pause
