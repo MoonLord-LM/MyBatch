@@ -781,25 +781,35 @@ if not "!working_dir!" == "" (
                 "!ffmpeg_path!" -y -i "!working_dir!\cover.webp" "!working_dir!\cover.png"
             )
         )
+        if not exist "!working_dir!\海报.png" (
+            if exist "!working_dir!\海报.webp" (
+                echo 检测到封面 海报.webp，正在转换为 海报.png
+                "!ffmpeg_path!" -y -i "!working_dir!\海报.webp" "!working_dir!\海报.png"
+            )
+        )
 
-        REM 查找封面文件，优先使用 PNG 格式
+        REM 查找封面文件，优先使用 PNG 格式，顺序为 0、00、000、cover、海报
         set "cover_file="
         if exist "!working_dir!\0.png" (
             set "cover_file=!working_dir!\0.png"
-        ) else if exist "!working_dir!\00.png" (
-            set "cover_file=!working_dir!\00.png"
-        ) else if exist "!working_dir!\000.png" (
-            set "cover_file=!working_dir!\000.png"
         ) else if exist "!working_dir!\0.jpg" (
             set "cover_file=!working_dir!\0.jpg"
+        ) else if exist "!working_dir!\00.png" (
+            set "cover_file=!working_dir!\00.png"
         ) else if exist "!working_dir!\00.jpg" (
             set "cover_file=!working_dir!\00.jpg"
+        ) else if exist "!working_dir!\000.png" (
+            set "cover_file=!working_dir!\000.png"
         ) else if exist "!working_dir!\000.jpg" (
             set "cover_file=!working_dir!\000.jpg"
         ) else if exist "!working_dir!\cover.png" (
             set "cover_file=!working_dir!\cover.png"
         ) else if exist "!working_dir!\cover.jpg" (
             set "cover_file=!working_dir!\cover.jpg"
+        ) else if exist "!working_dir!\海报.png" (
+            set "cover_file=!working_dir!\海报.png"
+        ) else if exist "!working_dir!\海报.jpg" (
+            set "cover_file=!working_dir!\海报.jpg"
         )
         if not "!cover_file!"=="" (
             for /f "delims=" %%p in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"') do (
@@ -830,7 +840,7 @@ if not "!working_dir!" == "" (
                 endlocal & endlocal & exit /b 1
             )
         ) else (
-            echo 封面文件（0.png、0.jpg、cover.png 等）不存在，不添加封面
+            echo 封面文件（0.png、00.png、000.png、cover.png、海报.png 等）不存在，不添加封面
             move /y "!working_dir!\_tmp_merged.mp4" "!working_dir!\final.mp4"
         )
         echo 合并完成，已生成 !working_dir!\final.mp4 文件
