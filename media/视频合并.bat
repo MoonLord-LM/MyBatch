@@ -784,6 +784,12 @@ if not "!working_dir!" == "" (
                 "!ffmpeg_path!" -y -i "!working_dir!\cover.webp" "!working_dir!\cover.png"
             )
         )
+        if not exist "!working_dir!\封面.png" (
+            if exist "!working_dir!\封面.webp" (
+                echo 检测到封面 封面.webp，正在转换为 封面.png
+                "!ffmpeg_path!" -y -i "!working_dir!\封面.webp" "!working_dir!\封面.png"
+            )
+        )
         if not exist "!working_dir!\海报.png" (
             if exist "!working_dir!\海报.webp" (
                 echo 检测到封面 海报.webp，正在转换为 海报.png
@@ -791,7 +797,7 @@ if not "!working_dir!" == "" (
             )
         )
 
-        REM 查找封面文件，优先使用 PNG 格式，顺序为 0、00、000、cover、海报
+        REM 查找封面文件，优先使用 PNG 格式，顺序为 0、00、000、cover、封面、海报
         set "cover_file="
         if exist "!working_dir!\0.png" (
             set "cover_file=!working_dir!\0.png"
@@ -809,6 +815,10 @@ if not "!working_dir!" == "" (
             set "cover_file=!working_dir!\cover.png"
         ) else if exist "!working_dir!\cover.jpg" (
             set "cover_file=!working_dir!\cover.jpg"
+        ) else if exist "!working_dir!\封面.png" (
+            set "cover_file=!working_dir!\封面.png"
+        ) else if exist "!working_dir!\封面.jpg" (
+            set "cover_file=!working_dir!\封面.jpg"
         ) else if exist "!working_dir!\海报.png" (
             set "cover_file=!working_dir!\海报.png"
         ) else if exist "!working_dir!\海报.jpg" (
@@ -843,7 +853,7 @@ if not "!working_dir!" == "" (
                 endlocal & endlocal & exit /b 1
             )
         ) else (
-            echo 封面文件（0.png、00.png、000.png、cover.png、海报.png 等）不存在，不添加封面
+            echo 封面文件（0.png、00.png、000.png、cover.png、封面.png、海报.png 等）不存在，不添加封面
             move /y "!working_dir!\_tmp_merged.mp4" "!working_dir!\final.mp4"
         )
         echo 合并完成，已生成 !working_dir!\final.mp4 文件
