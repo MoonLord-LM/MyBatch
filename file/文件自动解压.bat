@@ -79,6 +79,12 @@ if !errorlevel! neq 0 (
 REM 预置的公开密码
 set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','shoujihao','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
 
+set /a "total=0"
+set /a "succeeded=0"
+set /a "password_succeeded=0"
+set /a "output_exist=0"
+set /a "extract_failed=0"
+
 
 
 if "!param1!" == "" (
@@ -119,22 +125,23 @@ if "!param1!" == "" (
             )
             if exist "!output_dir!" (
                 echo 输出文件夹已存在："!output_dir!"，跳过此压缩文件
+                set /a "output_exist+=1"
             ) else (
                 set "extracted=0"
                 set "used_password="
 
-                REM 先测试无密码是否可解压
-                "!seven_zip!" t -y "!archive_path!" <nul >nul 2>&1
+                REM 先测试无密码是否可解压（测试静默，避免刷屏）
+                "!seven_zip!" t -y -sccUTF-8 "!archive_path!" <nul >nul 2>&1
                 if !errorlevel! equ 0 (
-                    "!seven_zip!" x -y -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
+                    "!seven_zip!" x -y -sccUTF-8 -o"!output_dir!" "!archive_path!" <nul
                     if !errorlevel! equ 0 set "extracted=1"
                 ) else (
                     REM 依次测试密码列表中的密码
                     for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
                         if "!extracted!"=="0" (
-                            "!seven_zip!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
+                            "!seven_zip!" t -y -sccUTF-8 -p"%%p" "!archive_path!" <nul >nul 2>&1
                             if !errorlevel! equ 0 (
-                                "!seven_zip!" x -y -p"%%p" -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
+                                "!seven_zip!" x -y -sccUTF-8 -p"%%p" -o"!output_dir!" "!archive_path!" <nul
                                 if !errorlevel! equ 0 (
                                     set "extracted=1"
                                     set "used_password=%%p"
@@ -146,10 +153,10 @@ if "!param1!" == "" (
 
                 REM 7-Zip 无法处理时，用 WinRAR 尝试
                 if "!extracted!"=="0" (
-                    REM 先测试无密码是否可解压
+                    REM 先测试无密码是否可解压（测试静默，避免刷屏）
                     "!unrar!" t -y "!archive_path!" <nul >nul 2>&1
                     if !errorlevel! equ 0 (
-                        "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                        "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul
                         if !errorlevel! equ 0 set "extracted=1"
                     ) else (
                         REM 依次测试密码列表中的密码
@@ -157,7 +164,7 @@ if "!param1!" == "" (
                             if "!extracted!"=="0" (
                                 "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                                 if !errorlevel! equ 0 (
-                                    "!unrar!" x -y -p"%%p" "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                                    "!unrar!" x -y -p"%%p" "!archive_path!" "!output_dir!"\ <nul
                                     if !errorlevel! equ 0 (
                                         set "extracted=1"
                                         set "used_password=%%p"
@@ -170,17 +177,21 @@ if "!param1!" == "" (
 
                 if "!extracted!"=="1" (
                     if "!used_password!"=="" (
+                        set /a "succeeded+=1"
                         echo 解压成功（无密码）
                     ) else (
+                        set /a "password_succeeded+=1"
                         echo 解压成功，密码为："!used_password!"
                     )
                     echo 尝试解压嵌套压缩包，处理文件夹："!output_dir!"
                     set "working_dir=!output_dir!"
                     echo.
                 ) else (
+                    set /a "extract_failed+=1"
                     echo 解压失败：密码都不正确或文件损坏
                 )
             )
+            set /a "total+=1"
         ) else (
             echo 错误：不支持的文件后缀 "!file_ext!"，请拖入压缩文件
             echo.
@@ -197,11 +208,6 @@ if not "!working_dir!" == "" (
     REM 记录已处理过的文件路径，用于去重
     set "temp_skip=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_skip!"
 
-    set /a "total=0"
-    set /a "succeeded=0"
-    set /a "password_succeeded=0"
-    set /a "output_exist=0"
-    set /a "extract_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2|001)$"
     for /l %%d in (1,1,5) do (
@@ -229,18 +235,18 @@ if not "!working_dir!" == "" (
                     set "extracted=0"
                     set "used_password="
 
-                    REM 先测试无密码是否可解压
-                    "!seven_zip!" t -y "!archive_path!" <nul >nul 2>&1
+                    REM 先测试无密码是否可解压（测试静默，避免刷屏）
+                    "!seven_zip!" t -y -sccUTF-8 "!archive_path!" <nul >nul 2>&1
                     if !errorlevel! equ 0 (
-                        "!seven_zip!" x -y -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
+                        "!seven_zip!" x -y -sccUTF-8 -o"!output_dir!" "!archive_path!" <nul
                         if !errorlevel! equ 0 set "extracted=1"
                     ) else (
                         REM 依次测试密码列表中的密码
                         for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; %public_password_list%"`) do (
                             if "!extracted!"=="0" (
-                                "!seven_zip!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
+                                "!seven_zip!" t -y -sccUTF-8 -p"%%p" "!archive_path!" <nul >nul 2>&1
                                 if !errorlevel! equ 0 (
-                                    "!seven_zip!" x -y -p"%%p" -o"!output_dir!" "!archive_path!" <nul >nul 2>&1
+                                    "!seven_zip!" x -y -sccUTF-8 -p"%%p" -o"!output_dir!" "!archive_path!" <nul
                                     if !errorlevel! equ 0 (
                                         set "extracted=1"
                                         set "used_password=%%p"
@@ -252,10 +258,10 @@ if not "!working_dir!" == "" (
 
                     REM 7-Zip 无法处理时，用 WinRAR 尝试
                     if "!extracted!"=="0" (
-                        REM 先测试无密码是否可解压
+                        REM 先测试无密码是否可解压（测试静默，避免刷屏）
                         "!unrar!" t -y "!archive_path!" <nul >nul 2>&1
                         if !errorlevel! equ 0 (
-                            "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                            "!unrar!" x -y "!archive_path!" "!output_dir!"\ <nul
                             if !errorlevel! equ 0 set "extracted=1"
                         ) else (
                             REM 依次测试密码列表中的密码
@@ -263,7 +269,7 @@ if not "!working_dir!" == "" (
                                 if "!extracted!"=="0" (
                                     "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                                     if !errorlevel! equ 0 (
-                                        "!unrar!" x -y -p"%%p" "!archive_path!" "!output_dir!"\ <nul >nul 2>&1
+                                        "!unrar!" x -y -p"%%p" "!archive_path!" "!output_dir!"\ <nul
                                         if !errorlevel! equ 0 (
                                             set "extracted=1"
                                             set "used_password=%%p"
@@ -300,13 +306,13 @@ if not "!working_dir!" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     if exist "!temp_skip!" ( del /f /q "!temp_skip!" )
-
-    echo 批量处理完成
-    set /a "ok_total=succeeded+password_succeeded"
-    set /a "fail_total=extract_failed+output_exist"
-    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，无密码解压成功 !succeeded! 个，密码解压成功 !password_succeeded! 个，解压失败 !extract_failed! 个，输出文件夹已存在 !output_exist! 个
 )
+
+echo 处理完成
+set /a "ok_total=succeeded+password_succeeded"
+set /a "fail_total=extract_failed+output_exist"
+echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
+echo 其中，无密码解压成功 !succeeded! 个，密码解压成功 !password_succeeded! 个，解压失败 !extract_failed! 个，输出文件夹已存在 !output_exist! 个
 
 
 
