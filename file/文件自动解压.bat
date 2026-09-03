@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '使用预置的在互联网上公开的密码，对压缩文件尝试进行解压' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的压缩文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个压缩文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '处理的范围为 7z zip rar tar gz bz2 xz tgz tbz2 格式的文件以及无后缀的文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '处理的范围为 7z zip rar tar gz bz2 xz tgz tbz2 格式的文件、.001 分卷压缩包以及无后缀的文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '预置的公开密码，保存在 public_password_list 变量中' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '文件会解压到与压缩文件同名的文件夹中，如果输出文件夹已存在，则跳过不处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对于嵌套压缩的压缩包文件，会尝试深入解压最多 5 层' -ForegroundColor Green"
@@ -77,7 +77,7 @@ if !errorlevel! neq 0 (
 )
 
 REM 预置的公开密码
-set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
+set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','shoujihao','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
 
 
 
@@ -104,10 +104,10 @@ if "!param1!" == "" (
         set "base_name=!param1_name!"
         set "file_ext=!param1_ext!"
 
-        REM 检查是否为支持的压缩文件后缀：7z zip rar tar gz bz2 xz tgz tbz2，或为无后缀的文件
+        REM 检查是否为支持的压缩文件后缀：7z zip rar tar gz bz2 xz tgz tbz2、.001 分卷，或为无后缀的文件
         set "is_archive="
         if "!file_ext!"=="" set "is_archive=1"
-        for %%e in (.7z .zip .rar .tar .gz .bz2 .xz .tgz .tbz2) do (
+        for %%e in (.7z .zip .rar .tar .gz .bz2 .xz .tgz .tbz2 .001) do (
             if /i "!file_ext!"=="%%e" set "is_archive=1"
         )
 
@@ -203,7 +203,7 @@ if not "!working_dir!" == "" (
     set /a "output_exist=0"
     set /a "extract_failed=0"
     set "file_path=!working_dir!"
-    set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2)$"
+    set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2|001)$"
     for /l %%d in (1,1,5) do (
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
