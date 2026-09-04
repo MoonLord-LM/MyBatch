@@ -377,8 +377,8 @@ if not "!working_dir!" == "" (
             for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of csv=p=0 $env:name_path 2>$null"') do (
                 set "current_video_time_base=%%v"
             )
-            set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
-            set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
+            set "current_video_codec_all=!current_video_codec! - !current_video_codec_tag! - !current_video_codec_profile! - !current_video_codec_level! - !current_video_codec_tier!"
+            set "current_audio_codec_all=!current_audio_codec! - !current_audio_codec_profile!"
             echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
 
             REM 对比参数
@@ -574,7 +574,7 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_audio_codec_profile!"=="HE-AAC" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he"
         ) else if /i "!first_audio_codec_profile!"=="HE-AACv2" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
         ) else (
-            echo 警告：未知音频编码 "!first_audio_codec! !first_audio_codec_profile!"，使用默认 aac
+            echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
             pause
         )
     ) else if /i "!first_audio_codec!"=="MP3" (
@@ -583,8 +583,10 @@ if not "!working_dir!" == "" (
         set "target_audio_encoder=ac3"
     ) else if /i "!first_audio_codec!"=="EAC3" (
         set "target_audio_encoder=eac3"
+    ) else if /i "!first_audio_codec!"=="FLAC" (
+        set "target_audio_encoder=flac"
     ) else (
-        echo 警告：未知音频编码 "!first_audio_codec! !first_audio_codec_profile!"，使用默认 aac
+        echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
         pause
     )
 
@@ -636,7 +638,7 @@ if not "!working_dir!" == "" (
                             -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
                             -video_track_timescale "!target_timebase!" ^
                             -c:v "libx264" -r "!first_video_fps!" ^
-                            -c:a "aac" -ar "!first_audio_sample_rate!" ^
+                            -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
                             -map_metadata -1 -threads 1 "!name_path:~0,-4!_h264_!suffix_safe!.mp4"
                     )
                     echo file '!name_path:~0,-4!_h264_!suffix_safe!.mp4'>>"!working_dir!\_tmp_file_list.txt"
@@ -710,8 +712,8 @@ if not "!working_dir!" == "" (
                     for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_time_base=%%v"
                     )
-                    set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
-                    set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
+                    set "current_video_codec_all=!current_video_codec! - !current_video_codec_tag! - !current_video_codec_profile! - !current_video_codec_level! - !current_video_codec_tier!"
+                    set "current_audio_codec_all=!current_audio_codec! - !current_audio_codec_profile!"
                     echo 第 !temp_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
                     REM 对比参数
                     set "video_consistent=1"

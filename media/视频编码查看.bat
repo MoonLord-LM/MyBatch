@@ -74,11 +74,19 @@ if "!param1!" == "" (
         )
         if "!video_codec!" == "" (
             echo 视频编码解析失败
+            echo.
+            echo ffprobe 解析信息：
+            "!ffprobe_path!" "!param1!"
+            echo.
         ) else (
             echo 视频编码：!video_codec!
         )
         if "!audio_codec!" == "" (
             echo 音频编码解析失败
+            echo.
+            echo ffprobe 解析信息：
+            "!ffprobe_path!" "!param1!"
+            echo.
         ) else (
             echo 音频编码：!audio_codec!
         )
@@ -90,6 +98,7 @@ if not "!working_dir!" == "" (
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
     set "temp_video_codecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.video_codecs" & type nul > "!temp_video_codecs!"
     set "temp_audio_codecs=%temp%\MyBatch_%random%_%random%_%random%_%random%.audio_codecs" & type nul > "!temp_audio_codecs!"
+    set "temp_failed_files=%temp%\MyBatch_%random%_%random%_%random%_%random%.failed_files" & type nul > "!temp_failed_files!"
 
     set /a "total=0"
     set /a "succeeded=0"
@@ -105,12 +114,22 @@ if not "!working_dir!" == "" (
         powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 $env:video_file 2>$null" >>"!temp_video_codecs!"
         if !errorlevel! neq 0 (
             echo set /a "parse_failed+=1">>"!temp_set!"
+            echo "!video_file!">>"!temp_failed_files!"
             echo 视频编码解析失败
+            echo.
+            echo ffprobe 解析信息：
+            "!ffprobe_path!" "!video_file!"
+            echo.
         ) else (
             powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 $env:video_file 2>$null" >>"!temp_audio_codecs!"
             if !errorlevel! neq 0 (
                 echo set /a "parse_failed+=1">>"!temp_set!"
+                echo "!video_file!">>"!temp_failed_files!"
                 echo 音频编码解析失败
+                echo.
+                echo ffprobe 解析信息：
+                "!ffprobe_path!" "!video_file!"
+                echo.
             ) else (
                 echo set /a "succeeded+=1">>"!temp_set!"
             )
@@ -155,8 +174,18 @@ if not "!working_dir!" == "" (
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。 & REM
     echo 其中，解析成功 !succeeded! 个，解析失败 !parse_failed! 个
 
+    if !parse_failed! gtr 0 (
+        echo.
+        echo 解析失败的文件：
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_failed_files | Where-Object { $_ }"') do (
+            echo %%f
+        )
+        echo.
+    )
+
     if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )
     if exist "!temp_audio_codecs!" ( del /f /q "!temp_audio_codecs!" )
+    if exist "!temp_failed_files!" ( del /f /q "!temp_failed_files!" )
 )
 
 
