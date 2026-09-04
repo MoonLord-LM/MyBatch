@@ -8,10 +8,10 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将视频同名的 .srt 字幕文件嵌入视频中，输出为 *[内嵌字幕].mp4 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将视频同名的 .ass 或 .srt 字幕文件嵌入视频中' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '仅支持 mkv 格式的视频，同名 .ass 字幕优先于 .srt 字幕' -ForegroundColor Green"
 echo.
 
 
@@ -43,6 +43,28 @@ if !errorlevel! neq 0 (
     endlocal & endlocal & exit /b 1
 )
 
+REM 检查 ffprobe 组件
+if exist "!script_dir!ffprobe.exe" (
+    set "ffprobe_path=!script_dir!ffprobe.exe"
+) else if exist "!cd!\ffprobe.exe" (
+    set "ffprobe_path=!cd!\ffprobe.exe"
+) else if exist "!script_dir!..\ffprobe.exe" (
+    set "ffprobe_path=!script_dir!..\ffprobe.exe"
+) else if exist "..\ffprobe.exe" (
+    set "ffprobe_path=..\ffprobe.exe"
+) else (
+    set "ffprobe_path=ffprobe"
+)
+"!ffprobe_path!" -version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 ffprobe 组件
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
+    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+
 
 
 if "!param1!" == "" (
@@ -67,27 +89,50 @@ if "!param1!" == "" (
         set "base_name=!param1_name!"
         set "file_ext=!param1_ext!"
 
-        set "srt_file=!file_dir!!base_name!.srt"
-        set "sub_embed_output=!file_dir!!base_name![内嵌字幕]!file_ext!"
-        if not exist "!srt_file!" (
-            echo 未找到对应的 .srt 字幕文件："!srt_file!"，跳过此文件
-        ) else if exist "!sub_embed_output!" (
-            echo 输出文件已存在："!sub_embed_output!"，跳过此文件
+        if /i not "!file_ext!"==".mkv" (
+            echo 错误：仅支持 mkv 格式的视频
+            echo.
+            pause
+            endlocal & endlocal & exit /b 1
+        )
+
+        set "has_sub=0"
+        for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:param1 2>$null"') do (
+            set "has_sub=1"
+        )
+
+        if "!has_sub!"=="1" (
+            echo 视频已内嵌字幕，跳过
         ) else (
-            if /i "!file_ext!"==".mp4" (
-                set "sub_codec=mov_text"
-            ) else if /i "!file_ext!"==".mov" (
-                set "sub_codec=mov_text"
-            ) else (
-                set "sub_codec=srt"
+            set "sub_file="
+            if exist "!file_dir!!base_name!.ass" (
+                set "sub_file=!file_dir!!base_name!.ass"
+            ) else if exist "!file_dir!!base_name!.srt" (
+                set "sub_file=!file_dir!!base_name!.srt"
             )
-            echo 字幕编码器："!sub_codec!"
-            "!ffmpeg_path!" -i "!param1!" -i "!srt_file!" -map 0 -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!sub_embed_output!"
-            if !errorlevel! neq 0 (
-                if exist "!sub_embed_output!" ( del /f /q "!sub_embed_output!" )
-                echo 嵌入失败
+
+            if "!sub_file!"=="" (
+                echo 未找到对应的 .ass 或 .srt 字幕文件："!base_name!"，跳过此文件
             ) else (
-                echo 输出文件："!sub_embed_output!"
+                REM mkv 容器原生支持 ass 与 srt 字幕轨，直接原样封装，无需转码
+                if /i "!sub_file:~-4!"==".ass" (
+                    set "sub_codec=ass"
+                ) else (
+                    set "sub_codec=srt"
+                )
+                echo 字幕文件："!sub_file!"
+                set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
+                if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                "!ffmpeg_path!" -i "!param1!" -i "!sub_file!" -map 0:v? -map 0:a? -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!temp_video_file!"
+                if !errorlevel! neq 0 (
+                    if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                    echo 嵌入失败
+                ) else (
+                    set "file_to_delete=!param1!"
+                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                    move /y "!temp_video_file!" "!param1!" >nul
+                    echo 嵌入成功
+                )
             )
         )
     )
@@ -99,11 +144,11 @@ if not "!working_dir!" == "" (
 
     set /a "total=0"
     set /a "succeeded=0"
-    set /a "no_srt=0"
-    set /a "output_exist=0"
+    set /a "has_sub=0"
+    set /a "no_sub_file=0"
     set /a "embed_failed=0"
     set "file_path=!working_dir!"
-    set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
+    set "ext_filter=\.mkv$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
@@ -113,31 +158,47 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-        set "srt_file=!file_dir!!base_name!.srt"
-        set "sub_embed_output=!file_dir!!base_name![内嵌字幕]!file_ext!"
-        if not exist "!srt_file!" (
-            echo set /a "no_srt+=1">>"!temp_set!"
-            echo 未找到对应的 .srt 字幕文件："!srt_file!"，跳过此文件
-        ) else if exist "!sub_embed_output!" (
-            echo set /a "output_exist+=1">>"!temp_set!"
-            echo 输出文件已存在："!sub_embed_output!"，跳过此文件
+        set "has_sub=0"
+        for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:video_file 2>$null"') do (
+            set "has_sub=1"
+        )
+
+        if "!has_sub!"=="1" (
+            echo set /a "has_sub+=1">>"!temp_set!"
+            echo 视频已内嵌字幕，跳过
         ) else (
-            if /i "!file_ext!"==".mp4" (
-                set "sub_codec=mov_text"
-            ) else if /i "!file_ext!"==".mov" (
-                set "sub_codec=mov_text"
-            ) else (
-                set "sub_codec=srt"
+            set "sub_file="
+            if exist "!file_dir!!base_name!.ass" (
+                set "sub_file=!file_dir!!base_name!.ass"
+            ) else if exist "!file_dir!!base_name!.srt" (
+                set "sub_file=!file_dir!!base_name!.srt"
             )
-            echo 字幕编码器："!sub_codec!"
-            "!ffmpeg_path!" -i "!video_file!" -i "!srt_file!" -map 0 -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!sub_embed_output!"
-            if !errorlevel! neq 0 (
-                echo set /a "embed_failed+=1">>"!temp_set!"
-                if exist "!sub_embed_output!" ( del /f /q "!sub_embed_output!" )
-                echo 嵌入失败
+
+            if "!sub_file!"=="" (
+                echo set /a "no_sub_file+=1">>"!temp_set!"
+                echo 未找到对应的 .ass 或 .srt 字幕文件："!base_name!"，跳过此文件
             ) else (
-                echo set /a "succeeded+=1">>"!temp_set!"
-                echo 输出文件："!sub_embed_output!"
+                REM mkv 容器原生支持 ass 与 srt 字幕轨，直接原样封装，无需转码
+                if /i "!sub_file:~-4!"==".ass" (
+                    set "sub_codec=ass"
+                ) else (
+                    set "sub_codec=srt"
+                )
+                echo 字幕文件："!sub_file!"
+                set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
+                if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                "!ffmpeg_path!" -i "!video_file!" -i "!sub_file!" -map 0:v? -map 0:a? -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!temp_video_file!"
+                if !errorlevel! neq 0 (
+                    echo set /a "embed_failed+=1">>"!temp_set!"
+                    if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
+                    echo 嵌入失败
+                ) else (
+                    echo set /a "succeeded+=1">>"!temp_set!"
+                    set "file_to_delete=!video_file!"
+                    powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                    move /y "!temp_video_file!" "!video_file!" >nul
+                    echo 嵌入成功
+                )
             )
         )
         echo set /a "total+=1">>"!temp_set!"
@@ -152,9 +213,9 @@ if not "!working_dir!" == "" (
 
     echo 批量处理完成
     set /a "ok_total=succeeded"
-    set /a "fail_total=no_srt+output_exist+embed_failed"
+    set /a "fail_total=has_sub+embed_failed+no_sub_file"
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，嵌入成功 !succeeded! 个，嵌入失败 !embed_failed! 个，未找到 srt 字幕 !no_srt! 个，输出文件已存在 !output_exist! 个
+    echo 其中，嵌入成功 !succeeded! 个，嵌入失败 !embed_failed! 个，未找到 ass/srt 字幕文件 !no_sub_file! 个，视频已内嵌字幕 !has_sub! 个
 )
 
 

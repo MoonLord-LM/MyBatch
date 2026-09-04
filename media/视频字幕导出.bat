@@ -8,10 +8,10 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将视频中内嵌的字幕流导出为 .srt 字幕文件，保存在视频旁边' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将 mkv 视频中内嵌的字幕流导出为 .srt 字幕文件，保存在视频旁边' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '仅支持 mkv 格式的视频，内含的 ass 字幕也会转码导出为 .srt 字幕' -ForegroundColor Green"
 echo.
 
 
@@ -87,6 +87,14 @@ if "!param1!" == "" (
         echo 开始处理文件："!param1!"
         set "file_dir=!param1_dir!"
         set "base_name=!param1_name!"
+        set "file_ext=!param1_ext!"
+
+        if /i not "!file_ext!"==".mkv" (
+            echo 错误：仅支持 mkv 格式的视频
+            echo.
+            pause
+            endlocal & endlocal & exit /b 1
+        )
 
         set "sub_file=!file_dir!!base_name!.srt"
         if exist "!sub_file!" (
@@ -98,7 +106,7 @@ if "!param1!" == "" (
                 set "stream_index=%%s"
             )
             if "!has_sub!"=="0" (
-                echo 无字幕
+                echo 无内嵌字幕
             ) else (
                 "!ffmpeg_path!" -i "!param1!" -map 0:!stream_index! "!sub_file!"
                 if !errorlevel! neq 0 (
@@ -122,7 +130,7 @@ if not "!working_dir!" == "" (
     set /a "no_sub=0"
     set /a "export_failed=0"
     set "file_path=!working_dir!"
-    set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
+    set "ext_filter=\.mkv$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
@@ -143,7 +151,7 @@ if not "!working_dir!" == "" (
             )
             if "!has_sub!"=="0" (
                 echo set /a "no_sub+=1">>"!temp_set!"
-                echo 无字幕
+                echo 无内嵌字幕
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -map 0:!stream_index! "!sub_file!"
                 if !errorlevel! neq 0 (
@@ -170,7 +178,7 @@ if not "!working_dir!" == "" (
     set /a "ok_total=succeeded"
     set /a "fail_total=sub_exist+export_failed+no_sub"
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，无字幕 !no_sub! 个，字幕文件已存在 !sub_exist! 个
+    echo 其中，导出成功 !succeeded! 个，导出失败 !export_failed! 个，无内嵌字幕 !no_sub! 个，字幕文件已存在 !sub_exist! 个
 )
 
 
