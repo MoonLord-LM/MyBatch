@@ -8,10 +8,10 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '移除 mkv 视频中内嵌的字幕' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '移除 mkv / mp4 视频中内嵌的字幕' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '仅支持 mkv 格式的视频' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '原始的带字幕的视频文件，会删除到回收站中' -ForegroundColor Green"
 echo.
 
 
@@ -89,8 +89,8 @@ if "!param1!" == "" (
         set "base_name=!param1_name!"
         set "file_ext=!param1_ext!"
 
-        if /i not "!file_ext!"==".mkv" (
-            echo 错误：仅支持 mkv 格式的视频
+        if /i not "!file_ext!"==".mkv" if /i not "!file_ext!"==".mp4" (
+            echo 错误：仅支持 mkv mp4 格式的视频
             echo.
             pause
             endlocal & endlocal & exit /b 1
@@ -130,7 +130,7 @@ if not "!working_dir!" == "" (
     set /a "no_sub=0"
     set /a "remove_failed=0"
     set "file_path=!working_dir!"
-    set "ext_filter=\.mkv$"
+    set "ext_filter=\.(mkv|mp4)$"
     for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
