@@ -135,6 +135,8 @@ if not "!working_dir!" == "" (
         "            $keepPrefix = $keepPrefix.Substring(0, $keepPrefix.Length - 1);" ^
         "            $keepSuffix = $keepSuffix.Substring(1);" ^
         "        }" ^
+        "        if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留') }" ^
+        "        if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留') }" ^
         "    } else {" ^
         "        if ($prefix.Length -gt 0) {" ^
         "            if ($cutPrefix.Length -gt 0) {" ^
