@@ -566,6 +566,19 @@ if not "!working_dir!" == "" (
         )
     ) else if /i "!first_video_codec!"=="MPEG2VIDEO" (
         set "target_video_encoder=mpeg2video"
+        if /i "!first_video_codec_profile!"=="Main" (
+            set "target_video_encoder=!target_video_encoder! -profile:v main"
+        ) else (
+            echo 警告：未知 MPEG2 Profile："!first_video_codec_profile!"，不指定 Profile
+            pause
+        )
+
+        if "!first_video_codec_level!"=="8" (
+            set "target_video_encoder=!target_video_encoder! -level:v 8"
+        ) else (
+            echo 警告：未知 MPEG2 Level："!first_video_codec_level!"，不指定 Level
+            pause
+        )
     ) else (
         echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
         pause
