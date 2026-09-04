@@ -180,7 +180,6 @@ if not "!working_dir!" == "" (
         for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_failed_files | Where-Object { $_ }"') do (
             echo %%f
         )
-        echo.
     )
 
     if exist "!temp_video_codecs!" ( del /f /q "!temp_video_codecs!" )
