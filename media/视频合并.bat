@@ -462,13 +462,24 @@ if not "!working_dir!" == "" (
         pause
     )
 
-    if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
-    ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
-    ) else if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
-    ) else if /i "!first_video_codec_profile!"=="Simple Profile" ( set "target_video_encoder=!target_video_encoder! -profile:v simple"
+    REM Profile 按视频编码分流：H.265 (HEVC) 的取值与 H.264 (AVC) 不同
+    if /i "!first_video_codec!"=="HEVC" (
+        if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
+        ) else if /i "!first_video_codec_profile!"=="Main 10" ( set "target_video_encoder=!target_video_encoder! -profile:v main10"
+        ) else if /i "!first_video_codec_profile!"=="Main 12" ( set "target_video_encoder=!target_video_encoder! -profile:v main12"
+        ) else (
+            echo 警告：未知 HEVC 视频编码 "!first_video_codec_profile!"，不使用 Profile
+            pause
+        )
     ) else (
-        echo 警告：未知视频编码 "!first_video_codec_profile!"，使用默认 libx264
-        pause
+        if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
+        ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
+        ) else if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
+        ) else if /i "!first_video_codec_profile!"=="Simple Profile" ( set "target_video_encoder=!target_video_encoder! -profile:v simple"
+        ) else (
+            echo 警告：未知视频编码 "!first_video_codec_profile!"，使用默认 libx264
+            pause
+        )
     )
 
     REM H.264 (AVC) Level 对应关系 x10
@@ -539,14 +550,22 @@ if not "!working_dir!" == "" (
         pause
     )
 
-    if /i "!first_audio_codec_all!"=="AAC LC" ( set "target_audio_encoder=aac -profile:a aac_low"
-    ) else if /i "!first_audio_codec_all!"=="AAC HE-AAC" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he"
-    ) else if /i "!first_audio_codec_all!"=="AAC HE-AACv2" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
-    ) else if /i "!first_audio_codec_all!"=="MP3 UNKNOWN" ( set "target_audio_encoder=libmp3lame"
-    ) else if /i "!first_audio_codec_all!"=="AC3 UNKNOWN" ( set "target_audio_encoder=ac3"
-    ) else if /i "!first_audio_codec_all!"=="EAC3 UNKNOWN" ( set "target_audio_encoder=eac3"
+    if /i "!first_audio_codec!"=="AAC" (
+        if /i "!first_audio_codec_profile!"=="LC" ( set "target_audio_encoder=aac -profile:a aac_low"
+        ) else if /i "!first_audio_codec_profile!"=="HE-AAC" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he"
+        ) else if /i "!first_audio_codec_profile!"=="HE-AACv2" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
+        ) else (
+            echo 警告：未知音频编码 "!first_audio_codec! !first_audio_codec_profile!"，使用默认 aac
+            pause
+        )
+    ) else if /i "!first_audio_codec!"=="MP3" (
+        set "target_audio_encoder=libmp3lame"
+    ) else if /i "!first_audio_codec!"=="AC3" (
+        set "target_audio_encoder=ac3"
+    ) else if /i "!first_audio_codec!"=="EAC3" (
+        set "target_audio_encoder=eac3"
     ) else (
-        echo 警告：未知音频编码 "!first_audio_codec!"，使用默认 aac
+        echo 警告：未知音频编码 "!first_audio_codec! !first_audio_codec_profile!"，使用默认 aac
         pause
     )
 
