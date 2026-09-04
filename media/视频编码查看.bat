@@ -150,7 +150,7 @@ if not "!working_dir!" == "" (
 
     set /a "video_codec_count=0"
     echo 已发现的视频编码列表：
-    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_video_codecs | ForEach-Object { $_.Trim().TrimEnd([char]44) } | Where-Object { $_ } | Sort-Object -Unique"') do (
+    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_video_codecs | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Sort-Object -Unique"') do (
         set "video_codec=%%c"
         echo !video_codec!
         set /a "video_codec_count+=1"
@@ -159,7 +159,7 @@ if not "!working_dir!" == "" (
 
     set /a "audio_codec_count=0"
     echo 已发现的音频编码列表：
-    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_audio_codecs | ForEach-Object { $_.Trim().TrimEnd([char]44) } | Where-Object { $_ } | Sort-Object -Unique"') do (
+    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_audio_codecs | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Sort-Object -Unique"') do (
         set "audio_codec=%%c"
         echo !audio_codec!
         set /a "audio_codec_count+=1"
