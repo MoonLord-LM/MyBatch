@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将 mkv 视频中内嵌的字幕流导出为同名的 .ass 或 .srt 字幕文件，保存在视频旁边' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将 mkv 视频中内嵌的字幕，导出为同名的 .ass 或 .srt 字幕文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '仅支持 mkv 格式的视频，自动识别字幕格式：ass 字幕导出为 .ass，srt 字幕导出为 .srt' -ForegroundColor Green"
@@ -113,6 +113,8 @@ if "!param1!" == "" (
                 set "sub_ext=.ass"
             ) else if /i "!sub_codec!"=="ssa" (
                 set "sub_ext=.ass"
+            ) else if /i "!sub_codec!"=="subrip" (
+                set "sub_ext=.srt"
             ) else (
                 set "sub_ext=.srt"
             )
@@ -169,6 +171,8 @@ if not "!working_dir!" == "" (
                 set "sub_ext=.ass"
             ) else if /i "!sub_codec!"=="ssa" (
                 set "sub_ext=.ass"
+            ) else if /i "!sub_codec!"=="subrip" (
+                set "sub_ext=.srt"
             ) else (
                 set "sub_ext=.srt"
             )
