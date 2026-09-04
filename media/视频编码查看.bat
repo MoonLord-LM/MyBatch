@@ -66,7 +66,7 @@ if "!param1!" == "" (
 
         set "video_codec="
         set "audio_codec="
-        for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 $env:param1 2>$null"') do (
+        for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,codec_tag_string,profile,level -of csv=p=0 $env:param1 2>$null"') do (
             set "video_codec=%%c"
         )
         for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 $env:param1 2>$null"') do (
@@ -111,7 +111,7 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,level -of csv=p=0 $env:video_file 2>$null" >>"!temp_video_codecs!"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,codec_tag_string,profile,level -of csv=p=0 $env:video_file 2>$null" >>"!temp_video_codecs!"
         if !errorlevel! neq 0 (
             echo set /a "parse_failed+=1">>"!temp_set!"
             echo "!video_file!">>"!temp_failed_files!"
@@ -150,7 +150,7 @@ if not "!working_dir!" == "" (
 
     set /a "video_codec_count=0"
     echo 已发现的视频编码列表：
-    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_video_codecs | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Sort-Object -Unique"') do (
+    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_video_codecs | Where-Object { $_ } | Sort-Object -Unique"') do (
         set "video_codec=%%c"
         echo !video_codec!
         set /a "video_codec_count+=1"
@@ -159,7 +159,7 @@ if not "!working_dir!" == "" (
 
     set /a "audio_codec_count=0"
     echo 已发现的音频编码列表：
-    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_audio_codecs | ForEach-Object { $_.Trim() } | Where-Object { $_ } | Sort-Object -Unique"') do (
+    for /f "delims=" %%c in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_audio_codecs | Where-Object { $_ } | Sort-Object -Unique"') do (
         set "audio_codec=%%c"
         echo !audio_codec!
         set /a "audio_codec_count+=1"
