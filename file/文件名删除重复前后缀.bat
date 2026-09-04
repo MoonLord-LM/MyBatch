@@ -14,7 +14,7 @@ powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico ass srt' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '按格式对文件分组，每种格式单独分析处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '特殊场景：如果公共前缀是以数字结尾，那么保留这部分数字，避免破坏日期等格式' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '特殊场景：公共前缀末尾的 [【(（{ 符号，公共后缀开头的 }）)]】 符号，不做替换，避免破坏格式' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '特殊场景：公共前缀末尾的 [【(（{ 符号，公共后缀开头的 }）)]】 符号，如果成对出现，则进行消除，否则进行保留，避免破坏格式' -ForegroundColor Green"
 echo.
 
 
@@ -106,10 +106,13 @@ if not "!working_dir!" == "" (
         "    }" ^
         "    $cutPrefix = $prefix;" ^
         "    if ($keepPrefix.Length -gt 0) { $cutPrefix = $prefix.Substring(0, $prefix.Length - $keepPrefix.Length) }" ^
-        "    if ($prefix.Length -gt 0) {" ^
-        "        if ($cutPrefix.Length -gt 0) {" ^
-        "            if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，仅消除 \"' + $cutPrefix + '\"') } else { Write-Host ('  公共前缀 \"' + $cutPrefix + '\" 予以消除') }" ^
-        "        } else { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，消除部分为空，不做处理') }" ^
+        "    $pairedBracket = $false;" ^
+        "    if ($prefix.Length -gt 0 -and $suffix.Length -gt 0) {" ^
+        "        if     ($prefix.EndsWith('[')  -and $suffix.StartsWith(']'))  { $pairedBracket = $true }" ^
+        "        elseif ($prefix.EndsWith('【') -and $suffix.StartsWith('】')) { $pairedBracket = $true }" ^
+        "        elseif ($prefix.EndsWith('(')  -and $suffix.StartsWith(')'))  { $pairedBracket = $true }" ^
+        "        elseif ($prefix.EndsWith('（') -and $suffix.StartsWith('）')) { $pairedBracket = $true }" ^
+        "        elseif ($prefix.EndsWith('{')  -and $suffix.StartsWith('}'))  { $pairedBracket = $true }" ^
         "    }" ^
         "    $keepSuffix = '';" ^
         "    $i = 0;" ^
@@ -119,10 +122,30 @@ if not "!working_dir!" == "" (
         "    }" ^
         "    $cutSuffix = $suffix;" ^
         "    if ($keepSuffix.Length -gt 0) { $cutSuffix = $suffix.Substring($keepSuffix.Length) }" ^
-        "    if ($suffix.Length -gt 0) {" ^
-        "        if ($cutSuffix.Length -gt 0) {" ^
-        "            if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，仅消除 \"' + $cutSuffix + '\"') } else { Write-Host ('  公共后缀 \"' + $cutSuffix + '\" 予以消除') }" ^
-        "        } else { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，消除部分为空，不做处理') }" ^
+        "    if ($pairedBracket) {" ^
+        "        Write-Host ('  公共前缀末尾 \"' + [string][char]$prefix[$prefix.Length - 1] + '\" 与公共后缀开头 \"' + [string][char]$suffix[0] + '\" 成对出现，予以消除');" ^
+        "        while ($keepPrefix.Length -gt 0 -and $keepSuffix.Length -gt 0) {" ^
+        "            $paired = $false;" ^
+        "            if     ($keepPrefix.EndsWith('[')  -and $keepSuffix.StartsWith(']'))  { $paired = $true }" ^
+        "            elseif ($keepPrefix.EndsWith('【') -and $keepSuffix.StartsWith('】')) { $paired = $true }" ^
+        "            elseif ($keepPrefix.EndsWith('(')  -and $keepSuffix.StartsWith(')'))  { $paired = $true }" ^
+        "            elseif ($keepPrefix.EndsWith('（') -and $keepSuffix.StartsWith('）')) { $paired = $true }" ^
+        "            elseif ($keepPrefix.EndsWith('{')  -and $keepSuffix.StartsWith('}'))  { $paired = $true }" ^
+        "            if (-not $paired) { break }" ^
+        "            $keepPrefix = $keepPrefix.Substring(0, $keepPrefix.Length - 1);" ^
+        "            $keepSuffix = $keepSuffix.Substring(1);" ^
+        "        }" ^
+        "    } else {" ^
+        "        if ($prefix.Length -gt 0) {" ^
+        "            if ($cutPrefix.Length -gt 0) {" ^
+        "                if ($keepPrefix.Length -gt 0) { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，仅消除 \"' + $cutPrefix + '\"') } else { Write-Host ('  公共前缀 \"' + $cutPrefix + '\" 予以消除') }" ^
+        "            } else { Write-Host ('  公共前缀末尾 \"' + $keepPrefix + '\" 予以保留，消除部分为空，不做处理') }" ^
+        "        }" ^
+        "        if ($suffix.Length -gt 0) {" ^
+        "            if ($cutSuffix.Length -gt 0) {" ^
+        "                if ($keepSuffix.Length -gt 0) { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，仅消除 \"' + $cutSuffix + '\"') } else { Write-Host ('  公共后缀 \"' + $cutSuffix + '\" 予以消除') }" ^
+        "            } else { Write-Host ('  公共后缀开头 \"' + $keepSuffix + '\" 予以保留，消除部分为空，不做处理') }" ^
+        "        }" ^
         "    }" ^
         "    $coreNames = @();" ^
         "    foreach ($f in $g.Group) {" ^
