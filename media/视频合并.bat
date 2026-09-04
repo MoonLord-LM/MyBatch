@@ -611,6 +611,8 @@ if not "!working_dir!" == "" (
         set "target_audio_encoder=flac"
     ) else if /i "!first_audio_codec!"=="MP2" (
         set "target_audio_encoder=mp2"
+    ) else if /i "!first_audio_codec!"=="OPUS" (
+        set "target_audio_encoder=libopus"
     ) else (
         echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
         pause
