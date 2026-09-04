@@ -436,55 +436,81 @@ if not "!working_dir!" == "" (
         endlocal & endlocal & exit /b 1
     )
 
-    set "file_count=0"
     set "target_video_encoder=libx264"
-    set "target_audio_encoder=aac"
+    if /i "!first_video_codec!"=="AV1" (
+        set "target_video_encoder=libaom-av1"
+        if /i "!first_video_codec_tag!"=="av01" (
+            set "target_video_encoder=!target_video_encoder! -tag:v av01"
+        ) else (
+            echo 警告：未知 AV1 Tag："!first_video_codec_tag!"，不指定 Tag
+            pause
+        )
+    ) else if /i "!first_video_codec!"=="HEVC" (
+        set "target_video_encoder=libx265"
+        if /i "!first_video_codec_tag!"=="hev1" (
+            set "target_video_encoder=!target_video_encoder! -tag:v hev1"
+        ) else if /i "!first_video_codec_tag!"=="hvc1" (
+            set "target_video_encoder=!target_video_encoder! -tag:v hvc1"
+        ) else (
+            echo 警告：未知 HEVC Tag："!first_video_codec_tag!"，不指定 Tag
+            pause
+        )
 
-    if /i "!first_video_codec!"=="AV1" ( set "target_video_encoder=libaom-av1"
-    ) else if /i "!first_video_codec!"=="HEVC" ( set "target_video_encoder=libx265"
-    ) else if /i "!first_video_codec!"=="H264" ( set "target_video_encoder=libx264"
-    ) else if /i "!first_video_codec!"=="MPEG4" ( set "target_video_encoder=mpeg4"
-    ) else if /i "!first_video_codec!"=="VP9" ( set "target_video_encoder=libvpx-vp9"
-    ) else if /i "!first_video_codec!"=="VP8" ( set "target_video_encoder=libvpx"
-    ) else (
-        echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
-        pause
-    )
-
-    if /i "!first_video_codec_tag!"=="av01" ( set "target_video_encoder=!target_video_encoder! -tag:v av01"
-    ) else if /i "!first_video_codec_tag!"=="hvc1" ( set "target_video_encoder=!target_video_encoder! -tag:v hvc1"
-    ) else if /i "!first_video_codec_tag!"=="hev1" ( set "target_video_encoder=!target_video_encoder! -tag:v hev1"
-    ) else if /i "!first_video_codec_tag!"=="avc1" ( set "target_video_encoder=!target_video_encoder! -tag:v avc1"
-    ) else if /i "!first_video_codec_tag!"=="mp4v" ( set "target_video_encoder=!target_video_encoder! -tag:v mp4v"
-    ) else if /i "!first_video_codec_tag!"=="vp09" ( set "target_video_encoder=!target_video_encoder! -tag:v vp09"
-    ) else (
-        echo 警告：未知视频编码 "!first_video_codec_tag!"，不使用 Tag
-        pause
-    )
-
-    REM Profile 按视频编码分流：H.265 (HEVC) 的取值与 H.264 (AVC) 不同
-    if /i "!first_video_codec!"=="HEVC" (
         if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
         ) else if /i "!first_video_codec_profile!"=="Main 10" ( set "target_video_encoder=!target_video_encoder! -profile:v main10"
         ) else if /i "!first_video_codec_profile!"=="Main 12" ( set "target_video_encoder=!target_video_encoder! -profile:v main12"
         ) else (
-            echo 警告：未知 HEVC 视频编码 "!first_video_codec_profile!"，不使用 Profile
+            echo 警告：未知 HEVC Profile："!first_video_codec_profile!"，不指定 Profile
             pause
         )
-    ) else (
-        if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
-        ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
-        ) else if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
-        ) else if /i "!first_video_codec_profile!"=="Simple Profile" ( set "target_video_encoder=!target_video_encoder! -profile:v simple"
-        ) else (
-            echo 警告：未知视频编码 "!first_video_codec_profile!"，使用默认 libx264
-            pause
-        )
-    )
 
-    REM H.264 (AVC) Level 对应关系 x10
-    REM H.265 (HEVC) Level 对应关系 x30
-    if /i "!first_video_codec!"=="H264" (
+        set "x265_level="
+        if /i "!first_video_codec_level!"=="30" ( set "x265_level=10"
+        ) else if /i "!first_video_codec_level!"=="60" ( set "x265_level=20"
+        ) else if /i "!first_video_codec_level!"=="63" ( set "x265_level=21"
+        ) else if /i "!first_video_codec_level!"=="90" ( set "x265_level=30"
+        ) else if /i "!first_video_codec_level!"=="93" ( set "x265_level=31"
+        ) else if /i "!first_video_codec_level!"=="120" ( set "x265_level=40"
+        ) else if /i "!first_video_codec_level!"=="123" ( set "x265_level=41"
+        ) else if /i "!first_video_codec_level!"=="150" ( set "x265_level=50"
+        ) else if /i "!first_video_codec_level!"=="153" ( set "x265_level=51"
+        ) else if /i "!first_video_codec_level!"=="156" ( set "x265_level=52"
+        ) else if /i "!first_video_codec_level!"=="180" ( set "x265_level=60"
+        ) else if /i "!first_video_codec_level!"=="183" ( set "x265_level=61"
+        ) else if /i "!first_video_codec_level!"=="186" ( set "x265_level=62"
+        ) else (
+            echo 警告：未知 HEVC Level："!first_video_codec_level!"，不指定 Level
+            pause
+        )
+        if not "!x265_level!"=="" (
+            if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=0^""
+            ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=1^""
+            ) else (
+                echo 警告：未知 HEVC Tier："!first_video_codec_tier!"，不指定 Tier
+                pause
+                set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!^""
+            )
+        )
+    ) else if /i "!first_video_codec!"=="H264" (
+        set "target_video_encoder=libx264"
+        if /i "!first_video_codec_tag!"=="avc1" (
+            set "target_video_encoder=!target_video_encoder! -tag:v avc1"
+        ) else (
+            echo 警告：未知 H264 Tag："!first_video_codec_tag!"，不指定 Tag
+            pause
+        )
+
+        if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
+        ) else if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
+        ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
+        ) else if /i "!first_video_codec_profile!"=="High 10" ( set "target_video_encoder=!target_video_encoder! -profile:v high10"
+        ) else if /i "!first_video_codec_profile!"=="High 4:2:2" ( set "target_video_encoder=!target_video_encoder! -profile:v high422"
+        ) else if /i "!first_video_codec_profile!"=="High 4:4:4" ( set "target_video_encoder=!target_video_encoder! -profile:v high444"
+        ) else (
+            echo 警告：未知 H264 Profile："!first_video_codec_profile!"，不指定 Profile
+            pause
+        )
+
         if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
         ) else if /i "!first_video_codec_level!"=="11" ( set "target_video_encoder=!target_video_encoder! -level:v 1.1"
         ) else if /i "!first_video_codec_level!"=="12" ( set "target_video_encoder=!target_video_encoder! -level:v 1.2"
@@ -505,51 +531,44 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_video_codec_level!"=="61" ( set "target_video_encoder=!target_video_encoder! -level:v 6.1"
         ) else if /i "!first_video_codec_level!"=="62" ( set "target_video_encoder=!target_video_encoder! -level:v 6.2"
         ) else (
-            echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
-            pause
-        )
-    ) else if /i "!first_video_codec!"=="HEVC" (
-        set "x265_level="
-        if /i "!first_video_codec_level!"=="30" ( set "x265_level=10"
-        ) else if /i "!first_video_codec_level!"=="60" ( set "x265_level=20"
-        ) else if /i "!first_video_codec_level!"=="63" ( set "x265_level=21"
-        ) else if /i "!first_video_codec_level!"=="90" ( set "x265_level=30"
-        ) else if /i "!first_video_codec_level!"=="93" ( set "x265_level=31"
-        ) else if /i "!first_video_codec_level!"=="120" ( set "x265_level=40"
-        ) else if /i "!first_video_codec_level!"=="123" ( set "x265_level=41"
-        ) else if /i "!first_video_codec_level!"=="150" ( set "x265_level=50"
-        ) else if /i "!first_video_codec_level!"=="153" ( set "x265_level=51"
-        ) else if /i "!first_video_codec_level!"=="156" ( set "x265_level=52"
-        ) else if /i "!first_video_codec_level!"=="180" ( set "x265_level=60"
-        ) else if /i "!first_video_codec_level!"=="183" ( set "x265_level=61"
-        ) else if /i "!first_video_codec_level!"=="186" ( set "x265_level=62"
-        ) else (
-            echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
-            pause
-        )
-        if not "!x265_level!"=="" (
-            if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=0^""
-            ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=1^""
-            ) else (
-                echo 警告：未知视频编码 "!first_video_codec_tier!"，不使用 Tier
-                pause
-                set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!^""
-            )
-        ) else (
-            echo 警告：未知视频编码 "!first_video_codec_tier!"，不使用 Tier
+            echo 警告：未知 H264 Level："!first_video_codec_level!"，不指定 Level
             pause
         )
     ) else if /i "!first_video_codec!"=="MPEG4" (
+        set "target_video_encoder=mpeg4"
+        if /i "!first_video_codec_tag!"=="mp4v" (
+            set "target_video_encoder=!target_video_encoder! -tag:v mp4v"
+        ) else (
+            echo 警告：未知 MPEG4 Tag："!first_video_codec_tag!"，不指定 Tag
+            pause
+        )
+
+        if /i "!first_video_codec_profile!"=="Simple Profile" (
+            set "target_video_encoder=!target_video_encoder! -profile:v simple"
+        ) else (
+            echo 警告：未知 MPEG4 Profile："!first_video_codec_profile!"，不指定 Profile
+            pause
+        )
+
         if /i "!first_video_codec_level!"=="3" ( set "target_video_encoder=!target_video_encoder! -level 3"
         ) else (
-            echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
+            echo 警告：未知 MPEG4 Level："!first_video_codec_level!"，不指定 Level
+            pause
+        )
+    ) else if /i "!first_video_codec!"=="VP9" (
+        set "target_video_encoder=libvpx-vp9"
+        if /i "!first_video_codec_tag!"=="vp09" (
+            set "target_video_encoder=!target_video_encoder! -tag:v vp09"
+        ) else (
+            echo 警告：未知 VP9 Tag："!first_video_codec_tag!"，不指定 Tag
             pause
         )
     ) else (
-        echo 警告：未知视频编码 "!first_video_codec_level!"，不使用 Level
+        echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
         pause
     )
 
+    set "target_audio_encoder=aac"
     if /i "!first_audio_codec!"=="AAC" (
         if /i "!first_audio_codec_profile!"=="LC" ( set "target_audio_encoder=aac -profile:a aac_low"
         ) else if /i "!first_audio_codec_profile!"=="HE-AAC" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he"
@@ -631,6 +650,7 @@ if not "!working_dir!" == "" (
             echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
             type nul > "!working_dir!\_tmp_file_list.txt"
+            set "temp_count=0"
             for /l %%i in (1,1,999) do (
                 set "name_file="
                 if exist "!working_dir!\%%i.mp4" (
@@ -648,7 +668,7 @@ if not "!working_dir!" == "" (
                 )
                 if not "!name_file!"=="" (
                     set "name_path=!working_dir!\!name_file!"
-                    set /a "file_count+=1"
+                    set /a "temp_count+=1"
                     REM 解析参数
                     for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of csv=p=0 $env:name_path 2>$null"') do (
                         set "current_video_width=%%v"
@@ -692,7 +712,7 @@ if not "!working_dir!" == "" (
                     )
                     set "current_video_codec_all=!current_video_codec! !current_video_codec_tag! !current_video_codec_profile! !current_video_codec_level! !current_video_codec_tier!"
                     set "current_audio_codec_all=!current_audio_codec! !current_audio_codec_profile!"
-                    echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
+                    echo 第 !temp_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
                     REM 对比参数
                     set "video_consistent=1"
                     set "audio_consistent=1"
