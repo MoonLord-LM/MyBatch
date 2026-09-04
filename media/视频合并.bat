@@ -556,27 +556,35 @@ if not "!working_dir!" == "" (
             echo 警告：未知 MPEG4 Level："!first_video_codec_level!"，不指定 Level
             pause
         )
+    ) else if /i "!first_video_codec!"=="MPEG2VIDEO" (
+        set "target_video_encoder=mpeg2video"
+        if /i "!first_video_codec_profile!"=="Main" (
+            set "target_video_encoder=!target_video_encoder! -profile:v main"
+        ) else if /i "!first_video_codec_profile!"=="High" (
+            set "target_video_encoder=!target_video_encoder! -profile:v high"
+        ) else (
+            echo 警告：未知 MPEG2 Profile："!first_video_codec_profile!"，不指定 Profile
+            pause
+        )
+
+        if "!first_video_codec_level!"=="10" (
+            set "target_video_encoder=!target_video_encoder! -level:v low"
+        ) else if "!first_video_codec_level!"=="8" (
+            set "target_video_encoder=!target_video_encoder! -level:v main"
+        ) else if "!first_video_codec_level!"=="6" (
+            set "target_video_encoder=!target_video_encoder! -level:v high1440"
+        ) else if "!first_video_codec_level!"=="4" (
+            set "target_video_encoder=!target_video_encoder! -level:v high"
+        ) else (
+            echo 警告：未知 MPEG2 Level："!first_video_codec_level!"，不指定 Level
+            pause
+        )
     ) else if /i "!first_video_codec!"=="VP9" (
         set "target_video_encoder=libvpx-vp9"
         if /i "!first_video_codec_tag!"=="vp09" (
             set "target_video_encoder=!target_video_encoder! -tag:v vp09"
         ) else (
             echo 警告：未知 VP9 Tag："!first_video_codec_tag!"，不指定 Tag
-            pause
-        )
-    ) else if /i "!first_video_codec!"=="MPEG2VIDEO" (
-        set "target_video_encoder=mpeg2video"
-        if /i "!first_video_codec_profile!"=="Main" (
-            set "target_video_encoder=!target_video_encoder! -profile:v main"
-        ) else (
-            echo 警告：未知 MPEG2 Profile："!first_video_codec_profile!"，不指定 Profile
-            pause
-        )
-
-        if "!first_video_codec_level!"=="8" (
-            set "target_video_encoder=!target_video_encoder! -level:v 8"
-        ) else (
-            echo 警告：未知 MPEG2 Level："!first_video_codec_level!"，不指定 Level
             pause
         )
     ) else (
