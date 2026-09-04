@@ -501,6 +501,7 @@ if not "!working_dir!" == "" (
         )
 
         if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
+        ) else if /i "!first_video_codec_profile!"=="Constrained Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
         ) else if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
         ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
         ) else if /i "!first_video_codec_profile!"=="High 10" ( set "target_video_encoder=!target_video_encoder! -profile:v high10"

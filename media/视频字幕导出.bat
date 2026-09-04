@@ -113,6 +113,8 @@ if "!param1!" == "" (
                 set "sub_ext=.ass"
             ) else if /i "!sub_codec!"=="ssa" (
                 set "sub_ext=.ass"
+            ) else if /i "!sub_codec!"=="subrip" (
+                set "sub_ext=.srt"
             ) else (
                 set "sub_ext=.srt"
             )
@@ -169,6 +171,8 @@ if not "!working_dir!" == "" (
                 set "sub_ext=.ass"
             ) else if /i "!sub_codec!"=="ssa" (
                 set "sub_ext=.ass"
+            ) else if /i "!sub_codec!"=="subrip" (
+                set "sub_ext=.srt"
             ) else (
                 set "sub_ext=.srt"
             )
