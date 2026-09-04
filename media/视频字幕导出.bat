@@ -8,10 +8,10 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将 mkv 视频中内嵌的字幕流导出为 .srt 字幕文件，保存在视频旁边' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将 mkv 视频中内嵌的字幕流导出为同名的 .ass 或 .srt 字幕文件，保存在视频旁边' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '仅支持 mkv 格式的视频，内含的 ass 字幕也会转码导出为 .srt 字幕' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '仅支持 mkv 格式的视频，自动识别字幕格式：ass 字幕导出为 .ass，srt 字幕导出为 .srt' -ForegroundColor Green"
 echo.
 
 
@@ -96,19 +96,31 @@ if "!param1!" == "" (
             endlocal & endlocal & exit /b 1
         )
 
-        set "sub_file=!file_dir!!base_name!.srt"
-        if exist "!sub_file!" (
-            echo 已存在："!sub_file!"，跳过此文件
+        set "has_sub=0"
+        set "sub_index="
+        set "sub_codec="
+        for /f "tokens=1,2 delims=," %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index,codec_name -of csv=p=0 $env:param1 2>$null"') do (
+            set "has_sub=1"
+            set "sub_index=%%a"
+            set "sub_codec=%%b"
+        )
+
+        if "!has_sub!"=="0" (
+            echo 无内嵌字幕
         ) else (
-            set "has_sub=0"
-            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:param1 2>$null"') do (
-                set "has_sub=1"
-                set "stream_index=%%s"
-            )
-            if "!has_sub!"=="0" (
-                echo 无内嵌字幕
+            REM 字幕格式自动识别
+            if /i "!sub_codec!"=="ass" (
+                set "sub_ext=.ass"
+            ) else if /i "!sub_codec!"=="ssa" (
+                set "sub_ext=.ass"
             ) else (
-                "!ffmpeg_path!" -i "!param1!" -map 0:!stream_index! "!sub_file!"
+                set "sub_ext=.srt"
+            )
+            set "sub_file=!file_dir!!base_name!!sub_ext!"
+            if exist "!sub_file!" (
+                echo 已存在："!sub_file!"，跳过此文件
+            ) else (
+                "!ffmpeg_path!" -i "!param1!" -map 0:!sub_index! "!sub_file!"
                 if !errorlevel! neq 0 (
                     if exist "!sub_file!" ( del /f /q "!sub_file!" )
                     echo 导出失败
@@ -139,21 +151,33 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-        set "sub_file=!file_dir!!base_name!.srt"
-        if exist "!sub_file!" (
-            echo set /a "sub_exist+=1">>"!temp_set!"
-            echo 已存在："!sub_file!"，跳过此文件
+        set "has_sub=0"
+        set "sub_index="
+        set "sub_codec="
+        for /f "tokens=1,2 delims=," %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index,codec_name -of csv=p=0 $env:video_file 2>$null"') do (
+            set "has_sub=1"
+            set "sub_index=%%a"
+            set "sub_codec=%%b"
+        )
+
+        if "!has_sub!"=="0" (
+            echo set /a "no_sub+=1">>"!temp_set!"
+            echo 无内嵌字幕
         ) else (
-            set "has_sub=0"
-            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:video_file 2>$null"') do (
-                set "has_sub=1"
-                set "stream_index=%%s"
-            )
-            if "!has_sub!"=="0" (
-                echo set /a "no_sub+=1">>"!temp_set!"
-                echo 无内嵌字幕
+            REM 字幕格式自动识别
+            if /i "!sub_codec!"=="ass" (
+                set "sub_ext=.ass"
+            ) else if /i "!sub_codec!"=="ssa" (
+                set "sub_ext=.ass"
             ) else (
-                "!ffmpeg_path!" -i "!video_file!" -map 0:!stream_index! "!sub_file!"
+                set "sub_ext=.srt"
+            )
+            set "sub_file=!file_dir!!base_name!!sub_ext!"
+            if exist "!sub_file!" (
+                echo set /a "sub_exist+=1">>"!temp_set!"
+                echo 已存在："!sub_file!"，跳过此文件
+            ) else (
+                "!ffmpeg_path!" -i "!video_file!" -map 0:!sub_index! "!sub_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "export_failed+=1">>"!temp_set!"
                     if exist "!sub_file!" ( del /f /q "!sub_file!" )
