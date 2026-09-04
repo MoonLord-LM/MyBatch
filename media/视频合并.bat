@@ -564,6 +564,8 @@ if not "!working_dir!" == "" (
             echo 警告：未知 VP9 Tag："!first_video_codec_tag!"，不指定 Tag
             pause
         )
+    ) else if /i "!first_video_codec!"=="MPEG2VIDEO" (
+        set "target_video_encoder=mpeg2video"
     ) else (
         echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
         pause
@@ -586,6 +588,8 @@ if not "!working_dir!" == "" (
         set "target_audio_encoder=eac3"
     ) else if /i "!first_audio_codec!"=="FLAC" (
         set "target_audio_encoder=flac"
+    ) else if /i "!first_audio_codec!"=="MP2" (
+        set "target_audio_encoder=mp2"
     ) else (
         echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
         pause
