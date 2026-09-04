@@ -97,7 +97,7 @@ if "!param1!" == "" (
         )
 
         set "has_sub=0"
-        for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:param1 2>$null"') do (
+        for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
             set "has_sub=1"
         )
 
@@ -141,7 +141,7 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
         set "has_sub=0"
-        for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of csv=p=0 $env:video_file 2>$null"') do (
+        for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
             set "has_sub=1"
         )
 
