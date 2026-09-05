@@ -59,6 +59,13 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
         "[System.IO.File]::WriteAllText($env:bat_file, $content, $utf8NoBOM);"
 
+    if errorlevel 1 (
+        echo [错误] 编码转换失败："!bat_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
     REM 检查每个文件都必须 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
     powershell -NoProfile -Command ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
@@ -66,6 +73,13 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
             "$lines = @('@echo off') + $lines;" ^
             "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
         "}"
+
+    if errorlevel 1 (
+        echo [错误] 检查/添加 @echo 失败："!bat_file!"
+        echo.
+        pause
+        exit /b 1
+    )
 
     REM 检查每个文件都必须 `chcp ` 代码，否则自动在第 1 行的位置添加 `chcp 65001 >nul`
     powershell -NoProfile -Command ^
@@ -79,6 +93,13 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
             "}" ^
             "[System.IO.File]::WriteAllLines($env:bat_file, $newLines, $utf8NoBOM);" ^
         "}"
+
+    if errorlevel 1 (
+        echo [错误] 检查/添加 chcp 失败："!bat_file!"
+        echo.
+        pause
+        exit /b 1
+    )
 
     endlocal
     endlocal

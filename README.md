@@ -1,4 +1,6 @@
 # MyBatch
+[![self-check](https://github.com/MoonLord-LM/MyBatch/actions/workflows/self-check.yml/badge.svg)](https://github.com/MoonLord-LM/MyBatch/actions/workflows/self-check.yml)
+
 A function library for the Windows Batch.  
 Code examples can be found in the <a href="example\">【example】</a> folder with ".bat" files.  
 
