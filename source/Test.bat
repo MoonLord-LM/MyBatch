@@ -4,9 +4,9 @@ setlocal disabledelayedexpansion
 
 
 
-::
-:: MyBatch代码测试
-::
+REM 
+REM MyBatch代码测试
+REM 
 mkdir "tmp"
 cls
 echo 【——————Test——————】My

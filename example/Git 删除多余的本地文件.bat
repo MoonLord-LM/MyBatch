@@ -3,8 +3,8 @@ chcp 65001 >nul
 
 
 
-:: MoonLord 2023.07.29  
-:: 删除 master 分支的多余的本地文件  
+REM MoonLord 2023.07.29  
+REM 删除 master 分支的多余的本地文件  
 
 echo ---- > "%tmp%\branch.txt"
 for /f usebackq %%i in ( `dir /AD /B` ) do (

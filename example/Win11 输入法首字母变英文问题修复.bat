@@ -9,7 +9,7 @@ echo 已启动触摸键盘，临时解决问题
 
 
 
-:: 检查注册表配置 TouchKeyboardHasEverShown
+REM 检查注册表配置 TouchKeyboardHasEverShown
 set "RegPath=HKEY_CURRENT_USER\Software\Microsoft\InputMethod\Settings\Common"
 reg query "%RegPath%" | findstr /i "TouchKeyboardHasEverShown"
 reg query "%RegPath%" | findstr /i "TouchKeyboardHasEverShown" >nul 2>&1

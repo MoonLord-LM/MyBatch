@@ -4,9 +4,9 @@ setlocal enabledelayedexpansion
 
 
 
-::
-::  更新【help】文件夹中的所有的命令帮助信息
-::
+REM 
+REM 更新【help】文件夹中的所有的命令帮助信息
+REM 
 
 call :AdministratorPrivileges "%~0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9"
 pushd %~dp0

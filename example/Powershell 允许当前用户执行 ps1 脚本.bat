@@ -1,7 +1,7 @@
 @echo off
 chcp 65001 >nul
 
-:: Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+REM Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 
 powershell -NoProfile -Command "Set-ExecutionPolicy RemoteSigned -Scope CurrentUser -Force"
 if %errorlevel% equ 0 (

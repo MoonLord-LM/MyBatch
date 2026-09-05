@@ -1,14 +1,14 @@
 @echo off
 chcp 65001 >nul
 
-:: 百度 公共 DNS
-:: https://dudns.baidu.com/
+REM 百度 公共 DNS
+REM https://dudns.baidu.com/
 
-:: Google 公共 NDS
-:: https://developers.google.com/speed/public-dns/docs/using
+REM Google 公共 NDS
+REM https://developers.google.com/speed/public-dns/docs/using
 
-:: 阿里云 公共 DNS
-:: https://www.alidns.com/
+REM 阿里云 公共 DNS
+REM https://www.alidns.com/
 
 
 

@@ -68,16 +68,16 @@ set TmpFile="%windir%\Temp\EXE_Compress_Pack_Tmp_%random%.tmp"
 !SevenZip! a -t7z -mx9 !TmpFile! !ExeFilePath!
 
 echo 正在生成配置……
-::   ;!@Install@!UTF-8!
-::   RunProgram="Setup.exe"
-::   ;!@InstallEnd@!
+REM ;!@Install@!UTF-8!
+REM RunProgram="Setup.exe"
+REM ;!@InstallEnd@!
 setlocal disabledelayedexpansion
-::
+REM 
 set ExeConfig="%windir%\Temp\EXE_Compress_Pack_Config_%random%.txt"
 echo ;!@Install@!UTF-8!>%ExeConfig%
 echo RunProgram=%ExeFileName%>>%ExeConfig%
 echo ;!@InstallEnd@!>>%ExeConfig%
-::
+REM 
 setlocal enabledelayedexpansion
 
 echo 正在打包文件……

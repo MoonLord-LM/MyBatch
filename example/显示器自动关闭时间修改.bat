@@ -23,14 +23,14 @@ exit
 
 
 :DisplayCurrentACSettings
-    :: powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE | findstr "交流电源"
+    REM powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE | findstr "交流电源"
     for /f "tokens=2" %%a in ('powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE ^| findstr "交流电源"') do set MonitorTimeoutACHex=%%a
     set /A MonitorTimeoutAC=%MonitorTimeoutACHex%
     echo AC 交流电源，当前的自动关闭时间为 %MonitorTimeoutAC% 秒
 goto :eof
 
 :DisplayCurrentDCSettings
-    :: powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE | findstr "直流电源"
+    REM powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE | findstr "直流电源"
     for /f "tokens=2" %%a in ('powercfg /query SCHEME_CURRENT SUB_VIDEO VIDEOIDLE ^| findstr "直流电源"') do set MonitorTimeoutDCHex=%%a
     set /A MonitorTimeoutDC=%MonitorTimeoutDCHex%
     echo DC 直流电源，当前的自动关闭时间为 %MonitorTimeoutDC% 秒

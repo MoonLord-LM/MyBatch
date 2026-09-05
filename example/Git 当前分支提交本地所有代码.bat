@@ -3,9 +3,9 @@ chcp 65001 >nul
 
 
 
-:: MoonLord 2022.02.22  
-:: 根据文件夹后缀（-master、-develop），判断当前是哪个分支  
-:: 提交文件夹内的全部修改  
+REM MoonLord 2022.02.22  
+REM 根据文件夹后缀（-master、-develop），判断当前是哪个分支  
+REM 提交文件夹内的全部修改  
 
 echo ---- > "%tmp%\branch.txt"
 for /f usebackq %%i in ( `dir /AD /B` ) do (

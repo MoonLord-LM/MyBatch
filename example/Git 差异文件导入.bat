@@ -9,7 +9,7 @@ if not exist "%~dp0changes.patch" (
     exit /b
 )
 
-:: 获取拖动到 bat 文件上的输入文件夹路径
+REM 获取拖动到 bat 文件上的输入文件夹路径
 set "input_dir=%~1"
 
 if "%input_dir%"=="" (

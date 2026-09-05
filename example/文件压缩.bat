@@ -10,8 +10,8 @@ if "%~1"=="" (
     exit
 )
 
-:: https://ss64.com/nt/makecab-directives.html
-:: https://msdn.microsoft.com/en-us/library/bb417343.aspx
+REM https://ss64.com/nt/makecab-directives.html
+REM https://msdn.microsoft.com/en-us/library/bb417343.aspx
 echo 调用系统自带的 makecab.exe 压缩文件
 
 set tmp_file="%windir%\Temp\makecab_directives_%random%.reg"
@@ -20,9 +20,9 @@ set tmp_file="%windir%\Temp\makecab_directives_%random%.reg"
 >>"%tmp_file%" echo .set Cabinet=ON
 >>"%tmp_file%" echo .set CabinetFileCountThreshold=0
 >>"%tmp_file%" echo .Set Compress=ON
-:: 压缩类型：MSZIP、LZX
+REM 压缩类型：MSZIP、LZX
 >>"%tmp_file%" echo .set CompressionType=LZX
-:: 用于 LZX 类型的压缩等级：15-21
+REM 用于 LZX 类型的压缩等级：15-21
 >>"%tmp_file%" echo .set CompressionMemory=21
 >>"%tmp_file%" echo .set FolderFileCountThreshold=0
 >>"%tmp_file%" echo .set FolderSizeThreshold=0

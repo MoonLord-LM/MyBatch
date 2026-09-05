@@ -6,12 +6,12 @@ setlocal disabledelayedexpansion
 
 set debug_function=true
 set debug_exception=true
-::
-::
-::
-::Begin Here
+REM 
+REM 
+REM 
+REM Begin Here
 call :main %*
-:: Jump to main function
+REM Jump to main function
 
 
 
@@ -21,11 +21,11 @@ call :main %*
 
 
 
-::Function Definition
+REM Function Definition
 goto :eof
 
 :main - "主函数(void)，返回void"
-    :: for %%i in (%*) do echo %%i
+    REM for %%i in (%*) do echo %%i
     if %debug_function%==true (
         echo 【Function】main, parameter:%~1,%~2,%~3,%~4,%~5,%~6,%~7,%~8,%~9
     )
@@ -434,7 +434,7 @@ goto :eof
     set /a string_length_value=0
     setlocal
     set str=%~1
-    :: 替换引号为空格
+    REM 替换引号为空格
     set str=%str:"= %
     :loop
     if not "%str%"=="" (
@@ -456,14 +456,14 @@ goto :eof
     set string_trim_value=""
     setlocal
     set str=%~1
-    :: 替换左边的空格
+    REM 替换左边的空格
     :loop1
     if "%str:~0,1%"==" " (
         set str=%str:~1%
         echo "%str%"
         goto loop1
     )
-    :: 替换右边的空格
+    REM 替换右边的空格
     :loop2
     if "%str:~-1%"==" " (
         set str=%str:~0,-1%
