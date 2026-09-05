@@ -41,7 +41,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     set "file_ext=%%~xf"
     setlocal enabledelayedexpansion
 
-    echo 检查文件："!bat_file!"
+    echo 处理文件："!bat_file!"
 
     REM 统一编码为 UTF-8 without BOM，统一换行符为 CRLF
     powershell -NoProfile -Command ^
@@ -59,18 +59,18 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
         "[System.IO.File]::WriteAllText($env:bat_file, $content, $utf8NoBOM);"
 
-    REM 检查并添加 @echo off
+    REM 检查每个文件都必须 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
     powershell -NoProfile -Command ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
-        "if (($lines -join '`n') -notmatch '@echo off') {" ^
+        "if (-not (($lines -join '`r`n').Contains('@echo '))) {" ^
             "$lines = @('@echo off') + $lines;" ^
             "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
         "}"
 
-    REM 检查并添加 chcp 65001 >nul
+    REM 检查每个文件都必须 `chcp ` 代码，否则自动在第 1 行的位置添加 `chcp 65001 >nul`
     powershell -NoProfile -Command ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
-        "if (($lines -join '`n') -notmatch 'chcp 65001') {" ^
+        "if (-not (($lines -join '`r`n').Contains('chcp '))) {" ^
             "$newLines = New-Object System.Collections.Generic.List[string];" ^
             "$newLines.Add($lines[0]);" ^
             "$newLines.Add('chcp 65001 >nul');" ^
