@@ -45,8 +45,9 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
 
     REM 统一编码为 UTF-8 without BOM，统一换行符为 CRLF
     powershell -NoProfile -Command ^
-        "$bytes = [System.IO.File]::ReadAllBytes($env:bat_file);" ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$bytes = [System.IO.File]::ReadAllBytes($env:bat_file);" ^
         "$utf8Decoder = [System.Text.Encoding]::UTF8.GetDecoder();" ^
         "$utf8Decoder.Fallback = [System.Text.DecoderExceptionFallback]::new();" ^
         "try {" ^
@@ -58,8 +59,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         "}" ^
         "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
         "[System.IO.File]::WriteAllText($env:bat_file, $content, $utf8NoBOM);"
-
-    if errorlevel 1 (
+    if !errorlevel! neq 0 (
         echo [错误] 编码转换失败："!bat_file!"
         echo.
         pause
@@ -68,13 +68,14 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
 
     REM 检查每个文件都必须 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
     powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
-        "if (-not (($lines -join '`r`n').Contains('@echo '))) {" ^
+        "if (-not (($lines -join '`r`n').ToLowerInvariant().Contains('@echo '))) {" ^
             "$lines = @('@echo off') + $lines;" ^
             "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
         "}"
-
-    if errorlevel 1 (
+    if !errorlevel! neq 0 (
         echo [错误] 检查/添加 @echo 失败："!bat_file!"
         echo.
         pause
@@ -83,8 +84,10 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
 
     REM 检查每个文件都必须 `chcp ` 代码，否则自动在第 1 行的位置添加 `chcp 65001 >nul`
     powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
-        "if (-not (($lines -join '`r`n').Contains('chcp '))) {" ^
+        "if (-not (($lines -join '`r`n').ToLowerInvariant().Contains('chcp '))) {" ^
             "$newLines = New-Object System.Collections.Generic.List[string];" ^
             "$newLines.Add($lines[0]);" ^
             "$newLines.Add('chcp 65001 >nul');" ^
@@ -93,9 +96,31 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
             "}" ^
             "[System.IO.File]::WriteAllLines($env:bat_file, $newLines, $utf8NoBOM);" ^
         "}"
-
-    if errorlevel 1 (
+    if !errorlevel! neq 0 (
         echo [错误] 检查/添加 chcp 失败："!bat_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM 注释统一使用 REM 注释
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
+        "$changed = 0;" ^
+        "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+            "if ($lines[$i] -match '^\s*::') {" ^
+                "$lines[$i] = $lines[$i] -replace '^(\s*)::\s*', '${1}REM ';" ^
+                "$changed++;" ^
+            "}" ^
+        "}" ^
+        "if ($changed -gt 0) {" ^
+            "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
+            "Write-Output ('已将 ' + $changed + ' 处 :: 注释改为 REM 写法');" ^
+        "}"
+    if !errorlevel! neq 0 (
+        echo [错误] 检查/修改 REM 注释失败："!bat_file!"
         echo.
         pause
         exit /b 1
@@ -105,6 +130,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     endlocal
     echo.
 )
+echo 处理完成
 
 
 
