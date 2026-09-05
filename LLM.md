@@ -26,7 +26,6 @@ For batch scripts, code readability is prioritized over performance optimization
 For batch scripts, the code style should refer to existing code to maintain consistency as much as possible, for example, use Space spaces instead of Tab spaces, and use REM style comments instead of :: style comments.  
 If temporary files need to be generated, use a path like `%temp%\\MyBatch_%random%_%random%_%random%_%random%.tmp` to prevent conflicts, and clean it up before the script ends.  
 Try to avoid using English parentheses ( ) or Chinese parentheses （） in echo commands to prevent interference.  
-To check if the previous command succeeded/failed, use the `if errorlevel 0/1` syntax, which is more concise; do not use the `%errorlevel%` variable.  
 If the script is run as administrator from the right-click menu, it will switch to the system directory by default, but usually the script does not want to change the relative path; refer to the example code for handling.  
 When a script exits normally, use `exit /b` to exit; when it exits with an error, use `exit /b 1` to exit.  
 When processing video files, ensure compatibility with common formats: *.mp4, *.mkv, *.ts, *.avi, *.wmv, *.flv, *.rmvb, *.rm, *.vob, *.mpg, *.mpeg, *.3gp, *.m4v, *.f4v, *.mov, *.webm.  
@@ -115,7 +114,6 @@ None
 批处理脚本的代码风格参考现有代码，尽量保持一致，例如使用 Space 空格而不用 Tab 空格，使用 REM 风格的注释而不用 :: 风格的注释。  
 如果需要生成临时文件，使用 `%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp` 这样的路径防止冲突，并且在脚本结束前做清理。  
 尽量避免在 echo 命令中，使用英文的括号 ( ) 或中文的括号（）符号，避免干扰，一定要用的话，使用 ^( 和 ^) 转义。  
-判断上一条命令是否成功/失败，用 if errorlevel 0/1 的写法，比较简洁，不要用 %errorlevel% 变量。  
 脚本如果用右键的“以管理员权限运行”，默认会切换到系统目录，而通常脚本并不想改变相对路径，参照示例代码处理。  
 脚本需要使用 pause 时，前面一行必须是 echo. 语句，以使 pause 的输出较为清晰可见。  
 脚本正常结束时，使用 exit /b 退出，异常结束时，使用 exit /b 1 退出。  

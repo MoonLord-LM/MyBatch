@@ -306,17 +306,32 @@ if not "!working_dir!" == "" (
                     echo 警告：文件包含 Time code 流，需要进行清理
                     if not exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" (
                         "!ffmpeg_path!" -i "!working_dir!\!name_file!" -c copy -map_metadata -1 -threads 1 "!working_dir!\!name_file:~0,-4!_tmp.mp4"
+                        if !errorlevel! neq 0 (
+                            echo.
+                            echo 文件 "!name_file!" 的 Time code 清理失败，请检查报错信息
+                            if exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!name_file:~0,-4!_tmp.mp4" )
+                            pause
+                            endlocal & endlocal & exit /b 1
+                        )
                     )
                     set "file_to_delete=!working_dir!\!name_file!"
                     powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     ren "!working_dir!\!name_file:~0,-4!_tmp.mp4" "!name_file!"
+                    if !errorlevel! neq 0 (
+                        echo.
+                        echo 错误：文件 "!name_file!" 替换失败，原文件已移入回收站，请检查报错信息
+                        if exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!name_file:~0,-4!_tmp.mp4" )
+                        pause
+                        endlocal & endlocal & exit /b 1
+                    )
                 )
             )
         )
     )
 
     echo 正在生成文件列表
-    type nul > "!working_dir!\_tmp_file_list.txt"
+    set "tmp_file_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+    type nul > "!tmp_file_list!"
     for /l %%i in (1,1,999) do (
         set "name_file="
         if exist "!working_dir!\%%i.mp4" (
@@ -334,7 +349,7 @@ if not "!working_dir!" == "" (
         )
         if not "!name_file!"=="" (
             set "name_path=!working_dir!\!name_file!"
-            echo file '!name_path!'>>"!working_dir!\_tmp_file_list.txt"
+            echo file '!name_path!'>>"!tmp_file_list!"
             set /a "file_count+=1"
             REM 解析参数
             for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
@@ -431,7 +446,7 @@ if not "!working_dir!" == "" (
 
     if "!file_count!"=="0" (
         echo 没有找到任何视频文件（01.mp4 到 999.mp4）
-        if exist "!working_dir!\_tmp_file_list.txt" ( del /f /q "!working_dir!\_tmp_file_list.txt" )
+        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
         pause
         endlocal & endlocal & exit /b 1
     )
@@ -639,7 +654,7 @@ if not "!working_dir!" == "" (
             pause
             echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
-            type nul > "!working_dir!\_tmp_file_list.txt"
+            type nul > "!tmp_file_list!"
             for /l %%i in (1,1,999) do (
                 set "name_file="
                 if exist "!working_dir!\%%i.mp4" (
@@ -669,7 +684,7 @@ if not "!working_dir!" == "" (
                             -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
                             -map_metadata -1 -threads 1 "!name_path:~0,-4!_h264_!suffix_safe!.mp4"
                     )
-                    echo file '!name_path:~0,-4!_h264_!suffix_safe!.mp4'>>"!working_dir!\_tmp_file_list.txt"
+                    echo file '!name_path:~0,-4!_h264_!suffix_safe!.mp4'>>"!tmp_file_list!"
                 )
             )
         ) else (
@@ -679,7 +694,7 @@ if not "!working_dir!" == "" (
             pause
             echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
 
-            type nul > "!working_dir!\_tmp_file_list.txt"
+            type nul > "!tmp_file_list!"
             set "temp_count=0"
             for /l %%i in (1,1,999) do (
                 set "name_file="
@@ -800,7 +815,7 @@ if not "!working_dir!" == "" (
                                     -map_metadata -1 -threads 1 "!name_path:~0,-4!_!suffix_safe!.mp4"
                             )
                         )
-                        echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!working_dir!\_tmp_file_list.txt"
+                        echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
                     ) else if not "!audio_consistent!"=="1" (
                         echo 重新编码视频："!name_path!" - "!name_path:~0,-4!_!suffix_safe!.mp4"
                         if not exist "!name_path:~0,-4!_!suffix_safe!.mp4" (
@@ -809,9 +824,9 @@ if not "!working_dir!" == "" (
                                 -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
                                 -map_metadata -1 -threads 1 "!name_path:~0,-4!_!suffix_safe!.mp4"
                         )
-                        echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!working_dir!\_tmp_file_list.txt"
+                        echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
                     ) else (
-                        echo file '!name_path!'>>"!working_dir!\_tmp_file_list.txt"
+                        echo file '!name_path!'>>"!tmp_file_list!"
                     )
                 )
             )
@@ -819,15 +834,18 @@ if not "!working_dir!" == "" (
     )
 
     echo 正在合并视频
-    "!ffmpeg_path!" -y -f concat -safe 0 -i "!working_dir!\_tmp_file_list.txt" -c copy -threads 1 "!working_dir!\_tmp_merged.mp4"
+    set "tmp_merged_video=%temp%\MyBatch_%random%_%random%_%random%_%random%.mp4"
+    "!ffmpeg_path!" -y -f concat -safe 0 -i "!tmp_file_list!" -c copy -threads 1 "!tmp_merged_video!"
     if !errorlevel! neq 0 (
         echo.
-        echo 文件 _tmp_merged.mp4 合并失败，请检查报错信息
+        echo 视频合并失败，请检查报错信息
+        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
+        if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
         pause
         endlocal & endlocal & exit /b 1
     )
 
-    if exist "!working_dir!\_tmp_merged.mp4" (
+    if exist "!tmp_merged_video!" (
         REM 兼容 webp 封面，自动转为 PNG 格式
         if not exist "!working_dir!\0.png" (
             if exist "!working_dir!\0.webp" (
@@ -906,6 +924,8 @@ if not "!working_dir!" == "" (
                     if !errorlevel! neq 0 (
                         echo.
                         echo 封面图片格式转换失败，请检查报错信息
+                        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
+                        if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
                         pause
                         endlocal & endlocal & exit /b 1
                     )
@@ -914,26 +934,30 @@ if not "!working_dir!" == "" (
             )
 
             echo 正在添加封面图片 [!cover_file!]
-            "!ffmpeg_path!" -y -i "!working_dir!\_tmp_merged.mp4" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!working_dir!\final.mp4"
+            "!ffmpeg_path!" -y -i "!tmp_merged_video!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!working_dir!\final.mp4"
             if !errorlevel! neq 0 (
                 echo.
                 echo 文件 final.mp4 合并失败，请检查报错信息
+                if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
+                if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
                 pause
                 endlocal & endlocal & exit /b 1
             )
         ) else (
             echo 封面文件（0.png、00.png、000.png、cover.png、封面.png、海报.png 等）不存在，不添加封面
-            move /y "!working_dir!\_tmp_merged.mp4" "!working_dir!\final.mp4"
+            move /y "!tmp_merged_video!" "!working_dir!\final.mp4"
         )
         echo 合并完成，已生成 !working_dir!\final.mp4 文件
     ) else (
         echo 合并失败，请检查报错信息
+        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
+        if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
         pause
         endlocal & endlocal & exit /b 1
     )
 
-    if exist "!working_dir!\_tmp_merged.mp4" ( del /f /q "!working_dir!\_tmp_merged.mp4" )
-    if exist "!working_dir!\_tmp_file_list.txt" ( del /f /q "!working_dir!\_tmp_file_list.txt" )
+    if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
+    if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
 )
 
 
