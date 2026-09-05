@@ -100,18 +100,30 @@ if exist "!root_dir!" (
     dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
 )
 
-REM 用户临时文件
+REM 用户临时文件（仅清理 24 个小时前的）
 set "root_dir=!temp!"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"
-    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+    echo 正在扫描文件夹："!root_dir!"，（仅清理 24 个小时前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddHours(-24);" ^
+        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName });" ^
+        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
 )
 
-REM 系统临时文件
+REM 系统临时文件（仅清理 24 个小时前的）
 set "root_dir=!SystemRoot!\Temp"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"
-    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+    echo 正在扫描文件夹："!root_dir!"，（仅清理 24 个小时前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddHours(-24);" ^
+        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName });" ^
+        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
 )
 
 REM 115Chrome 浏览器缓存
@@ -142,26 +154,26 @@ if exist "!root_dir!" (
     dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
 )
 
-REM NVIDIA 显卡着色器与缓存（仅清理 6 个月前的）
+REM NVIDIA 显卡着色器与缓存（仅清理 12 个月前的）
 set "root_dir=!LocalAppData!\NVIDIA\DXCache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 6 个月前的）
+    echo 正在扫描文件夹："!root_dir!"（仅清理 12 个月前的）
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$time = (Get-Date).AddDays(-180);" ^
+        "$time = (Get-Date).AddMonths(-12);" ^
         "Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
         "    ForEach-Object { $_.FullName } |" ^
         "    Add-Content -LiteralPath $env:temp_list -Encoding UTF8;"
 )
 
-REM AMD 显卡着色器与缓存（仅清理 6 个月前的）
+REM AMD 显卡着色器与缓存（仅清理 12 个月前的）
 set "root_dir=!LocalAppData!\AMD\DXCache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 6 个月前的）
+    echo 正在扫描文件夹："!root_dir!"（仅清理 12 个月前的）
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$time = (Get-Date).AddDays(-180);" ^
+        "$time = (Get-Date).AddMonths(-12);" ^
         "Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
         "    ForEach-Object { $_.FullName } |" ^
