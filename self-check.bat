@@ -51,7 +51,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         "$utf8Decoder.Fallback = [System.Text.DecoderExceptionFallback]::new();" ^
         "try {" ^
             "$chars = New-Object Char[] ($utf8Decoder.GetCharCount($bytes, 0, $bytes.Length));" ^
-            "$utf8Decoder.GetChars($bytes, 0, $bytes.Length, $chars, 0);" ^
+            "$utf8Decoder.GetChars($bytes, 0, $bytes.Length, $chars, 0) | Out-Null;" ^
             "$content = -join $chars;" ^
         "} catch [System.Text.DecoderFallbackException] {" ^
             "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
