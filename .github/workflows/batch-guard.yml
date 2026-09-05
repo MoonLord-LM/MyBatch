@@ -1,0 +1,43 @@
+name: batch-guard
+
+on:
+  schedule:
+    - cron: '57 23 * * *'
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths: ['**/*.bat', 'self-check.bat', '.github/workflows/batch-guard.yml']
+  pull_request:
+    branches: [master]
+    paths: ['**/*.bat', 'self-check.bat', '.github/workflows/batch-guard.yml']
+
+permissions:
+  contents: write
+
+concurrency:
+  group: batch-guard-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  self-check:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run self-check.bat
+        shell: cmd
+        run: call self-check.bat <nul
+
+      - name: Commit and push
+        if: github.event_name != 'pull_request'
+        shell: powershell
+        run: |
+          git add -A
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "style: auto-fix by self-check [skip ci]"
+            git push origin HEAD
+          } else {
+            Write-Host 'No changes after self-check.'
+          }
