@@ -127,7 +127,7 @@ powershell -NoProfile -Command ^
     "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
     "$a = ($lines | Select-String -Pattern '^goto :after_powershell_block\s*$' | Select-Object -First 1).LineNumber;" ^
     "$b = ($lines | Select-String -Pattern '^:after_powershell_block\s*$' | Select-Object -First 1).LineNumber;" ^
-    "$code = ($lines[$a..($b - 1)] -join [Environment]::NewLine);" ^
+    "$code = ($lines[$a..($b - 2)] -join [Environment]::NewLine);" ^
     "$b64 = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code));" ^
     "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$b64)"
 if !errorlevel! neq 0 (

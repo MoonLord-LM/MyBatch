@@ -128,3 +128,5 @@ video2x
 *.txt
 *.JSON
 *.json
+*.PID
+*.pid
