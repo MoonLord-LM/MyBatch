@@ -118,25 +118,29 @@ set "end_time=!param3!"
         set "file_dir=%%~dpi"
         set "base_name=%%~ni"
         set "file_ext=%%~xi"
+        if /i "%%~xi"==".ts" ( set "new_file=%%~dpi%%~ni.mp4" )
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!" & REM
         echo 截取时间：!begin_time! - !end_time!
         echo.
 
-        set "work_file=!video_file!"
         if /i "!file_ext!"==".ts" (
-            set "work_file=!file_dir!!base_name!.mp4"
-            echo 检测到 ts 格式，先转为同名 mp4："!work_file!"
-            "!ffmpeg_path!" -y -i "!video_file!" -c copy "!work_file!" >nul 2>&1
-            if !errorlevel! neq 0 (
-                echo.
-                echo ts 转 mp4 失败，程序退出
-                echo.
-                pause
-                endlocal & endlocal & exit /b 1
+            if exist "!new_file!" (
+                echo 已存在同名 mp4 文件 "!new_file!"，优先使用该格式的文件处理
+            ) else (
+                echo 检测到 ts 格式，先转为同名 mp4："!new_file!"
+                "!ffmpeg_path!" -y -i "!video_file!" -c copy "!new_file!" >nul 2>&1
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo ts 转 mp4 失败，程序退出
+                    echo.
+                    pause
+                    endlocal & endlocal & exit /b 1
+                )
+                echo ts 转 mp4 完成
             )
-            echo ts 转 mp4 完成
+            set "video_file=!new_file!"
         )
 
         REM 把开始/结束时间里的 : 和 . 替换为空，作为输出文件名
@@ -149,7 +153,7 @@ set "end_time=!param3!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在截取："!output_file!"
-            "!ffmpeg_path!" -ss "!begin_time!" -to "!end_time!" -i "!work_file!" -c copy "!output_file!" -movflags +faststart -y
+            "!ffmpeg_path!" -ss "!begin_time!" -to "!end_time!" -i "!video_file!" -c copy "!output_file!" -movflags +faststart -y
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 视频截取失败
