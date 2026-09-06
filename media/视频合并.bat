@@ -301,8 +301,7 @@ if not "!working_dir!" == "" (
             set "file_name=第00%%i集.mp4"
         )
         if not "!file_name!"=="" (
-            set "file_path=!working_dir!\!file_name!"
-            for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams d -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
+            for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams d -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 (Join-Path $env:working_dir $env:file_name) 2>$null"') do (
                 if "%%d"=="tmcd" (
                     echo 警告：文件包含 Time code 流，需要进行清理
                     if not exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" (
