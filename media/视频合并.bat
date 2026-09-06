@@ -257,27 +257,27 @@ if not "!working_dir!" == "" (
 
     echo 正在检查视频内容
     for /l %%i in (1,1,999) do (
-        set "name_file="
+        set "file_name="
         if exist "!working_dir!\%%i.mp4" (
-            set "name_file=%%i.mp4"
+            set "file_name=%%i.mp4"
         ) else if exist "!working_dir!\0%%i.mp4" (
-            set "name_file=0%%i.mp4"
+            set "file_name=0%%i.mp4"
         ) else if exist "!working_dir!\00%%i.mp4" (
-            set "name_file=00%%i.mp4"
+            set "file_name=00%%i.mp4"
         ) else if exist "!working_dir!\第%%i集.mp4" (
-            set "name_file=第%%i集.mp4"
+            set "file_name=第%%i集.mp4"
         ) else if exist "!working_dir!\第0%%i集.mp4" (
-            set "name_file=第0%%i集.mp4"
+            set "file_name=第0%%i集.mp4"
         ) else if exist "!working_dir!\第00%%i集.mp4" (
-            set "name_file=第00%%i集.mp4"
+            set "file_name=第00%%i集.mp4"
         )
-        if not "!name_file!"=="" (
-            "!ffmpeg_path!" -v error -i "!working_dir!\!name_file!" -map 0 -f null - 2>nul
+        if not "!file_name!"=="" (
+            "!ffmpeg_path!" -v error -i "!working_dir!\!file_name!" -map 0 -f null - 2>nul
             if !errorlevel! neq 0 (
                 echo.
-                echo 文件 "!working_dir!\!name_file!" 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行
+                echo 文件 "!working_dir!\!file_name!" 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行
                 pause
-                "!ffmpeg_path!" -v error -i "!working_dir!\!name_file!" -map 0 -f null -
+                "!ffmpeg_path!" -v error -i "!working_dir!\!file_name!" -map 0 -f null -
                 pause
                 endlocal & endlocal & exit /b 1
             )
@@ -286,41 +286,42 @@ if not "!working_dir!" == "" (
 
     echo 正在清理 Time code 资源
     for /l %%i in (1,1,999) do (
-        set "name_file="
+        set "file_name="
         if exist "!working_dir!\%%i.mp4" (
-            set "name_file=%%i.mp4"
+            set "file_name=%%i.mp4"
         ) else if exist "!working_dir!\0%%i.mp4" (
-            set "name_file=0%%i.mp4"
+            set "file_name=0%%i.mp4"
         ) else if exist "!working_dir!\00%%i.mp4" (
-            set "name_file=00%%i.mp4"
+            set "file_name=00%%i.mp4"
         ) else if exist "!working_dir!\第%%i集.mp4" (
-            set "name_file=第%%i集.mp4"
+            set "file_name=第%%i集.mp4"
         ) else if exist "!working_dir!\第0%%i集.mp4" (
-            set "name_file=第0%%i集.mp4"
+            set "file_name=第0%%i集.mp4"
         ) else if exist "!working_dir!\第00%%i集.mp4" (
-            set "name_file=第00%%i集.mp4"
+            set "file_name=第00%%i集.mp4"
         )
-        if not "!name_file!"=="" (
-            for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams d -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 $env:name_file 2>$null"') do (
+        if not "!file_name!"=="" (
+            set "file_path=!working_dir!\!file_name!"
+            for /f "delims=" %%d in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams d -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 if "%%d"=="tmcd" (
                     echo 警告：文件包含 Time code 流，需要进行清理
-                    if not exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" (
-                        "!ffmpeg_path!" -i "!working_dir!\!name_file!" -c copy -map_metadata -1 -threads 1 "!working_dir!\!name_file:~0,-4!_tmp.mp4"
+                    if not exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" (
+                        "!ffmpeg_path!" -i "!working_dir!\!file_name!" -c copy -map_metadata -1 -threads 1 "!working_dir!\!file_name:~0,-4!_tmp.mp4"
                         if !errorlevel! neq 0 (
                             echo.
-                            echo 文件 "!name_file!" 的 Time code 清理失败，请检查报错信息
-                            if exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!name_file:~0,-4!_tmp.mp4" )
+                            echo 文件 "!file_name!" 的 Time code 清理失败，请检查报错信息
+                            if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
                             pause
                             endlocal & endlocal & exit /b 1
                         )
                     )
-                    set "file_to_delete=!working_dir!\!name_file!"
+                    set "file_to_delete=!working_dir!\!file_name!"
                     powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
-                    ren "!working_dir!\!name_file:~0,-4!_tmp.mp4" "!name_file!"
+                    ren "!working_dir!\!file_name:~0,-4!_tmp.mp4" "!file_name!"
                     if !errorlevel! neq 0 (
                         echo.
-                        echo 错误：文件 "!name_file!" 替换失败，原文件已移入回收站，请检查报错信息
-                        if exist "!working_dir!\!name_file:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!name_file:~0,-4!_tmp.mp4" )
+                        echo 错误：文件 "!file_name!" 替换失败，原文件已移入回收站，请检查报错信息
+                        if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
                         pause
                         endlocal & endlocal & exit /b 1
                     )
@@ -333,63 +334,63 @@ if not "!working_dir!" == "" (
     set "tmp_file_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
     type nul > "!tmp_file_list!"
     for /l %%i in (1,1,999) do (
-        set "name_file="
+        set "file_name="
         if exist "!working_dir!\%%i.mp4" (
-            set "name_file=%%i.mp4"
+            set "file_name=%%i.mp4"
         ) else if exist "!working_dir!\0%%i.mp4" (
-            set "name_file=0%%i.mp4"
+            set "file_name=0%%i.mp4"
         ) else if exist "!working_dir!\00%%i.mp4" (
-            set "name_file=00%%i.mp4"
+            set "file_name=00%%i.mp4"
         ) else if exist "!working_dir!\第%%i集.mp4" (
-            set "name_file=第%%i集.mp4"
+            set "file_name=第%%i集.mp4"
         ) else if exist "!working_dir!\第0%%i集.mp4" (
-            set "name_file=第0%%i集.mp4"
+            set "file_name=第0%%i集.mp4"
         ) else if exist "!working_dir!\第00%%i集.mp4" (
-            set "name_file=第00%%i集.mp4"
+            set "file_name=第00%%i集.mp4"
         )
-        if not "!name_file!"=="" (
-            set "name_path=!working_dir!\!name_file!"
-            echo file '!name_path!'>>"!tmp_file_list!"
+        if not "!file_name!"=="" (
+            set "file_path=!working_dir!\!file_name!"
+            echo file '!file_path!'>>"!tmp_file_list!"
             set /a "file_count+=1"
             REM 解析参数
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_width=%%v"
             )
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_height=%%v"
             )
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_codec=%%v"
             )
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_codec_tag=%%v"
             )
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_codec_profile=%%v"
             )
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=level -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=level -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_codec_level=%%v"
             )
             REM "!mediainfo_path!" 用于获取视频编码的 Tier 信息
-            for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:name_path 2>$null"') do (
+            for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:file_path 2>$null"') do (
                 set "temp_profile=%%v"
                 set "temp_profile=!temp_profile:*@=!"
                 set "temp_profile=!temp_profile:*@=!"
                 set "current_video_codec_tier=!temp_profile!"
             )
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_audio_codec=%%a"
             )
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_audio_codec_profile=%%a"
             )
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_fps=%%v"
             )
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_audio_sample_rate=%%a"
             )
-            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+            for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_time_base=%%v"
             )
             set "current_video_codec_all=!current_video_codec! - !current_video_codec_tag! - !current_video_codec_profile! - !current_video_codec_level! - !current_video_codec_tier!"
@@ -414,31 +415,31 @@ if not "!working_dir!" == "" (
             if "!first_audio_codec_all!"=="" ( set "first_audio_codec_all=!current_audio_codec_all!" )
 
             if not "!current_video_width!"=="!first_video_width!" (
-                echo 警告：文件 !name_file! 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致
+                echo 警告：文件 !file_name! 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_height!"=="!first_video_height!" (
-                echo 警告：文件 !name_file! 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
+                echo 警告：文件 !file_name! 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_codec_all!"=="!first_video_codec_all!" (
-                echo 警告：文件 !name_file! 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
+                echo 警告：文件 !file_name! 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
                 set "file_consistent=0"
             )
             if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
-                echo 警告：文件 !name_file! 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
+                echo 警告：文件 !file_name! 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_fps!"=="!first_video_fps!" (
-                echo 警告：文件 !name_file! 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
+                echo 警告：文件 !file_name! 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
                 set "file_consistent=0"
             )
             if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
-                echo 警告：文件 !name_file! 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
+                echo 警告：文件 !file_name! 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
                 set "file_consistent=0"
             )
             if not "!current_video_time_base!"=="!first_video_time_base!" (
-                echo 警告：文件 !name_file! 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
+                echo 警告：文件 !file_name! 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
                 set "file_consistent=0"
             )
         )
@@ -656,35 +657,35 @@ if not "!working_dir!" == "" (
 
             type nul > "!tmp_file_list!"
             for /l %%i in (1,1,999) do (
-                set "name_file="
+                set "file_name="
                 if exist "!working_dir!\%%i.mp4" (
-                    set "name_file=%%i.mp4"
+                    set "file_name=%%i.mp4"
                 ) else if exist "!working_dir!\0%%i.mp4" (
-                    set "name_file=0%%i.mp4"
+                    set "file_name=0%%i.mp4"
                 ) else if exist "!working_dir!\00%%i.mp4" (
-                    set "name_file=00%%i.mp4"
+                    set "file_name=00%%i.mp4"
                 ) else if exist "!working_dir!\第%%i集.mp4" (
-                    set "name_file=第%%i集.mp4"
+                    set "file_name=第%%i集.mp4"
                 ) else if exist "!working_dir!\第0%%i集.mp4" (
-                    set "name_file=第0%%i集.mp4"
+                    set "file_name=第0%%i集.mp4"
                 ) else if exist "!working_dir!\第00%%i集.mp4" (
-                    set "name_file=第00%%i集.mp4"
+                    set "file_name=第00%%i集.mp4"
                 )
-                if not "!name_file!"=="" (
-                    set "name_path=!working_dir!\!name_file!"
+                if not "!file_name!"=="" (
+                    set "file_path=!working_dir!\!file_name!"
                     REM 从 "1/1000" 中提取分母 "1000" 作为 timescale；格式异常时回退原值
                     for /f "tokens=2 delims=/" %%t in ("!first_video_time_base!") do set "target_timebase=%%t"
                     if "!target_timebase!"=="" set "target_timebase=!first_video_time_base!"
-                    echo 重新编码视频："!name_path!" - "!name_path:~0,-4!_h264_!suffix_safe!.mp4"
-                    if not exist "!name_path:~0,-4!_h264_!suffix_safe!.mp4" (
-                        "!ffmpeg_path!" -i "!name_path!" ^
+                    echo 重新编码视频："!file_path!" - "!file_path:~0,-4!_h264_!suffix_safe!.mp4"
+                    if not exist "!file_path:~0,-4!_h264_!suffix_safe!.mp4" (
+                        "!ffmpeg_path!" -i "!file_path!" ^
                             -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
                             -video_track_timescale "!target_timebase!" ^
                             -c:v "libx264" -r "!first_video_fps!" ^
                             -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
-                            -map_metadata -1 -threads 1 "!name_path:~0,-4!_h264_!suffix_safe!.mp4"
+                            -map_metadata -1 -threads 1 "!file_path:~0,-4!_h264_!suffix_safe!.mp4"
                     )
-                    echo file '!name_path:~0,-4!_h264_!suffix_safe!.mp4'>>"!tmp_file_list!"
+                    echo file '!file_path:~0,-4!_h264_!suffix_safe!.mp4'>>"!tmp_file_list!"
                 )
             )
         ) else (
@@ -697,62 +698,62 @@ if not "!working_dir!" == "" (
             type nul > "!tmp_file_list!"
             set "temp_count=0"
             for /l %%i in (1,1,999) do (
-                set "name_file="
+                set "file_name="
                 if exist "!working_dir!\%%i.mp4" (
-                    set "name_file=%%i.mp4"
+                    set "file_name=%%i.mp4"
                 ) else if exist "!working_dir!\0%%i.mp4" (
-                    set "name_file=0%%i.mp4"
+                    set "file_name=0%%i.mp4"
                 ) else if exist "!working_dir!\00%%i.mp4" (
-                    set "name_file=00%%i.mp4"
+                    set "file_name=00%%i.mp4"
                 ) else if exist "!working_dir!\第%%i集.mp4" (
-                    set "name_file=第%%i集.mp4"
+                    set "file_name=第%%i集.mp4"
                 ) else if exist "!working_dir!\第0%%i集.mp4" (
-                    set "name_file=第0%%i集.mp4"
+                    set "file_name=第0%%i集.mp4"
                 ) else if exist "!working_dir!\第00%%i集.mp4" (
-                    set "name_file=第00%%i集.mp4"
+                    set "file_name=第00%%i集.mp4"
                 )
-                if not "!name_file!"=="" (
-                    set "name_path=!working_dir!\!name_file!"
+                if not "!file_name!"=="" (
+                    set "file_path=!working_dir!\!file_name!"
                     set /a "temp_count+=1"
                     REM 解析参数
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_width=%%v"
                     )
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=height -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_height=%%v"
                     )
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_codec=%%v"
                     )
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_codec_tag=%%v"
                     )
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_codec_profile=%%v"
                     )
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=level -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=level -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_codec_level=%%v"
                     )
                     REM "!mediainfo_path!" 用于获取视频编码的 Tier 信息
-                    for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:name_path 2>$null"') do (
+                    for /f "tokens=*" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:file_path 2>$null"') do (
                         set "temp_profile=%%v"
                         set "temp_profile=!temp_profile:*@=!"
                         set "temp_profile=!temp_profile:*@=!"
                         set "current_video_codec_tier=!temp_profile!"
                     )
-                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_audio_codec=%%a"
                     )
-                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=profile -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_audio_codec_profile=%%a"
                     )
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=r_frame_rate -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_fps=%%v"
                     )
-                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=sample_rate -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_audio_sample_rate=%%a"
                     )
-                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of default=noprint_wrappers=1:nokey=1 $env:name_path 2>$null"') do (
+                    for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=time_base -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_time_base=%%v"
                     )
                     set "current_video_codec_all=!current_video_codec! - !current_video_codec_tag! - !current_video_codec_profile! - !current_video_codec_level! - !current_video_codec_tier!"
@@ -763,31 +764,31 @@ if not "!working_dir!" == "" (
                     set "audio_consistent=1"
                     if not "!current_video_width!"=="!first_video_width!" (
                         set "video_consistent=0"
-                        echo 警告：文件 !name_file! 的视频分辨率宽度 !current_video_width! 与第一个视频的视频分辨率宽度 !first_video_width! 不一致
+                        echo 警告：文件 !file_name! 的视频分辨率宽度 !current_video_width! 与第一个视频的视频分辨率宽度 !first_video_width! 不一致
                     )
                     if not "!current_video_height!"=="!first_video_height!" (
                         set "video_consistent=0"
-                        echo 警告：文件 !name_file! 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
+                        echo 警告：文件 !file_name! 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
                     )
                     if not "!current_video_codec_all!"=="!first_video_codec_all!" (
                         set "video_consistent=0"
-                        echo 警告：文件 !name_file! 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
+                        echo 警告：文件 !file_name! 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
                     )
                     if not "!current_video_fps!"=="!first_video_fps!" (
                         set "video_consistent=0"
-                        echo 警告：文件 !name_file! 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
+                        echo 警告：文件 !file_name! 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
                     )
                     if not "!current_video_time_base!"=="!first_video_time_base!" (
                         set "video_consistent=0"
-                        echo 警告：文件 !name_file! 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
+                        echo 警告：文件 !file_name! 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
                     )
                     if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
                         set "audio_consistent=0"
-                        echo 警告：文件 !name_file! 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
+                        echo 警告：文件 !file_name! 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
                     )
                     if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
                         set "audio_consistent=0"
-                        echo 警告：文件 !name_file! 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
+                        echo 警告：文件 !file_name! 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
                     )
                     echo 视频信息对比完成
 
@@ -795,38 +796,38 @@ if not "!working_dir!" == "" (
                     for /f "tokens=2 delims=/" %%t in ("!first_video_time_base!") do set "target_timebase=%%t"
                     if "!target_timebase!"=="" set "target_timebase=!first_video_time_base!"
                     if not "!video_consistent!"=="1" (
-                        echo 重新编码视频："!name_path!" - "!name_path:~0,-4!_!suffix_safe!.mp4"
+                        echo 重新编码视频："!file_path!" - "!file_path:~0,-4!_!suffix_safe!.mp4"
                         if not "!audio_consistent!"=="1" (
-                            if not exist "!name_path:~0,-4!_!suffix_safe!.mp4" (
-                                "!ffmpeg_path!" -i "!name_path!" ^
+                            if not exist "!file_path:~0,-4!_!suffix_safe!.mp4" (
+                                "!ffmpeg_path!" -i "!file_path!" ^
                                     -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
                                     -video_track_timescale "!target_timebase!" ^
                                     -c:v !target_video_encoder! -r "!first_video_fps!" ^
                                     -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
-                                    -map_metadata -1 -threads 1 "!name_path:~0,-4!_!suffix_safe!.mp4"
+                                    -map_metadata -1 -threads 1 "!file_path:~0,-4!_!suffix_safe!.mp4"
                             )
                         ) else (
-                            if not exist "!name_path:~0,-4!_!suffix_safe!.mp4" (
-                                "!ffmpeg_path!" -i "!name_path!" ^
+                            if not exist "!file_path:~0,-4!_!suffix_safe!.mp4" (
+                                "!ffmpeg_path!" -i "!file_path!" ^
                                     -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
                                     -video_track_timescale "!target_timebase!" ^
                                     -c:v !target_video_encoder! -r "!first_video_fps!" ^
                                     -c:a copy ^
-                                    -map_metadata -1 -threads 1 "!name_path:~0,-4!_!suffix_safe!.mp4"
+                                    -map_metadata -1 -threads 1 "!file_path:~0,-4!_!suffix_safe!.mp4"
                             )
                         )
-                        echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
+                        echo file '!file_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
                     ) else if not "!audio_consistent!"=="1" (
-                        echo 重新编码视频："!name_path!" - "!name_path:~0,-4!_!suffix_safe!.mp4"
-                        if not exist "!name_path:~0,-4!_!suffix_safe!.mp4" (
-                            "!ffmpeg_path!" -i "!name_path!" ^
+                        echo 重新编码视频："!file_path!" - "!file_path:~0,-4!_!suffix_safe!.mp4"
+                        if not exist "!file_path:~0,-4!_!suffix_safe!.mp4" (
+                            "!ffmpeg_path!" -i "!file_path!" ^
                                 -c:v copy ^
                                 -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
-                                -map_metadata -1 -threads 1 "!name_path:~0,-4!_!suffix_safe!.mp4"
+                                -map_metadata -1 -threads 1 "!file_path:~0,-4!_!suffix_safe!.mp4"
                         )
-                        echo file '!name_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
+                        echo file '!file_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
                     ) else (
-                        echo file '!name_path!'>>"!tmp_file_list!"
+                        echo file '!file_path!'>>"!tmp_file_list!"
                     )
                 )
             )
