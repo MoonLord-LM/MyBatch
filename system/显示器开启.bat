@@ -13,16 +13,12 @@ echo.
 
 
 powershell -NoProfile -Command ^
-    "$q = [char]34;" ^
-    "$sig = '[DllImport(' + $q + 'user32.dll' + $q + ')]public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);';" ^
-    "$type = Add-Type -MemberDefinition $sig -Name 'NativeMethods' -Namespace 'Win32' -PassThru;" ^
-    "$r = [int]$type::SendMessage(-1, 0x0112, 0xF170, -1);" ^
-    "if ($r -eq 0) { exit 1 }"
-if !errorlevel! equ 0 (
-    echo 开启成功
-) else (
-    echo 开启失败
-)
+    "$source = 'using System.Runtime.InteropServices;' +" ^
+    "    'public static class ScreenPower {' +" ^
+    "    '[DllImport(\"user32.dll\")] public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);' +" ^
+    "    '}';" ^
+    "Add-Type -TypeDefinition $source;" ^
+    "[ScreenPower]::SendMessage(-1, 0x0112, 0xF170, -1);"
 
 
 
