@@ -22,6 +22,30 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 
+REM 检查 RHash 组件
+if exist "!script_dir!rhash.exe" (
+    set "rhash_path=!script_dir!rhash.exe"
+) else if exist "!cd!\rhash.exe" (
+    set "rhash_path=!cd!\rhash.exe"
+) else if exist "!script_dir!..\rhash.exe" (
+    set "rhash_path=!script_dir!..\rhash.exe"
+) else if exist "..\rhash.exe" (
+    set "rhash_path=..\rhash.exe"
+) else (
+    set "rhash_path=rhash"
+)
+"!rhash_path!" --version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 RHash 组件
+    echo 请从 https://rhash.sourceforge.io 下载，然后放到脚本所在文件夹
+    "explorer.exe" "https://rhash.sourceforge.io"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+
+
+
 if "!param1!" == "" (
     echo 错误：不支持双击运行，请拖入文件运行
     echo.
@@ -43,11 +67,11 @@ if exist "!param1!\" (
 
 
 
-set "certutil_path=!SystemRoot!\System32\certutil.exe"
 echo 文件 "!param1_name_ext!" 的常用哈希值：
 echo.
 
-"!certutil_path!" -hashfile "!param1_path!" MD5
+echo -- MD5 --
+"!rhash_path!" --utf8 --one-hash --md5 "!param1_path!"
 if !errorlevel! neq 0 (
     echo 错误：生成 MD5 失败："!param1_path!"
     echo.
@@ -56,7 +80,8 @@ if !errorlevel! neq 0 (
 )
 echo.
 
-"!certutil_path!" -hashfile "!param1_path!" SHA1
+echo -- SHA1 --
+"!rhash_path!" --utf8 --one-hash --sha1 "!param1_path!"
 if !errorlevel! neq 0 (
     echo 错误：生成 SHA1 失败："!param1_path!"
     echo.
@@ -65,7 +90,8 @@ if !errorlevel! neq 0 (
 )
 echo.
 
-"!certutil_path!" -hashfile "!param1_path!" SHA256
+echo -- SHA256 --
+"!rhash_path!" --utf8 --one-hash --sha256 "!param1_path!"
 if !errorlevel! neq 0 (
     echo 错误：生成 SHA256 失败："!param1_path!"
     echo.
@@ -74,7 +100,8 @@ if !errorlevel! neq 0 (
 )
 echo.
 
-"!certutil_path!" -hashfile "!param1_path!" SHA384
+echo -- SHA384 --
+"!rhash_path!" --utf8 --one-hash --sha384 "!param1_path!"
 if !errorlevel! neq 0 (
     echo 错误：生成 SHA384 失败："!param1_path!"
     echo.
@@ -83,7 +110,8 @@ if !errorlevel! neq 0 (
 )
 echo.
 
-"!certutil_path!" -hashfile "!param1_path!" SHA512
+echo -- SHA512 --
+"!rhash_path!" --utf8 --one-hash --sha512 "!param1_path!"
 if !errorlevel! neq 0 (
     echo 错误：生成 SHA512 失败："!param1_path!"
     echo.
