@@ -66,10 +66,10 @@ if exist "!param1!\" (
 
 
 
-set "link_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
-"!rhash_path!" --utf8 --ed2k-link "!param1_path!" > "!link_file!" 2>&1
+set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+"!rhash_path!" --utf8 --ed2k-link "!param1_path!" > "!tmp_file!" 2>&1
 if !errorlevel! neq 0 (
-    if exist "!link_file!" ( del /f /q "!link_file!" )
+    if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
     echo 错误：生成 ed2k 链接失败："!param1_path!"
     echo.
     pause
@@ -78,13 +78,13 @@ if !errorlevel! neq 0 (
 
 echo 文件 "!param1_name_ext!" 的 ed2k 链接：
 echo.
-type "!link_file!"
+type "!tmp_file!"
 echo.
 
-clip < "!link_file!"
+clip < "!tmp_file!"
 echo 链接已复制到剪贴板
 
-if exist "!link_file!" ( del /f /q "!link_file!" )
+if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 
 
 
