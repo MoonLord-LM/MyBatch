@@ -83,7 +83,7 @@ None
 
 | LLM Version | Time UTC+8 | Status | Conclusion |
 | -- | -- | -- | -- |
-| CodeBuddy | 2026-09-06 04:21:48 | ✅ | Encoding and del-safety rules all pass; self-check.bat has latent bugs and coverage gaps to fix. |
+| CodeBuddy | 2026-09-08 04:23:17 | ⚠️ | 138 bat encoding all pass; fixed 2 unguarded del in example; example keeps legacy styles. |
 | Cascade | 2026-03-10 15:35:56 | ✅ | Refined two media batch scripts according to coding standards. |
 | DeepSeek Chat | 2026-03-09 07:32:40 | ✅ | Checked and fixed encoding standards for all .bat files, ensuring UTF-8 without BOM and CRLF line endings. |
 
@@ -174,6 +174,6 @@ exit /b
 
 | LLM 版本 | 时间 UTC+8 | 状态 | 结论 |
 | -- | -- | -- | -- |
-| CodeBuddy | 2026-09-06 04:21:48 | ✅ | 编码与删除规范全部达标；自检脚本存在潜伏 bug 与缺口待修。 |
+| CodeBuddy | 2026-09-08 04:23:17 | ⚠️ | 138 个 bat 编码全达标；修复 example 两处裸 del；example 仍为旧式参考。 |
 | Gemini-2.5-Pro | 2026-03-10 15:35:56 | ✅ | 按照编码规范完善了两个媒体处理脚本。 |
 | DeepSeek Chat | 2026-03-09 07:32:40 | ✅ | 检查并修复了所有.bat文件的编码规范，确保UTF-8 without BOM和CRLF换行。 |
