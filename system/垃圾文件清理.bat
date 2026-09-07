@@ -100,19 +100,6 @@ if exist "!root_dir!" (
     dir /s /b /a-d "!root_dir!\*.dmp" 2>nul >> "!temp_list!"
 )
 
-REM 用户临时文件（仅清理 24 个小时前的）
-set "root_dir=!temp!"
-if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"，（仅清理 24 个小时前的）
-    powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$time = (Get-Date).AddHours(-24);" ^
-        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
-        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
-        "    ForEach-Object { $_.FullName });" ^
-        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
-)
-
 REM 系统临时文件（仅清理 24 个小时前的）
 set "root_dir=!SystemRoot!\Temp"
 if exist "!root_dir!" (
@@ -126,32 +113,69 @@ if exist "!root_dir!" (
         "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
 )
 
-REM 115Chrome 浏览器缓存
+REM 用户临时文件（仅清理 24 个小时前的）
+set "root_dir=!temp!"
+if exist "!root_dir!" (
+    echo 正在扫描文件夹："!root_dir!"，（仅清理 24 个小时前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddHours(-24);" ^
+        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName });" ^
+        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
+)
+
+REM 115Chrome 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\115Chrome\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"
-    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddHours(-24);" ^
+        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName });" ^
+        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
 )
 
-REM 360Chrome 浏览器缓存
+REM 360Chrome 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\360ChromeX\Chrome\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"
-    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddHours(-24);" ^
+        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName });" ^
+        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
 )
 
-REM Edge 浏览器缓存
+REM Edge 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\Microsoft\Edge\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"
-    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddHours(-24);" ^
+        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName });" ^
+        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
 )
 
-REM 夸克 浏览器缓存
+REM 夸克 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\Quark\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"
-    dir /s /b /a-d "!root_dir!\*" 2>nul >> "!temp_list!"
+    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$time = (Get-Date).AddHours(-24);" ^
+        "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
+        "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
+        "    ForEach-Object { $_.FullName });" ^
+        "if ($found.Count -gt 0) { Add-Content -LiteralPath $env:temp_list -Value $found -Encoding UTF8; };"
 )
 
 REM NVIDIA 显卡着色器与缓存（仅清理 12 个月前的）
