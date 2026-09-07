@@ -66,7 +66,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         exit /b 1
     )
 
-    REM 检查每个文件都必须 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
+    REM 检查每个文件都必须包含 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
@@ -82,7 +82,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         exit /b 1
     )
 
-    REM 检查每个文件都必须 `chcp ` 代码，否则自动在第 1 行的位置添加 `chcp 65001 >nul`
+    REM 检查每个文件都必须包含 `chcp ` 代码，否则自动在第 2 行的位置添加 `chcp 65001 >nul`
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
