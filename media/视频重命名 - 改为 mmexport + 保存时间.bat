@@ -24,23 +24,23 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
 
-REM 检查 MediaInfo 组件
-if exist "!script_dir!MediaInfo.exe" (
-    set "mediainfo_path=!script_dir!MediaInfo.exe"
-) else if exist "!cd!\MediaInfo.exe" (
-    set "mediainfo_path=!cd!\MediaInfo.exe"
-) else if exist "!script_dir!..\MediaInfo.exe" (
-    set "mediainfo_path=!script_dir!..\MediaInfo.exe"
-) else if exist "..\MediaInfo.exe" (
-    set "mediainfo_path=..\MediaInfo.exe"
+REM 检查 ffprobe 组件
+if exist "!script_dir!ffprobe.exe" (
+    set "ffprobe_path=!script_dir!ffprobe.exe"
+) else if exist "!cd!\ffprobe.exe" (
+    set "ffprobe_path=!cd!\ffprobe.exe"
+) else if exist "!script_dir!..\ffprobe.exe" (
+    set "ffprobe_path=!script_dir!..\ffprobe.exe"
+) else if exist "..\ffprobe.exe" (
+    set "ffprobe_path=..\ffprobe.exe"
 ) else (
-    set "mediainfo_path=mediainfo"
+    set "ffprobe_path=ffprobe"
 )
-"!mediainfo_path!" --version >nul 2>&1
+"!ffprobe_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 MediaInfo 组件
-    echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
-    "explorer.exe" "https://mediaarea.net/en/MediaInfo"
+    echo 错误：缺少 ffprobe 组件
+    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
+    "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
     endlocal & endlocal & exit /b 1
@@ -70,31 +70,29 @@ if "!param1!" == "" (
         set "file_dir=!param1_dir!"
         set "base_name=!param1_name!"
         set "file_ext=!param1_ext!"
-
-        REM 检查视频是否带有生成时间标记（Recorded_Date / Encoded_Date）
-        set "creation_time="
-        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:param1 2>$null"') do (
-            set "creation_time=%%x"
-            echo 视频 Recorded_Date 标记："!creation_time!"
+        set "tag_found="
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            set "tag_found=1"
+            echo 视频容器 creation_time 标记："%%x"
         )
-        if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:param1 2>$null"') do (
-                set "creation_time=%%x"
-                echo 视频 Encoded_Date 标记："!creation_time!"
+        if "!tag_found!"=="" (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "tag_found=1"
+                echo 视频流 creation_time 标记："%%x"
             )
         )
-        set "time_tag="
-        if not "!creation_time!"=="" (
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -t '!creation_time!'" 2^>nul') do (
-                set "time_tag=%%t"
+        if "!tag_found!"=="" (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "tag_found=1"
+                echo 苹果 QuickTime 格式标记："%%x"
             )
         )
 
         if /i not "!base_name:~0,8!"=="mmexport" (
             echo 文件名不以 mmexport 开头，跳过此文件
         ) else (
-            if not "!time_tag!"=="" (
-                echo 视频带有生成时间标记，仍然处理
+            if not "!tag_found!"=="" (
+                echo 视频带有内置生成时间标记，仍然处理
             )
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
@@ -161,23 +159,21 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-
-        REM 检查视频是否带有生成时间标记（Recorded_Date / Encoded_Date）
-        set "creation_time="
-        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:video_file 2>$null"') do (
-            set "creation_time=%%x"
-            echo 视频 Recorded_Date 标记："!creation_time!"
+        set "tag_found="
+        for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            set "tag_found=1"
+            echo 视频容器 creation_time 标记："%%x"
         )
-        if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:video_file 2>$null"') do (
-                set "creation_time=%%x"
-                echo 视频 Encoded_Date 标记："!creation_time!"
+        if "!tag_found!"=="" (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "tag_found=1"
+                echo 视频流 creation_time 标记："%%x"
             )
         )
-        set "time_tag="
-        if not "!creation_time!"=="" (
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & {param($t) try { $s = $t -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -t '!creation_time!'" 2^>nul') do (
-                set "time_tag=%%t"
+        if "!tag_found!"=="" (
+            for /f "delims=" %%x in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+                set "tag_found=1"
+                echo 苹果 QuickTime 格式标记："%%x"
             )
         )
 
@@ -185,9 +181,9 @@ if not "!working_dir!" == "" (
             echo set /a "not_mmexport+=1">>"!temp_set!"
             echo 文件名不以 mmexport 开头，跳过此文件
         ) else (
-            if not "!time_tag!"=="" (
+            if not "!tag_found!"=="" (
                 echo set /a "has_time_tag+=1">>"!temp_set!"
-                echo 视频带有生成时间标记，仍然处理
+                echo 视频带有内置生成时间标记，仍然处理
             )
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
@@ -248,7 +244,7 @@ if not "!working_dir!" == "" (
     set /a "ok_total=succeeded+already_ok"
     set /a "fail_total=not_mmexport+no_time+name_conflict+rename_failed"
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有拍摄时间仍处理：!has_time_tag! 个
+    echo 其中，重命名成功 !succeeded! 个，已符合规范 !already_ok! 个，已存在同名文件 !name_conflict! 个，未识别到保存时间 !no_time! 个，重命名失败 !rename_failed! 个，非 mmexport 前缀跳过 !not_mmexport! 个，带有内置生成时间标记仍处理：!has_time_tag! 个
 )
 
 
