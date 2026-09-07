@@ -12,16 +12,16 @@ echo.
 
 
 
-powershell -NoProfile -Command ^
+powershell -NoProfile -WindowStyle Hidden -Command ^
     "$source = 'using System.Runtime.InteropServices;' +" ^
     "    'public static class ScreenPower {' +" ^
-    "    '[DllImport(\"user32.dll\")] public static extern int SendMessage(int hWnd, int hMsg, int wParam, int lParam);' +" ^
+    "    '[DllImport(\"user32.dll\")] public static extern bool PostMessage(int hWnd, int Msg, int wParam, int lParam);' +" ^
     "    '}';" ^
     "Add-Type -TypeDefinition $source;" ^
-    "[ScreenPower]::SendMessage(-1, 0x0112, 0xF170, 2);"
+    "[ScreenPower]::PostMessage(-1, 0x0112, 0xF170, 2) | Out-Null;"
 
 
 
 echo.
-timeout /t 3 /nobreak
+timeout /t 10 /nobreak
 endlocal & endlocal & exit /b
