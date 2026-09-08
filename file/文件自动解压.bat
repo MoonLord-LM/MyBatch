@@ -33,10 +33,10 @@ if exist "!script_dir!7za.exe" (
     set "seven_zip=!script_dir!..\7za.exe"
 ) else if exist "..\7za.exe" (
     set "seven_zip=..\7za.exe"
-) else if exist "C:\Program Files\7-Zip\7z.exe" (
-    set "seven_zip=C:\Program Files\7-Zip\7z.exe"
-) else if exist "C:\Program Files (x86)\7-Zip\7z.exe" (
-    set "seven_zip=C:\Program Files (x86)\7-Zip\7z.exe"
+) else if exist "!ProgramFiles!\7-Zip\7z.exe" (
+    set "seven_zip=!ProgramFiles!\7-Zip\7z.exe"
+) else if exist "!ProgramFiles(x86)!\7-Zip\7z.exe" (
+    set "seven_zip=!ProgramFiles(x86)!\7-Zip\7z.exe"
 ) else (
     set "seven_zip=7z"
 )
@@ -59,10 +59,10 @@ if exist "!script_dir!UnRAR.exe" (
     set "unrar=!script_dir!..\UnRAR.exe"
 ) else if exist "..\UnRAR.exe" (
     set "unrar=..\UnRAR.exe"
-) else if exist "C:\Program Files\WinRAR\UnRAR.exe" (
-    set "unrar=C:\Program Files\WinRAR\UnRAR.exe"
-) else if exist "C:\Program Files (x86)\WinRAR\UnRAR.exe" (
-    set "unrar=C:\Program Files (x86)\WinRAR\UnRAR.exe"
+) else if exist "!ProgramFiles!\WinRAR\UnRAR.exe" (
+    set "unrar=!ProgramFiles!\WinRAR\UnRAR.exe"
+) else if exist "!ProgramFiles(x86)!\WinRAR\UnRAR.exe" (
+    set "unrar=!ProgramFiles(x86)!\WinRAR\UnRAR.exe"
 ) else (
     set "unrar=UnRAR"
 )

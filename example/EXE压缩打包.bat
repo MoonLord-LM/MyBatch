@@ -18,12 +18,12 @@ if not exist "%~1" (
 set ExeFilePath="%~1"
 echo 要压缩打包的文件路径：!ExeFilePath!
 
-set SevenZipSelfExtract="C:\Program Files (x86)\7-Zip\7z.sfx"
-set SevenZip="C:\Program Files (x86)\7-Zip\7z.exe"
+set SevenZipSelfExtract="!ProgramFiles(x86)!\7-Zip\7z.sfx"
+set SevenZip="!ProgramFiles(x86)!\7-Zip\7z.exe"
 if not exist !SevenZipSelfExtract! (
     echo 文件不存在：!SevenZipSelfExtract!
-    set SevenZipSelfExtract="C:\Program Files\7-Zip\7z.sfx"
-    set SevenZip="C:\Program Files\7-Zip\7z.exe"
+    set SevenZipSelfExtract="!ProgramFiles!\7-Zip\7z.sfx"
+    set SevenZip="!ProgramFiles!\7-Zip\7z.exe"
     if not exist !SevenZipSelfExtract! (
         echo 文件不存在：!SevenZipSelfExtract!
         echo 7-Zip压缩软件未正确安装
@@ -39,10 +39,10 @@ if not exist !SevenZip! (
 )
 echo 检测到7-Zip 压缩软件：!SevenZipSelfExtract!
 
-set WinRAR="C:\Program Files\WinRAR\WinRAR.exe"
+set WinRAR="!ProgramFiles!\WinRAR\WinRAR.exe"
 if not exist !WinRAR! (
     echo 文件不存在：!WinRAR!
-    set WinRAR="C:\Program Files (x86)\WinRAR\WinRAR.exe"
+    set WinRAR="!ProgramFiles(x86)!\WinRAR\WinRAR.exe"
     if not exist !WinRAR! (
         echo 文件不存在：!WinRAR!
         echo WinRAR压缩软件未正确安装

@@ -4,13 +4,13 @@ setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
-
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
-powershell -NoProfile -Command "Write-Host '使用 OpenSSL libcrypto 的 AES-256-GCM 加密文件，输出为 原始文件名.原始后缀.enc' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '密钥派生：PBKDF2-HMAC-SHA256，迭代 60 万次' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host 'AES-256 + GCM 认证，能检测密码错误与文件被篡改' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '密码用 SecureString 读取两次（不回显、不进入命令行）' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '把单个文件拖拽到本脚本上即可加密，产物与原文件同目录' -ForegroundColor Green"
+
+
+
+powershell -NoProfile -Command "Write-Host '将单个文件加密为 .enc（AES-256-GCM，OpenSSL libcrypto 引擎，产物与原文件同目录）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '密码经 PBKDF2-HMAC-SHA256 派生（60 万次）；用 SecureString 读取两次确认，不回显' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '用法：把要加密的文件拖拽到本脚本上即可' -ForegroundColor Green"
 echo.
 
 
@@ -34,25 +34,33 @@ if not exist "!param1_path!" (
     endlocal & endlocal & exit /b 1
 )
 
+
+
 set "libcrypto="
 if exist "!script_dir!libcrypto-4-x64.dll" (
     set "libcrypto=!script_dir!libcrypto-4-x64.dll"
-) else if exist "!script_dir!libcrypto-3-x64.dll" (
-    set "libcrypto=!script_dir!libcrypto-3-x64.dll"
-) else if exist "C:\Program Files\OpenSSL-Win64\bin\libcrypto-4-x64.dll" (
-    set "libcrypto=C:\Program Files\OpenSSL-Win64\bin\libcrypto-4-x64.dll"
-) else if exist "C:\Program Files\OpenSSL-Win64\bin\libcrypto-3-x64.dll" (
-    set "libcrypto=C:\Program Files\OpenSSL-Win64\bin\libcrypto-3-x64.dll"
+) else if exist "!cd!\libcrypto-4-x64.dll" (
+    set "libcrypto=!cd!\libcrypto-4-x64.dll"
+) else if exist "!script_dir!..\libcrypto-4-x64.dll" (
+    set "libcrypto=!script_dir!..\libcrypto-4-x64.dll"
+) else if exist "..\libcrypto-4-x64.dll" (
+    set "libcrypto=..\libcrypto-4-x64.dll"
+) else if exist "!ProgramFiles!\OpenSSL-Win64\bin\libcrypto-4-x64.dll" (
+    set "libcrypto=!ProgramFiles!\OpenSSL-Win64\bin\libcrypto-4-x64.dll"
+) else if exist "!ProgramFiles!\Git\mingw64\bin\libcrypto-4-x64.dll" (
+    set "libcrypto=!ProgramFiles!\Git\mingw64\bin\libcrypto-4-x64.dll"
 )
 if "!libcrypto!" == "" (
-    echo 错误：未找到 libcrypto DLL（libcrypto-4-x64.dll 或 libcrypto-3-x64.dll）
+    echo 错误：未找到 libcrypto-4-x64.dll
     echo 请安装 OpenSSL-Win64：https://slproweb.com/products/Win32OpenSSL.html
-    echo 或安装 Git for Windows（其 mingw64\bin 内含 libcrypto-3-x64.dll）
-    echo 也可把对应 libcrypto DLL 复制到本脚本所在文件夹
+    echo 或安装 Git for Windows（较新版本 mingw64\bin 内含 libcrypto-4-x64.dll）
+    echo 也可把该 DLL 复制到本脚本所在文件夹
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
+
+
 
 set "output_file=!param1_path!.enc"
 echo 输入文件："!param1_path!"
@@ -67,51 +75,46 @@ if exist "!output_file!" (
     endlocal & endlocal & exit /b 2
 )
 
-REM 文件末尾的 -----BEGIN CS ENGINE----- / -----END CS ENGINE----- 之间嵌有引擎
-REM C# 源码（.codebuddy/tmp/AesGcmCli.cs）的原始代码；运行时由 powershell 读取自身文件并取出编译。
-set "FILE_IN=!param1_path!"
-set "FILE_OUT=!output_file!"
-set "LIBCRYPTO=!libcrypto!"
-set "self_path=%~f0"
 
+
+REM 文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间是引擎 C# 源码，由下方 powershell 从自身文件取出并编译
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-    "$lines = Get-Content -LiteralPath $env:self_path -Encoding utf8;" ^
-    "$bgn = '-----BEGIN CS ENGINE-----';" ^
-    "$end = '-----END CS ENGINE-----';" ^
-    "$s = -1;" ^
-    "for ($i = 0; $i -lt $lines.Length; $i++) { if ($lines[$i] -eq $bgn) { $s = $i + 1; break } };" ^
-    "if ($s -lt 1) { Write-Host '错误：未找到引擎数据块起始标记' -ForegroundColor Red; exit 30 };" ^
-    "$e = -1;" ^
-    "for ($i = $s; $i -lt $lines.Length; $i++) { if ($lines[$i] -eq $end) { $e = $i; break } };" ^
-    "if ($e -lt 0) { Write-Host '错误：未找到引擎数据块结束标记' -ForegroundColor Red; exit 30 };" ^
+    "$lines = Get-Content -LiteralPath $env:script_path -Encoding utf8;" ^
+    "$s = [array]::IndexOf($lines, '-----BEGIN CSHARP CODE-----') + 1;" ^
+    "$e = [array]::IndexOf($lines, '-----END CSHARP CODE-----');" ^
+    "if ($s -lt 1 -or $e -lt $s) { Write-Host '错误：未找到引擎代码块' -ForegroundColor Red; exit 1 };" ^
     "$cs = ($lines[$s..($e - 1)] -join [Environment]::NewLine);" ^
     "Add-Type -TypeDefinition $cs -Language CSharp;" ^
     "$m = $null;" ^
-    "$rc = [AesGcmCli]::LoadLib($env:LIBCRYPTO, [ref]$m);" ^
-    "if ($rc -ne 0) { Write-Host ('libcrypto 加载失败：' + $m) -ForegroundColor Red; exit $rc };" ^
+    "$rc = [AesGcmCli]::LoadLib($env:libcrypto, [ref]$m);" ^
+    "if ($rc -ne 0) { Write-Host ('libcrypto 加载失败：' + $m) -ForegroundColor Red; exit 1 };" ^
     "$s1 = Read-Host '请输入加密密码（输入时不显示）' -AsSecureString;" ^
     "$s2 = Read-Host '请再次输入相同密码确认' -AsSecureString;" ^
     "$a = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s1));" ^
     "$b = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($s2));" ^
-    "if ($a -cne $b) { Write-Host '两次输入的密码不一致，已取消' -ForegroundColor Red; exit 7 };" ^
-    "if ([string]::IsNullOrEmpty($a)) { Write-Host '密码不能为空，已取消' -ForegroundColor Red; exit 7 };" ^
+    "if ($a -cne $b) { Write-Host '两次输入的密码不一致，已取消' -ForegroundColor Red; exit 1 };" ^
+    "if ([string]::IsNullOrEmpty($a)) { Write-Host '密码不能为空，已取消' -ForegroundColor Red; exit 1 };" ^
     "$pwd = [Text.Encoding]::UTF8.GetBytes($a);" ^
     "Write-Host '正在加密（PBKDF2 需数秒，请稍候）...' -ForegroundColor Yellow;" ^
-    "$rc = [AesGcmCli]::EncryptFile($env:FILE_IN, $env:FILE_OUT, $pwd, 600000, [ref]$m);" ^
-    "if ($rc -ne 0) { Write-Host ('加密失败：' + $m) -ForegroundColor Red; if (Test-Path $env:FILE_OUT) { Remove-Item $env:FILE_OUT -Force -ErrorAction SilentlyContinue }; exit $rc };" ^
+    "$rc = [AesGcmCli]::EncryptFile($env:param1_path, $env:output_file, $pwd, 600000, [ref]$m);" ^
+    "if ($rc -ne 0) { Write-Host ('加密失败：' + $m) -ForegroundColor Red; if (Test-Path $env:output_file) { Remove-Item $env:output_file -Force -ErrorAction SilentlyContinue }; exit 1 };" ^
     "Write-Host '加密完成' -ForegroundColor Green"
-if !errorlevel! equ 0 (
+if !errorlevel! neq 0 (
+    echo 加密失败，请查看上方错误信息
+) else (
     for %%f in ("!output_file!") do set "file_size=%%~zf"
     echo 加密成功："!output_file!"，大小：!file_size! 字节
-) else (
-    echo 加密失败，请查看上方错误信息
 )
+
+
 
 echo.
 pause
 endlocal & endlocal & exit /b
 
------BEGIN CS ENGINE-----
+
+
+-----BEGIN CSHARP CODE-----
 // AesGcmCli.cs - AES-256-GCM via OpenSSL libcrypto DLL (P/Invoke), PBKDF2-HMAC-SHA256 via .NET
 // Encrypted file layout (total header 56 bytes + ciphertext):
 //   [8B magic "MYAESG01"][4B iterations u32 LE][16B salt][12B iv][16B auth tag][ciphertext]
@@ -129,15 +132,6 @@ public static class AesGcmCli
     const int SALT_LEN = 16, IV_LEN = 12, TAG_LEN = 16, KEY_LEN = 32;
     const int HDR_LEN = 8 + 4 + SALT_LEN + IV_LEN + TAG_LEN;
     const int MIN_ITER = 1000, MAX_ITER = 100000000;
-
-    // return codes
-    public const int OK = 0;
-    public const int BAD_ARGS = 1;
-    public const int OPEN_FAIL = 2;
-    public const int BAD_FORMAT = 3;
-    public const int AUTH_FAIL = 4;
-    public const int CRYPTO_ERR = 5;
-    public const int LIB_MISSING = 6;
 
     [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
     static extern IntPtr LoadLibrary(string lpFileName);
@@ -181,12 +175,12 @@ public static class AesGcmCli
         lock (_lock)
         {
             if (_ctxNew != null && string.Equals(_libPath, libPath, StringComparison.OrdinalIgnoreCase))
-                return OK;
+                return 0;
             IntPtr h = LoadLibrary(libPath);
             if (h == IntPtr.Zero)
             {
                 msg = "无法加载 " + libPath;
-                return LIB_MISSING;
+                return 1;
             }
             _ctxNew  = GetDelegate<D_CtxNew>(GetProcAddress(h, "EVP_CIPHER_CTX_new"));
             _ctxFree = GetDelegate<D_CtxFree>(GetProcAddress(h, "EVP_CIPHER_CTX_free"));
@@ -204,20 +198,20 @@ public static class AesGcmCli
             if (_ctxNew == null || _ctxFree == null || _cipher == null || _ctrl == null || _update == null || _final == null)
             {
                 msg = libPath + " 缺少必需的 EVP 函数（版本不兼容）";
-                return LIB_MISSING;
+                return 1;
             }
             if (_initEx == null && _initEx2 == null)
             {
                 msg = libPath + " 缺少 EVP_EncryptInit_ex / _ex2";
-                return LIB_MISSING;
+                return 1;
             }
             if (_decInitEx == null && _decInitEx2 == null)
             {
                 msg = libPath + " 缺少 EVP_DecryptInit_ex / _ex2";
-                return LIB_MISSING;
+                return 1;
             }
             _libPath = libPath;
-            return OK;
+            return 0;
         }
     }
 
@@ -305,8 +299,8 @@ public static class AesGcmCli
     public static int EncryptFile(string inPath, string outPath, byte[] pwd, int iterations, out string msg)
     {
         msg = null;
-        if (pwd == null || pwd.Length == 0) { msg = "密码为空"; return BAD_ARGS; }
-        if (iterations < MIN_ITER || iterations > MAX_ITER) { msg = "迭代次数非法"; return BAD_ARGS; }
+        if (pwd == null || pwd.Length == 0) { msg = "密码为空"; return 1; }
+        if (iterations < MIN_ITER || iterations > MAX_ITER) { msg = "迭代次数非法"; return 1; }
         try
         {
             using (FileStream ins = new FileStream(inPath, FileMode.Open, FileAccess.Read, FileShare.Read))
@@ -352,30 +346,30 @@ public static class AesGcmCli
                 }
                 finally { _ctxFree(ctx); }
             }
-            return OK;
+            return 0;
         }
-        catch (Exception ex) { msg = ex.Message; return CRYPTO_ERR; }
+        catch (Exception ex) { msg = ex.Message; return 1; }
     }
 
     public static int DecryptFile(string inPath, string outPath, byte[] pwd, out string msg)
     {
         msg = null;
-        if (pwd == null || pwd.Length == 0) { msg = "密码为空"; return BAD_ARGS; }
+        if (pwd == null || pwd.Length == 0) { msg = "密码为空"; return 1; }
         string tmpOut = null;
         try
         {
             tmpOut = outPath + ".tmp";
-            int code = OK;
+            int code = 0;
             using (FileStream ins = new FileStream(inPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream outs = new FileStream(tmpOut, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                if (ins.Length < HDR_LEN) { msg = "文件太短，不是有效的加密文件"; return BAD_FORMAT; }
+                if (ins.Length < HDR_LEN) { msg = "文件太短，不是有效的加密文件"; return 1; }
                 byte[] hdr = new byte[HDR_LEN];
                 ins.Read(hdr, 0, HDR_LEN);
                 string magic = Encoding.ASCII.GetString(hdr, 0, 8);
-                if (magic != "MYAESG01") { msg = "文件头不匹配，不是本工具加密的文件"; return BAD_FORMAT; }
+                if (magic != "MYAESG01") { msg = "文件头不匹配，不是本工具加密的文件"; return 1; }
                 uint iterations = BitConverter.ToUInt32(hdr, 8);
-                if (iterations < MIN_ITER || iterations > MAX_ITER) { msg = "文件中的迭代次数非法"; return BAD_FORMAT; }
+                if (iterations < MIN_ITER || iterations > MAX_ITER) { msg = "文件中的迭代次数非法"; return 1; }
                 byte[] salt = new byte[SALT_LEN], iv = new byte[IV_LEN], tag = new byte[TAG_LEN];
                 Buffer.BlockCopy(hdr, 12, salt, 0, SALT_LEN);
                 Buffer.BlockCopy(hdr, 28, iv, 0, IV_LEN);
@@ -404,7 +398,7 @@ public static class AesGcmCli
                         if (r != 1)
                         {
                             msg = "认证失败：密码错误或文件被篡改";
-                            code = AUTH_FAIL;
+                            code = 1;
                         }
                         else if (fl > 0) { byte[] o = new byte[fl]; Marshal.Copy(op, o, 0, fl); outs.Write(o, 0, fl); }
                     }
@@ -413,21 +407,21 @@ public static class AesGcmCli
                 finally { _ctxFree(ctx); }
             }
 
-            if (code != OK)
+            if (code != 0)
             {
                 File.Delete(tmpOut);
                 return code;
             }
             if (File.Exists(outPath)) File.Delete(outPath);
             File.Move(tmpOut, outPath);
-            return OK;
+            return 0;
         }
         catch (Exception ex)
         {
             try { if (tmpOut != null && File.Exists(tmpOut)) File.Delete(tmpOut); } catch { }
             msg = ex.Message;
-            return CRYPTO_ERR;
+            return 1;
         }
     }
 }
------END CS ENGINE-----
+-----END CSHARP CODE-----

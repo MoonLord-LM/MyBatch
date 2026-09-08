@@ -33,10 +33,10 @@ if exist "!script_dir!7za.exe" (
     set "seven_zip=!script_dir!..\7za.exe"
 ) else if exist "..\7za.exe" (
     set "seven_zip=..\7za.exe"
-) else if exist "C:\Program Files\7-Zip\7z.exe" (
-    set "seven_zip=C:\Program Files\7-Zip\7z.exe"
-) else if exist "C:\Program Files (x86)\7-Zip\7z.exe" (
-    set "seven_zip=C:\Program Files (x86)\7-Zip\7z.exe"
+) else if exist "!ProgramFiles!\7-Zip\7z.exe" (
+    set "seven_zip=!ProgramFiles!\7-Zip\7z.exe"
+) else if exist "!ProgramFiles(x86)!\7-Zip\7z.exe" (
+    set "seven_zip=!ProgramFiles(x86)!\7-Zip\7z.exe"
 ) else (
     set "seven_zip=7z"
 )
