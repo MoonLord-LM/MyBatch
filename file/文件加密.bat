@@ -8,34 +8,20 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将单个文件加密为 .enc（AES-256-GCM，OpenSSL libcrypto 引擎，产物与原文件同目录）' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '密码经 PBKDF2-HMAC-SHA256 派生（60 万次）；用 SecureString 读取两次确认，不回显' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '用法：把要加密的文件拖拽到本脚本上即可' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将单个文件加密，生成 enc 后缀的加密文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '用户输入的密码，先经 PBKDF2-HMAC-SHA256 生成加密密钥，然后对文件进行 AES-256-GCM 算法的加密' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '选中一个文件，拖拽到此脚本上执行；不支持拖入文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '如果输出 enc 文件已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
 
 
-if "!param1!" == "" (
-    echo 用法：把要加密的文件拖拽到本脚本上
-    echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
-if exist "!param1!\" (
-    echo 错误：不支持文件夹，请拖入单个文件
-    echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
-if not exist "!param1_path!" (
-    echo 错误：文件不存在："!param1_path!"
-    echo.
-    pause
-    endlocal & endlocal & exit /b 1
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    cd /d "!script_dir!"
 )
 
-
-
+REM 检查 OpenSSL-Win64 组件
 set "libcrypto="
 if exist "!script_dir!libcrypto-4-x64.dll" (
     set "libcrypto=!script_dir!libcrypto-4-x64.dll"
@@ -51,10 +37,9 @@ if exist "!script_dir!libcrypto-4-x64.dll" (
     set "libcrypto=!ProgramFiles!\Git\mingw64\bin\libcrypto-4-x64.dll"
 )
 if "!libcrypto!" == "" (
-    echo 错误：未找到 libcrypto-4-x64.dll
-    echo 请安装 OpenSSL-Win64：https://slproweb.com/products/Win32OpenSSL.html
-    echo 或安装 Git for Windows（较新版本 mingw64\bin 内含 libcrypto-4-x64.dll）
-    echo 也可把该 DLL 复制到本脚本所在文件夹
+    echo 错误：缺少 OpenSSL-Win64 组件
+    echo 请从 https://slproweb.com/products/Win32OpenSSL.html 下载，然后放到脚本所在文件夹
+    "explorer.exe" "https://slproweb.com/products/Win32OpenSSL.html"
     echo.
     pause
     endlocal & endlocal & exit /b 1
@@ -62,22 +47,40 @@ if "!libcrypto!" == "" (
 
 
 
-set "output_file=!param1_path!.enc"
-echo 输入文件："!param1_path!"
-echo 输出文件："!output_file!"
-echo.
-
-if exist "!output_file!" (
-    echo 输出文件已存在："!output_file!"
-    echo 已跳过。如需重新加密，请先删除或移走旧文件
+if "!param1!" == "" (
+    echo 用法：把要加密的文件，拖拽到本脚本上
     echo.
     pause
-    endlocal & endlocal & exit /b 2
+    endlocal & endlocal & exit /b 1
+)
+if exist "!param1!\" (
+    echo 错误：不支持拖入文件夹，请拖入单个文件
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+if not exist "!param1_path!" (
+    echo 错误：文件不存在："!param1_path!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
 )
 
 
 
-REM 文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间是引擎 C# 源码，由下方 powershell 从自身文件取出并编译
+echo 输入文件："!param1_path!"
+set "output_file=!param1_path!.enc"
+echo 输出文件："!output_file!"
+if exist "!output_file!" (
+    echo 输出文件已存在："!output_file!"，跳过不处理
+    echo 如果需要重新加密，请先移走旧文件
+    echo.
+    pause
+    endlocal & endlocal & exit /b 2
+)
+echo.
+
+REM 下方 powershell 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
     "$lines = Get-Content -LiteralPath $env:script_path -Encoding utf8;" ^
     "$s = [array]::IndexOf($lines, '-----BEGIN CSHARP CODE-----') + 1;" ^
