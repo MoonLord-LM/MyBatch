@@ -13,7 +13,7 @@ powershell -NoProfile -Command "Write-Host '压缩等级设为 9 - 极限压缩'
 powershell -NoProfile -Command "Write-Host '压缩算法使用 LZMA，字典大小使用 2048MB，单词大小使用 256' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '参数使用 -mtc=on -mta=on -mtm=on，保存文件的创建、修改和访问时间' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '加密算法使用 AES-256，并使用 -mhe=on 同时加密文件名' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '需要输入加密密码，要求非空，且字符长度大于 6' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '需要输入加密密码，要求非空，且不低于 6 个字符' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，压缩当前文件夹为同名 7z 文件，并保存到上一级的文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件或文件夹到此脚本上时，压缩为同名 7z 文件，保存到其所在的文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果输出 7z 已存在，则跳过不处理' -ForegroundColor Green"
@@ -78,13 +78,13 @@ if "!param1!" == "" (
 )
 
 :prompt_password
-echo 请输入加密密码（要求非空且字符长度大于 6）：
+echo 请输入加密密码（要求非空且不低于 6 个字符）：
 set /p "password="
 echo.
 for /f "usebackq delims=" %%l in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Write-Output $env:password.Length"`) do set "password_len=%%l"
 if "!password_len!"=="" set "password_len=0"
-if !password_len! leq 6 (
-    echo 密码不能为空，且字符长度要大于 6，请重新输入
+if !password_len! lss 6 (
+    echo 密码不能为空，且不低于 6 个字符，请重新输入
     echo.
     goto prompt_password
 )
