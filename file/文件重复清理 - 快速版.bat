@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '搜索和清理重复文件，将会清理第 1 个文件夹中的，已经在第 2 个文件夹中存在的文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '依赖 Everything 的命令行工具 es.exe 来加速文件搜索' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '依赖 Everything 的命令行工具 es.exe 来加速文件搜索，需要 Everything 已启动运行' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个文件夹路径' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '也可以选中两个文件夹，拖拽到此脚本上，自动识别处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '当两次输入的文件夹路径相同时，则清理该文件夹自身的重复文件' -ForegroundColor Green"
