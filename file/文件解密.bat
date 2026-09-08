@@ -86,7 +86,7 @@ if "!output_file!" == "" (
 )
 if exist "!output_file!" (
     echo 输出文件已存在："!output_file!"，跳过不处理
-    echo 如果需要重新加密，请先移走旧文件
+    echo 如果需要重新解密，请先移走旧文件
     echo.
     pause
     endlocal & endlocal & exit /b 2
