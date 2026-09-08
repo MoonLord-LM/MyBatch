@@ -110,13 +110,13 @@ powershell -NoProfile -Command ^
     "    Write-Host ('错误：OpenSSL-Win64 组件加载失败：' + $message) -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
-    "$securePassword1 = Read-Host '请输入解密密码' -AsSecureString;" ^
-    "$passwordText1 = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword1));" ^
-    "if ([string]::IsNullOrEmpty($passwordText1)) {" ^
+    "$securePassword = Read-Host '请输入解密密码' -AsSecureString;" ^
+    "$passwordText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword));" ^
+    "if ([string]::IsNullOrEmpty($passwordText)) {" ^
     "    Write-Host '错误：密码不能为空' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
-    "$passwordBytes = [Text.Encoding]::UTF8.GetBytes($passwordText1);" ^
+    "$passwordBytes = [Text.Encoding]::UTF8.GetBytes($passwordText);" ^
     "Write-Host '正在解密，请稍候...';" ^
     "$resultCode = [AesGcmCli]::DecryptFile($env:param1_path, $env:output_file, $passwordBytes, [ref]$message);" ^
     "if ($resultCode -ne 0) {" ^
@@ -149,9 +149,11 @@ endlocal & endlocal & exit /b
 
 
 -----BEGIN CSHARP CODE-----
-// AesGcmCli.cs - AES-256-GCM 文件加解密（经 OpenSSL libcrypto P/Invoke 实现）
-// 文件布局：salt(16) + iv(12) + tag(16) 头部，其后为密文；不含任何文件标识
-// 密钥派生：PBKDF2-HMAC-SHA512，迭代固定 1000 万（写死在源码，不写入文件）
+
+// AES-256-GCM 文件加解密，使用 OpenSSL libcrypto P/Invoke 实现
+// 密钥产生算法为 PBKDF2-HMAC-SHA512 + 迭代次数 1000 万
+// 生成文件布局为 pbkdf2_salt (16 字节) + aes_gcm_iv (12 字节) + aes_gcm_tag (16 字节) 头部 + 文件内容密文
+
 using System;
 using System.IO;
 using System.Security.Cryptography;
@@ -159,11 +161,11 @@ using System.Runtime.InteropServices;
 
 public static class AesGcmCli
 {
-    private const int SaltLength = 16;
-    private const int IvLength = 12;
-    private const int TagLength = 16;
-    private const int KeyLength = 32;
-    private const int HeaderLength = SaltLength + IvLength + TagLength;
+    private const int Pbkdf2SaltLength = 16;
+    private const int AesGcmIvLength = 12;
+    private const int AesGcmTagLength = 16;
+    private const int AesGcmKeyLength = 32;
+    private const int HeaderLength = Pbkdf2SaltLength + AesGcmIvLength + AesGcmTagLength;
 
     private const int IterationCount = 10000000;
 
@@ -231,40 +233,26 @@ public static class AesGcmCli
             _aes256Gcm = LoadFunction<EvpAes256Gcm>(module, "EVP_aes_256_gcm");
             _ctxCtrl = LoadFunction<EvpCtxCtrl>(module, "EVP_CIPHER_CTX_ctrl");
 
-            EvpOps encrypt = LoadOps(module, "EVP_EncryptInit_ex", "EVP_EncryptUpdate", "EVP_EncryptFinal_ex");
-            EvpOps decrypt = LoadOps(module, "EVP_DecryptInit_ex", "EVP_DecryptUpdate", "EVP_DecryptFinal_ex");
+            EvpInit encInit = LoadFunction<EvpInit>(module, "EVP_EncryptInit_ex");
+            EvpUpdate encUpdate = LoadFunction<EvpUpdate>(module, "EVP_EncryptUpdate");
+            EvpFinal encFinal = LoadFunction<EvpFinal>(module, "EVP_EncryptFinal_ex");
+            EvpInit decInit = LoadFunction<EvpInit>(module, "EVP_DecryptInit_ex");
+            EvpUpdate decUpdate = LoadFunction<EvpUpdate>(module, "EVP_DecryptUpdate");
+            EvpFinal decFinal = LoadFunction<EvpFinal>(module, "EVP_DecryptFinal_ex");
 
             if (_ctxNew == null || _ctxFree == null || _aes256Gcm == null || _ctxCtrl == null
-                || encrypt == null || decrypt == null)
+                || encInit == null || encUpdate == null || encFinal == null
+                || decInit == null || decUpdate == null || decFinal == null)
             {
-                msg = libPath + " 版本不兼容：缺少所需函数（需要 OpenSSL 1.1.1 及以上，推荐 3.x）";
+                msg = libPath + " 缺少所需函数";
                 return 1;
             }
 
-            _encryptOps = encrypt;
-            _decryptOps = decrypt;
+            _encryptOps = new EvpOps { Init = encInit, Update = encUpdate, Final = encFinal };
+            _decryptOps = new EvpOps { Init = decInit, Update = decUpdate, Final = decFinal };
             _loadedLibPath = libPath;
             return 0;
         }
-    }
-
-    private static EvpOps LoadOps(IntPtr module, string initName, string updateName, string finalName)
-    {
-        EvpInit init = LoadFunction<EvpInit>(module, initName);
-        EvpUpdate update = LoadFunction<EvpUpdate>(module, updateName);
-        EvpFinal final = LoadFunction<EvpFinal>(module, finalName);
-        if (init == null || update == null || final == null) return null;
-
-        EvpOps ops = new EvpOps();
-        ops.Init = init;
-        ops.Update = update;
-        ops.Final = final;
-        return ops;
-    }
-
-    private static void CheckOk(int resultCode, string action)
-    {
-        if (resultCode != 1) throw new Exception(action + "（OpenSSL 返回 " + resultCode + "）");
     }
 
     private static IntPtr CopyToNative(byte[] data)
@@ -274,160 +262,115 @@ public static class AesGcmCli
         return ptr;
     }
 
-    private static void FreeNative(IntPtr ptr) { Marshal.FreeHGlobal(ptr); }
-
-    private static void ReadFully(Stream input, byte[] buffer)
-    {
-        int total = 0;
-        while (total < buffer.Length)
-        {
-            int read = input.Read(buffer, total, buffer.Length - total);
-            if (read <= 0) throw new Exception("读取文件失败：文件不完整");
-            total += read;
-        }
-    }
-
-    private static void DeleteIfExists(string path)
-    {
-        try { if (File.Exists(path)) File.Delete(path); } catch { }
-    }
-
-    private static byte[] DeriveKey(byte[] password, byte[] salt)
-    {
-        using (Rfc2898DeriveBytes kdf = new Rfc2898DeriveBytes(password, salt, IterationCount, HashAlgorithmName.SHA512))
-        {
-            return kdf.GetBytes(KeyLength);
-        }
-    }
-
-    // OpenSSL 惯例：先 Init 选定算法并指定 GCM 的 IV 长度，再 Init 设置 key/iv
-    private static IntPtr BeginCipher(EvpOps ops, byte[] key, byte[] iv)
-    {
-        IntPtr ctx = _ctxNew();
-        try
-        {
-            IntPtr keyPtr = CopyToNative(key);
-            IntPtr ivPtr = CopyToNative(iv);
-            try
-            {
-                CheckOk(ops.Init(ctx, _aes256Gcm(), IntPtr.Zero, IntPtr.Zero, IntPtr.Zero), "初始化算法失败");
-                CheckOk(_ctxCtrl(ctx, GcmSetIvlLength, IvLength, IntPtr.Zero), "设置 IV 长度失败");
-                CheckOk(ops.Init(ctx, IntPtr.Zero, IntPtr.Zero, keyPtr, ivPtr), "设置密钥失败");
-            }
-            finally
-            {
-                FreeNative(keyPtr);
-                FreeNative(ivPtr);
-            }
-            return ctx;
-        }
-        catch
-        {
-            _ctxFree(ctx);
-            throw;
-        }
-    }
-
-    private static int ProcessStream(EvpOps ops, IntPtr ctx, Stream input, Stream output)
-    {
-        int readChunkSize = 1 << 20; // 1 MiB
-        byte[] chunk = new byte[readChunkSize];
-        byte[] outBuffer = new byte[readChunkSize + TagLength]; // GCM 输出最多比输入长一个 tag
-        IntPtr chunkPtr = Marshal.AllocHGlobal(chunk.Length);
-        IntPtr outPtr = Marshal.AllocHGlobal(outBuffer.Length);
-        try
-        {
-            int read;
-            while ((read = input.Read(chunk, 0, chunk.Length)) > 0)
-            {
-                Marshal.Copy(chunk, 0, chunkPtr, read);
-                int produced = 0;
-                CheckOk(ops.Update(ctx, outPtr, ref produced, chunkPtr, read), "数据处理失败");
-                if (produced > 0)
-                {
-                    Marshal.Copy(outPtr, outBuffer, 0, produced);
-                    output.Write(outBuffer, 0, produced);
-                }
-            }
-
-            int tailLength = 0;
-            int result = ops.Final(ctx, outPtr, ref tailLength);
-            if (result == 1 && tailLength > 0)
-            {
-                Marshal.Copy(outPtr, outBuffer, 0, tailLength);
-                output.Write(outBuffer, 0, tailLength);
-            }
-            return result;
-        }
-        finally
-        {
-            FreeNative(chunkPtr);
-            FreeNative(outPtr);
-        }
-    }
-
-    private static byte[] GetTag(IntPtr ctx)
-    {
-        byte[] tag = new byte[TagLength];
-        IntPtr tagPtr = Marshal.AllocHGlobal(tag.Length);
-        try
-        {
-            CheckOk(_ctxCtrl(ctx, GcmGetTag, tag.Length, tagPtr), "读取认证标签失败");
-            Marshal.Copy(tagPtr, tag, 0, tag.Length);
-            return tag;
-        }
-        finally { FreeNative(tagPtr); }
-    }
-
-    private static void SetTag(IntPtr ctx, byte[] tag)
-    {
-        IntPtr tagPtr = CopyToNative(tag);
-        try { CheckOk(_ctxCtrl(ctx, GcmSetTag, tag.Length, tagPtr), "写入认证标签失败"); }
-        finally { FreeNative(tagPtr); }
-    }
-
     public static int EncryptFile(string inputPath, string outputPath, byte[] password, out string msg)
     {
         msg = null;
         string tmpPath = outputPath + ".tmp";
+        int res;
         try
         {
             if (password == null || password.Length == 0) throw new Exception("密码不能为空");
 
-            byte[] salt = new byte[SaltLength];
-            byte[] iv = new byte[IvLength];
+            byte[] pbkdf2_salt = new byte[Pbkdf2SaltLength];
+            byte[] aes_gcm_iv = new byte[AesGcmIvLength];
             using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
             {
-                rng.GetBytes(salt);
-                rng.GetBytes(iv);
+                rng.GetBytes(pbkdf2_salt);
+                rng.GetBytes(aes_gcm_iv);
             }
 
             using (FileStream input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
             using (FileStream output = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None))
             {
-                output.Write(salt, 0, salt.Length);
-                output.Write(iv, 0, iv.Length);
+                output.Write(pbkdf2_salt, 0, pbkdf2_salt.Length);
+                output.Write(aes_gcm_iv, 0, aes_gcm_iv.Length);
                 long tagPosition = output.Position;
-                output.Write(new byte[TagLength], 0, TagLength); // GCM 标签须等加密结束才能算出，先留空位后回填
+                output.Write(new byte[AesGcmTagLength], 0, AesGcmTagLength); // GCM 标签须等加密结束才能算出，先留空位后回填
 
-                byte[] key = DeriveKey(password, salt);
-                IntPtr ctx = BeginCipher(_encryptOps, key, iv);
+                byte[] key;
+                using (Rfc2898DeriveBytes kdf = new Rfc2898DeriveBytes(password, pbkdf2_salt, IterationCount, HashAlgorithmName.SHA512))
+                {
+                    key = kdf.GetBytes(AesGcmKeyLength);
+                }
+
+                IntPtr ctx = _ctxNew();
                 try
                 {
-                    if (ProcessStream(_encryptOps, ctx, input, output) != 1) throw new Exception("加密收尾失败");
-                    byte[] tag = GetTag(ctx);
+                    IntPtr keyPtr = CopyToNative(key);
+                    IntPtr ivPtr = CopyToNative(aes_gcm_iv);
+                    try
+                    {
+                        // OpenSSL 惯例：先 Init 选定算法并指定 GCM 的 IV 长度，再 Init 设置 key/iv
+                        if ((res = _encryptOps.Init(ctx, _aes256Gcm(), IntPtr.Zero, IntPtr.Zero, IntPtr.Zero)) != 1)
+                            throw new Exception("初始化算法失败（OpenSSL 返回 " + res + "）");
+                        if ((res = _ctxCtrl(ctx, GcmSetIvlLength, AesGcmIvLength, IntPtr.Zero)) != 1)
+                            throw new Exception("设置 IV 长度失败（OpenSSL 返回 " + res + "）");
+                        if ((res = _encryptOps.Init(ctx, IntPtr.Zero, IntPtr.Zero, keyPtr, ivPtr)) != 1)
+                            throw new Exception("设置密钥失败（OpenSSL 返回 " + res + "）");
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(keyPtr);
+                        Marshal.FreeHGlobal(ivPtr);
+                    }
+
+                    int readChunkSize = 1 << 20; // 1 MiB
+                    byte[] chunk = new byte[readChunkSize];
+                    byte[] outBuffer = new byte[readChunkSize + AesGcmTagLength]; // GCM 输出最多比输入长一个 tag
+                    IntPtr chunkPtr = Marshal.AllocHGlobal(chunk.Length);
+                    IntPtr outPtr = Marshal.AllocHGlobal(outBuffer.Length);
+                    try
+                    {
+                        int read;
+                        while ((read = input.Read(chunk, 0, chunk.Length)) > 0)
+                        {
+                            Marshal.Copy(chunk, 0, chunkPtr, read);
+                            int produced = 0;
+                            if ((res = _encryptOps.Update(ctx, outPtr, ref produced, chunkPtr, read)) != 1)
+                                throw new Exception("数据处理失败（OpenSSL 返回 " + res + "）");
+                            if (produced > 0)
+                            {
+                                Marshal.Copy(outPtr, outBuffer, 0, produced);
+                                output.Write(outBuffer, 0, produced);
+                            }
+                        }
+
+                        int tailLength = 0;
+                        if (_encryptOps.Final(ctx, outPtr, ref tailLength) != 1) throw new Exception("加密收尾失败");
+                        if (tailLength > 0)
+                        {
+                            Marshal.Copy(outPtr, outBuffer, 0, tailLength);
+                            output.Write(outBuffer, 0, tailLength);
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(chunkPtr);
+                        Marshal.FreeHGlobal(outPtr);
+                    }
+
+                    byte[] aes_gcm_tag = new byte[AesGcmTagLength];
+                    IntPtr tagPtr = Marshal.AllocHGlobal(aes_gcm_tag.Length);
+                    try
+                    {
+                        if ((res = _ctxCtrl(ctx, GcmGetTag, aes_gcm_tag.Length, tagPtr)) != 1)
+                            throw new Exception("读取认证标签失败（OpenSSL 返回 " + res + "）");
+                        Marshal.Copy(tagPtr, aes_gcm_tag, 0, aes_gcm_tag.Length);
+                    }
+                    finally { Marshal.FreeHGlobal(tagPtr); }
+
                     output.Position = tagPosition;
-                    output.Write(tag, 0, tag.Length);
+                    output.Write(aes_gcm_tag, 0, aes_gcm_tag.Length);
                 }
                 finally { _ctxFree(ctx); }
             }
-            DeleteIfExists(outputPath);
+            try { if (File.Exists(outputPath)) File.Delete(outputPath); } catch { }
             File.Move(tmpPath, outputPath);
             return 0;
         }
         catch (Exception ex)
         {
-            DeleteIfExists(tmpPath);
+            try { if (File.Exists(tmpPath)) File.Delete(tmpPath); } catch { }
             msg = ex.Message;
             return 1;
         }
@@ -437,6 +380,7 @@ public static class AesGcmCli
     {
         msg = null;
         string tmpPath = outputPath + ".tmp";
+        int res;
         try
         {
             if (password == null || password.Length == 0) throw new Exception("密码不能为空");
@@ -447,33 +391,102 @@ public static class AesGcmCli
                 if (input.Length < HeaderLength) throw new Exception("文件太短，不是有效的加密文件");
 
                 byte[] header = new byte[HeaderLength];
-                ReadFully(input, header);
-                byte[] salt = new byte[SaltLength];
-                byte[] iv = new byte[IvLength];
-                byte[] tag = new byte[TagLength];
-                Buffer.BlockCopy(header, 0, salt, 0, SaltLength);
-                Buffer.BlockCopy(header, SaltLength, iv, 0, IvLength);
-                Buffer.BlockCopy(header, SaltLength + IvLength, tag, 0, TagLength);
+                int headerRead = 0;
+                while (headerRead < header.Length)
+                {
+                    int read = input.Read(header, headerRead, header.Length - headerRead);
+                    if (read <= 0) throw new Exception("读取文件失败：文件不完整");
+                    headerRead += read;
+                }
+                byte[] pbkdf2_salt = new byte[Pbkdf2SaltLength];
+                byte[] aes_gcm_iv = new byte[AesGcmIvLength];
+                byte[] aes_gcm_tag = new byte[AesGcmTagLength];
+                Buffer.BlockCopy(header, 0, pbkdf2_salt, 0, Pbkdf2SaltLength);
+                Buffer.BlockCopy(header, Pbkdf2SaltLength, aes_gcm_iv, 0, AesGcmIvLength);
+                Buffer.BlockCopy(header, Pbkdf2SaltLength + AesGcmIvLength, aes_gcm_tag, 0, AesGcmTagLength);
 
-                byte[] key = DeriveKey(password, salt);
-                IntPtr ctx = BeginCipher(_decryptOps, key, iv);
+                byte[] key;
+                using (Rfc2898DeriveBytes kdf = new Rfc2898DeriveBytes(password, pbkdf2_salt, IterationCount, HashAlgorithmName.SHA512))
+                {
+                    key = kdf.GetBytes(AesGcmKeyLength);
+                }
+
+                IntPtr ctx = _ctxNew();
                 try
                 {
-                    SetTag(ctx, tag);
-                    if (ProcessStream(_decryptOps, ctx, input, output) != 1) throw new Exception("认证失败：密码错误或文件被篡改");
+                    IntPtr keyPtr = CopyToNative(key);
+                    IntPtr ivPtr = CopyToNative(aes_gcm_iv);
+                    try
+                    {
+                        if ((res = _decryptOps.Init(ctx, _aes256Gcm(), IntPtr.Zero, IntPtr.Zero, IntPtr.Zero)) != 1)
+                            throw new Exception("初始化算法失败（OpenSSL 返回 " + res + "）");
+                        if ((res = _ctxCtrl(ctx, GcmSetIvlLength, AesGcmIvLength, IntPtr.Zero)) != 1)
+                            throw new Exception("设置 IV 长度失败（OpenSSL 返回 " + res + "）");
+                        if ((res = _decryptOps.Init(ctx, IntPtr.Zero, IntPtr.Zero, keyPtr, ivPtr)) != 1)
+                            throw new Exception("设置密钥失败（OpenSSL 返回 " + res + "）");
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(keyPtr);
+                        Marshal.FreeHGlobal(ivPtr);
+                    }
+
+                    IntPtr tagPtr = CopyToNative(aes_gcm_tag);
+                    try
+                    {
+                        if ((res = _ctxCtrl(ctx, GcmSetTag, aes_gcm_tag.Length, tagPtr)) != 1)
+                            throw new Exception("写入认证标签失败（OpenSSL 返回 " + res + "）");
+                    }
+                    finally { Marshal.FreeHGlobal(tagPtr); }
+
+                    int readChunkSize = 1 << 20; // 1 MiB
+                    byte[] chunk = new byte[readChunkSize];
+                    byte[] outBuffer = new byte[readChunkSize + AesGcmTagLength]; // GCM 输出最多比输入长一个 tag
+                    IntPtr chunkPtr = Marshal.AllocHGlobal(chunk.Length);
+                    IntPtr outPtr = Marshal.AllocHGlobal(outBuffer.Length);
+                    try
+                    {
+                        int read;
+                        while ((read = input.Read(chunk, 0, chunk.Length)) > 0)
+                        {
+                            Marshal.Copy(chunk, 0, chunkPtr, read);
+                            int produced = 0;
+                            if ((res = _decryptOps.Update(ctx, outPtr, ref produced, chunkPtr, read)) != 1)
+                                throw new Exception("数据处理失败（OpenSSL 返回 " + res + "）");
+                            if (produced > 0)
+                            {
+                                Marshal.Copy(outPtr, outBuffer, 0, produced);
+                                output.Write(outBuffer, 0, produced);
+                            }
+                        }
+
+                        int tailLength = 0;
+                        if (_decryptOps.Final(ctx, outPtr, ref tailLength) != 1) throw new Exception("认证失败：密码错误");
+                        if (tailLength > 0)
+                        {
+                            Marshal.Copy(outPtr, outBuffer, 0, tailLength);
+                            output.Write(outBuffer, 0, tailLength);
+                        }
+                    }
+                    finally
+                    {
+                        Marshal.FreeHGlobal(chunkPtr);
+                        Marshal.FreeHGlobal(outPtr);
+                    }
                 }
                 finally { _ctxFree(ctx); }
             }
-            DeleteIfExists(outputPath);
+            try { if (File.Exists(outputPath)) File.Delete(outputPath); } catch { }
             File.Move(tmpPath, outputPath);
             return 0;
         }
         catch (Exception ex)
         {
-            DeleteIfExists(tmpPath);
+            try { if (File.Exists(tmpPath)) File.Delete(tmpPath); } catch { }
             msg = ex.Message;
             return 1;
         }
     }
 }
+
 -----END CSHARP CODE-----
