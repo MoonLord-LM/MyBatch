@@ -9,6 +9,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将 enc 后缀的加密文件解密，还原为原始文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '用户输入的密码，使用 PBKDF2-HMAC-SHA512 产生密钥，然后进行 AES-256-GCM 解密' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '选中一个文件，拖拽到此脚本上执行；不支持拖入文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果原始文件已存在，则跳过不处理' -ForegroundColor Green"
 echo.
@@ -148,310 +149,328 @@ endlocal & endlocal & exit /b
 
 
 -----BEGIN CSHARP CODE-----
-// AesGcmCli.cs - AES-256-GCM via OpenSSL libcrypto DLL (P/Invoke), PBKDF2-HMAC-SHA256 via .NET
-// Encrypted file layout (total header 56 bytes + ciphertext):
-//   [8B magic "MYAESG01"][4B iterations u32 LE][16B salt][12B iv][16B auth tag][ciphertext]
+// AesGcmCli.cs - AES-256-GCM 文件加解密（经 OpenSSL libcrypto P/Invoke 实现）
+// 文件布局：salt(16) + iv(12) + tag(16) 头部，其后为密文；不含任何文件标识
+// 密钥派生：PBKDF2-HMAC-SHA512，迭代固定 1000 万（写死在源码，不写入文件）
 using System;
 using System.IO;
-using System.Text;
 using System.Security.Cryptography;
 using System.Runtime.InteropServices;
 
 public static class AesGcmCli
 {
-    const int CTRL_GCM_SET_IVLEN = 0x9;
-    const int CTRL_GCM_GET_TAG   = 0x10;
-    const int CTRL_GCM_SET_TAG   = 0x11;
-    const int SALT_LEN = 16, IV_LEN = 12, TAG_LEN = 16, KEY_LEN = 32;
-    const int HDR_LEN = 8 + 4 + SALT_LEN + IV_LEN + TAG_LEN;
-    const int MIN_ITER = 1000, MAX_ITER = 100000000;
+    private const int SaltLength = 16;
+    private const int IvLength = 12;
+    private const int TagLength = 16;
+    private const int KeyLength = 32;
+    private const int HeaderLength = SaltLength + IvLength + TagLength;
 
-    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-    static extern IntPtr LoadLibrary(string lpFileName);
-    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-    static extern IntPtr GetProcAddress(IntPtr hModule, string lpProcName);
+    private const int IterationCount = 10000000;
 
-    delegate IntPtr D_CtxNew();
-    delegate void   D_CtxFree(IntPtr ctx);
-    delegate IntPtr D_Aes256Gcm();
-    delegate int    D_Ctrl(IntPtr ctx, int type, int arg, IntPtr ptr);
-    delegate int    D_InitEx(IntPtr ctx, IntPtr cipher, IntPtr impl, IntPtr key, IntPtr iv);
-    delegate int    D_InitEx2(IntPtr ctx, IntPtr cipher, IntPtr key, IntPtr iv, IntPtr prm);
-    delegate int    D_Update(IntPtr ctx, IntPtr outp, ref int outl, IntPtr inp, int inl);
-    delegate int    D_Final(IntPtr ctx, IntPtr outp, ref int outl);
+    // openssl/evp.h 中 EVP_CTRL_GCM_* 宏的取值
+    private const int GcmSetIvlLength = 0x9;
+    private const int GcmGetTag = 0x10;
+    private const int GcmSetTag = 0x11;
 
-    static D_CtxNew   _ctxNew;
-    static D_CtxFree  _ctxFree;
-    static D_Aes256Gcm _cipher;
-    static D_Ctrl     _ctrl;
-    static D_InitEx   _initEx;
-    static D_InitEx2  _initEx2;
-    static D_InitEx   _decInitEx;
-    static D_InitEx2  _decInitEx2;
-    static D_Update   _update;
-    static D_Final    _final;
-    static D_Update   _decUpdate;
-    static D_Final    _decFinal;
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate IntPtr EvpCtxNew();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate void EvpCtxFree(IntPtr ctx);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate IntPtr EvpAes256Gcm();
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate int EvpCtxCtrl(IntPtr ctx, int cmd, int arg, IntPtr ptr);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate int EvpInit(IntPtr ctx, IntPtr cipher, IntPtr engine, IntPtr key, IntPtr iv);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate int EvpUpdate(IntPtr ctx, IntPtr output, ref int outputLength, IntPtr input, int inputLength);
+    [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
+    private delegate int EvpFinal(IntPtr ctx, IntPtr output, ref int outputLength);
 
-    static string _libPath = "";
-    static readonly object _lock = new object();
+    private static EvpCtxNew _ctxNew;
+    private static EvpCtxFree _ctxFree;
+    private static EvpAes256Gcm _aes256Gcm;
+    private static EvpCtxCtrl _ctxCtrl;
+    private static string _loadedLibPath = "";
+    private static readonly object _loadLock = new object();
 
-    static T GetDelegate<T>(IntPtr proc) where T : class
+    private class EvpOps
     {
-        if (proc == IntPtr.Zero) return null;
-        return Marshal.GetDelegateForFunctionPointer(proc, typeof(T)) as T;
+        public EvpInit Init;
+        public EvpUpdate Update;
+        public EvpFinal Final;
+    }
+    private static EvpOps _encryptOps;
+    private static EvpOps _decryptOps;
+
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+    private static extern IntPtr LoadLibrary(string path);
+    [DllImport("kernel32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
+    private static extern IntPtr GetProcAddress(IntPtr module, string name);
+
+    private static T LoadFunction<T>(IntPtr module, string name) where T : class
+    {
+        IntPtr address = GetProcAddress(module, name);
+        if (address == IntPtr.Zero) return null;
+        return Marshal.GetDelegateForFunctionPointer(address, typeof(T)) as T;
     }
 
     public static int LoadLib(string libPath, out string msg)
     {
         msg = null;
-        lock (_lock)
+        lock (_loadLock)
         {
-            if (_ctxNew != null && string.Equals(_libPath, libPath, StringComparison.OrdinalIgnoreCase))
+            if (_ctxNew != null && string.Equals(_loadedLibPath, libPath, StringComparison.OrdinalIgnoreCase))
                 return 0;
-            IntPtr h = LoadLibrary(libPath);
-            if (h == IntPtr.Zero)
-            {
-                msg = "无法加载 " + libPath;
-                return 1;
-            }
-            _ctxNew  = GetDelegate<D_CtxNew>(GetProcAddress(h, "EVP_CIPHER_CTX_new"));
-            _ctxFree = GetDelegate<D_CtxFree>(GetProcAddress(h, "EVP_CIPHER_CTX_free"));
-            _cipher  = GetDelegate<D_Aes256Gcm>(GetProcAddress(h, "EVP_aes_256_gcm"));
-            _ctrl    = GetDelegate<D_Ctrl>(GetProcAddress(h, "EVP_CIPHER_CTX_ctrl"));
-            _initEx  = GetDelegate<D_InitEx>(GetProcAddress(h, "EVP_EncryptInit_ex"));
-            _initEx2 = GetDelegate<D_InitEx2>(GetProcAddress(h, "EVP_EncryptInit_ex2"));
-            _decInitEx  = GetDelegate<D_InitEx>(GetProcAddress(h, "EVP_DecryptInit_ex"));
-            _decInitEx2 = GetDelegate<D_InitEx2>(GetProcAddress(h, "EVP_DecryptInit_ex2"));
-            _update  = GetDelegate<D_Update>(GetProcAddress(h, "EVP_EncryptUpdate"));
-            _final   = GetDelegate<D_Final>(GetProcAddress(h, "EVP_EncryptFinal_ex"));
-            _decUpdate = GetDelegate<D_Update>(GetProcAddress(h, "EVP_DecryptUpdate"));
-            _decFinal  = GetDelegate<D_Final>(GetProcAddress(h, "EVP_DecryptFinal_ex"));
 
-            if (_ctxNew == null || _ctxFree == null || _cipher == null || _ctrl == null || _update == null || _final == null)
+            IntPtr module = LoadLibrary(libPath);
+            if (module == IntPtr.Zero) { msg = "无法加载 " + libPath; return 1; }
+
+            _ctxNew = LoadFunction<EvpCtxNew>(module, "EVP_CIPHER_CTX_new");
+            _ctxFree = LoadFunction<EvpCtxFree>(module, "EVP_CIPHER_CTX_free");
+            _aes256Gcm = LoadFunction<EvpAes256Gcm>(module, "EVP_aes_256_gcm");
+            _ctxCtrl = LoadFunction<EvpCtxCtrl>(module, "EVP_CIPHER_CTX_ctrl");
+
+            EvpOps encrypt = LoadOps(module, "EVP_EncryptInit_ex", "EVP_EncryptUpdate", "EVP_EncryptFinal_ex");
+            EvpOps decrypt = LoadOps(module, "EVP_DecryptInit_ex", "EVP_DecryptUpdate", "EVP_DecryptFinal_ex");
+
+            if (_ctxNew == null || _ctxFree == null || _aes256Gcm == null || _ctxCtrl == null
+                || encrypt == null || decrypt == null)
             {
-                msg = libPath + " 缺少必需的 EVP 函数（版本不兼容）";
+                msg = libPath + " 版本不兼容：缺少所需函数（需要 OpenSSL 1.1.1 及以上，推荐 3.x）";
                 return 1;
             }
-            if (_initEx == null && _initEx2 == null)
-            {
-                msg = libPath + " 缺少 EVP_EncryptInit_ex / _ex2";
-                return 1;
-            }
-            if (_decInitEx == null && _decInitEx2 == null)
-            {
-                msg = libPath + " 缺少 EVP_DecryptInit_ex / _ex2";
-                return 1;
-            }
-            _libPath = libPath;
+
+            _encryptOps = encrypt;
+            _decryptOps = decrypt;
+            _loadedLibPath = libPath;
             return 0;
         }
     }
 
-    static byte[] Pbkdf2Sha256(byte[] pwd, byte[] salt, int iterations, int keyLen)
+    private static EvpOps LoadOps(IntPtr module, string initName, string updateName, string finalName)
     {
-        using (var k = new Rfc2898DeriveBytes(pwd, salt, iterations, HashAlgorithmName.SHA256))
-            return k.GetBytes(keyLen);
+        EvpInit init = LoadFunction<EvpInit>(module, initName);
+        EvpUpdate update = LoadFunction<EvpUpdate>(module, updateName);
+        EvpFinal final = LoadFunction<EvpFinal>(module, finalName);
+        if (init == null || update == null || final == null) return null;
+
+        EvpOps ops = new EvpOps();
+        ops.Init = init;
+        ops.Update = update;
+        ops.Final = final;
+        return ops;
     }
 
-    static IntPtr CopyIn(byte[] data)
+    private static void CheckOk(int resultCode, string action)
     {
-        IntPtr p = Marshal.AllocHGlobal(data == null ? 1 : data.Length);
-        if (data != null && data.Length > 0)
-            Marshal.Copy(data, 0, p, data.Length);
-        return p;
+        if (resultCode != 1) throw new Exception(action + "（OpenSSL 返回 " + resultCode + "）");
     }
 
-    static void ThrowIfNotOk(int r, string what)
+    private static IntPtr CopyToNative(byte[] data)
     {
-        if (r != 1) throw new Exception(what + " 失败 (EVP 返回 " + r + ")");
+        IntPtr ptr = Marshal.AllocHGlobal(data.Length);
+        Marshal.Copy(data, 0, ptr, data.Length);
+        return ptr;
     }
 
-    static IntPtr NewCtx() { return _ctxNew(); }
+    private static void FreeNative(IntPtr ptr) { Marshal.FreeHGlobal(ptr); }
 
-    static void StartEncrypt(IntPtr ctx, IntPtr cipher, byte[] key, byte[] iv)
+    private static void ReadFully(Stream input, byte[] buffer)
     {
-        if (_initEx != null)
+        int total = 0;
+        while (total < buffer.Length)
         {
-            ThrowIfNotOk(_initEx(ctx, cipher, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero), "EncryptInit(cipher)");
-            ThrowIfNotOk(_ctrl(ctx, CTRL_GCM_SET_IVLEN, IV_LEN, IntPtr.Zero), "SET_IVLEN");
-            IntPtr kp = CopyIn(key), vp = CopyIn(iv);
-            try { ThrowIfNotOk(_initEx(ctx, IntPtr.Zero, IntPtr.Zero, kp, vp), "EncryptInit(key/iv)"); }
-            finally { Marshal.FreeHGlobal(kp); Marshal.FreeHGlobal(vp); }
-        }
-        else
-        {
-            ThrowIfNotOk(_initEx2(ctx, cipher, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero), "EncryptInit2(cipher)");
-            ThrowIfNotOk(_ctrl(ctx, CTRL_GCM_SET_IVLEN, IV_LEN, IntPtr.Zero), "SET_IVLEN");
-            IntPtr kp = CopyIn(key), vp = CopyIn(iv);
-            try { ThrowIfNotOk(_initEx2(ctx, IntPtr.Zero, kp, vp, IntPtr.Zero), "EncryptInit2(key/iv)"); }
-            finally { Marshal.FreeHGlobal(kp); Marshal.FreeHGlobal(vp); }
+            int read = input.Read(buffer, total, buffer.Length - total);
+            if (read <= 0) throw new Exception("读取文件失败：文件不完整");
+            total += read;
         }
     }
 
-    static void StartDecrypt(IntPtr ctx, IntPtr cipher, byte[] key, byte[] iv)
+    private static void DeleteIfExists(string path)
     {
-        if (_decInitEx != null)
+        try { if (File.Exists(path)) File.Delete(path); } catch { }
+    }
+
+    private static byte[] DeriveKey(byte[] password, byte[] salt)
+    {
+        using (Rfc2898DeriveBytes kdf = new Rfc2898DeriveBytes(password, salt, IterationCount, HashAlgorithmName.SHA512))
         {
-            ThrowIfNotOk(_decInitEx(ctx, cipher, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero), "DecryptInit(cipher)");
-            ThrowIfNotOk(_ctrl(ctx, CTRL_GCM_SET_IVLEN, IV_LEN, IntPtr.Zero), "SET_IVLEN");
-            IntPtr kp = CopyIn(key), vp = CopyIn(iv);
-            try { ThrowIfNotOk(_decInitEx(ctx, IntPtr.Zero, IntPtr.Zero, kp, vp), "DecryptInit(key/iv)"); }
-            finally { Marshal.FreeHGlobal(kp); Marshal.FreeHGlobal(vp); }
-        }
-        else
-        {
-            ThrowIfNotOk(_decInitEx2(ctx, cipher, IntPtr.Zero, IntPtr.Zero, IntPtr.Zero), "DecryptInit2(cipher)");
-            ThrowIfNotOk(_ctrl(ctx, CTRL_GCM_SET_IVLEN, IV_LEN, IntPtr.Zero), "SET_IVLEN");
-            IntPtr kp = CopyIn(key), vp = CopyIn(iv);
-            try { ThrowIfNotOk(_decInitEx2(ctx, IntPtr.Zero, kp, vp, IntPtr.Zero), "DecryptInit2(key/iv)"); }
-            finally { Marshal.FreeHGlobal(kp); Marshal.FreeHGlobal(vp); }
+            return kdf.GetBytes(KeyLength);
         }
     }
 
-    static byte[] GetTag(IntPtr ctx)
+    // OpenSSL 惯例：先 Init 选定算法并指定 GCM 的 IV 长度，再 Init 设置 key/iv
+    private static IntPtr BeginCipher(EvpOps ops, byte[] key, byte[] iv)
     {
-        byte[] tag = new byte[TAG_LEN];
-        IntPtr p = Marshal.AllocHGlobal(TAG_LEN);
+        IntPtr ctx = _ctxNew();
         try
         {
-            ThrowIfNotOk(_ctrl(ctx, CTRL_GCM_GET_TAG, TAG_LEN, p), "GET_TAG");
-            Marshal.Copy(p, tag, 0, TAG_LEN);
+            IntPtr keyPtr = CopyToNative(key);
+            IntPtr ivPtr = CopyToNative(iv);
+            try
+            {
+                CheckOk(ops.Init(ctx, _aes256Gcm(), IntPtr.Zero, IntPtr.Zero, IntPtr.Zero), "初始化算法失败");
+                CheckOk(_ctxCtrl(ctx, GcmSetIvlLength, IvLength, IntPtr.Zero), "设置 IV 长度失败");
+                CheckOk(ops.Init(ctx, IntPtr.Zero, IntPtr.Zero, keyPtr, ivPtr), "设置密钥失败");
+            }
+            finally
+            {
+                FreeNative(keyPtr);
+                FreeNative(ivPtr);
+            }
+            return ctx;
+        }
+        catch
+        {
+            _ctxFree(ctx);
+            throw;
+        }
+    }
+
+    private static int ProcessStream(EvpOps ops, IntPtr ctx, Stream input, Stream output)
+    {
+        int readChunkSize = 1 << 20; // 1 MiB
+        byte[] chunk = new byte[readChunkSize];
+        byte[] outBuffer = new byte[readChunkSize + TagLength]; // GCM 输出最多比输入长一个 tag
+        IntPtr chunkPtr = Marshal.AllocHGlobal(chunk.Length);
+        IntPtr outPtr = Marshal.AllocHGlobal(outBuffer.Length);
+        try
+        {
+            int read;
+            while ((read = input.Read(chunk, 0, chunk.Length)) > 0)
+            {
+                Marshal.Copy(chunk, 0, chunkPtr, read);
+                int produced = 0;
+                CheckOk(ops.Update(ctx, outPtr, ref produced, chunkPtr, read), "数据处理失败");
+                if (produced > 0)
+                {
+                    Marshal.Copy(outPtr, outBuffer, 0, produced);
+                    output.Write(outBuffer, 0, produced);
+                }
+            }
+
+            int tailLength = 0;
+            int result = ops.Final(ctx, outPtr, ref tailLength);
+            if (result == 1 && tailLength > 0)
+            {
+                Marshal.Copy(outPtr, outBuffer, 0, tailLength);
+                output.Write(outBuffer, 0, tailLength);
+            }
+            return result;
+        }
+        finally
+        {
+            FreeNative(chunkPtr);
+            FreeNative(outPtr);
+        }
+    }
+
+    private static byte[] GetTag(IntPtr ctx)
+    {
+        byte[] tag = new byte[TagLength];
+        IntPtr tagPtr = Marshal.AllocHGlobal(tag.Length);
+        try
+        {
+            CheckOk(_ctxCtrl(ctx, GcmGetTag, tag.Length, tagPtr), "读取认证标签失败");
+            Marshal.Copy(tagPtr, tag, 0, tag.Length);
             return tag;
         }
-        finally { Marshal.FreeHGlobal(p); }
+        finally { FreeNative(tagPtr); }
     }
 
-    static void SetTag(IntPtr ctx, byte[] tag)
+    private static void SetTag(IntPtr ctx, byte[] tag)
     {
-        IntPtr p = CopyIn(tag);
-        try { ThrowIfNotOk(_ctrl(ctx, CTRL_GCM_SET_TAG, TAG_LEN, p), "SET_TAG"); }
-        finally { Marshal.FreeHGlobal(p); }
+        IntPtr tagPtr = CopyToNative(tag);
+        try { CheckOk(_ctxCtrl(ctx, GcmSetTag, tag.Length, tagPtr), "写入认证标签失败"); }
+        finally { FreeNative(tagPtr); }
     }
 
-    public static int EncryptFile(string inPath, string outPath, byte[] pwd, int iterations, out string msg)
+    public static int EncryptFile(string inputPath, string outputPath, byte[] password, out string msg)
     {
         msg = null;
-        if (pwd == null || pwd.Length == 0) { msg = "密码为空"; return 1; }
-        if (iterations < MIN_ITER || iterations > MAX_ITER) { msg = "迭代次数非法"; return 1; }
+        string tmpPath = outputPath + ".tmp";
         try
         {
-            using (FileStream ins = new FileStream(inPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (FileStream outs = new FileStream(outPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            if (password == null || password.Length == 0) throw new Exception("密码不能为空");
+
+            byte[] salt = new byte[SaltLength];
+            byte[] iv = new byte[IvLength];
+            using (RandomNumberGenerator rng = RandomNumberGenerator.Create())
             {
-                byte[] magic = Encoding.ASCII.GetBytes("MYAESG01");
-                byte[] salt = new byte[SALT_LEN], iv = new byte[IV_LEN];
-                using (var rng = RandomNumberGenerator.Create()) { rng.GetBytes(salt); rng.GetBytes(iv); }
+                rng.GetBytes(salt);
+                rng.GetBytes(iv);
+            }
 
-                outs.Write(magic, 0, 8);
-                outs.Write(BitConverter.GetBytes((uint)iterations), 0, 4);
-                outs.Write(salt, 0, SALT_LEN);
-                outs.Write(iv, 0, IV_LEN);
-                long tagPos = outs.Position;
-                outs.Write(new byte[TAG_LEN], 0, TAG_LEN);
+            using (FileStream input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (FileStream output = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                output.Write(salt, 0, salt.Length);
+                output.Write(iv, 0, iv.Length);
+                long tagPosition = output.Position;
+                output.Write(new byte[TagLength], 0, TagLength); // GCM 标签须等加密结束才能算出，先留空位后回填
 
-                byte[] key = Pbkdf2Sha256(pwd, salt, iterations, KEY_LEN);
-                IntPtr ctx = NewCtx();
+                byte[] key = DeriveKey(password, salt);
+                IntPtr ctx = BeginCipher(_encryptOps, key, iv);
                 try
                 {
-                    StartEncrypt(ctx, _cipher(), key, iv);
-                    byte[] ib = new byte[1 << 20], ob = new byte[(1 << 20) + 64];
-                    IntPtr ip = Marshal.AllocHGlobal(ib.Length), op = Marshal.AllocHGlobal(ob.Length);
-                    try
-                    {
-                        int n;
-                        while ((n = ins.Read(ib, 0, ib.Length)) > 0)
-                        {
-                            Marshal.Copy(ib, 0, ip, n);
-                            int ol = 0;
-                            ThrowIfNotOk(_update(ctx, op, ref ol, ip, n), "EncryptUpdate");
-                            if (ol > 0) { byte[] o = new byte[ol]; Marshal.Copy(op, o, 0, ol); outs.Write(o, 0, ol); }
-                        }
-                        int fl = 0;
-                        ThrowIfNotOk(_final(ctx, op, ref fl), "EncryptFinal");
-                        if (fl > 0) { byte[] o = new byte[fl]; Marshal.Copy(op, o, 0, fl); outs.Write(o, 0, fl); }
-                    }
-                    finally { Marshal.FreeHGlobal(ip); Marshal.FreeHGlobal(op); }
-
+                    if (ProcessStream(_encryptOps, ctx, input, output) != 1) throw new Exception("加密收尾失败");
                     byte[] tag = GetTag(ctx);
-                    outs.Position = tagPos;
-                    outs.Write(tag, 0, TAG_LEN);
+                    output.Position = tagPosition;
+                    output.Write(tag, 0, tag.Length);
                 }
                 finally { _ctxFree(ctx); }
             }
-            return 0;
-        }
-        catch (Exception ex) { msg = ex.Message; return 1; }
-    }
-
-    public static int DecryptFile(string inPath, string outPath, byte[] pwd, out string msg)
-    {
-        msg = null;
-        if (pwd == null || pwd.Length == 0) { msg = "密码为空"; return 1; }
-        string tmpOut = null;
-        try
-        {
-            tmpOut = outPath + ".tmp";
-            int code = 0;
-            using (FileStream ins = new FileStream(inPath, FileMode.Open, FileAccess.Read, FileShare.Read))
-            using (FileStream outs = new FileStream(tmpOut, FileMode.Create, FileAccess.Write, FileShare.None))
-            {
-                if (ins.Length < HDR_LEN) { msg = "文件太短，不是有效的加密文件"; return 1; }
-                byte[] hdr = new byte[HDR_LEN];
-                ins.Read(hdr, 0, HDR_LEN);
-                string magic = Encoding.ASCII.GetString(hdr, 0, 8);
-                if (magic != "MYAESG01") { msg = "文件头不匹配，不是本工具加密的文件"; return 1; }
-                uint iterations = BitConverter.ToUInt32(hdr, 8);
-                if (iterations < MIN_ITER || iterations > MAX_ITER) { msg = "文件中的迭代次数非法"; return 1; }
-                byte[] salt = new byte[SALT_LEN], iv = new byte[IV_LEN], tag = new byte[TAG_LEN];
-                Buffer.BlockCopy(hdr, 12, salt, 0, SALT_LEN);
-                Buffer.BlockCopy(hdr, 28, iv, 0, IV_LEN);
-                Buffer.BlockCopy(hdr, 40, tag, 0, TAG_LEN);
-
-                byte[] key = Pbkdf2Sha256(pwd, salt, (int)iterations, KEY_LEN);
-                IntPtr ctx = NewCtx();
-                try
-                {
-                    StartDecrypt(ctx, _cipher(), key, iv);
-                    SetTag(ctx, tag);
-                    byte[] ib = new byte[1 << 20], ob = new byte[(1 << 20) + 64];
-                    IntPtr ip = Marshal.AllocHGlobal(ib.Length), op = Marshal.AllocHGlobal(ob.Length);
-                    try
-                    {
-                        int n;
-                        while ((n = ins.Read(ib, 0, ib.Length)) > 0)
-                        {
-                            Marshal.Copy(ib, 0, ip, n);
-                            int ol = 0;
-                            ThrowIfNotOk(_decUpdate(ctx, op, ref ol, ip, n), "DecryptUpdate");
-                            if (ol > 0) { byte[] o = new byte[ol]; Marshal.Copy(op, o, 0, ol); outs.Write(o, 0, ol); }
-                        }
-                        int fl = 0;
-                        int r = _decFinal(ctx, op, ref fl);
-                        if (r != 1)
-                        {
-                            msg = "认证失败：密码错误或文件被篡改";
-                            code = 1;
-                        }
-                        else if (fl > 0) { byte[] o = new byte[fl]; Marshal.Copy(op, o, 0, fl); outs.Write(o, 0, fl); }
-                    }
-                    finally { Marshal.FreeHGlobal(ip); Marshal.FreeHGlobal(op); }
-                }
-                finally { _ctxFree(ctx); }
-            }
-
-            if (code != 0)
-            {
-                File.Delete(tmpOut);
-                return code;
-            }
-            if (File.Exists(outPath)) File.Delete(outPath);
-            File.Move(tmpOut, outPath);
+            DeleteIfExists(outputPath);
+            File.Move(tmpPath, outputPath);
             return 0;
         }
         catch (Exception ex)
         {
-            try { if (tmpOut != null && File.Exists(tmpOut)) File.Delete(tmpOut); } catch { }
+            DeleteIfExists(tmpPath);
+            msg = ex.Message;
+            return 1;
+        }
+    }
+
+    public static int DecryptFile(string inputPath, string outputPath, byte[] password, out string msg)
+    {
+        msg = null;
+        string tmpPath = outputPath + ".tmp";
+        try
+        {
+            if (password == null || password.Length == 0) throw new Exception("密码不能为空");
+
+            using (FileStream input = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            using (FileStream output = new FileStream(tmpPath, FileMode.Create, FileAccess.Write, FileShare.None))
+            {
+                if (input.Length < HeaderLength) throw new Exception("文件太短，不是有效的加密文件");
+
+                byte[] header = new byte[HeaderLength];
+                ReadFully(input, header);
+                byte[] salt = new byte[SaltLength];
+                byte[] iv = new byte[IvLength];
+                byte[] tag = new byte[TagLength];
+                Buffer.BlockCopy(header, 0, salt, 0, SaltLength);
+                Buffer.BlockCopy(header, SaltLength, iv, 0, IvLength);
+                Buffer.BlockCopy(header, SaltLength + IvLength, tag, 0, TagLength);
+
+                byte[] key = DeriveKey(password, salt);
+                IntPtr ctx = BeginCipher(_decryptOps, key, iv);
+                try
+                {
+                    SetTag(ctx, tag);
+                    if (ProcessStream(_decryptOps, ctx, input, output) != 1) throw new Exception("认证失败：密码错误或文件被篡改");
+                }
+                finally { _ctxFree(ctx); }
+            }
+            DeleteIfExists(outputPath);
+            File.Move(tmpPath, outputPath);
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            DeleteIfExists(tmpPath);
             msg = ex.Message;
             return 1;
         }
