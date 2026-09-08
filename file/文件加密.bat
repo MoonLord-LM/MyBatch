@@ -9,7 +9,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将单个文件加密，生成 enc 后缀的加密文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '用户输入的密码，使用 PBKDF2-HMAC-SHA512 产生密钥，然后进行 AES-256-GCM 加密' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '加密实现：将用户输入的密码，使用 PBKDF2-HMAC-SHA512 产生密钥，然后进行 AES-256-GCM 加密' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '加密文件会比原始文件大 44 字节' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '选中一个文件，拖拽到此脚本上执行；不支持拖入文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果输出 enc 文件已存在，则跳过不处理' -ForegroundColor Green"
 echo.
