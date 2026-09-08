@@ -8,13 +8,14 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '使用 7-Zip 对文件或文件夹进行极限压缩，输出 zip 格式压缩包' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '压缩等级设为 9 - 极限压缩' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '压缩算法使用 LZMA，字典大小使用 2048MB，单词大小使用 256' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '使用 7-Zip 对文件或文件夹进行仅存储加密压缩，输出 7z 格式压缩包' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '压缩等级设为 0 - 仅存储' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '参数使用 -mtc=on -mta=on -mtm=on，保存文件的创建、修改和访问时间' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，压缩当前文件夹为同名 zip 文件，并保存到上一级的文件夹' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '拖拽文件或文件夹到此脚本上时，压缩为同名 zip 文件，保存到其所在的文件夹' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '如果输出 zip 已存在，则跳过不处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '加密算法使用 AES-256，并使用 -mhe=on 同时加密文件名' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '需要输入加密密码，要求非空，且字符长度大于 6' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，压缩当前文件夹为同名 7z 文件，并保存到上一级的文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '拖拽文件或文件夹到此脚本上时，压缩为同名 7z 文件，保存到其所在的文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '如果输出 7z 已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
 
@@ -75,7 +76,19 @@ if "!param1!" == "" (
     )
 )
 
-set "zip_params=-tzip -mx=9 -mcl=on -mm=LZMA -md=2048m -mfb=256 -mmt=on -mtc=on -mta=on -mtm=on"
+:prompt_password
+echo 请输入加密密码（要求非空且字符长度大于 6）：
+set /p "password="
+echo.
+for /f "usebackq delims=" %%l in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Write-Output $env:password.Length"`) do set "password_len=%%l"
+if "!password_len!"=="" set "password_len=0"
+if !password_len! leq 6 (
+    echo 密码不能为空，且字符长度要大于 6，请重新输入
+    echo.
+    goto prompt_password
+)
+
+set "zip_params=-t7z -mx=0 -mhe=on -mmt=on -mtc=on -mta=on -mtm=on"
 
 for %%i in ("!input_path!") do (
     setlocal disabledelayedexpansion
@@ -83,15 +96,15 @@ for %%i in ("!input_path!") do (
     set "parent_dir=%%~dpi"
     setlocal enabledelayedexpansion
 
-    set "output_path=!parent_dir!!out_name!.zip"
+    set "output_path=!parent_dir!!out_name!.7z"
     echo 输出压缩包："!output_path!"
     echo.
 
     if exist "!output_path!" (
         echo 输出压缩包已存在："!output_path!"，跳过不处理
     ) else (
-        REM -sccUTF-8 避免中文路径乱码；-y 自动确认；<nul 防止 7-Zip 交互等待
-        "!seven_zip!" a %zip_params% -sccUTF-8 -y "!output_path!" "!input_path!" <nul
+        REM -p 指定加密密码；-sccUTF-8 避免中文路径乱码；-y 自动确认；<nul 防止 7-Zip 交互等待
+        "!seven_zip!" a %zip_params% -p"!password!" -sccUTF-8 -y "!output_path!" "!input_path!" <nul
         if !errorlevel! equ 0 (
             for %%j in ("!output_path!") do (
                 setlocal disabledelayedexpansion

@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '使用 7-Zip 对文件或文件夹进行仅存储压缩，输出 ZIP 格式压缩包' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '使用 7-Zip 对文件或文件夹进行仅存储压缩，输出 zip 格式压缩包' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '压缩等级设为 0 - 仅存储' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '参数使用 -mtc=on -mta=on -mtm=on，保存文件的创建、修改和访问时间' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，压缩当前文件夹为同名 zip 文件，并保存到上一级的文件夹' -ForegroundColor Green"
@@ -48,6 +48,8 @@ if !errorlevel! neq 0 (
     pause
     endlocal & endlocal & exit /b 1
 )
+
+
 
 if "!param1!" == "" (
     echo 开始处理当前文件夹："!cd!"
@@ -92,10 +94,10 @@ for %%i in ("!input_path!") do (
         if !errorlevel! equ 0 (
             for %%j in ("!output_path!") do (
                 setlocal disabledelayedexpansion
-                set "zip_size=%%~zj"
+                set "file_size=%%~zj"
                 setlocal enabledelayedexpansion
 
-                echo 压缩成功："!output_path!"，大小：!zip_size! 字节
+                echo 压缩成功："!output_path!"，大小：!file_size! 字节
 
                 endlocal
                 endlocal
