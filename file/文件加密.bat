@@ -81,7 +81,7 @@ if exist "!output_file!" (
 )
 echo.
 
-REM 下方 powershell 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
+REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -LiteralPath $env:script_path -Encoding utf8;" ^
