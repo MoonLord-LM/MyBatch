@@ -21,7 +21,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 
-REM 检查 rhash 组件
+REM 检查 RHash 组件
 if exist "!script_dir!rhash.exe" (
     set "rhash_path=!script_dir!rhash.exe"
 ) else if exist "!cd!\rhash.exe" (
@@ -35,7 +35,7 @@ if exist "!script_dir!rhash.exe" (
 )
 "!rhash_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 rhash 组件
+    echo 错误：缺少 RHash 组件
     echo 请从 https://rhash.sourceforge.io 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://rhash.sourceforge.io"
     echo.
@@ -51,9 +51,6 @@ set "input_file=!param1_path!"
 if "!input_file!"=="" (
     echo 请输入要生成 ed2k 链接的文件的路径
     set /p "input_file="
-    echo.
-) else (
-    echo 将生成 ed2k 链接的文件："!input_file!"
     echo.
 )
 if "!input_file!"=="" (
@@ -75,39 +72,42 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-REM 以输入的文件路径刷新派生变量（保持与拖拽解析结果一致）
-for %%f in ("!input_file!") do (
-    set "param1=%%~f"
-    set "param1_path=%%~ff"
-    set "param1_dir=%%~dpf"
-    set "param1_name=%%~nf"
-    set "param1_ext=%%~xf"
-    set "param1_name_ext=%%~nxf"
-)
+for %%i in ("!input_file!") do (
+    setlocal disabledelayedexpansion
+    set "param1_path=%%~fi"
+    set "param1_name_ext=%%~nxi"
+    setlocal enabledelayedexpansion
 
-
-
-set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
-"!rhash_path!" --utf8 --ed2k-link "!param1_path!" > "!tmp_file!" 2>&1
-if !errorlevel! neq 0 (
-    if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
-    echo 错误：生成 ed2k 链接失败："!param1_path!"
+    echo 开始处理："!input_file!"
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+
+
+
+    set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+    "!rhash_path!" --utf8 --ed2k-link "!param1_path!" > "!tmp_file!" 2>&1
+    if !errorlevel! neq 0 (
+        if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
+        echo 错误：生成 ed2k 链接失败："!param1_path!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+
+    echo 文件 "!param1_name_ext!" 的 ed2k 链接：
+    echo.
+    type "!tmp_file!"
+    echo.
+
+    clip < "!tmp_file!"
+    echo 链接已复制到剪贴板
+
+    if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
+
+
+
+    endlocal
+    endlocal
 )
-
-echo 文件 "!param1_name_ext!" 的 ed2k 链接：
-echo.
-type "!tmp_file!"
-echo.
-
-clip < "!tmp_file!"
-echo 链接已复制到剪贴板
-
-if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
-
-
 
 echo.
 pause

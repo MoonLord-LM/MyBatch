@@ -55,9 +55,6 @@ if "!input_file!"=="" (
     echo 请输入要加密的文件的路径
     set /p "input_file="
     echo.
-) else (
-    echo 将加密的文件："!input_file!"
-    echo.
 )
 if "!input_file!"=="" (
     echo 输入不能为空，请重新输入
@@ -78,79 +75,80 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-REM 以输入的文件路径刷新派生变量（保持与拖拽解析结果一致）
-for %%f in ("!input_file!") do (
-    set "param1=%%~f"
-    set "param1_path=%%~ff"
-    set "param1_dir=%%~dpf"
-    set "param1_name=%%~nf"
-    set "param1_ext=%%~xf"
-    set "param1_name_ext=%%~nxf"
-)
+for %%i in ("!input_file!") do (
+    setlocal disabledelayedexpansion
+    set "param1_path=%%~fi"
+    setlocal enabledelayedexpansion
 
-
-
-echo 输入文件："!param1_path!"
-set "output_file=!param1_path!.enc"
-echo 输出文件："!output_file!"
-if exist "!output_file!" (
-    echo 输出文件已存在："!output_file!"，跳过不处理
-    echo 如果需要重新加密，请先移走旧文件
+    echo 开始处理："!input_file!"
     echo.
-    pause
-    endlocal & endlocal & exit /b 2
-)
-echo.
 
-REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
-powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "$lines = Get-Content -LiteralPath $env:script_path -Encoding utf8;" ^
-    "$begin = [array]::IndexOf($lines, '-----BEGIN CSHARP CODE-----') + 1;" ^
-    "$end = [array]::IndexOf($lines, '-----END CSHARP CODE-----');" ^
-    "if ($begin -lt 1 -or $end -lt $begin) {" ^
-    "    Write-Host '错误：未找到引擎代码块' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$csharpSource = ($lines[$begin..($end - 1)] -join [Environment]::NewLine);" ^
-    "Add-Type -TypeDefinition $csharpSource -Language CSharp;" ^
-    "$message = $null;" ^
-    "$resultCode = [AesGcmCli]::LoadLib($env:libcrypto, [ref]$message);" ^
-    "if ($resultCode -ne 0) {" ^
-    "    Write-Host ('错误：OpenSSL-Win64 组件加载失败：' + $message) -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$securePassword = Read-Host '请输入加密密码' -AsSecureString;" ^
-    "$passwordText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword));" ^
-    "if ([string]::IsNullOrEmpty($passwordText)) {" ^
-    "    Write-Host '错误：密码不能为空' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$passwordBytes = [Text.Encoding]::UTF8.GetBytes($passwordText);" ^
-    "Write-Host '正在加密，请稍候...';" ^
-    "$resultCode = [AesGcmCli]::EncryptFile($env:param1_path, $env:output_file, $passwordBytes, [ref]$message);" ^
-    "if ($resultCode -ne 0) {" ^
-    "    Write-Host ('错误：加密失败：' + $message) -ForegroundColor Red;" ^
-    "    if (Test-Path $env:output_file) { Remove-Item $env:output_file -Force -ErrorAction SilentlyContinue };" ^
-    "    exit 1;" ^
-    "};" ^
-    "Write-Host '加密完成' -ForegroundColor Green"
-if !errorlevel! neq 0 (
-    echo 加密失败
-) else (
-    for %%j in ("!output_file!") do (
-        setlocal disabledelayedexpansion
-        set "file_size=%%~zj"
-        setlocal enabledelayedexpansion
 
-        echo 加密成功："!output_file!"，大小：!file_size! 字节
 
-        endlocal
-        endlocal
+    set "output_file=!param1_path!.enc"
+    echo 输出文件："!output_file!"
+    if exist "!output_file!" (
+        echo 输出文件已存在："!output_file!"，跳过不处理
+        echo 如果需要重新加密，请先移走旧文件
+        echo.
+        pause
+        endlocal & endlocal & exit /b 2
     )
+    echo.
+
+    REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$lines = Get-Content -LiteralPath $env:script_path -Encoding utf8;" ^
+        "$begin = [array]::IndexOf($lines, '-----BEGIN CSHARP CODE-----') + 1;" ^
+        "$end = [array]::IndexOf($lines, '-----END CSHARP CODE-----');" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    Write-Host '错误：未找到引擎代码块' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$csharpSource = ($lines[$begin..($end - 1)] -join [Environment]::NewLine);" ^
+        "Add-Type -TypeDefinition $csharpSource -Language CSharp;" ^
+        "$message = $null;" ^
+        "$resultCode = [AesGcmCli]::LoadLib($env:libcrypto, [ref]$message);" ^
+        "if ($resultCode -ne 0) {" ^
+        "    Write-Host ('错误：OpenSSL-Win64 组件加载失败：' + $message) -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$securePassword = Read-Host '请输入加密密码' -AsSecureString;" ^
+        "$passwordText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword));" ^
+        "if ([string]::IsNullOrEmpty($passwordText)) {" ^
+        "    Write-Host '错误：密码不能为空' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$passwordBytes = [Text.Encoding]::UTF8.GetBytes($passwordText);" ^
+        "Write-Host '正在加密，请稍候...';" ^
+        "$resultCode = [AesGcmCli]::EncryptFile($env:param1_path, $env:output_file, $passwordBytes, [ref]$message);" ^
+        "if ($resultCode -ne 0) {" ^
+        "    Write-Host ('错误：加密失败：' + $message) -ForegroundColor Red;" ^
+        "    if (Test-Path $env:output_file) { Remove-Item $env:output_file -Force -ErrorAction SilentlyContinue };" ^
+        "    exit 1;" ^
+        "};" ^
+        "Write-Host '加密完成' -ForegroundColor Green"
+    if !errorlevel! neq 0 (
+        echo 加密失败
+    ) else (
+        for %%j in ("!output_file!") do (
+            setlocal disabledelayedexpansion
+            set "file_size=%%~zj"
+            setlocal enabledelayedexpansion
+
+            echo 加密成功："!output_file!"，大小：!file_size! 字节
+
+            endlocal
+            endlocal
+        )
+    )
+
+
+
+    endlocal
+    endlocal
 )
-
-
 
 echo.
 pause

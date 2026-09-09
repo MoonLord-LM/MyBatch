@@ -53,9 +53,6 @@ if "!input_file!"=="" (
     echo 请输入要生成哈希值的文件的路径
     set /p "input_file="
     echo.
-) else (
-    echo 将生成哈希值的文件："!input_file!"
-    echo.
 )
 if "!input_file!"=="" (
     echo 输入不能为空，请重新输入
@@ -76,71 +73,74 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-REM 以输入的文件路径刷新派生变量（保持与拖拽解析结果一致）
-for %%f in ("!input_file!") do (
-    set "param1=%%~f"
-    set "param1_path=%%~ff"
-    set "param1_dir=%%~dpf"
-    set "param1_name=%%~nf"
-    set "param1_ext=%%~xf"
-    set "param1_name_ext=%%~nxf"
-)
+for %%i in ("!input_file!") do (
+    setlocal disabledelayedexpansion
+    set "param1_path=%%~fi"
+    set "param1_name_ext=%%~nxi"
+    setlocal enabledelayedexpansion
 
-
-
-echo 文件 "!param1_name_ext!" 的常用哈希值：
-echo.
-
-echo -- MD5 --
-"!rhash_path!" --utf8 --one-hash --md5 "!param1_path!"
-if !errorlevel! neq 0 (
-    echo 错误：生成 MD5 失败："!param1_path!"
+    echo 开始处理："!input_file!"
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
-echo.
 
-echo -- SHA1 --
-"!rhash_path!" --utf8 --one-hash --sha1 "!param1_path!"
-if !errorlevel! neq 0 (
-    echo 错误：生成 SHA1 失败："!param1_path!"
+
+
+    echo 文件 "!param1_name_ext!" 的常用哈希值：
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
-echo.
 
-echo -- SHA256 --
-"!rhash_path!" --utf8 --one-hash --sha256 "!param1_path!"
-if !errorlevel! neq 0 (
-    echo 错误：生成 SHA256 失败："!param1_path!"
+    echo -- MD5 --
+    "!rhash_path!" --utf8 --one-hash --md5 "!param1_path!"
+    if !errorlevel! neq 0 (
+        echo 错误：生成 MD5 失败："!param1_path!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
-echo.
 
-echo -- SHA384 --
-"!rhash_path!" --utf8 --one-hash --sha384 "!param1_path!"
-if !errorlevel! neq 0 (
-    echo 错误：生成 SHA384 失败："!param1_path!"
+    echo -- SHA1 --
+    "!rhash_path!" --utf8 --one-hash --sha1 "!param1_path!"
+    if !errorlevel! neq 0 (
+        echo 错误：生成 SHA1 失败："!param1_path!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
-echo.
 
-echo -- SHA512 --
-"!rhash_path!" --utf8 --one-hash --sha512 "!param1_path!"
-if !errorlevel! neq 0 (
-    echo 错误：生成 SHA512 失败："!param1_path!"
+    echo -- SHA256 --
+    "!rhash_path!" --utf8 --one-hash --sha256 "!param1_path!"
+    if !errorlevel! neq 0 (
+        echo 错误：生成 SHA256 失败："!param1_path!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+
+    echo -- SHA384 --
+    "!rhash_path!" --utf8 --one-hash --sha384 "!param1_path!"
+    if !errorlevel! neq 0 (
+        echo 错误：生成 SHA384 失败："!param1_path!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+    echo.
+
+    echo -- SHA512 --
+    "!rhash_path!" --utf8 --one-hash --sha512 "!param1_path!"
+    if !errorlevel! neq 0 (
+        echo 错误：生成 SHA512 失败："!param1_path!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+
+
+
+    endlocal
+    endlocal
 )
-
-
 
 echo.
 pause

@@ -31,9 +31,6 @@ if "!input_file!"=="" (
     echo 请输入要解码的 .pem 文件的路径
     set /p "input_file="
     echo.
-) else (
-    echo 将解码的文件："!input_file!"
-    echo.
 )
 if "!input_file!"=="" (
     echo 输入不能为空，请重新输入
@@ -54,60 +51,62 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-REM 以输入的文件路径刷新派生变量（保持与拖拽解析结果一致）
-for %%f in ("!input_file!") do (
-    set "param1=%%~f"
-    set "param1_path=%%~ff"
-    set "param1_dir=%%~dpf"
-    set "param1_name=%%~nf"
-    set "param1_ext=%%~xf"
-    set "param1_name_ext=%%~nxf"
-)
-
-
-
-echo 输入文件："!param1_path!"
-if /i not "!param1_path:~-4!" == ".pem" (
-    echo 错误：请拖入 .pem 后缀的文件
+if /i not "!input_file:~-4!" == ".pem" (
+    echo 错误：只支持 .pem 后缀的文件："!input_file!"，请重新输入
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+    set "input_file="
+    goto input_file
 )
-set "output_file=!param1_path:~0,-4!"
-echo 输出文件："!output_file!"
-if "!output_file!" == "" (
-    echo 错误：无法确定输出路径
+
+for %%i in ("!input_file!") do (
+    setlocal disabledelayedexpansion
+    set "param1_path=%%~fi"
+    setlocal enabledelayedexpansion
+
+    echo 开始处理："!input_file!"
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
-if exist "!output_file!" (
-    echo 输出文件已存在："!output_file!"，跳过不处理
-    echo 如果需要重新解码，请先移走旧文件
-    echo.
-    pause
-    endlocal & endlocal & exit /b 2
-)
-echo.
 
-set "certutil_path=!SystemRoot!\System32\certutil.exe"
-"!certutil_path!" -decode "!param1_path!" "!output_file!"
-if !errorlevel! neq 0 (
-    echo 解码失败
-) else (
-    for %%j in ("!output_file!") do (
-        setlocal disabledelayedexpansion
-        set "file_size=%%~zj"
-        setlocal enabledelayedexpansion
 
-        echo 解码成功："!output_file!"，大小：!file_size! 字节
 
-        endlocal
-        endlocal
+    set "output_file=!param1_path:~0,-4!"
+    echo 输出文件："!output_file!"
+    if "!output_file!" == "" (
+        echo 错误：无法确定输出路径
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
     )
+    if exist "!output_file!" (
+        echo 输出文件已存在："!output_file!"，跳过不处理
+        echo 如果需要重新解码，请先移走旧文件
+        echo.
+        pause
+        endlocal & endlocal & exit /b 2
+    )
+    echo.
+
+    set "certutil_path=!SystemRoot!\System32\certutil.exe"
+    "!certutil_path!" -decode "!param1_path!" "!output_file!"
+    if !errorlevel! neq 0 (
+        echo 解码失败
+    ) else (
+        for %%j in ("!output_file!") do (
+            setlocal disabledelayedexpansion
+            set "file_size=%%~zj"
+            setlocal enabledelayedexpansion
+
+            echo 解码成功："!output_file!"，大小：!file_size! 字节
+
+            endlocal
+            endlocal
+        )
+    )
+
+
+
+    endlocal
+    endlocal
 )
-
-
 
 echo.
 pause
