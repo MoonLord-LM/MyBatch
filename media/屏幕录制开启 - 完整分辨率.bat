@@ -84,50 +84,17 @@ echo 输出文件："!output_file!"
 
 
 
-REM 内嵌的 Powershell 代码块开始
-goto :after_powershell_block
-    [Console]::OutputEncoding=[Text.Encoding]::UTF8;
-    $PID | Out-File -FilePath $env:pid_file -Encoding UTF8;
-    $pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);
-    $psi = [Diagnostics.ProcessStartInfo]::new();
-    $psi.FileName = $env:ffmpeg_path;
-    $creation_time = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz');
-    $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -c:v libx264rgb -crf 0 -preset ultrafast -pix_fmt bgr0 -movflags +faststart -metadata creation_time="' + $creation_time + '" ' + $env:output_file;
-    $psi.UseShellExecute = $false;
-    $psi.CreateNoWindow = $true;
-    $psi.RedirectStandardInput = $true;
-    $psi.RedirectStandardError = $true;
-    $p = [Diagnostics.Process]::new();
-    $p.StartInfo = $psi;
-    $p.Start() | Out-Null;
-    $errorLog = $p.StandardError.ReadToEndAsync();
-    $pipe.WaitForConnection();
-    $command = [IO.StreamReader]::new($pipe).ReadLine();
-    if ($command -eq 'stop' -and -not $p.HasExited) {
-        $p.StandardInput.WriteLine('q');
-        $p.StandardInput.Close();
-    }
-    $p.WaitForExit();
-    if ($p.ExitCode -ne 0) {
-        $log = Join-Path (Split-Path -Parent $env:output_file) '_tmp_屏幕录制.log';
-        Set-Content -LiteralPath $log -Value $errorLog.Result -Encoding UTF8;
-    }
-    $pipe.Dispose()
-    if (Test-Path $env:pid_file) {
-        Add-Type -AssemblyName Microsoft.VisualBasic;
-        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:pid_file, 'OnlyErrorDialogs', 'SendToRecycleBin');
-    }
-:after_powershell_block
-REM 内嵌的 Powershell 代码块结束
-
-
-
+REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码，并以隐藏窗口运行
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
-    "$a = ($lines | Select-String -Pattern '^goto :after_powershell_block\s*$' | Select-Object -First 1).LineNumber;" ^
-    "$b = ($lines | Select-String -Pattern '^:after_powershell_block\s*$' | Select-Object -First 1).LineNumber;" ^
-    "$code = ($lines[$a..($b - 2)] -join [Environment]::NewLine);" ^
+    "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+    "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+    "if ($begin -lt 1 -or $end -lt $begin) {" ^
+    "    Write-Host '错误：未找到内嵌的 Powershell 代码块' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "};" ^
+    "$code = ($lines[$begin..($end - 1)] -join [Environment]::NewLine);" ^
     "$b64 = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code));" ^
     "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$b64)"
 if !errorlevel! neq 0 (
@@ -146,3 +113,41 @@ if !errorlevel! neq 0 (
 echo.
 timeout /t 3 /nobreak
 endlocal & endlocal & exit /b
+
+
+
+-----BEGIN POWERSHELL CODE-----
+
+[Console]::OutputEncoding=[Text.Encoding]::UTF8;
+$PID | Out-File -FilePath $env:pid_file -Encoding UTF8;
+$pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);
+$psi = [Diagnostics.ProcessStartInfo]::new();
+$psi.FileName = $env:ffmpeg_path;
+$creation_time = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz');
+$psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -c:v libx264rgb -crf 0 -preset ultrafast -pix_fmt bgr0 -movflags +faststart -metadata creation_time="' + $creation_time + '" ' + $env:output_file;
+$psi.UseShellExecute = $false;
+$psi.CreateNoWindow = $true;
+$psi.RedirectStandardInput = $true;
+$psi.RedirectStandardError = $true;
+$p = [Diagnostics.Process]::new();
+$p.StartInfo = $psi;
+$p.Start() | Out-Null;
+$errorLog = $p.StandardError.ReadToEndAsync();
+$pipe.WaitForConnection();
+$command = [IO.StreamReader]::new($pipe).ReadLine();
+if ($command -eq 'stop' -and -not $p.HasExited) {
+    $p.StandardInput.WriteLine('q');
+    $p.StandardInput.Close();
+}
+$p.WaitForExit();
+if ($p.ExitCode -ne 0) {
+    $log = Join-Path (Split-Path -Parent $env:output_file) '_tmp_屏幕录制.log';
+    Set-Content -LiteralPath $log -Value $errorLog.Result -Encoding UTF8;
+}
+$pipe.Dispose()
+if (Test-Path $env:pid_file) {
+    Add-Type -AssemblyName Microsoft.VisualBasic;
+    [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:pid_file, 'OnlyErrorDialogs', 'SendToRecycleBin');
+}
+
+-----END POWERSHELL CODE-----
