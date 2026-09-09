@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '将 pem 格式的文件解码，还原为原始文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '格式：Base64 编码，并且带 -----BEGIN CERTIFICATE----- 和 -----END CERTIFICATE----- 标记）' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host 'Base64 编码后，体积增大到约 1.33 倍' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '选中一个文件，拖拽到此脚本上执行；不支持拖入文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要解码的 .pem 文件的路径；也可以拖拽单个 .pem 文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果原始文件已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
@@ -24,23 +24,44 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 
-if "!param1!" == "" (
-    echo 用法：把要解码的 .pem 文件，拖拽到本脚本上
+set "input_file=!param1_path!"
+
+:input_file
+if "!input_file!"=="" (
+    echo 请输入要解码的 .pem 文件的路径
+    set /p "input_file="
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+) else (
+    echo 将解码的文件："!input_file!"
+    echo.
 )
-if exist "!param1!\" (
-    echo 错误：不支持拖入文件夹，请拖入单个 .pem 文件
+if "!input_file!"=="" (
+    echo 输入不能为空，请重新输入
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+    goto input_file
 )
-if not exist "!param1_path!" (
-    echo 错误：文件不存在："!param1_path!"
+set "input_file=!input_file:"=!"
+if not exist "!input_file!" (
+    echo 错误：路径不存在："!input_file!"，请重新输入
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+    set "input_file="
+    goto input_file
+)
+if exist "!input_file!\" (
+    echo 错误：不支持文件夹，请输入单个文件
+    echo.
+    set "input_file="
+    goto input_file
+)
+
+REM 以输入的文件路径刷新派生变量（保持与拖拽解析结果一致）
+for %%f in ("!input_file!") do (
+    set "param1=%%~f"
+    set "param1_path=%%~ff"
+    set "param1_dir=%%~dpf"
+    set "param1_name=%%~nf"
+    set "param1_ext=%%~xf"
+    set "param1_name_ext=%%~nxf"
 )
 
 

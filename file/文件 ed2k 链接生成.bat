@@ -9,7 +9,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '生成指定文件的 ed2k 链接，并自动复制到剪贴板' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '选中一个文件，拖拽到此脚本上执行；不支持拖入文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要生成 ed2k 链接的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
 
 
@@ -45,23 +45,44 @@ if !errorlevel! neq 0 (
 
 
 
-if "!param1!" == "" (
-    echo 错误：不支持双击运行，请拖入文件运行
+set "input_file=!param1_path!"
+
+:input_file
+if "!input_file!"=="" (
+    echo 请输入要生成 ed2k 链接的文件的路径
+    set /p "input_file="
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+) else (
+    echo 将生成 ed2k 链接的文件："!input_file!"
+    echo.
 )
-if not exist "!param1!" (
-    echo 错误：路径不存在："!param1!"
+if "!input_file!"=="" (
+    echo 输入不能为空，请重新输入
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+    goto input_file
 )
-if exist "!param1!\" (
-    echo 错误：不支持拖入文件夹，请拖入单个文件
+set "input_file=!input_file:"=!"
+if not exist "!input_file!" (
+    echo 错误：路径不存在："!input_file!"，请重新输入
     echo.
-    pause
-    endlocal & endlocal & exit /b 1
+    set "input_file="
+    goto input_file
+)
+if exist "!input_file!\" (
+    echo 错误：不支持文件夹，请输入单个文件
+    echo.
+    set "input_file="
+    goto input_file
+)
+
+REM 以输入的文件路径刷新派生变量（保持与拖拽解析结果一致）
+for %%f in ("!input_file!") do (
+    set "param1=%%~f"
+    set "param1_path=%%~ff"
+    set "param1_dir=%%~dpf"
+    set "param1_name=%%~nf"
+    set "param1_ext=%%~xf"
+    set "param1_name_ext=%%~nxf"
 )
 
 
