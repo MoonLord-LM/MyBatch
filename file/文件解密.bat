@@ -89,6 +89,8 @@ echo.
 
 set "output_file=!input_file:~0,-4!"
 echo 输出文件："!output_file!"
+echo.
+
 if "!output_file!" == "" (
     echo 错误：无法确定输出路径
     echo.
@@ -102,7 +104,6 @@ if exist "!output_file!" (
     pause
     endlocal & endlocal & exit /b 1
 )
-echo.
 
 REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
 powershell -NoProfile -Command ^
@@ -145,7 +146,7 @@ if !errorlevel! neq 0 (
         set "file_size=%%~zj"
         setlocal enabledelayedexpansion
 
-        echo 解密成功："!output_file!"，大小：!file_size! 字节
+        echo 解密成功，大小：!file_size! 字节
 
         endlocal
         endlocal

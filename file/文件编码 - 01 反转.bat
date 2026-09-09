@@ -101,7 +101,7 @@ for %%i in ("!input_file!") do (
             set "file_size=%%~zj"
             setlocal enabledelayedexpansion
 
-            echo 反转成功："!output_file!"，大小：!file_size! 字节
+            echo 反转成功，大小：!file_size! 字节
 
             endlocal
             endlocal

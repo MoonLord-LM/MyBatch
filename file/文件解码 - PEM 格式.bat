@@ -65,6 +65,8 @@ echo.
 
 set "output_file=!input_file:~0,-4!"
 echo 输出文件："!output_file!"
+echo.
+
 if "!output_file!" == "" (
     echo 错误：无法确定输出路径
     echo.
@@ -78,7 +80,6 @@ if exist "!output_file!" (
     pause
     endlocal & endlocal & exit /b 1
 )
-echo.
 
 set "certutil_path=!SystemRoot!\System32\certutil.exe"
 "!certutil_path!" -decode "!input_file!" "!output_file!"
@@ -90,7 +91,7 @@ if !errorlevel! neq 0 (
         set "file_size=%%~zj"
         setlocal enabledelayedexpansion
 
-        echo 解码成功："!output_file!"，大小：!file_size! 字节
+        echo 解码成功，大小：!file_size! 字节
 
         endlocal
         endlocal
