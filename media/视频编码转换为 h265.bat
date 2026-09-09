@@ -112,6 +112,7 @@ if "!param1!" == "" (
                     echo 正在转换为："!output_file!"
 
                     REM 检测音频编码格式
+                    set "audio_codec="
                     for /f "tokens=*" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
                         set "audio_codec=%%a"
                     )
@@ -194,6 +195,7 @@ if not "!working_dir!" == "" (
                     echo 正在转换为："!output_file!"
 
                     REM 检测音频编码格式
+                    set "audio_codec="
                     for /f "tokens=*" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                         set "audio_codec=%%a"
                     )

@@ -164,7 +164,7 @@ endlocal & endlocal & exit /b
 -----BEGIN CSHARP CODE-----
 
 // AES-256-GCM 文件加解密，使用 OpenSSL libcrypto P/Invoke 实现
-// 密钥产生算法为 PBKDF2-HMAC-SHA512 + 迭代次数 1000 万
+// 密钥产生算法为 PBKDF2-HMAC-SHA512 + 迭代次数 100 万
 // 生成文件布局为 pbkdf2_salt (16 字节) + aes_gcm_iv (12 字节) + aes_gcm_tag (16 字节) 头部 + 文件内容密文
 
 using System;

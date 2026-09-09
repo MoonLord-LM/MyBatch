@@ -154,7 +154,7 @@ for %%i in ("!video1!") do (
 
     REM 小写 v 匹配所有视频流，大写 V 只匹配除封面之外的纯视频流
     REM 画面和声音取第 2 个文件的，封面和字幕保留第 1 个文件的
-    "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:V -map 1:a -map 0:v? -map -0:V -map 0:a? -map 0:s? -map_metadata 0 -c copy "!tmp_file!"
+    "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:V -map 1:a -map 0:v? -map -0:V -map 0:s? -map_metadata 0 -c copy "!tmp_file!"
     if !errorlevel! neq 0 (
         if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
         echo.

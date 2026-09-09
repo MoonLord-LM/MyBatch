@@ -351,7 +351,19 @@ if not "!working_dir!" == "" (
             set "file_path=!working_dir!\!file_name!"
             echo file '!file_path!'>>"!tmp_file_list!"
             set /a "file_count+=1"
-            REM 解析参数
+            REM 清空上一轮的结果
+            set "current_video_width="
+            set "current_video_height="
+            set "current_video_codec="
+            set "current_video_codec_tag="
+            set "current_video_codec_profile="
+            set "current_video_codec_level="
+            set "current_video_codec_tier="
+            set "current_video_fps="
+            set "current_video_time_base="
+            set "current_audio_codec="
+            set "current_audio_codec_profile="
+            set "current_audio_sample_rate="
             for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                 set "current_video_width=%%v"
             )
@@ -714,7 +726,19 @@ if not "!working_dir!" == "" (
                 if not "!file_name!"=="" (
                     set "file_path=!working_dir!\!file_name!"
                     set /a "temp_count+=1"
-                    REM 解析参数
+                    REM 清空上一轮的结果
+                    set "current_video_width="
+                    set "current_video_height="
+                    set "current_video_codec="
+                    set "current_video_codec_tag="
+                    set "current_video_codec_profile="
+                    set "current_video_codec_level="
+                    set "current_video_codec_tier="
+                    set "current_video_fps="
+                    set "current_video_time_base="
+                    set "current_audio_codec="
+                    set "current_audio_codec_profile="
+                    set "current_audio_sample_rate="
                     for /f "delims=" %%v in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=width -of default=noprint_wrappers=1:nokey=1 $env:file_path 2>$null"') do (
                         set "current_video_width=%%v"
                     )
