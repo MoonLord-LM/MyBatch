@@ -145,8 +145,8 @@ for %%i in ("!video1!") do (
     echo.
 
     if exist "!output_file!" (
-        echo 输出文件已存在："!output_file!"，跳过不处理
-        echo 如果需要重新替换，请先移走旧文件
+        echo 输出文件已存在："!output_file!"，跳过不处理 & REM
+        echo 如果需要重新替换，请先移走旧文件 & REM
         echo.
         pause
         endlocal & endlocal & endlocal & endlocal & exit /b 1

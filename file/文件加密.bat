@@ -83,8 +83,8 @@ echo.
 set "output_file=!input_file!.enc"
 echo 输出文件："!output_file!"
 if exist "!output_file!" (
-    echo 输出文件已存在："!output_file!"，跳过不处理
-    echo 如果需要重新加密，请先移走旧文件
+    echo 输出文件已存在："!output_file!"，跳过不处理 & REM
+    echo 如果需要重新加密，请先移走旧文件 & REM
     echo.
     pause
     endlocal & endlocal & exit /b 1

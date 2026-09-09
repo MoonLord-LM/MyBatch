@@ -72,8 +72,8 @@ if "!output_file!" == "" (
     endlocal & endlocal & exit /b 1
 )
 if exist "!output_file!" (
-    echo 输出文件已存在："!output_file!"，跳过不处理
-    echo 如果需要重新解码，请先移走旧文件
+    echo 输出文件已存在："!output_file!"，跳过不处理 & REM
+    echo 如果需要重新解码，请先移走旧文件 & REM
     echo.
     pause
     endlocal & endlocal & exit /b 1
