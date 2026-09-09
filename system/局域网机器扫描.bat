@@ -7,27 +7,25 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '自动获取本机所在局域网的 IP，并发扫描同网段 2-255 的地址，列出在线机器' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '根据本机局域网 IP 并发扫描同网段 0-255 的地址，列出其它机器的 IP 和主机名' -ForegroundColor Green"
 echo.
 
 
 
-REM 自动获取本机 IP：取存在默认网关（能出网）的活动网卡的 IPv4 地址
+set "local_ip="
 for /f "delims=" %%a in ('powershell -NoProfile -Command "try { (Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway } | Select-Object -First 1).IPv4Address.IPAddress } catch { }"') do set "local_ip=%%a"
 
 if "!local_ip!"=="" (
-    echo 获取本机 IP 失败，请检查网络连接后重试 & REM
+    echo 获取本机局域网 IP 失败 & REM
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
 
-echo 本机 IP：!local_ip!
+echo 本机局域网 IP：!local_ip!
 echo.
 
-
-
-echo 正在并发扫描局域网（约 0.5 秒）...
+echo 开始扫描...
 echo.
 
 powershell -NoProfile -Command ^
@@ -36,29 +34,53 @@ powershell -NoProfile -Command ^
     "$parts = $local_ip.Split('.');" ^
     "$prefix = $parts[0] + '.' + $parts[1] + '.' + $parts[2] + '.';" ^
     "$self = [int]$parts[3];" ^
-    "Write-Host ('扫描网段：' + $prefix + '2 - ' + $prefix + '255，跳过本机 ' + $local_ip) -ForegroundColor Green;" ^
+    "Write-Host ('扫描网段：' + $prefix + '0 - ' + $prefix + '255');" ^
     "$ips = @();" ^
-    "for ($n = 2; $n -le 255; $n++) { if ($n -ne $self) { $ips += ($prefix + $n); }; };" ^
-    "$tasks = foreach ($ip in $ips) { (New-Object Net.NetworkInformation.Ping).SendPingAsync($ip, 500); };" ^
+    "for ($n = 0; $n -le 255; $n++) {" ^
+    "    if ($n -ne $self) {" ^
+    "        $ips += ($prefix + $n);" ^
+    "    };" ^
+    "};" ^
+    "$tasks = foreach ($ip in $ips) {" ^
+    "    (New-Object Net.NetworkInformation.Ping).SendPingAsync($ip, 500);" ^
+    "};" ^
     "[System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]$tasks);" ^
     "$online = @();" ^
-    "for ($i = 0; $i -lt $ips.Count; $i++) { if ($tasks[$i].Result.Status -eq 'Success') { $online += $ips[$i]; }; };" ^
-    "Write-Host ('在线机器（' + $online.Count + ' 台）：') -ForegroundColor Green;" ^
+    "for ($i = 0; $i -lt $ips.Count; $i++) {" ^
+    "    if ($tasks[$i].Result.Status -eq 'Success') {" ^
+    "        $online += $ips[$i];" ^
+    "    };" ^
+    "};" ^
+    "Write-Host ('扫描结果（' + $online.Count + ' 个）：');" ^
     "$dnsNames = @{};" ^
-    "$nameTasks = foreach ($ip in $online) { [Net.Dns]::GetHostEntryAsync($ip); };" ^
+    "$nameTasks = foreach ($ip in $online) {" ^
+    "    [Net.Dns]::GetHostEntryAsync($ip);" ^
+    "};" ^
     "[void][System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]$nameTasks, 3000);" ^
     "for ($i = 0; $i -lt $online.Count; $i++) {" ^
-        "if ($nameTasks[$i].IsCompleted -and -not $nameTasks[$i].IsFaulted) { try { $hostName = $nameTasks[$i].Result.HostName; if ($hostName -and ($hostName -ne $online[$i])) { $dnsNames[$online[$i]] = $hostName; }; } catch { }; };" ^
+    "    if ($nameTasks[$i].IsCompleted -and -not $nameTasks[$i].IsFaulted) {" ^
+    "        try {" ^
+    "            $hostName = $nameTasks[$i].Result.HostName;" ^
+    "            if ($hostName -and ($hostName -ne $online[$i])) {" ^
+    "                $dnsNames[$online[$i]] = $hostName;" ^
+    "            };" ^
+    "        } catch { };" ^
+    "    };" ^
     "};" ^
     "foreach ($ip in $online) {" ^
-        "if ($dnsNames.ContainsKey($ip)) { Write-Host ($ip + '    ' + $dnsNames[$ip]); }" ^
-        "else { Write-Host $ip; };" ^
+        "if ($dnsNames.ContainsKey($ip)) {" ^
+    "        Write-Host ($ip + '    ' + $dnsNames[$ip]) -ForegroundColor Green;" ^
+    "    }" ^
+        "else {" ^
+    "        Write-Host $ip -ForegroundColor Green;" ^
+    "    };" ^
     "};"
 
-
-
+echo.
 echo 扫描完成
-echo ==============================
+
+
+
 echo.
 pause
 endlocal & endlocal & exit /b
