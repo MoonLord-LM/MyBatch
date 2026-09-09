@@ -49,70 +49,60 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-for %%i in ("!input_file!") do (
-    setlocal disabledelayedexpansion
-    set "param1_path=%%~fi"
-    set "param1_name_ext=%%~nxi"
-    setlocal enabledelayedexpansion
 
-    echo 开始处理："!input_file!"
+
+echo 开始处理："!input_file!"
+echo.
+
+set "certutil_path=!SystemRoot!\System32\certutil.exe"
+echo 文件的哈希值：
+echo.
+
+"!certutil_path!" -hashfile "!input_file!" MD5
+if !errorlevel! neq 0 (
+    echo 错误：生成 MD5 失败："!input_file!"
     echo.
-
-
-
-    set "certutil_path=!SystemRoot!\System32\certutil.exe"
-    echo 文件 "!param1_name_ext!" 的常用哈希值：
-    echo.
-
-    "!certutil_path!" -hashfile "!param1_path!" MD5
-    if !errorlevel! neq 0 (
-        echo 错误：生成 MD5 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    "!certutil_path!" -hashfile "!param1_path!" SHA1
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA1 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    "!certutil_path!" -hashfile "!param1_path!" SHA256
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA256 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    "!certutil_path!" -hashfile "!param1_path!" SHA384
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA384 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    "!certutil_path!" -hashfile "!param1_path!" SHA512
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA512 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-
-
-
-    endlocal
-    endlocal
+    pause
+    endlocal & endlocal & exit /b 1
 )
+echo.
+
+"!certutil_path!" -hashfile "!input_file!" SHA1
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA1 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+echo.
+
+"!certutil_path!" -hashfile "!input_file!" SHA256
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA256 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+echo.
+
+"!certutil_path!" -hashfile "!input_file!" SHA384
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA384 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+echo.
+
+"!certutil_path!" -hashfile "!input_file!" SHA512
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA512 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+
+
 
 echo.
 pause

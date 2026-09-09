@@ -51,49 +51,40 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-for %%i in ("!input_file!") do (
-    setlocal disabledelayedexpansion
-    set "param1_path=%%~fi"
-    setlocal enabledelayedexpansion
 
-    echo 开始处理："!input_file!"
+
+echo 开始处理："!input_file!"
+echo.
+
+set "output_file=!input_file!.pem"
+echo 输出文件："!output_file!"
+if exist "!output_file!" (
+    echo 输出文件已存在："!output_file!"，跳过不处理
+    echo 如果需要重新编码，请先移走旧文件
     echo.
-
-
-
-    set "output_file=!param1_path!.pem"
-    echo 输出文件："!output_file!"
-    if exist "!output_file!" (
-        echo 输出文件已存在："!output_file!"，跳过不处理
-        echo 如果需要重新编码，请先移走旧文件
-        echo.
-        pause
-        endlocal & endlocal & exit /b 2
-    )
-    echo.
-
-    set "certutil_path=!SystemRoot!\System32\certutil.exe"
-    "!certutil_path!" -encode "!param1_path!" "!output_file!"
-    if !errorlevel! neq 0 (
-        echo 编码失败
-    ) else (
-        for %%j in ("!output_file!") do (
-            setlocal disabledelayedexpansion
-            set "file_size=%%~zj"
-            setlocal enabledelayedexpansion
-
-            echo 编码成功："!output_file!"，大小：!file_size! 字节
-
-            endlocal
-            endlocal
-        )
-    )
-
-
-
-    endlocal
-    endlocal
+    pause
+    endlocal & endlocal & exit /b 2
 )
+echo.
+
+set "certutil_path=!SystemRoot!\System32\certutil.exe"
+"!certutil_path!" -encode "!input_file!" "!output_file!"
+if !errorlevel! neq 0 (
+    echo 编码失败
+) else (
+    for %%j in ("!output_file!") do (
+        setlocal disabledelayedexpansion
+        set "file_size=%%~zj"
+        setlocal enabledelayedexpansion
+
+        echo 编码成功："!output_file!"，大小：!file_size! 字节
+
+        endlocal
+        endlocal
+    )
+)
+
+
 
 echo.
 pause

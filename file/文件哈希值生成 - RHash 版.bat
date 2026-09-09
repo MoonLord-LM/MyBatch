@@ -73,74 +73,64 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-for %%i in ("!input_file!") do (
-    setlocal disabledelayedexpansion
-    set "param1_path=%%~fi"
-    set "param1_name_ext=%%~nxi"
-    setlocal enabledelayedexpansion
 
-    echo 开始处理："!input_file!"
+
+echo 开始处理："!input_file!"
+echo.
+
+echo 文件的哈希值：
+echo.
+
+echo -- MD5 --
+"!rhash_path!" --utf8 --one-hash --md5 "!input_file!"
+if !errorlevel! neq 0 (
+    echo 错误：生成 MD5 失败："!input_file!"
     echo.
-
-
-
-    echo 文件 "!param1_name_ext!" 的常用哈希值：
-    echo.
-
-    echo -- MD5 --
-    "!rhash_path!" --utf8 --one-hash --md5 "!param1_path!"
-    if !errorlevel! neq 0 (
-        echo 错误：生成 MD5 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    echo -- SHA1 --
-    "!rhash_path!" --utf8 --one-hash --sha1 "!param1_path!"
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA1 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    echo -- SHA256 --
-    "!rhash_path!" --utf8 --one-hash --sha256 "!param1_path!"
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA256 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    echo -- SHA384 --
-    "!rhash_path!" --utf8 --one-hash --sha384 "!param1_path!"
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA384 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-    echo.
-
-    echo -- SHA512 --
-    "!rhash_path!" --utf8 --one-hash --sha512 "!param1_path!"
-    if !errorlevel! neq 0 (
-        echo 错误：生成 SHA512 失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-
-
-
-    endlocal
-    endlocal
+    pause
+    endlocal & endlocal & exit /b 1
 )
+echo.
+
+echo -- SHA1 --
+"!rhash_path!" --utf8 --one-hash --sha1 "!input_file!"
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA1 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+echo.
+
+echo -- SHA256 --
+"!rhash_path!" --utf8 --one-hash --sha256 "!input_file!"
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA256 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+echo.
+
+echo -- SHA384 --
+"!rhash_path!" --utf8 --one-hash --sha384 "!input_file!"
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA384 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+echo.
+
+echo -- SHA512 --
+"!rhash_path!" --utf8 --one-hash --sha512 "!input_file!"
+if !errorlevel! neq 0 (
+    echo 错误：生成 SHA512 失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+
+
 
 echo.
 pause

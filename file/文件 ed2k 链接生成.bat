@@ -72,42 +72,31 @@ if exist "!input_file!\" (
     goto input_file
 )
 
-for %%i in ("!input_file!") do (
-    setlocal disabledelayedexpansion
-    set "param1_path=%%~fi"
-    set "param1_name_ext=%%~nxi"
-    setlocal enabledelayedexpansion
-
-    echo 开始处理："!input_file!"
-    echo.
 
 
+echo 开始处理："!input_file!"
+echo.
 
-    set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
-    "!rhash_path!" --utf8 --ed2k-link "!param1_path!" > "!tmp_file!" 2>&1
-    if !errorlevel! neq 0 (
-        if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
-        echo 错误：生成 ed2k 链接失败："!param1_path!"
-        echo.
-        pause
-        endlocal & endlocal & exit /b 1
-    )
-
-    echo 文件 "!param1_name_ext!" 的 ed2k 链接：
-    echo.
-    type "!tmp_file!"
-    echo.
-
-    clip < "!tmp_file!"
-    echo 链接已复制到剪贴板
-
+set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+"!rhash_path!" --utf8 --ed2k-link "!input_file!" > "!tmp_file!" 2>&1
+if !errorlevel! neq 0 (
     if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
-
-
-
-    endlocal
-    endlocal
+    echo 错误：生成 ed2k 链接失败："!input_file!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
 )
+
+echo 生成的 ed2k 链接：
+echo.
+type "!tmp_file!"
+echo.
+
+clip < "!tmp_file!"
+echo 链接已复制到剪贴板
+if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
+
+
 
 echo.
 pause
