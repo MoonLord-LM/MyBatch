@@ -71,7 +71,7 @@ if not exist "!param1_path!" (
 
 echo 输入文件："!param1_path!"
 if /i not "!param1_path:~-4!" == ".enc" (
-    echo 错误：请拖入以 .enc 后缀的加密文件
+    echo 错误：请拖入 .enc 后缀的加密文件
     echo.
     pause
     endlocal & endlocal & exit /b 1
