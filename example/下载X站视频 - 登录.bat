@@ -91,13 +91,13 @@ exit /b
     echo 请输入 X.com 视频链接或包含视频链接的 txt 文件路径
     set /p "input="
 
+    REM 删除多余的引号
+    set "input=!input:"=!"
+
     if "!input!"=="" (
         echo 输入不能为空，请重新输入
         goto main_loop
     )
-
-    REM 删除多余的引号
-    set "input=!input:"=!"
 
     REM 检查是否是有效的文件路径
     if exist "!input!" (

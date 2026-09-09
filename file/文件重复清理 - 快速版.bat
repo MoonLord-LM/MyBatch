@@ -60,12 +60,12 @@ if "!path1!"=="" (
     echo 要清理多余文件的文件夹："!path1!"
     echo.
 )
+set "path1=!path1:"=!"
 if "!path1!"=="" (
     echo 输入不能为空，请重新输入
     echo.
     goto input_path1
 )
-set "path1=!path1:"=!"
 if "!path1:~-1!"=="\" set "path1=!path1:~0,-1!"
 if not exist "!path1!\" (
     echo 错误：路径 1 不存在或不是文件夹："!path1!"，请重新输入
@@ -83,12 +83,12 @@ if "!path2!"=="" (
     echo 作为参考的文件夹，仅用于文件比对："!path2!"
     echo.
 )
+set "path2=!path2:"=!"
 if "!path2!"=="" (
     echo 输入不能为空，请重新输入
     echo.
     goto input_path2
 )
-set "path2=!path2:"=!"
 if "!path2:~-1!"=="\" set "path2=!path2:~0,-1!"
 if not exist "!path2!\" (
     echo 错误：路径 2 不存在或不是文件夹："!path2!"，请重新输入

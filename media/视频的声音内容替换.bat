@@ -13,6 +13,7 @@ powershell -NoProfile -Command "Write-Host '保留第 1 个文件的封面、画
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个视频文件的路径' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '也可以选中两个视频文件，拖拽到此脚本上，自动识别处理；不支持拖入文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '如果输出文件已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
 
@@ -80,12 +81,12 @@ if "!video1!"=="" (
     echo 要保留画面和元数据信息的文件："!video1!"
     echo.
 )
+set "video1=!video1:"=!"
 if "!video1!"=="" (
     echo 输入不能为空，请重新输入
     echo.
     goto input_video1
 )
-set "video1=!video1:"=!"
 if exist "!video1!\" (
     echo 不支持文件夹 "!video1!"，请重新输入
     echo.
@@ -108,12 +109,12 @@ if "!video2!"=="" (
     echo 提供声音内容的文件："!video2!"
     echo.
 )
+set "video2=!video2:"=!"
 if "!video2!"=="" (
     echo 输入不能为空，请重新输入
     echo.
     goto input_video2
 )
-set "video2=!video2:"=!"
 if exist "!video2!\" (
     echo 不支持文件夹 "!video2!"，请重新输入
     echo.
@@ -139,7 +140,17 @@ for %%i in ("!video1!") do (
 
     echo.
     echo 处理文件："!video1!" & REM
-    echo 替换声音："!video2!"
+    echo 替换声音："!video2!" & REM
+    echo 输出文件："!output_file!" & REM
+    echo.
+
+    if exist "!output_file!" (
+        echo 输出文件已存在："!output_file!"，跳过不处理
+        echo 如果需要重新替换，请先移走旧文件
+        echo.
+        pause
+        endlocal & endlocal & endlocal & endlocal & exit /b 1
+    )
 
     REM 小写 v 匹配所有视频流（含封面），此处保留第 1 个文件的全部画面和封面
     "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:a -map 0:v? -map 0:s? -map_metadata 0 -c copy "!tmp_file!"

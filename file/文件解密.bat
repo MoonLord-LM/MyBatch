@@ -56,12 +56,12 @@ if "!input_file!"=="" (
     set /p "input_file="
     echo.
 )
+set "input_file=!input_file:"=!"
 if "!input_file!"=="" (
     echo 输入不能为空，请重新输入
     echo.
     goto input_file
 )
-set "input_file=!input_file:"=!"
 if not exist "!input_file!" (
     echo 错误：路径不存在："!input_file!"，请重新输入
     echo.
@@ -100,7 +100,7 @@ if exist "!output_file!" (
     echo 如果需要重新解密，请先移走旧文件
     echo.
     pause
-    endlocal & endlocal & exit /b 2
+    endlocal & endlocal & exit /b 1
 )
 echo.
 
@@ -179,7 +179,7 @@ public static class AesGcmCli
     private const int AesGcmKeyLength = 32;
     private const int HeaderLength = Pbkdf2SaltLength + AesGcmIvLength + AesGcmTagLength;
 
-    private const int IterationCount = 10000000;
+    private const int IterationCount = 1000000;
 
     // openssl/evp.h 中 EVP_CTRL_GCM_* 宏的取值
     private const int GcmSetIvlLength = 0x9;
