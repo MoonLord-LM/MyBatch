@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '递归扫描文件夹中的所有文件，生成 json 列表文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '列表文件的内容为：[ 开头 + 每个文件一行的文件对象 + ] 结尾，对象字段为 path、size、modifiedTime' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '列表文件的内容为：[ 开头 + 每个文件一行的文件对象 + ] 结尾，对象字段为 path、size、modifiedTime、modifiedTimestamp' -ForegroundColor Green"
 echo.
 
 
@@ -63,7 +63,7 @@ if not "!working_dir!" == "" (
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
             "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
-            "$items = @($files | Sort-Object FullName | ForEach-Object { '    {{\"path\":\"{0}\",\"size\":{1},\"modifiedTime\":\"{2:yyyy-MM-dd HH:mm:ss}\"}}' -f $_.FullName.Replace('\','\\'), $_.Length, $_.LastWriteTime });" ^
+            "$items = @($files | Sort-Object FullName | ForEach-Object { $modified_timestamp = [DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeMilliseconds(); '    {{\"path\":\"{0}\",\"size\":{1},\"modifiedTime\":\"{2:yyyy-MM-dd HH:mm:ss}\",\"modifiedTimestamp\":{3}}}' -f $_.FullName.Replace('\','\\'), $_.Length, $_.LastWriteTime, $modified_timestamp });" ^
             "$newline = [Environment]::NewLine;" ^
             "$json = '[' + $newline + ($items -join (',' + $newline)) + $newline + ']' + $newline;" ^
             "[System.IO.File]::WriteAllText($env:output_file, $json, (New-Object System.Text.UTF8Encoding($false)));" ^
