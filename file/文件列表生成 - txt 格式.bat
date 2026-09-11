@@ -12,7 +12,6 @@ powershell -NoProfile -Command "Write-Host '递归扫描文件夹中的所有文
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '列表文件的内容为：完整路径 + 字节数 + 修改时间，每个文件一行' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '文件实际上符合 CSV 格式，但是需要额外添加 UTF-8 BOM 头，才能在 Excel 中正确打开' -ForegroundColor Green"
 echo.
 
 
@@ -65,7 +64,7 @@ if not "!working_dir!" == "" (
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
             "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
             "$lines = @($files | Sort-Object FullName | ForEach-Object { '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\"' -f $_.FullName, $_.Length, $_.LastWriteTime });" ^
-            "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines);" ^
+            "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines, (New-Object System.Text.UTF8Encoding($false)));" ^
             "Write-Host ('处理完成，共计 ' + $files.Count + ' 个文件');"
         if !errorlevel! neq 0 (
             echo.
