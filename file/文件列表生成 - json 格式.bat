@@ -61,7 +61,8 @@ if not "!working_dir!" == "" (
 
         set "self_script=!script_path!"
         powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
+            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
             "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
             "$items = @($files | Sort-Object FullName | ForEach-Object { $modified_timestamp = [DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeMilliseconds(); '    {{\"path\":\"{0}\",\"size\":{1},\"modifiedTime\":\"{2:yyyy-MM-dd HH:mm:ss}\",\"modifiedTimestamp\":{3}}}' -f $_.FullName.Replace('\','\\'), $_.Length, $_.LastWriteTime, $modified_timestamp });" ^
             "$newline = [Environment]::NewLine;" ^
