@@ -162,11 +162,9 @@ set "end_time=!param3!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 视频截取失败
-                echo.
             ) else (
                 echo 视频截取成功
                 echo 输出文件："!output_file!"
-                echo.
             )
         )
 
@@ -174,9 +172,11 @@ set "end_time=!param3!"
         endlocal
     )
 
+    echo.
     set "video_file="
     set "begin_time="
     set "end_time="
+
 goto loop
 
 

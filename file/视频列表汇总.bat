@@ -42,13 +42,13 @@ set "path1=!param1!"
     if "!path1!"=="" (
         echo 输入不能为空，请重新输入
         echo.
-        goto end_loop
+        goto input_path1
     )
     set "path1=!path1:"=!"
     if "!path1!"=="" (
         echo 输入不能为空，请重新输入
         echo.
-        goto end_loop
+        goto input_path1
     )
     if "!path1:~-1!"=="\" set "path1=!path1:~0,-1!"
     if not exist "!path1!" (
@@ -137,9 +137,8 @@ set "path1=!param1!"
 
     echo.
     set "path1="
-    goto loop
 
-:end_loop
+goto loop
 
 
 

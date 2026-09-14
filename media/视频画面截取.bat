@@ -135,18 +135,18 @@ set "screenshot_time=!param2!"
         "!ffmpeg_path!" -y -i "!work_file!" -ss "!screenshot_time!" -t 2 -vf "fps=10" -frames:v 20 "!file_dir!!base_name!_!screenshot_name!_%%02d.png" >nul 2>&1
         if !errorlevel! neq 0 (
             echo 截图失败
-            echo.
         ) else (
             echo 截图完成："!base_name!_!screenshot_name!_01.png" - "!base_name!_!screenshot_name!_20.png"
-            echo.
         )
 
         endlocal
         endlocal
     )
 
+    echo.
     set "video_file="
     set "screenshot_time="
+
 goto loop
 
 
