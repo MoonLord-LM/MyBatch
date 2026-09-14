@@ -130,3 +130,5 @@ video2x
 *.json
 *.PID
 *.pid
+*.CSV
+*.csv
