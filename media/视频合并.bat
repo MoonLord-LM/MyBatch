@@ -330,8 +330,7 @@ if not "!working_dir!" == "" (
     )
 
     echo 正在生成文件列表
-    set "tmp_file_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
-    type nul > "!tmp_file_list!"
+    set "tmp_file_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_file_list!"
     for /l %%i in (1,1,999) do (
         set "file_name="
         if exist "!working_dir!\%%i.mp4" (

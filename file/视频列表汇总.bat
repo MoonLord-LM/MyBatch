@@ -3,6 +3,7 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
+set "param2=%~2" & set "param2_path=%~f2" & set "param2_dir=%~dp2" & set "param2_name=%~n2" & set "param2_ext=%~x2" & set "param2_name_ext=%~nx2"
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
@@ -13,6 +14,8 @@ powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入文
 powershell -NoProfile -Command "Write-Host '也可以拖拽文件夹到此脚本上，自动识别处理；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '视频命名格式：[名称 演员1&演员2&演员3 类型 评分]，各段之间用空格分隔，如果有多个演员用 & 连接' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '可选：再拖拽一个 csv 格式的演员名单文件（列：演员出生年份、演员标准名称、演员曾用名1~3）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '提供名单时只处理名单内的演员，曾用名会自动改为标准名称保存' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '汇总表格内容：文件名 + 字节数 + 修改时间 + 名称 + 演员1 + 演员2 + 演员3 + 类型 + 评分' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '文件开头带有 UTF-8 BOM 头，可以在 Excel 中正确打开' -ForegroundColor Green"
 echo.
@@ -27,6 +30,19 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 set "path1=!param1!"
+
+set "actor_file="
+if not "!param2!"=="" (
+    if /i "!param2_ext!"==".csv" (
+        if exist "!param2_path!" (
+            set "actor_file=!param2_path!"
+        )
+    )
+    if not "!actor_file!"=="" (
+        echo 识别到演员名单："!actor_file!"
+    )
+    echo.
+)
 
 :loop
 
@@ -86,6 +102,23 @@ set "path1=!param1!"
         "$videos = @($files | Where-Object { $_.Extension -in $exts });" ^
         "$pattern = '^([^ ]+) ([^ &]+(?:&[^ &]+){0,2}) ([^ ]+) ([^ ]+)$';" ^
         "$matched = @($videos | Where-Object { $_.BaseName -match $pattern });" ^
+        "$actor_file = $env:actor_file;" ^
+        "$stdNames = @{}; $aliasToStd = @{};" ^
+        "if ($actor_file -and (Test-Path -LiteralPath $actor_file)) {" ^
+        "    foreach ($l in @(Get-Content -LiteralPath $actor_file -Encoding UTF8 | Where-Object { $_.Trim() -ne '' })) {" ^
+        "        $c = @($l -split ([string][char]34 + ',' + [string][char]34));" ^
+        "        if ($c.Count -lt 2) { $c = @($l -split ',') };" ^
+        "        $c = @($c | ForEach-Object { $_.Trim([char]34).Trim() });" ^
+        "        if ($c.Count -ge 2 -and $c[1] -ne '') {" ^
+        "            $stdNames[$c[1]] = $true;" ^
+        "            $aliasToStd[$c[1]] = $c[1];" ^
+        "            foreach ($i in 2..4) {" ^
+        "                if ($i -lt $c.Count -and $c[$i] -ne '' -and -not $aliasToStd.ContainsKey($c[$i])) { $aliasToStd[$c[$i]] = $c[1] };" ^
+        "            };" ^
+        "        };" ^
+        "    };" ^
+        "    Write-Host ('加载演员名单，共 ' + $stdNames.Count + ' 位演员，含曾用名 ' + ($aliasToStd.Count - $stdNames.Count) + ' 个') -ForegroundColor Cyan;" ^
+        "};" ^
         "$existing = @();" ^
         "if (Test-Path -LiteralPath $env:output_file) {" ^
         "    $existing = @(Get-Content -LiteralPath $env:output_file -Encoding UTF8 | Where-Object { $_ -ne '' });" ^
@@ -95,15 +128,32 @@ set "path1=!param1!"
         "    Write-Host ('扫描到 ' + $videos.Count + ' 个视频文件，没有符合命名格式的');" ^
         "    exit 0;" ^
         "};" ^
-        "$lines = @($matched | ForEach-Object {" ^
-        "    $null = $_.BaseName -match $pattern;" ^
+        "$lines = @(); $skipped = 0;" ^
+        "foreach ($f in $matched) {" ^
+        "    $null = $f.BaseName -match $pattern;" ^
         "    $actors = @($matches[2] -split '&');" ^
+        "    if ($aliasToStd.Count -gt 0) {" ^
+        "        $inScope = $true; $mapped = @(); $missing = @();" ^
+        "        foreach ($a in $actors) {" ^
+        "            if ($aliasToStd.ContainsKey($a)) {" ^
+        "                $std = $aliasToStd[$a];" ^
+        "                if ($a -ne $std) { Write-Host ('曾用名 [' + $a + '] 已按标准名称 [' + $std + '] 保存：' + $f.Name) -ForegroundColor Yellow };" ^
+        "                $mapped += $std;" ^
+        "            } else { $inScope = $false; $missing += $a };" ^
+        "        };" ^
+        "        if (-not $inScope) {" ^
+        "            $skipped += 1;" ^
+        "            Write-Host ('演员不在名单内，跳过 [' + ($missing -join '&') + ']：' + $f.Name) -ForegroundColor DarkGray;" ^
+        "            continue;" ^
+        "        };" ^
+        "        $actors = $mapped;" ^
+        "    };" ^
         "    while ($actors.Count -lt 3) { $actors += '' };" ^
-        "    '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\",\"{3}\",\"{4}\",\"{5}\",\"{6}\",\"{7}\",\"{8}\"' -f" ^
-        "        $_.Name, $_.Length, $_.LastWriteTime," ^
+        "    $lines += ('\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\",\"{3}\",\"{4}\",\"{5}\",\"{6}\",\"{7}\",\"{8}\"' -f" ^
+        "        $f.Name, $f.Length, $f.LastWriteTime," ^
         "        $matches[1], $actors[0], $actors[1], $actors[2]," ^
-        "        $matches[3], $matches[4]" ^
-        "});" ^
+        "        $matches[3], $matches[4]);" ^
+        "};" ^
         "$sep = [string][char]34 + ',' + [string][char]34;" ^
         "$nameOf = { param($l) ((@($l -split $sep))[0]).Substring(1) };" ^
         "$idOf = { param($l) (@($l -split $sep))[3] };" ^
@@ -128,7 +178,9 @@ set "path1=!param1!"
         "$kept = @($existing | Where-Object { -not $newIds.ContainsKey((& $idOf $_)) });" ^
         "$final = @((($kept + $lines) | Sort-Object { & $idOf $_ }, { & $nameOf $_ }));" ^
         "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$final, (New-Object System.Text.UTF8Encoding($true)));" ^
-        "Write-Host ('处理完成，扫描到 ' + $videos.Count + ' 个视频文件，符合命名格式的 ' + $matched.Count + ' 个（更新 ' + $updated + ' 条、相同 ' + $unchanged + ' 条、新增 ' + ($matched.Count - $updated - $unchanged) + ' 条），合并后共 ' + $final.Count + ' 条记录');"
+        "$skipInfo = '';" ^
+        "if ($aliasToStd.Count -gt 0) { $skipInfo = '、名单外跳过 ' + $skipped + ' 个' };" ^
+        "Write-Host ('处理完成，扫描到 ' + $videos.Count + ' 个视频文件，符合命名格式的 ' + $matched.Count + ' 个（更新 ' + $updated + ' 条、相同 ' + $unchanged + ' 条、新增 ' + ($lines.Count - $updated - $unchanged) + ' 条' + $skipInfo + '），合并后共 ' + $final.Count + ' 条记录');"
     if !errorlevel! neq 0 (
         echo.
         echo 列表生成失败

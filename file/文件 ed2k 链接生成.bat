@@ -87,7 +87,7 @@ if exist "!input_file!\" (
 echo 开始处理："!input_file!"
 echo.
 
-set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_file!"
 "!rhash_path!" --utf8 --ed2k-link "!input_file!" > "!tmp_file!" 2>&1
 if !errorlevel! neq 0 (
     if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
