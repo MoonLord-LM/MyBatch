@@ -51,6 +51,11 @@ set "input_file=!param1_path!"
 if "!input_file!"=="" (
     echo 请输入要生成 ed2k 链接的文件的路径
     set /p "input_file="
+    if !errorlevel! neq 0 (
+        echo 无输入，退出脚本
+        echo.
+        exit /b 1
+    )
     echo.
 )
 if "!input_file!"=="" (
