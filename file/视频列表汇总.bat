@@ -39,8 +39,15 @@ set "path1=!param1!"
         echo 要扫描的文件夹："!path1!"
         echo.
     )
+    if "!path1!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto end_loop
+    )
     set "path1=!path1:"=!"
     if "!path1!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
         goto end_loop
     )
     if "!path1:~-1!"=="\" set "path1=!path1:~0,-1!"

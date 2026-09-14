@@ -62,6 +62,11 @@ set "screenshot_time=!param2!"
         echo 要处理的视频文件："!video_file!"
         echo.
     )
+    if "!video_file!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_file
+    )
     set "video_file=!video_file:"=!"
     if "!video_file!"=="" (
         echo 输入不能为空，请重新输入

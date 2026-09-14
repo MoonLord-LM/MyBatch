@@ -32,6 +32,11 @@ if "!input_file!"=="" (
     set /p "input_file="
     echo.
 )
+if "!input_file!"=="" (
+    echo 输入不能为空，请重新输入
+    echo.
+    goto input_file
+)
 set "input_file=!input_file:"=!"
 if "!input_file!"=="" (
     echo 输入不能为空，请重新输入

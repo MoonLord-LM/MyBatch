@@ -81,6 +81,11 @@ if "!video1!"=="" (
     echo 要保留声音和元数据信息的文件："!video1!"
     echo.
 )
+if "!video1!"=="" (
+    echo 输入不能为空，请重新输入
+    echo.
+    goto input_video1
+)
 set "video1=!video1:"=!"
 if "!video1!"=="" (
     echo 输入不能为空，请重新输入
@@ -108,6 +113,11 @@ if "!video2!"=="" (
 ) else (
     echo 提供画面内容的文件："!video2!"
     echo.
+)
+if "!video2!"=="" (
+    echo 输入不能为空，请重新输入
+    echo.
+    goto input_video2
 )
 set "video2=!video2:"=!"
 if "!video2!"=="" (
