@@ -57,6 +57,11 @@ set "screenshot_time=!param2!"
     if "!video_file!"=="" (
         echo 请输入要处理的视频文件：
         set /p "video_file="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
     ) else (
         echo 要处理的视频文件："!video_file!"
@@ -90,6 +95,11 @@ set "screenshot_time=!param2!"
     if "!screenshot_time!"=="" (
         echo 请输入截取时间（格式: HH:MM:SS.XXX）：
         set /p "screenshot_time="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
     ) else (
         echo 截取时间："!screenshot_time!"

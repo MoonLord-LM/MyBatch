@@ -59,6 +59,11 @@ set "end_time=!param3!"
     if "!video_file!"=="" (
         echo 请输入要处理的视频文件：
         set /p "video_file="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
     ) else (
         echo 要处理的视频文件："!video_file!"
@@ -92,6 +97,11 @@ set "end_time=!param3!"
     if "!begin_time!"=="" (
         echo 请输入开始时间（格式: HH:MM:SS.XXX）：
         set /p "begin_time="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
     ) else (
         echo 开始时间："!begin_time!"
@@ -107,6 +117,11 @@ set "end_time=!param3!"
     if "!end_time!"=="" (
         echo 请输入结束时间（格式: HH:MM:SS.XXX）：
         set /p "end_time="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
     ) else (
         echo 结束时间："!end_time!"

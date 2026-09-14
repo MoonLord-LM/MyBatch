@@ -34,6 +34,11 @@ set "path1=!param1!"
     if "!path1!"=="" (
         echo 请输入要扫描的文件夹：
         set /p "path1="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
     ) else (
         echo 要扫描的文件夹："!path1!"
