@@ -76,6 +76,11 @@ set "video2=!param2!"
 if "!video1!"=="" (
     echo 请输入要保留画面和元数据信息的文件
     set /p "video1="
+    if !errorlevel! neq 0 (
+        echo 无输入，退出脚本
+        echo.
+        exit /b 1
+    )
     echo.
 ) else (
     echo 要保留画面和元数据信息的文件："!video1!"
