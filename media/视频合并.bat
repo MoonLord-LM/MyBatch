@@ -272,11 +272,12 @@ if not "!working_dir!" == "" (
             set "file_name=第00%%i集.mp4"
         )
         if not "!file_name!"=="" (
-            "!ffmpeg_path!" -v error -i "!working_dir!\!file_name!" -map 0 -f null - 2>nul
+            "!ffprobe_path!" -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 "!working_dir!\!file_name!" 2>nul
             if !errorlevel! neq 0 (
                 echo.
                 echo 文件 "!working_dir!\!file_name!" 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行
                 pause
+                "!ffprobe_path!" -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 "!working_dir!\!file_name!"
                 "!ffmpeg_path!" -v error -i "!working_dir!\!file_name!" -map 0 -f null -
                 pause
                 endlocal & endlocal & exit /b 1
