@@ -914,26 +914,38 @@ if not "!working_dir!" == "" (
             set "cover_file=!working_dir!\0.png"
         ) else if exist "!working_dir!\0.jpg" (
             set "cover_file=!working_dir!\0.jpg"
+        ) else if exist "!working_dir!\0.jpeg" (
+            set "cover_file=!working_dir!\0.jpeg"
         ) else if exist "!working_dir!\00.png" (
             set "cover_file=!working_dir!\00.png"
         ) else if exist "!working_dir!\00.jpg" (
             set "cover_file=!working_dir!\00.jpg"
+        ) else if exist "!working_dir!\00.jpeg" (
+            set "cover_file=!working_dir!\00.jpeg"
         ) else if exist "!working_dir!\000.png" (
             set "cover_file=!working_dir!\000.png"
         ) else if exist "!working_dir!\000.jpg" (
             set "cover_file=!working_dir!\000.jpg"
+        ) else if exist "!working_dir!\000.jpeg" (
+            set "cover_file=!working_dir!\000.jpeg"
         ) else if exist "!working_dir!\cover.png" (
             set "cover_file=!working_dir!\cover.png"
         ) else if exist "!working_dir!\cover.jpg" (
             set "cover_file=!working_dir!\cover.jpg"
+        ) else if exist "!working_dir!\cover.jpeg" (
+            set "cover_file=!working_dir!\cover.jpeg"
         ) else if exist "!working_dir!\封面.png" (
             set "cover_file=!working_dir!\封面.png"
         ) else if exist "!working_dir!\封面.jpg" (
             set "cover_file=!working_dir!\封面.jpg"
+        ) else if exist "!working_dir!\封面.jpeg" (
+            set "cover_file=!working_dir!\封面.jpeg"
         ) else if exist "!working_dir!\海报.png" (
             set "cover_file=!working_dir!\海报.png"
         ) else if exist "!working_dir!\海报.jpg" (
             set "cover_file=!working_dir!\海报.jpg"
+        ) else if exist "!working_dir!\海报.jpeg" (
+            set "cover_file=!working_dir!\海报.jpeg"
         )
         if not "!cover_file!"=="" (
             for /f "delims=" %%p in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"') do (
