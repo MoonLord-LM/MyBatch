@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '双击运行，通过 CloudFlare Tunnels 实现内网穿透' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '隧道的域名、端口、协议、token 全部从 cloudflared.json 读取' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '需要先在 CloudFlare Tunnels 官网创建隧道，并保存参数到 cloudflared.json 配置文件里' -ForegroundColor Green"
 echo.
 
 
@@ -54,6 +54,16 @@ if not exist "!config_path!" (
     echo         "token": "隧道 token", & REM
     echo         "protocol": "隧道传输协议，通常为 http 或 https", & REM
     echo         "local_port": "隧道内网监听端口" & REM
+    echo     }, & REM
+    echo     "xxxxxx1": { & REM
+    echo         "token": "xxxxxxxxxxxxxxxxxx1", & REM
+    echo         "protocol": "http", & REM
+    echo         "local_port": "80" & REM
+    echo     }, & REM
+    echo     "xxxxxx2": { & REM
+    echo         "token": "xxxxxxxxxxxxxxxxxx2", & REM
+    echo         "protocol": "https", & REM
+    echo         "local_port": "443" & REM
     echo     } & REM
     echo } & REM
     echo.
