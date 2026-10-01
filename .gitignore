@@ -132,3 +132,9 @@ video2x
 *.pid
 *.CSV
 *.csv
+*.DB
+*.db
+*.PEM
+*.pem
+*.TOML
+*.toml
