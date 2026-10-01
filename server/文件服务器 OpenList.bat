@@ -20,7 +20,6 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 )
 
 REM 检查 OpenSSL-Win64 组件
-set "openssl_path="
 if exist "!script_dir!openssl.exe" (
     set "openssl_path=!script_dir!openssl.exe"
 ) else if exist "!cd!\openssl.exe" (
@@ -33,6 +32,8 @@ if exist "!script_dir!openssl.exe" (
     set "openssl_path=!ProgramFiles!\OpenSSL-Win64\bin\openssl.exe"
 ) else if exist "!ProgramFiles!\Git\mingw64\bin\openssl.exe" (
     set "openssl_path=!ProgramFiles!\Git\mingw64\bin\openssl.exe"
+) else (
+    set "openssl_path=openssl"
 )
 "!openssl_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
