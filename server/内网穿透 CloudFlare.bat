@@ -47,7 +47,8 @@ if !errorlevel! neq 0 (
 set "config_path=!script_dir!cloudflared.json"
 if not exist "!config_path!" (
     echo 错误：缺少配置文件 cloudflared.json & REM
-    echo 请从 CloudFlare Tunnels 官网创建隧道，并保存参数到配置文件里 & REM
+    echo 请从 CloudFlare Tunnels 官网创建隧道，并保存参数到配置文件里，可配置多个隧道 & REM
+    echo.
     echo 内容格式如下： & REM
     echo { & REM
     echo     "隧道外部域名": { & REM
