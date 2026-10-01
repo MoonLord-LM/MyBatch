@@ -50,7 +50,7 @@ if not exist "!config_path!" (
     echo 请从 CloudFlare Tunnels 官网创建隧道，并保存参数到配置文件里 & REM
     echo 内容格式如下： & REM
     echo { & REM
-    echo     "隧道外网域名": { & REM
+    echo     "隧道外部域名": { & REM
     echo         "token": "隧道 token", & REM
     echo         "protocol": "隧道传输协议，通常为 http 或 https", & REM
     echo         "local_port": "隧道内网监听端口" & REM
@@ -135,10 +135,10 @@ if "!target_token!"=="" (
     goto input_host
 )
 
-echo 隧道域名：!target_host!
+echo 外部域名：!target_host!
 echo 隧道协议：!target_protocol!
-echo 本地地址：http://localhost:!target_port!
-echo 公网地址：http://!target_host! https://!target_host!
+echo 本地网址：!target_protocol!://localhost:!target_port!
+echo 公网网址：http://!target_host! https://!target_host!
 echo.
 
 "!cloudflared_path!" tunnel --logfile "cloudflared.log" run --token "!target_token!"
