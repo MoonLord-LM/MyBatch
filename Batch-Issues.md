@@ -8,7 +8,7 @@
 
 ## 问题清单
 
-### 1. 基本编码规范
+### 基本编码规范
 
 批处理脚本最佳实践：  
 
@@ -32,6 +32,19 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
+powershell -NoProfile -Command "Write-Host '这里是说明脚本整体功能的简单提示信息' -ForegroundColor Green"
+
+
+
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    cd /d "!script_dir!"
+)
+
+REM 如果要检查依赖的外部组件，在这里添加
+
+
+
 REM 这里是代码主体功能部分，与首尾部分的代码用 3 个空行分开
 
 
@@ -42,12 +55,39 @@ endlocal & endlocal & exit /b
 
 ```
 
-### 2. 注释代码
+### 注释代码
 
 统一用 `REM` 开头的注释  
 避免用 `::` 开头的注释，这种代码本质是按标签解析的，部分场景下会导致错误  
 
-### 3. 判断上一个命令是否执行成功
+### 右键以管理员身份运行
+
+脚本如果用右键的“以管理员权限运行”，默认会切换到系统目录  
+通常情况下，脚本并不想改变当前目录，因此需要主动切换回脚本所在目录  
+
+代码示例如下：  
+
+```batch
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
+    cd /d "%~dp0"
+)
+```
+
+### 输出中文乱码问题
+
+首先，脚本需要保存为 UTF-8 without BOM 格式  
+然后，中文系统的默认代码页为 936（GBK），需要使用 chcp 65001 将当前的代码页设置为 65001（UTF-8）  
+
+有时候，连续多行代码都使用 echo 命令输出中文内容时，会出现输出乱码或者代码解析错误的问题，报错 XXX is not recognized  
+可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM 这种无意义代码，进行规避  
+
+调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
+如果只有简单的 Write-Host 命令，可以不加这段代码  
+
+调用 PowerShell 的 Get-Content、Set-Content、Out-File 读写文件时，添加 `-Encoding UTF8` 参数，指定 UTF-8 编码  
+
+### 判断上一个命令是否执行成功
 
 需要考虑到一些程序的异常退出码可能是负数，因此不建议使用 `if errorlevel 1` 的写法，这种写法是判断大于等于 1，才认为属于异常  
 推荐使用 `if !errorlevel! neq 0` 的写法，不等于 0，就认为属于异常  
@@ -64,20 +104,7 @@ if !errorlevel! neq 0 (
 )
 ```
 
-### 4. 输出中文乱码问题
-
-首先，脚本需要保存为 UTF-8 without BOM 格式  
-然后，中文系统的默认代码页为 936（GBK），需要使用 chcp 65001 将当前的代码页设置为 65001（UTF-8）  
-
-有时候，连续多行代码都使用 echo 命令输出中文内容时，会出现输出乱码或者代码解析错误的问题，报错 XXX is not recognized  
-可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM 这种无意义代码，进行规避  
-
-调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
-如果只有简单的 Write-Host 命令，可以不加这段代码  
-
-调用 PowerShell 的 Get-Content、Set-Content、Out-File 读写文件时，添加 `-Encoding UTF8` 参数，指定 UTF-8 编码  
-
-### 5. 调用 PowerShell 命令
+### 调用 PowerShell 命令
 
 代码示例如下：  
 
@@ -89,7 +116,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本
 调用 PowerShell 的 Invoke-WebRequest 方法时，屏幕可能会出现闪烁和文字错乱  
 需要在前面添加 `$ProgressPreference='SilentlyContinue';` 代码，来关闭进度条显示  
 
-### 6. 遍历文件时，处理路径的特殊符号
+### 遍历文件时，处理路径的特殊符号
 
 文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  
 因此，需要切换到 disabledelayedexpansion 的环境中，才能正确读取路径信息  
@@ -143,7 +170,7 @@ call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 REM 这里可以获取到内层的 "!total!" 的值
 ```
 
-### 7. 调用外部程序并读取输出内容
+### 调用外部程序并读取输出内容
 
 常用的写法为 for /f "delims=" %%a in ('外部程序命令') do set "变量名=%%a"  
 
@@ -184,4 +211,16 @@ for /f "delims=" %%a in ('" "!ffprobe_path!" -v error -select_streams a:0 -show_
     set "audio_codec=%%a"
     echo audio_codec: %%a
 )
+```
+
+### 安全删除文件
+
+禁止出现 del /f /q "!xxx!" 的写法  
+一旦变量为空值，当前目录下所有文件都会被删除，必须写成 if exist "!xxx!" ( del /f /q "!xxx!" ) 的形式  
+
+代码示例如下：  
+
+```batch
+set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_file!"
+if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 ```
