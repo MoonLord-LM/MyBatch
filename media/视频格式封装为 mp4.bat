@@ -117,7 +117,7 @@ if "!param1!" == "" (
                         if exist "!output_file!" ( del /f /q "!output_file!" )
                         echo 封装失败
                     ) else (
-                        echo 封装成功（音频已转换）
+                        echo 封装成功，音频已转换
                     )
                 ) else (
                     "!ffmpeg_path!" -i "!param1!" -c copy -movflags +faststart "!output_file!"
@@ -180,7 +180,7 @@ if not "!working_dir!" == "" (
                     echo 封装失败
                 ) else (
                     echo set /a "succeeded+=1">>"!temp_set!"
-                    echo 封装成功（音频已转换）
+                    echo 封装成功，音频已转换
                 )
             ) else (
                 "!ffmpeg_path!" -i "!video_file!" -c copy -movflags +faststart "!output_file!"

@@ -95,7 +95,7 @@ set "end_time=!param3!"
 
     :input_begin_time
     if "!begin_time!"=="" (
-        echo 请输入开始时间（格式: HH:MM:SS.XXX）：
+        echo 请输入开始时间，格式: HH:MM:SS.XXX：
         set /p "begin_time="
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
@@ -115,7 +115,7 @@ set "end_time=!param3!"
 
     :input_end_time
     if "!end_time!"=="" (
-        echo 请输入结束时间（格式: HH:MM:SS.XXX）：
+        echo 请输入结束时间，格式: HH:MM:SS.XXX：
         set /p "end_time="
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本

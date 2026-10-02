@@ -457,7 +457,7 @@ if not "!working_dir!" == "" (
     )
 
     if "!file_count!"=="0" (
-        echo 没有找到任何视频文件（01.mp4 到 999.mp4）
+        echo 没有找到任何视频文件，搜索范围为 01.mp4 到 999.mp4
         if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
         pause
         endlocal & endlocal & exit /b 1
@@ -980,7 +980,7 @@ if not "!working_dir!" == "" (
                 endlocal & endlocal & exit /b 1
             )
         ) else (
-            echo 封面文件（0.png、00.png、000.png、cover.png、封面.png、海报.png 等）不存在，不添加封面
+            echo 封面文件，例如 0.png、00.png、000.png、cover.png、封面.png、海报.png 等，都不存在，不添加封面
             move /y "!tmp_merged_video!" "!working_dir!\final.mp4"
         )
         echo 合并完成，已生成 !working_dir!\final.mp4 文件

@@ -178,7 +178,7 @@ if "!param1!" == "" (
                 if "!extracted!"=="1" (
                     if "!used_password!"=="" (
                         set /a "succeeded+=1"
-                        echo 解压成功（无密码）
+                        echo 解压成功，无密码
                     ) else (
                         set /a "password_succeeded+=1"
                         echo 解压成功，密码为："!used_password!"
@@ -283,7 +283,7 @@ if not "!working_dir!" == "" (
                     if "!extracted!"=="1" (
                         if "!used_password!"=="" (
                             echo set /a "succeeded+=1">>"!temp_set!"
-                            echo 解压成功（无密码）
+                            echo 解压成功，无密码
                         ) else (
                             echo set /a "password_succeeded+=1">>"!temp_set!"
                             echo 解压成功，密码为："!used_password!"

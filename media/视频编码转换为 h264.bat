@@ -131,7 +131,7 @@ if "!param1!" == "" (
                             if exist "!output_file!" ( del /f /q "!output_file!" )
                             echo 转换失败
                         ) else (
-                            echo 转换成功（音频已转换）
+                            echo 转换成功，音频已转换
                         )
                     ) else (
                         "!ffmpeg_path!" -i "!param1!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
@@ -216,7 +216,7 @@ if not "!working_dir!" == "" (
                             echo 转换失败
                         ) else (
                             echo set /a "succeeded+=1">>"!temp_set!"
-                            echo 转换成功（音频已转换）
+                            echo 转换成功，音频已转换
                         )
                     ) else (
                         "!ffmpeg_path!" -i "!video_file!" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"

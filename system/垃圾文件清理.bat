@@ -103,7 +103,7 @@ if exist "!root_dir!" (
 REM 系统临时文件（仅清理 24 个小时前的）
 set "root_dir=!SystemRoot!\Temp"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"，（仅清理 24 个小时前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
@@ -116,7 +116,7 @@ if exist "!root_dir!" (
 REM 用户临时文件（仅清理 24 个小时前的）
 set "root_dir=!temp!"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"，（仅清理 24 个小时前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
@@ -129,7 +129,7 @@ if exist "!root_dir!" (
 REM 115Chrome 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\115Chrome\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
@@ -142,7 +142,7 @@ if exist "!root_dir!" (
 REM 360Chrome 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\360ChromeX\Chrome\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
@@ -155,7 +155,7 @@ if exist "!root_dir!" (
 REM Edge 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\Microsoft\Edge\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
@@ -168,7 +168,7 @@ if exist "!root_dir!" (
 REM 夸克 浏览器缓存（仅清理 24 个小时前的）
 set "root_dir=!LocalAppData!\Quark\User Data\Default\Cache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 24 个小时前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
@@ -181,7 +181,7 @@ if exist "!root_dir!" (
 REM NVIDIA 显卡着色器与缓存（仅清理 12 个月前的）
 set "root_dir=!LocalAppData!\NVIDIA\DXCache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 12 个月前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 12 个月前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddMonths(-12);" ^
@@ -194,7 +194,7 @@ if exist "!root_dir!" (
 REM AMD 显卡着色器与缓存（仅清理 12 个月前的）
 set "root_dir=!LocalAppData!\AMD\DXCache"
 if exist "!root_dir!" (
-    echo 正在扫描文件夹："!root_dir!"（仅清理 12 个月前的）
+    echo 正在扫描文件夹："!root_dir!"，仅清理 12 个月前的
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddMonths(-12);" ^
