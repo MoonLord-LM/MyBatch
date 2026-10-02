@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '双击运行，通过 CloudFlare Tunnels 实现内网穿透' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '需要先在 CloudFlare Tunnels 官网创建隧道，并保存参数到 cloudflared.json 配置文件里' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '需要先在 CloudFlare Tunnels 官网创建隧道，然后保存参数到 cloudflared.json 配置文件里' -ForegroundColor Green"
 echo.
 
 
@@ -47,7 +47,7 @@ if !errorlevel! neq 0 (
 set "config_path=!script_dir!cloudflared.json"
 if not exist "!config_path!" (
     echo 错误：缺少配置文件 cloudflared.json & REM
-    echo 请从 CloudFlare Tunnels 官网创建隧道，并保存参数到配置文件里，可配置多个隧道 & REM
+    echo 需要先在 CloudFlare Tunnels 官网创建隧道，并保存参数到配置文件里，可配置多个隧道 & REM
     echo.
     echo 内容格式如下： & REM
     echo { & REM
