@@ -70,7 +70,7 @@ if !errorlevel! neq 0 (
 然后，中文系统的默认代码页为 936（GBK），需要使用 chcp 65001 将当前的代码页设置为 65001（UTF-8）  
 
 有时候，连续多行代码都使用 echo 命令输出中文内容时，会出现输出乱码或者代码解析错误的问题，报错 XXX is not recognized  
-可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM、& echo off 这种无意义代码，进行规避  
+可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM 这种无意义代码，进行规避  
 
 调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
 如果只有简单的 Write-Host 命令，可以不加这段代码  
