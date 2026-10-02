@@ -55,16 +55,14 @@ if not exist "!config_path!" (
     echo auth.token = "服务器连接 token" & REM
     echo [[proxies]] & REM
     echo name = "隧道名称" & REM
-    echo type = "隧道传输协议，通常为 http https tcp 等" & REM
+    echo type = "隧道传输协议，例如 https 等" & REM
     echo localIP = "127.0.0.1" & REM
     echo localPort = 本地监听端口 & REM
-    echo remotePort = 服务器映射端口 & REM
+    echo customDomains = ["服务器映射域名"] & REM
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
-
-
 
 echo 配置文件：!config_path!
 echo.
@@ -76,6 +74,7 @@ if !errorlevel! neq 0 (
     pause
     endlocal & endlocal & exit /b 1
 )
+echo.
 
 "!frpc_path!" -c "!config_path!"
 

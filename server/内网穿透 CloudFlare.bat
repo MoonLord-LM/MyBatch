@@ -149,7 +149,11 @@ if "!target_token!"=="" (
 echo 外部域名：!target_host!
 echo 隧道协议：!target_protocol!
 echo 本地网址：!target_protocol!://localhost:!target_port!
-echo 公网网址：http://!target_host! https://!target_host!
+if /i "!target_protocol!"=="https" (
+    echo 公网网址：http://!target_host! https://!target_host!
+) else (
+    echo 公网网址：http://!target_host!
+)
 echo.
 
 "!cloudflared_path!" tunnel --logfile "cloudflared.log" run --token "!target_token!"
