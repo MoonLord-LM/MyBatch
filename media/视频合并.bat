@@ -992,8 +992,8 @@ if not "!working_dir!" == "" (
         endlocal & endlocal & exit /b 1
     )
 
-    if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
     if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
+    if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
 )
 
 
