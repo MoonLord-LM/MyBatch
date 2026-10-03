@@ -73,8 +73,8 @@ set "file_path=!param1!"
 
 
 
-echo ren "!file_path!" "!clsid_path!"
-ren "!file_path!" "!clsid_path!"
+echo move /y "!file_path!" "!clsid_path!"
+move /y "!file_path!" "!clsid_path!"
 if !errorlevel! neq 0 (
     echo 错误：重命名文件夹失败："!file_path!"
     echo.
