@@ -66,6 +66,30 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         exit /b 1
     )
 
+    REM 替换制表符为 4 个空格
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
+        "$tab = [string][char]9;" ^
+        "$changed = 0;" ^
+        "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+            "if ($lines[$i] -match $tab) {" ^
+                "$lines[$i] = $lines[$i] -replace $tab, '    ';" ^
+                "$changed++;" ^
+            "}" ^
+        "}" ^
+        "if ($changed -gt 0) {" ^
+            "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
+            "Write-Output ('已将 ' + $changed + ' 行中的制表符替换为 4 个空格');" ^
+        "}"
+    if !errorlevel! neq 0 (
+        echo [错误] 替换制表符失败："!bat_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
     REM 检查每个文件都必须包含 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
