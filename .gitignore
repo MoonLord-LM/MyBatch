@@ -122,6 +122,10 @@ video2x
 
 # Temp Files
 .codebuddy
+TMP
+tmp
+TEMP
+temp
 *.LOG
 *.log
 *.TXT
