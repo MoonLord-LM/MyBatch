@@ -51,21 +51,21 @@ set "file_path=!param1!"
         goto input_path
     )
     if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"
+    if not exist "!file_path!" (
+        echo 错误：路径不存在："!file_path!"，请重新输入
+        echo.
+        set "file_path="
+        goto input_path
+    )
+    if not exist "!file_path!\" (
+        echo 错误：路径不是文件夹："!file_path!"，请重新输入
+        echo.
+        set "file_path="
+        goto input_path
+    )
     set "clsid_path=!file_path!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
-    if not exist "!clsid_path!" (
-        echo 错误：路径不存在："!clsid_path!"，请重新输入
-        echo.
-        set "file_path="
-        goto input_path
-    )
-    if not exist "!clsid_path!\" (
-        echo 错误：路径不是文件夹："!clsid_path!"，请重新输入
-        echo.
-        set "file_path="
-        goto input_path
-    )
-    if exist "!file_path!\" (
-        echo 错误：已有文件夹存在："!file_path!"，请重新输入
+    if exist "!clsid_path!\" (
+        echo 错误：已有文件夹存在："!clsid_path!"，请重新输入
         echo.
         set "file_path="
         goto input_path
