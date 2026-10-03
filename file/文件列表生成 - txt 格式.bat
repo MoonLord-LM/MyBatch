@@ -55,7 +55,7 @@ if not "!working_dir!" == "" (
         set "file_name=%%~ni"
         setlocal enabledelayedexpansion
 
-        set "output_file=!file_path!\!file_name!.list.txt"
+        set "output_file=!file_path!\!file_name!.txt"
         echo 输出列表文件："!output_file!"
         echo.
 
