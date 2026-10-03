@@ -190,7 +190,7 @@ for %%i in ("!video1!") do (
         echo.
         echo 声音替换失败
     ) else (
-        move /y "!tmp_file!" "!output_file!" >nul
+        move /y "!tmp_file!" "!output_file!"
         echo.
         echo 声音替换成功
         echo 输出文件："!output_file!"

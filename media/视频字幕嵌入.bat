@@ -145,7 +145,7 @@ if "!param1!" == "" (
                             set "file_to_delete=!param1!"
                             powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         )
-                        move /y "!temp_video_file!" "!target_file!" >nul
+                        move /y "!temp_video_file!" "!target_file!"
                         echo 嵌入成功
                     )
                 )
@@ -229,7 +229,7 @@ if not "!working_dir!" == "" (
                             set "file_to_delete=!video_file!"
                             powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         )
-                        move /y "!temp_video_file!" "!target_file!" >nul
+                        move /y "!temp_video_file!" "!target_file!"
                         echo 嵌入成功
                     )
                 )
