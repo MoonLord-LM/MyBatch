@@ -31,7 +31,7 @@ set "input_file=!param1_path!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
         echo.
     )

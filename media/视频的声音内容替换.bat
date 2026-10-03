@@ -79,7 +79,7 @@ set "video2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
         echo.
     ) else (
@@ -118,7 +118,7 @@ set "video2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
         echo.
     ) else (
@@ -148,6 +148,13 @@ set "video2=!param2!"
         echo.
         set "video2="
         goto input_video2
+    )
+    if /i "!video1!"=="!video2!" (
+        echo 两个文件路径相同，请重新输入
+        echo.
+        set "video1="
+        set "video2="
+        goto input_video1
     )
 
 

@@ -57,7 +57,7 @@ set "input_file=!param1_path!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
         echo.
     )
@@ -87,6 +87,12 @@ set "input_file=!param1_path!"
     )
     if /i not "!input_file:~-4!" == ".enc" (
         echo 错误：只支持 .enc 后缀的加密文件："!input_file!"，请重新输入
+        echo.
+        set "input_file="
+        goto input_file
+    )
+    if /i "!input_file:~-5!" == "\.enc" (
+        echo 错误：纯文件名不能为空："!input_file!"，请重新输入
         echo.
         set "input_file="
         goto input_file

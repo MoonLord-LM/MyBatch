@@ -35,7 +35,7 @@ set "path2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
         echo.
     ) else (
@@ -74,7 +74,7 @@ set "path2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
         echo.
     ) else (
@@ -131,25 +131,21 @@ powershell -NoProfile -Command ^
     "if ($p1 -eq $p2) {" ^
     "    $group=@{};" ^
     "    foreach ($f in $files1) {" ^
-    "        $k=$f.Name+'|'+$f.Length;" ^
-    "        if (-not $group.ContainsKey($k)) { $group[$k]=@() };" ^
-    "        $group[$k]+=$f.FullName;" ^
+    "        if (-not $group.ContainsKey($f.Name)) { $group[$f.Name]=@() };" ^
+    "        $group[$f.Name]+=$f;" ^
     "    };" ^
     "    foreach ($k in $group.Keys) {" ^
-    "        if ($group[$k].Count -ge 2) {" ^
-    "            $group[$k] | Select-Object -Skip 1 | ForEach-Object {" ^
-    "                $duplicate++;" ^
-    "                Write-Host ('删除: '+$_);" ^
-    "                try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_, 'OnlyErrorDialogs', 'SendToRecycleBin'); $deleted++ } catch { $failed++ };" ^
-    "            };" ^
+    "        @($group[$k] | Sort-Object Length -Descending) | Select-Object -Skip 1 | ForEach-Object {" ^
+    "            $duplicate++;" ^
+    "            Write-Host ('删除: '+$_.FullName);" ^
+    "            try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($_.FullName, 'OnlyErrorDialogs', 'SendToRecycleBin'); $deleted++ } catch { $failed++ };" ^
     "        };" ^
     "    };" ^
     "} else {" ^
     "    $map=@{};" ^
-    "    Get-ChildItem -LiteralPath $p2 -File -Recurse | ForEach-Object { $map[$_.Name+'|'+$_.Length]=$true };" ^
+    "    Get-ChildItem -LiteralPath $p2 -File -Recurse | ForEach-Object { if (-not $map.ContainsKey($_.Name) -or $map[$_.Name] -lt $_.Length) { $map[$_.Name]=$_.Length } };" ^
     "    foreach ($f in $files1) {" ^
-    "        $k=$f.Name+'|'+$f.Length;" ^
-    "        if ($map.ContainsKey($k)) {" ^
+    "        if ($map.ContainsKey($f.Name) -and $map[$f.Name] -ge $f.Length) {" ^
     "            $duplicate++;" ^
     "            Write-Host ('删除: '+$f.FullName);" ^
     "            try { [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($f.FullName, 'OnlyErrorDialogs', 'SendToRecycleBin'); $deleted++ } catch { $failed++ };" ^

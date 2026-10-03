@@ -33,7 +33,7 @@ if not "!param1_dir!" == "" cd /d "!param1_dir!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            exit /b 1
+            endlocal & endlocal & exit /b 1
         )
         echo.
     ) else (
@@ -90,8 +90,8 @@ if !errorlevel! neq 0 (
     endlocal & endlocal & exit /b 1
 )
 
-echo 处理文件夹："!clsid_name!"
-echo 已显示，当前文件夹："!folder_name!"
+echo 处理文件夹："!cd!\!clsid_name!"
+echo 已显示，当前文件夹："!cd!\!folder_name!"
 
 
 
