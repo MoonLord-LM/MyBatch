@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '显示指定名称的文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，提示用户输入文件夹名称' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '处理方式：重命名为原始名称，再移除隐藏和系统属性' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '处理方式：移除隐藏和系统属性，再重命名为原始名称' -ForegroundColor Green"
 echo.
 
 
@@ -74,17 +74,34 @@ if not "!param1_dir!" == "" cd /d "!param1_dir!"
 
 
 
-ren "!clsid_name!" "!folder_name!"
+if not "!folder_name!" == "!folder_name:\=!" (
+    for %%i in ("!folder_name!") do (
+        set "folder_name=%%~nxi"
+        set "folder_dir=%%~dpi"
+    )
+    set "clsid_name=!folder_name!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
+    cd /d "!folder_dir!"
+    if !errorlevel! neq 0 (
+        echo 错误：切换到所在文件夹失败："!folder_dir!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+)
+
+
+
+attrib -h -s "!clsid_name!"
 if !errorlevel! neq 0 (
-    echo 错误：重命名文件夹失败："!clsid_name!"
+    echo 错误：移除文件夹 系统+隐藏 属性失败："!clsid_name!"
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
 
-attrib -h -s "!folder_name!"
+ren "!clsid_name!" "!folder_name!"
 if !errorlevel! neq 0 (
-    echo 错误：移除文件夹 系统+隐藏 属性失败："!folder_name!"
+    echo 错误：重命名文件夹失败："!clsid_name!"
     echo.
     pause
     endlocal & endlocal & exit /b 1

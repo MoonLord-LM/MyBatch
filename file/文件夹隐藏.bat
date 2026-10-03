@@ -74,6 +74,23 @@ if not "!param1_dir!" == "" cd /d "!param1_dir!"
 
 
 
+if not "!folder_name!" == "!folder_name:\=!" (
+    for %%i in ("!folder_name!") do (
+        set "folder_name=%%~nxi"
+        set "folder_dir=%%~dpi"
+    )
+    set "clsid_name=!folder_name!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
+    cd /d "!folder_dir!"
+    if !errorlevel! neq 0 (
+        echo 错误：切换到所在文件夹失败："!folder_dir!"
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+)
+
+
+
 ren "!folder_name!" "!clsid_name!"
 if !errorlevel! neq 0 (
     echo 错误：重命名文件夹失败："!folder_name!"
