@@ -68,8 +68,8 @@ if not "!param1_dir!" == "" cd /d "!param1_dir!"
     if exist "!clsid_name!\" (
         echo 错误：已有文件夹存在："!clsid_name!"，请重新输入
         echo.
-        pause
-        endlocal & endlocal & exit /b
+        set "folder_name="
+        goto input_folder_name
     )
 
 
