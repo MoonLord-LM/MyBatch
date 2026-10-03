@@ -113,7 +113,17 @@ try {
             }
         }
     }
+} catch {
+    Handle-Exception $_
+    pause
+    exit 1
+}
 
+
+
+# ————————————————————————————— 2: 界面文本资源 —————————————————————————————
+
+try {
     # 配置文件和日志目录
     $myBatchTaskDir = [System.IO.Path]::Combine($workingDirectory, "MyBatchTask")
     if (-not [System.IO.Directory]::Exists($myBatchTaskDir)) {
@@ -125,6 +135,7 @@ try {
         [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
     }
     $utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($false)
+
     # 默认 JSON 配置
     $defaultJsonConfig =
 @'
@@ -141,17 +152,8 @@ try {
     if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
         [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig, $utf8NoBomEncoding)
     }
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
 
-
-
-# ————————————————————————————— 2: 界面文本资源 —————————————————————————————
-
-try {
+    # 界面文本资源
     $uiTextResources = @{
         'zh-CN' = @{
             FormTitle = "命令任务管理器"
