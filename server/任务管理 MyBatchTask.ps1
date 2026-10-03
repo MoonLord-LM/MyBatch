@@ -124,10 +124,10 @@ try {
     if (-not [System.IO.Directory]::Exists($myBatchTaskDir)) {
         [System.IO.Directory]::CreateDirectory($myBatchTaskDir) | Out-Null
     }
-    $configFilePath = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
-    $logsDirectory = [System.IO.Path]::Combine($myBatchTaskDir, "logs")
-    if (-not [System.IO.Directory]::Exists($logsDirectory)) {
-        [System.IO.Directory]::CreateDirectory($logsDirectory) | Out-Null
+    $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
+    $myBatchTaskLogsDir = [System.IO.Path]::Combine($myBatchTaskDir, "logs")
+    if (-not [System.IO.Directory]::Exists($myBatchTaskLogsDir)) {
+        [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
     }
     $utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($false)
     # 内嵌的默认 JSON 配置
@@ -144,8 +144,8 @@ try {
 ]
 '@
     # 内嵌示例缺省时，自动创建配置文件
-    if (-not [System.IO.File]::Exists($configFilePath)) {
-        [System.IO.File]::WriteAllText($configFilePath, $defaultJsonConfig, $utf8NoBomEncoding)
+    if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
+        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig, $utf8NoBomEncoding)
     }
 } catch {
     Handle-Exception $_
@@ -539,17 +539,17 @@ try {
             })
         }
         $jsonText = ConvertTo-Json -InputObject @($objects) -Depth 5
-        [System.IO.File]::WriteAllText($configFilePath, $jsonText, $utf8NoBomEncoding)
-        Show-Log ($ui.INFO_Saved -f $configFilePath) "Debug"
+        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $jsonText, $utf8NoBomEncoding)
+        Show-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) "Debug"
     }
     # 从配置文件加载任务列表并刷新表格
     function Load-Config {
-        if (-not [System.IO.File]::Exists($configFilePath)) {
-            Show-Log ($ui.INFO_ConfigNotFound -f $configFilePath) "Warning"
+        if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
+            Show-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) "Warning"
             return $false
         }
         try {
-            $config = Get-Content -Path $configFilePath -Raw -Encoding UTF8 | ConvertFrom-Json
+            $config = Get-Content -Path $myBatchTaskConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
             $configItems = @($config)
             $script:tasks = @()
             foreach ($item in $configItems) {
@@ -658,7 +658,7 @@ try {
         }
         if ($null -eq $runtime.Writer) {
             $safeName = ($TaskName -replace '[:/\\|?*<>" ]', '_')
-            $logFilePath = [System.IO.Path]::Combine($logsDirectory, $safeName + ".log")
+            $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $safeName + ".log")
             # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
             $fileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
             $streamWriter = [System.IO.StreamWriter]::new($fileStream, $utf8NoBomEncoding)
@@ -1380,7 +1380,7 @@ try {
         }
     })
     # 加载配置文件
-    Show-Log ($ui.INFO_SystemInfo -f $configFilePath) "Info"
+    Show-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) "Info"
     Load-Config | Out-Null
     # 程序启动（首次显示时自动隐藏到托盘）
     [System.Windows.Forms.Application]::Run($mainForm)
