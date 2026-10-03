@@ -73,26 +73,26 @@ set "file_path=!param1!"
 
 
 
-echo move /y "!clsid_path!" "!file_path!"
-move /y "!clsid_path!" "!file_path!"
+echo ren "!file_path!" "!clsid_path!"
+ren "!file_path!" "!clsid_path!"
 if !errorlevel! neq 0 (
-    echo 错误：重命名文件夹失败："!clsid_path!"
+    echo 错误：重命名文件夹失败："!file_path!"
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
 
-echo attrib +h +s "!file_path!"
-attrib +h +s "!file_path!"
+echo attrib +h +s "!clsid_path!"
+attrib +h +s "!clsid_path!"
 if !errorlevel! neq 0 (
-    echo 错误：设置文件夹 系统+隐藏 属性失败："!file_path!"
+    echo 错误：设置文件夹 系统+隐藏 属性失败："!clsid_path!"
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
 
-echo 处理文件夹："!clsid_path!"
-echo 已隐藏，当前文件夹："!file_path!"
+echo 处理文件夹："!file_path!"
+echo 已隐藏，当前文件夹："!clsid_path!"
 
 
 
