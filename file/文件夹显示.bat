@@ -24,6 +24,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 set "file_path=!param1!"
+set "dir_suffix=.{ED7BA470-8E54-465E-825C-99712043E01C}"
 
 :input_path
     if "!file_path!"=="" (
@@ -51,7 +52,15 @@ set "file_path=!param1!"
         goto input_path
     )
     if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"
-    set "clsid_path=!file_path!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
+    if exist "!file_path!\" (
+        echo 错误：已有文件夹存在："!file_path!"，请重新输入
+        REM TODO 如果 file_path 是隐藏文件，处理 attrib -h -s "!file_path!"
+        REM TODO 如果 file_path 是 !dir_suffix! 后缀文件，处理 move /y
+        echo.
+        set "file_path="
+        goto input_path
+    )
+    set "clsid_path=!file_path!!dir_suffix!"
     if not exist "!clsid_path!" (
         echo 错误：路径不存在："!clsid_path!"，请重新输入
         echo.
@@ -60,12 +69,6 @@ set "file_path=!param1!"
     )
     if not exist "!clsid_path!\" (
         echo 错误：路径不是文件夹："!clsid_path!"，请重新输入
-        echo.
-        set "file_path="
-        goto input_path
-    )
-    if exist "!file_path!\" (
-        echo 错误：已有文件夹存在："!file_path!"，请重新输入
         echo.
         set "file_path="
         goto input_path
