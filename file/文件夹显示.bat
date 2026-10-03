@@ -81,6 +81,7 @@ if !errorlevel! neq 0 (
     pause
     endlocal & endlocal & exit /b 1
 )
+echo.
 
 echo move /y "!clsid_path!" "!file_path!"
 move /y "!clsid_path!" "!file_path!"
@@ -90,6 +91,7 @@ if !errorlevel! neq 0 (
     pause
     endlocal & endlocal & exit /b 1
 )
+echo.
 
 echo 处理文件夹："!clsid_path!"
 echo 已显示，当前文件夹："!file_path!"
