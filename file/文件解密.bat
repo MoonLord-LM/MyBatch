@@ -72,6 +72,7 @@ set "input_file=!param1_path!"
         echo.
         goto input_file
     )
+    if "!input_file:~-1!"=="\" set "input_file=!input_file:~0,-1!"
     if not exist "!input_file!" (
         echo 错误：路径不存在："!input_file!"，请重新输入
         echo.

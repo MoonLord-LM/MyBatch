@@ -78,14 +78,15 @@ set "screenshot_time=!param2!"
             echo.
             goto input_file
         )
-        if exist "!video_file!\" (
-            echo 不支持文件夹 "!video_file!"，请重新输入
+        if "!video_file:~-1!"=="\" set "video_file=!video_file:~0,-1!"
+        if not exist "!video_file!" (
+            echo 文件不存在 "!video_file!"，请重新输入
             echo.
             set "video_file="
             goto input_file
         )
-        if not exist "!video_file!" (
-            echo 文件不存在 "!video_file!"，请重新输入
+        if exist "!video_file!\" (
+            echo 不支持文件夹 "!video_file!"，请重新输入
             echo.
             set "video_file="
             goto input_file

@@ -97,14 +97,15 @@ set "video2=!param2!"
         echo.
         goto input_video1
     )
-    if exist "!video1!\" (
-        echo 不支持文件夹 "!video1!"，请重新输入
+    if "!video1:~-1!"=="\" set "video1=!video1:~0,-1!"
+    if not exist "!video1!" (
+        echo 文件不存在 "!video1!"，请重新输入
         echo.
         set "video1="
         goto input_video1
     )
-    if not exist "!video1!" (
-        echo 文件不存在 "!video1!"，请重新输入
+    if exist "!video1!\" (
+        echo 不支持文件夹 "!video1!"，请重新输入
         echo.
         set "video1="
         goto input_video1
@@ -135,14 +136,15 @@ set "video2=!param2!"
         echo.
         goto input_video2
     )
-    if exist "!video2!\" (
-        echo 不支持文件夹 "!video2!"，请重新输入
+    if "!video2:~-1!"=="\" set "video2=!video2:~0,-1!"
+    if not exist "!video2!" (
+        echo 文件不存在 "!video2!"，请重新输入
         echo.
         set "video2="
         goto input_video2
     )
-    if not exist "!video2!" (
-        echo 文件不存在 "!video2!"，请重新输入
+    if exist "!video2!\" (
+        echo 不支持文件夹 "!video2!"，请重新输入
         echo.
         set "video2="
         goto input_video2

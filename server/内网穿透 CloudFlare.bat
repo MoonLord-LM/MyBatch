@@ -122,6 +122,12 @@ echo.
         echo.
         goto input_host
     )
+    set "input_host=!input_host:"=!"
+    if "!input_host!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_host
+    )
 
 
 
