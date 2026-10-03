@@ -31,10 +31,11 @@
 #
 # 运行方式：
 #     powershell -NoProfile -ExecutionPolicy Bypass -File "任务管理 MyBatchTask.ps1"
-#
-#
-#
-# ————————————————————————————— 1: 基础设置和公共资源 —————————————————————————————
+
+
+
+# ————————————————————————————— 1: 通用基础设置 —————————————————————————————
+
 # 异常处理
 function Handle-Exception {
     param([Parameter(Mandatory=$true)][System.Management.Automation.ErrorRecord]$ErrorRecord)
@@ -48,18 +49,9 @@ function Handle-Exception {
     }
     ""
 }
+
 try {
-    # 启用双缓冲，减少界面闪烁
-    function Enable-Double-Buffered {
-        param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
-        $doubleBufferedBindingFlags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
-        $doubleBufferedProperty = [System.Windows.Forms.Control].GetProperty("DoubleBuffered", $doubleBufferedBindingFlags)
-        $doubleBufferedProperty.SetValue($Control, $true)
-        return $doubleBufferedProperty.GetValue($Control)
-    }
-    # 加载窗体程序集和系统函数
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
+    # 加载 Win32 API 函数
     $Win32TypeDefinition =
 @'
     using System;
@@ -78,12 +70,29 @@ try {
     }
 '@
     Add-Type -TypeDefinition $Win32TypeDefinition
+
     # 禁用自动缩放
-    # [DpiHelper]::SetProcessDPIAware() | Out-Null
-    [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2) | Out-Null
+    $result = [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
+    if(-not $result){
+        $result = [DpiHelper]::SetProcessDPIAware()
+    }
+
     # 设置更现代的窗口样式
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
     [System.Windows.Forms.Application]::EnableVisualStyles()
     [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
+
+    # 对指定的控件启用双缓冲，减少界面闪烁
+    function Enable-Double-Buffered {
+        param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
+
+        $doubleBufferedBindingFlags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
+        $doubleBufferedProperty = [System.Windows.Forms.Control].GetProperty("DoubleBuffered", $doubleBufferedBindingFlags)
+        $doubleBufferedProperty.SetValue($Control, $true)
+        return $doubleBufferedProperty.GetValue($Control)
+    }
+
     # 分析合适的工作目录
     $currentDirectory = [System.IO.Directory]::GetCurrentDirectory()
     $callDirectory = (Get-Location).Path
@@ -104,6 +113,7 @@ try {
             }
         }
     }
+
     # 脚本所在目录（配置文件和日志目录固定放在脚本所在目录，不随启动位置变化）
     $scriptDirectory = $PSScriptRoot
     if (-not $scriptDirectory) {
