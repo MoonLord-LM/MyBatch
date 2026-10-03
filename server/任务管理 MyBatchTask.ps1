@@ -114,13 +114,8 @@ try {
         }
     }
 
-    # 脚本所在目录（配置文件和日志目录固定放在脚本所在目录，不随启动位置变化）
-    $scriptDirectory = $PSScriptRoot
-    if (-not $scriptDirectory) {
-        $scriptDirectory = (Get-Location).Path
-    }
-    # 配置文件和日志目录，均放在脚本所在目录的 MyBatchTask 子目录下
-    $myBatchTaskDir = [System.IO.Path]::Combine($scriptDirectory, "MyBatchTask")
+    # 配置文件和日志目录
+    $myBatchTaskDir = [System.IO.Path]::Combine($workingDirectory, "MyBatchTask")
     if (-not [System.IO.Directory]::Exists($myBatchTaskDir)) {
         [System.IO.Directory]::CreateDirectory($myBatchTaskDir) | Out-Null
     }
@@ -130,7 +125,7 @@ try {
         [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
     }
     $utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($false)
-    # 内嵌的默认 JSON 配置
+    # 默认 JSON 配置
     $defaultJsonConfig =
 @'
 [
@@ -143,7 +138,6 @@ try {
     }
 ]
 '@
-    # 内嵌示例缺省时，自动创建配置文件
     if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
         [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig, $utf8NoBomEncoding)
     }
@@ -152,7 +146,11 @@ try {
     pause
     exit 1
 }
+
+
+
 # ————————————————————————————— 2: 界面文本资源 —————————————————————————————
+
 try {
     $uiTextResources = @{
         'zh-CN' = @{
