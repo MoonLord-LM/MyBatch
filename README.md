@@ -101,6 +101,6 @@ MyBatch/
 │   └── 显示器开启.bat
 ├── example/               # 零散示例代码
 ├── LLM.md                 # 提示信息
-└── README.md              # 工程说明
-├── self-check.bat         # 自检脚本
+├── README.md              # 工程说明
+└── self-check.bat         # 自检脚本
 ```
