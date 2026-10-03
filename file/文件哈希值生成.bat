@@ -25,39 +25,39 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 set "input_file=!param1_path!"
 
 :input_file
-if "!input_file!"=="" (
-    echo 请输入要生成哈希值的文件的路径
-    set /p "input_file="
-    if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
+    if "!input_file!"=="" (
+        echo 请输入要生成哈希值的文件的路径
+        set /p "input_file="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
-        exit /b 1
     )
-    echo.
-)
-if "!input_file!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_file
-)
-set "input_file=!input_file:"=!"
-if "!input_file!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_file
-)
-if not exist "!input_file!" (
-    echo 错误：路径不存在："!input_file!"，请重新输入
-    echo.
-    set "input_file="
-    goto input_file
-)
-if exist "!input_file!\" (
-    echo 错误：不支持文件夹，请输入单个文件
-    echo.
-    set "input_file="
-    goto input_file
-)
+    if "!input_file!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_file
+    )
+    set "input_file=!input_file:"=!"
+    if "!input_file!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_file
+    )
+    if not exist "!input_file!" (
+        echo 错误：路径不存在："!input_file!"，请重新输入
+        echo.
+        set "input_file="
+        goto input_file
+    )
+    if exist "!input_file!\" (
+        echo 错误：不支持文件夹，请输入单个文件
+        echo.
+        set "input_file="
+        goto input_file
+    )
 
 
 

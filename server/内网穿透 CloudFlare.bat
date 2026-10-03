@@ -104,22 +104,26 @@ if !tunnel_count! equ 0 (
 echo 隧道数量：!tunnel_count!
 echo.
 
+
+
 :input_host
-if "!input_host!"=="" (
-    echo 请输入目标域名
-    set /p "input_host="
-    if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
+    if "!input_host!"=="" (
+        echo 请输入目标域名
+        set /p "input_host="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            endlocal & endlocal & exit /b 1
+        )
         echo.
-        endlocal & endlocal & exit /b 1
     )
-    echo.
-)
-if "!input_host!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_host
-)
+    if "!input_host!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_host
+    )
+
+
 
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^

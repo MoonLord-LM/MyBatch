@@ -56,82 +56,84 @@ set "end_time=!param3!"
 :loop
 
     :input_file
-    if "!video_file!"=="" (
-        echo 请输入要处理的视频文件：
-        set /p "video_file="
-        if !errorlevel! neq 0 (
-            echo 无输入，退出脚本
+        if "!video_file!"=="" (
+            echo 请输入要处理的视频文件：
+            set /p "video_file="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
             echo.
-            exit /b 1
+        ) else (
+            echo 要处理的视频文件："!video_file!"
+            echo.
         )
-        echo.
-    ) else (
-        echo 要处理的视频文件："!video_file!"
-        echo.
-    )
-    if "!video_file!"=="" (
-        echo 输入不能为空，请重新输入
-        echo.
-        goto input_file
-    )
-    set "video_file=!video_file:"=!"
-    if "!video_file!"=="" (
-        echo 输入不能为空，请重新输入
-        echo.
-        goto input_file
-    )
-    if exist "!video_file!\" (
-        echo 不支持文件夹 "!video_file!"，请重新输入
-        echo.
-        set "video_file="
-        goto input_file
-    )
-    if not exist "!video_file!" (
-        echo 文件不存在 "!video_file!"，请重新输入
-        echo.
-        set "video_file="
-        goto input_file
-    )
+        if "!video_file!"=="" (
+            echo 输入不能为空，请重新输入
+            echo.
+            goto input_file
+        )
+        set "video_file=!video_file:"=!"
+        if "!video_file!"=="" (
+            echo 输入不能为空，请重新输入
+            echo.
+            goto input_file
+        )
+        if exist "!video_file!\" (
+            echo 不支持文件夹 "!video_file!"，请重新输入
+            echo.
+            set "video_file="
+            goto input_file
+        )
+        if not exist "!video_file!" (
+            echo 文件不存在 "!video_file!"，请重新输入
+            echo.
+            set "video_file="
+            goto input_file
+        )
 
     :input_begin_time
-    if "!begin_time!"=="" (
-        echo 请输入开始时间，格式: HH:MM:SS.XXX：
-        set /p "begin_time="
-        if !errorlevel! neq 0 (
-            echo 无输入，退出脚本
+        if "!begin_time!"=="" (
+            echo 请输入开始时间，格式: HH:MM:SS.XXX：
+            set /p "begin_time="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
             echo.
-            exit /b 1
+        ) else (
+            echo 开始时间："!begin_time!"
+            echo.
         )
-        echo.
-    ) else (
-        echo 开始时间："!begin_time!"
-        echo.
-    )
-    if "!begin_time!"=="" (
-        echo 开始时间不能为空
-        echo.
-        goto input_begin_time
-    )
+        if "!begin_time!"=="" (
+            echo 开始时间不能为空
+            echo.
+            goto input_begin_time
+        )
 
     :input_end_time
-    if "!end_time!"=="" (
-        echo 请输入结束时间，格式: HH:MM:SS.XXX：
-        set /p "end_time="
-        if !errorlevel! neq 0 (
-            echo 无输入，退出脚本
+        if "!end_time!"=="" (
+            echo 请输入结束时间，格式: HH:MM:SS.XXX：
+            set /p "end_time="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
             echo.
-            exit /b 1
+        ) else (
+            echo 结束时间："!end_time!"
+            echo.
         )
-        echo.
-    ) else (
-        echo 结束时间："!end_time!"
-        echo.
-    )
-    if "!end_time!"=="" (
-        echo 结束时间不能为空
-        echo.
-        goto input_end_time
-    )
+        if "!end_time!"=="" (
+            echo 结束时间不能为空
+            echo.
+            goto input_end_time
+        )
+
+
 
     for %%i in ("!video_file!") do (
         setlocal disabledelayedexpansion

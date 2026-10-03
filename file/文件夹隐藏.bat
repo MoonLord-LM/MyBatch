@@ -23,30 +23,34 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 
 
-set "folder_name="
+set "folder_name=!param1_name!"
+if not "!param1_dir!" == "" cd /d "!param1_dir!"
 
 :input_folder_name
-if "!folder_name!"=="" (
-    echo 请输入要隐藏的文件夹名称
-    set /p "folder_name="
-    if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
+    if "!folder_name!"=="" (
+        echo 请输入要隐藏的文件夹名称
+        set /p "folder_name="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
-        exit /b 1
+    ) else (
+        echo 要隐藏的文件夹名称："!folder_name!"
+        echo.
     )
-    echo.
-)
-if "!folder_name!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_folder_name
-)
-set "folder_name=!folder_name:"=!"
-if "!folder_name!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_folder_name
-)
+    set "folder_name=!folder_name:"=!"
+    if "!folder_name!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_folder_name
+    )
+    if "!folder_name!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_folder_name
+    )
 
 set "clsid_name=!folder_name!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
 

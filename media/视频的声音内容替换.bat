@@ -73,80 +73,82 @@ set "video1=!param1!"
 set "video2=!param2!"
 
 :input_video1
-if "!video1!"=="" (
-    echo 请输入要保留画面和元数据信息的文件
-    set /p "video1="
-    if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
+    if "!video1!"=="" (
+        echo 请输入要保留画面和元数据信息的文件
+        set /p "video1="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
-        exit /b 1
+    ) else (
+        echo 要保留画面和元数据信息的文件："!video1!"
+        echo.
     )
-    echo.
-) else (
-    echo 要保留画面和元数据信息的文件："!video1!"
-    echo.
-)
-if "!video1!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_video1
-)
-set "video1=!video1:"=!"
-if "!video1!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_video1
-)
-if exist "!video1!\" (
-    echo 不支持文件夹 "!video1!"，请重新输入
-    echo.
-    set "video1="
-    goto input_video1
-)
-if not exist "!video1!" (
-    echo 文件不存在 "!video1!"，请重新输入
-    echo.
-    set "video1="
-    goto input_video1
-)
+    if "!video1!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_video1
+    )
+    set "video1=!video1:"=!"
+    if "!video1!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_video1
+    )
+    if exist "!video1!\" (
+        echo 不支持文件夹 "!video1!"，请重新输入
+        echo.
+        set "video1="
+        goto input_video1
+    )
+    if not exist "!video1!" (
+        echo 文件不存在 "!video1!"，请重新输入
+        echo.
+        set "video1="
+        goto input_video1
+    )
 
 :input_video2
-if "!video2!"=="" (
-    echo 请输入提供声音内容的文件
-    set /p "video2="
-    if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
+    if "!video2!"=="" (
+        echo 请输入提供声音内容的文件
+        set /p "video2="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
-        exit /b 1
+    ) else (
+        echo 提供声音内容的文件："!video2!"
+        echo.
     )
-    echo.
-) else (
-    echo 提供声音内容的文件："!video2!"
-    echo.
-)
-if "!video2!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_video2
-)
-set "video2=!video2:"=!"
-if "!video2!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_video2
-)
-if exist "!video2!\" (
-    echo 不支持文件夹 "!video2!"，请重新输入
-    echo.
-    set "video2="
-    goto input_video2
-)
-if not exist "!video2!" (
-    echo 文件不存在 "!video2!"，请重新输入
-    echo.
-    set "video2="
-    goto input_video2
-)
+    if "!video2!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_video2
+    )
+    set "video2=!video2:"=!"
+    if "!video2!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_video2
+    )
+    if exist "!video2!\" (
+        echo 不支持文件夹 "!video2!"，请重新输入
+        echo.
+        set "video2="
+        goto input_video2
+    )
+    if not exist "!video2!" (
+        echo 文件不存在 "!video2!"，请重新输入
+        echo.
+        set "video2="
+        goto input_video2
+    )
+
+
 
 for %%i in ("!video1!") do (
     setlocal disabledelayedexpansion

@@ -29,82 +29,82 @@ set "path1=!param1!"
 set "path2=!param2!"
 
 :input_path1
-if "!path1!"=="" (
-    echo 请输入要清理多余文件的文件夹
-    set /p "path1="
-    if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
+    if "!path1!"=="" (
+        echo 请输入要清理多余文件的文件夹
+        set /p "path1="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
-        exit /b 1
+    ) else (
+        echo 要清理多余文件的文件夹："!path1!"
+        echo.
     )
-    echo.
-) else (
-    echo 要清理多余文件的文件夹："!path1!"
-    echo.
-)
-if "!path1!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_path1
-)
-set "path1=!path1:"=!"
-if "!path1!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_path1
-)
-if "!path1:~-1!"=="\" set "path1=!path1:~0,-1!"
-if not exist "!path1!" (
-    echo 错误：路径 1 不存在："!path1!"，请重新输入
-    echo.
-    set "path1="
-    goto input_path1
-)
-if not exist "!path1!\" (
-    echo 错误：路径 1 不是文件夹："!path1!"，请重新输入
-    echo.
-    set "path1="
-    goto input_path1
-)
+    if "!path1!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_path1
+    )
+    set "path1=!path1:"=!"
+    if "!path1!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_path1
+    )
+    if "!path1:~-1!"=="\" set "path1=!path1:~0,-1!"
+    if not exist "!path1!" (
+        echo 错误：路径 1 不存在："!path1!"，请重新输入
+        echo.
+        set "path1="
+        goto input_path1
+    )
+    if not exist "!path1!\" (
+        echo 错误：路径 1 不是文件夹："!path1!"，请重新输入
+        echo.
+        set "path1="
+        goto input_path1
+    )
 
 :input_path2
-if "!path2!"=="" (
-    echo 请输入作为参考的文件夹，仅用于文件比对
-    set /p "path2="
-    if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
+    if "!path2!"=="" (
+        echo 请输入作为参考的文件夹，仅用于文件比对
+        set /p "path2="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
         echo.
-        exit /b 1
+    ) else (
+        echo 作为参考的文件夹，仅用于文件比对："!path2!"
+        echo.
     )
-    echo.
-) else (
-    echo 作为参考的文件夹，仅用于文件比对："!path2!"
-    echo.
-)
-if "!path2!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_path2
-)
-set "path2=!path2:"=!"
-if "!path2!"=="" (
-    echo 输入不能为空，请重新输入
-    echo.
-    goto input_path2
-)
-if "!path2:~-1!"=="\" set "path2=!path2:~0,-1!"
-if not exist "!path2!" (
-    echo 错误：路径 2 不存在："!path2!"，请重新输入
-    echo.
-    set "path2="
-    goto input_path2
-)
-if not exist "!path2!\" (
-    echo 错误：路径 2 不是文件夹："!path2!"，请重新输入
-    echo.
-    set "path2="
-    goto input_path2
-)
+    if "!path2!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_path2
+    )
+    set "path2=!path2:"=!"
+    if "!path2!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_path2
+    )
+    if "!path2:~-1!"=="\" set "path2=!path2:~0,-1!"
+    if not exist "!path2!" (
+        echo 错误：路径 2 不存在："!path2!"，请重新输入
+        echo.
+        set "path2="
+        goto input_path2
+    )
+    if not exist "!path2!\" (
+        echo 错误：路径 2 不是文件夹："!path2!"，请重新输入
+        echo.
+        set "path2="
+        goto input_path2
+    )
 
 
 

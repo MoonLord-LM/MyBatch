@@ -54,62 +54,64 @@ set "screenshot_time=!param2!"
 :loop
 
     :input_file
-    if "!video_file!"=="" (
-        echo 请输入要处理的视频文件：
-        set /p "video_file="
-        if !errorlevel! neq 0 (
-            echo 无输入，退出脚本
+        if "!video_file!"=="" (
+            echo 请输入要处理的视频文件：
+            set /p "video_file="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
             echo.
-            exit /b 1
+        ) else (
+            echo 要处理的视频文件："!video_file!"
+            echo.
         )
-        echo.
-    ) else (
-        echo 要处理的视频文件："!video_file!"
-        echo.
-    )
-    if "!video_file!"=="" (
-        echo 输入不能为空，请重新输入
-        echo.
-        goto input_file
-    )
-    set "video_file=!video_file:"=!"
-    if "!video_file!"=="" (
-        echo 输入不能为空，请重新输入
-        echo.
-        goto input_file
-    )
-    if exist "!video_file!\" (
-        echo 不支持文件夹 "!video_file!"，请重新输入
-        echo.
-        set "video_file="
-        goto input_file
-    )
-    if not exist "!video_file!" (
-        echo 文件不存在 "!video_file!"，请重新输入
-        echo.
-        set "video_file="
-        goto input_file
-    )
+        if "!video_file!"=="" (
+            echo 输入不能为空，请重新输入
+            echo.
+            goto input_file
+        )
+        set "video_file=!video_file:"=!"
+        if "!video_file!"=="" (
+            echo 输入不能为空，请重新输入
+            echo.
+            goto input_file
+        )
+        if exist "!video_file!\" (
+            echo 不支持文件夹 "!video_file!"，请重新输入
+            echo.
+            set "video_file="
+            goto input_file
+        )
+        if not exist "!video_file!" (
+            echo 文件不存在 "!video_file!"，请重新输入
+            echo.
+            set "video_file="
+            goto input_file
+        )
 
     :input_screenshot_time
-    if "!screenshot_time!"=="" (
-        echo 请输入截取时间，格式: HH:MM:SS.XXX：
-        set /p "screenshot_time="
-        if !errorlevel! neq 0 (
-            echo 无输入，退出脚本
+        if "!screenshot_time!"=="" (
+            echo 请输入截取时间，格式: HH:MM:SS.XXX：
+            set /p "screenshot_time="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
             echo.
-            exit /b 1
+        ) else (
+            echo 截取时间："!screenshot_time!"
+            echo.
         )
-        echo.
-    ) else (
-        echo 截取时间："!screenshot_time!"
-        echo.
-    )
-    if "!screenshot_time!"=="" (
-        echo 截取时间不能为空
-        echo.
-        goto input_screenshot_time
-    )
+        if "!screenshot_time!"=="" (
+            echo 截取时间不能为空
+            echo.
+            goto input_screenshot_time
+        )
+
+
 
     for %%i in ("!video_file!") do (
         setlocal disabledelayedexpansion
