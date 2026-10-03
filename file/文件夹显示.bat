@@ -83,7 +83,7 @@ if !errorlevel! neq 0 (
 )
 
 attrib -h -s "!folder_name!"
-if !folder_name! neq 0 (
+if !errorlevel! neq 0 (
     echo 错误：移除文件夹 系统+隐藏 属性失败："!folder_name!"
     echo.
     pause
