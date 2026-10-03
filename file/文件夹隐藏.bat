@@ -40,37 +40,43 @@ if not "!param1_dir!" == "" cd /d "!param1_dir!"
         echo 要隐藏的文件夹名称："!folder_name!"
         echo.
     )
+    if "!folder_name!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_folder_name
+    )
     set "folder_name=!folder_name:"=!"
     if "!folder_name!"=="" (
         echo 输入不能为空，请重新输入
         echo.
         goto input_folder_name
     )
-    if "!folder_name!"=="" (
-        echo 输入不能为空，请重新输入
+    if "!folder_name:~-1!"=="\" set "folder_name=!folder_name:~0,-1!"
+    if not exist "!folder_name!" (
+        echo 错误：路径不存在："!folder_name!"，请重新输入
         echo.
+        set "folder_name="
         goto input_folder_name
     )
+    if not exist "!folder_name!\" (
+        echo 错误：路径不是文件夹："!folder_name!"，请重新输入
+        echo.
+        set "folder_name="
+        goto input_folder_name
+    )
+    set "clsid_name=!folder_name!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
+    if exist "!clsid_name!\" (
+        echo 错误：已有文件夹存在："!clsid_name!"，请重新输入
+        echo.
+        pause
+        endlocal & endlocal & exit /b
+    )
 
-set "clsid_name=!folder_name!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
 
-if exist "!clsid_name!\" (
-    echo 文件夹已处于隐藏状态：“!clsid_name!”
-    echo.
-    pause
-    endlocal & endlocal & exit /b
-)
-
-if not exist "!folder_name!\" (
-    echo 错误：当前文件夹下不存在“!folder_name!”文件夹，请重新输入
-    echo.
-    set "folder_name="
-    goto input_folder_name
-)
 
 ren "!folder_name!" "!clsid_name!"
 if !errorlevel! neq 0 (
-    echo 错误：重命名文件夹失败：“!folder_name!”
+    echo 错误：重命名文件夹失败："!folder_name!"
     echo.
     pause
     endlocal & endlocal & exit /b 1
@@ -78,13 +84,14 @@ if !errorlevel! neq 0 (
 
 attrib +h +s "!clsid_name!"
 if !errorlevel! neq 0 (
-    echo 错误：设置文件夹隐藏属性失败：“!clsid_name!”
+    echo 错误：设置文件夹 系统+隐藏 属性失败："!clsid_name!"
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
 
-echo 已隐藏文件夹：“!clsid_name!”
+echo 处理文件夹："!folder_name!"
+echo 已隐藏，当前文件夹："!clsid_name!"
 
 
 

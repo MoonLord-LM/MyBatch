@@ -51,40 +51,47 @@ if not "!param1_dir!" == "" cd /d "!param1_dir!"
         echo.
         goto input_folder_name
     )
+    if "!folder_name:~-1!"=="\" set "folder_name=!folder_name:~0,-1!"
+    set "clsid_name=!folder_name!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
+    if not exist "!clsid_name!" (
+        echo 错误：路径不存在："!clsid_name!"，请重新输入
+        echo.
+        set "folder_name="
+        goto input_folder_name
+    )
+    if not exist "!clsid_name!\" (
+        echo 错误：路径不是文件夹："!clsid_name!"，请重新输入
+        echo.
+        set "folder_name="
+        goto input_folder_name
+    )
+    if exist "!folder_name!\" (
+        echo 错误：已有文件夹存在："!folder_name!"，请重新输入
+        echo.
+        set "folder_name="
+        goto input_folder_name
+    )
 
-set "clsid_name=!folder_name!.{21EC2020-3AEA-1069-A2DD-08002B30309D}"
 
-if exist "!folder_name!\" (
-    echo 文件夹已处于显示状态：“!folder_name!”
-    echo.
-    pause
-    endlocal & endlocal & exit /b
-)
-
-if not exist "!clsid_name!\" (
-    echo 错误：当前文件夹下不存在“!clsid_name!”文件夹，请重新输入
-    echo.
-    set "folder_name="
-    goto input_folder_name
-)
-
-attrib -h -s "!clsid_name!"
-if !errorlevel! neq 0 (
-    echo 错误：移除文件夹隐藏属性失败：“!clsid_name!”
-    echo.
-    pause
-    endlocal & endlocal & exit /b 1
-)
 
 ren "!clsid_name!" "!folder_name!"
 if !errorlevel! neq 0 (
-    echo 错误：重命名文件夹失败：“!clsid_name!”
+    echo 错误：重命名文件夹失败："!clsid_name!"
     echo.
     pause
     endlocal & endlocal & exit /b 1
 )
 
-echo 已显示文件夹：“!folder_name!”
+attrib -h -s "!folder_name!"
+if !folder_name! neq 0 (
+    echo 错误：移除文件夹 系统+隐藏 属性失败："!folder_name!"
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
+
+echo 处理文件夹："!clsid_name!"
+echo 已显示，当前文件夹："!folder_name!"
 
 
 
