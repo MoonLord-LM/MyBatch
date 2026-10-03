@@ -52,10 +52,9 @@ set "dir_suffix=.{ED7BA470-8E54-465E-825C-99712043E01C}"
         goto input_path
     )
     if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"
+    if "!file_path:~-39!"=="!dir_suffix!" set "file_path=!file_path:~0,-39!"
     if exist "!file_path!\" (
         echo 错误：已有文件夹存在："!file_path!"，请重新输入
-        REM TODO 如果 file_path 是隐藏文件，处理 attrib -h -s "!file_path!"
-        REM TODO 如果 file_path 是 !dir_suffix! 后缀文件，处理 move /y
         echo.
         set "file_path="
         goto input_path

@@ -64,9 +64,9 @@ set "dir_suffix=.{ED7BA470-8E54-465E-825C-99712043E01C}"
         set "file_path="
         goto input_path
     )
+    if "!file_path:~-39!"=="!dir_suffix!" set "file_path=!file_path:~0,-39!"
     set "clsid_path=!file_path!!dir_suffix!"
     if exist "!clsid_path!\" (
-        REM TODO 如果 clsid_path 的是显示文件，处理 attrib +h +s "!clsid_path!"
         echo 错误：已有文件夹存在："!clsid_path!"，请重新输入
         echo.
         set "file_path="
