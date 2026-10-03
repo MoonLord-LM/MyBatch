@@ -276,9 +276,11 @@ if not "!working_dir!" == "" (
             if !errorlevel! neq 0 (
                 echo.
                 echo 文件 "!working_dir!\!file_name!" 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行
+                echo.
                 pause
                 "!ffprobe_path!" -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 "!working_dir!\!file_name!"
                 "!ffmpeg_path!" -v error -i "!working_dir!\!file_name!" -map 0 -f null -
+                echo.
                 pause
                 endlocal & endlocal & exit /b 1
             )
@@ -311,6 +313,7 @@ if not "!working_dir!" == "" (
                             echo.
                             echo 文件 "!file_name!" 的 Time code 清理失败，请检查报错信息
                             if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
+                            echo.
                             pause
                             endlocal & endlocal & exit /b 1
                         )
@@ -322,6 +325,7 @@ if not "!working_dir!" == "" (
                         echo.
                         echo 错误：文件 "!file_name!" 替换失败，原文件已移入回收站，请检查报错信息
                         if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
+                        echo.
                         pause
                         endlocal & endlocal & exit /b 1
                     )
@@ -459,6 +463,7 @@ if not "!working_dir!" == "" (
     if "!file_count!"=="0" (
         echo 没有找到任何视频文件，搜索范围为 01.mp4 到 999.mp4
         if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
+        echo.
         pause
         endlocal & endlocal & exit /b 1
     )
@@ -470,6 +475,7 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -tag:v av01"
         ) else (
             echo 警告：未知 AV1 Tag："!first_video_codec_tag!"，不指定 Tag
+            echo.
             pause
         )
     ) else if /i "!first_video_codec!"=="HEVC" (
@@ -480,6 +486,7 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -tag:v hvc1"
         ) else (
             echo 警告：未知 HEVC Tag："!first_video_codec_tag!"，不指定 Tag
+            echo.
             pause
         )
 
@@ -488,6 +495,7 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_video_codec_profile!"=="Main 12" ( set "target_video_encoder=!target_video_encoder! -profile:v main12"
         ) else (
             echo 警告：未知 HEVC Profile："!first_video_codec_profile!"，不指定 Profile
+            echo.
             pause
         )
 
@@ -507,6 +515,7 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_video_codec_level!"=="186" ( set "x265_level=62"
         ) else (
             echo 警告：未知 HEVC Level："!first_video_codec_level!"，不指定 Level
+            echo.
             pause
         )
         if not "!x265_level!"=="" (
@@ -514,6 +523,7 @@ if not "!working_dir!" == "" (
             ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=1^""
             ) else (
                 echo 警告：未知 HEVC Tier："!first_video_codec_tier!"，不指定 Tier
+                echo.
                 pause
                 set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!^""
             )
@@ -524,6 +534,7 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -tag:v avc1"
         ) else (
             echo 警告：未知 H264 Tag："!first_video_codec_tag!"，不指定 Tag
+            echo.
             pause
         )
 
@@ -536,6 +547,7 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_video_codec_profile!"=="High 4:4:4" ( set "target_video_encoder=!target_video_encoder! -profile:v high444"
         ) else (
             echo 警告：未知 H264 Profile："!first_video_codec_profile!"，不指定 Profile
+            echo.
             pause
         )
 
@@ -560,6 +572,7 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_video_codec_level!"=="62" ( set "target_video_encoder=!target_video_encoder! -level:v 6.2"
         ) else (
             echo 警告：未知 H264 Level："!first_video_codec_level!"，不指定 Level
+            echo.
             pause
         )
     ) else if /i "!first_video_codec!"=="MPEG4" (
@@ -568,6 +581,7 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -tag:v mp4v"
         ) else (
             echo 警告：未知 MPEG4 Tag："!first_video_codec_tag!"，不指定 Tag
+            echo.
             pause
         )
 
@@ -575,12 +589,14 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -profile:v simple"
         ) else (
             echo 警告：未知 MPEG4 Profile："!first_video_codec_profile!"，不指定 Profile
+            echo.
             pause
         )
 
         if /i "!first_video_codec_level!"=="3" ( set "target_video_encoder=!target_video_encoder! -level 3"
         ) else (
             echo 警告：未知 MPEG4 Level："!first_video_codec_level!"，不指定 Level
+            echo.
             pause
         )
     ) else if /i "!first_video_codec!"=="MPEG2VIDEO" (
@@ -591,6 +607,7 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -profile:v high"
         ) else (
             echo 警告：未知 MPEG2 Profile："!first_video_codec_profile!"，不指定 Profile
+            echo.
             pause
         )
 
@@ -604,6 +621,7 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -level:v high"
         ) else (
             echo 警告：未知 MPEG2 Level："!first_video_codec_level!"，不指定 Level
+            echo.
             pause
         )
     ) else if /i "!first_video_codec!"=="VP9" (
@@ -612,10 +630,12 @@ if not "!working_dir!" == "" (
             set "target_video_encoder=!target_video_encoder! -tag:v vp09"
         ) else (
             echo 警告：未知 VP9 Tag："!first_video_codec_tag!"，不指定 Tag
+            echo.
             pause
         )
     ) else (
         echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
+        echo.
         pause
     )
 
@@ -626,6 +646,7 @@ if not "!working_dir!" == "" (
         ) else if /i "!first_audio_codec_profile!"=="HE-AACv2" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
         ) else (
             echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
+            echo.
             pause
         )
     ) else if /i "!first_audio_codec!"=="MP3" (
@@ -642,6 +663,7 @@ if not "!working_dir!" == "" (
         set "target_audio_encoder=libopus"
     ) else (
         echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
+        echo.
         pause
     )
 
@@ -865,6 +887,7 @@ if not "!working_dir!" == "" (
         echo 视频合并失败，请检查报错信息
         if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
         if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
+        echo.
         pause
         endlocal & endlocal & exit /b 1
     )
@@ -962,6 +985,7 @@ if not "!working_dir!" == "" (
                         echo 封面图片格式转换失败，请检查报错信息
                         if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
                         if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
+                        echo.
                         pause
                         endlocal & endlocal & exit /b 1
                     )
@@ -976,6 +1000,7 @@ if not "!working_dir!" == "" (
                 echo 文件 final.mp4 合并失败，请检查报错信息
                 if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
                 if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
+                echo.
                 pause
                 endlocal & endlocal & exit /b 1
             )
@@ -988,6 +1013,7 @@ if not "!working_dir!" == "" (
         echo 合并失败，请检查报错信息
         if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
         if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
+        echo.
         pause
         endlocal & endlocal & exit /b 1
     )
