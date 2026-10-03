@@ -32,21 +32,23 @@
 # 运行方式：
 #     powershell -NoProfile -ExecutionPolicy Bypass -File "任务管理 MyBatchTask.ps1"
 #
+#
+#
 # ————————————————————————————— 1: 基础设置和公共资源 —————————————————————————————
-try {
-    # 异常处理
-    function Handle-Exception {
-        param([Parameter(Mandatory=$true)][System.Management.Automation.ErrorRecord]$ErrorRecord)
-        ""
-        "[ Error ] Message: $($ErrorRecord.Exception.Message)"
-        if ($ErrorRecord.InvocationInfo) {
-            "[ Error ] Line: $($ErrorRecord.InvocationInfo.ScriptLineNumber)"
-            if ($ErrorRecord.InvocationInfo.Line) {
-                "[ Error ] Code: $($ErrorRecord.InvocationInfo.Line.Trim())"
-            }
+# 异常处理
+function Handle-Exception {
+    param([Parameter(Mandatory=$true)][System.Management.Automation.ErrorRecord]$ErrorRecord)
+    ""
+    "[ Error ] Message: $($ErrorRecord.Exception.Message)"
+    if ($ErrorRecord.InvocationInfo) {
+        "[ Error ] Line: $($ErrorRecord.InvocationInfo.ScriptLineNumber)"
+        if ($ErrorRecord.InvocationInfo.Line) {
+            "[ Error ] Code: $($ErrorRecord.InvocationInfo.Line.Trim())"
         }
-        ""
     }
+    ""
+}
+try {
     # 启用双缓冲，减少界面闪烁
     function Enable-Double-Buffered {
         param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
@@ -55,19 +57,30 @@ try {
         $doubleBufferedProperty.SetValue($Control, $true)
         return $doubleBufferedProperty.GetValue($Control)
     }
-    # 加载窗体程序集
+    # 加载窗体程序集和系统函数
     Add-Type -AssemblyName System.Windows.Forms
     Add-Type -AssemblyName System.Drawing
-    # 禁用自动缩放
-    Add-Type -TypeDefinition @"
+    $Win32TypeDefinition =
+@'
     using System;
     using System.Runtime.InteropServices;
     public static class DpiHelper {
         [DllImport("user32.dll")]
         public static extern bool SetProcessDPIAware();
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
     }
-"@
-    [DpiHelper]::SetProcessDPIAware() | Out-Null
+    public static class DpiContext {
+        public static readonly IntPtr UNAWARE = (IntPtr)(-1);
+        public static readonly IntPtr SYSTEM_AWARE = (IntPtr)(-2);
+        public static readonly IntPtr PER_MONITOR_AWARE = (IntPtr)(-3);
+        public static readonly IntPtr PER_MONITOR_AWARE_V2 = (IntPtr)(-4);
+    }
+'@
+    Add-Type -TypeDefinition $Win32TypeDefinition
+    # 禁用自动缩放
+    # [DpiHelper]::SetProcessDPIAware() | Out-Null
+    [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2) | Out-Null
     # 设置更现代的窗口样式
     [System.Windows.Forms.Application]::EnableVisualStyles()
     [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
@@ -108,7 +121,8 @@ try {
     }
     $utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($false)
     # 内嵌的默认 JSON 配置
-    $defaultJsonConfig = @'
+    $defaultJsonConfig =
+@'
 [
     {
         "name": "Ping Test",
