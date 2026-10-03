@@ -14,8 +14,8 @@
 #     [
 #         {
 #             "name": "Ping Test",
-#             "command": "C:\\Windows\\System32\\ping.exe",
-#             "arguments": "www.github.com",
+#             "command": "C:\\Windows\\System32\\cmd.exe",
+#             "arguments": "/c \"chcp 65001 >nul && ping github.com\"",
 #             "workingDirectory": "C:\\Windows\\System32",
 #             "autoStart": true
 #         }
@@ -142,8 +142,8 @@ try {
 [
     {
         "name": "Ping Test",
-        "command": "C:\\Windows\\System32\\ping.exe",
-        "arguments": "www.github.com",
+        "command": "C:\\Windows\\System32\\cmd.exe",
+        "arguments": "/c \"chcp 65001 >nul && ping github.com\"",
         "workingDirectory": "C:\\Windows\\System32",
         "autoStart": true
     }
