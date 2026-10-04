@@ -284,6 +284,8 @@ try {
             ERROR_TaskStartFailed = "任务启动失败: {0}"
             INFO_Started = "任务已启动: {0} (PID {1})"
             INFO_Stopped = "任务已停止: {0}"
+            INFO_Exited = "任务已退出: {0} (退出码 {1})"
+            INFO_AlreadyRunning = "任务已在运行中: {0}"
             INFO_Deleted = "任务已删除: {0}"
             INFO_Saved = "配置已保存到 {0}"
             INFO_ConfigLoaded = "已加载 {0} 个任务"
@@ -311,9 +313,96 @@ try {
             DialogCancel = "取消"
             FileFilterLog = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*"
             CloseTab = "关闭标签页"
+            LogProcessHeader = "———————————— 开始新进程 {0} ————————————————"
+        }
+        'en-US' = @{
+            FormTitle = "MyBatchTask Batch Task Manager"
+            ColumnStatus = "Status"
+            ColumnPid = "PID"
+            ColumnName = "Task Name"
+            ColumnCommand = "Command"
+            ColumnArguments = "Arguments"
+            ColumnWorkingDir = "Working Directory"
+            TabTaskList = "Task List"
+            TabRunLog = "Run Log"
+            AddButton = "Add"
+            EditButton = "Edit"
+            DeleteButton = "Delete"
+            StartButton = "Start"
+            StopButton = "Stop"
+            RestartButton = "Restart"
+            StartAllButton = "Start All"
+            StopAllButton = "Stop All"
+            ViewLogButton = "View Log"
+            OpenLogsButton = "Open Logs Folder"
+            TrayShow = "Show Main Window"
+            TrayStartAll = "Start All"
+            TrayStopAll = "Stop All"
+            TrayExit = "Exit"
+            MenuAdd = "Add Task"
+            MenuStart = "Start"
+            MenuStop = "Stop"
+            MenuRestart = "Restart"
+            MenuViewLog = "View Log"
+            MenuEdit = "Edit"
+            MenuDelete = "Delete"
+            MenuStartAll = "Start All"
+            MenuStopAll = "Stop All"
+            StatusRunning = "Running"
+            StatusStopped = "Stopped"
+            StatusExited = "Exited ({0})"
+            StatusStarting = "Starting"
+            LogCopy = "Copy Log"
+            LogClear = "Clear Log"
+            LogOpenFile = "Open Log File"
+            LogViewerTitle = "Task Log - {0}"
+            ConfirmTitle = "Confirm"
+            ConfirmDelete = "Delete task '{0}'?"
+            ConfirmExit = "Exit will stop all running tasks. Continue?"
+            ConfirmRestart = "Task '{0}' is running and will be restarted after editing. Continue?"
+            ERROR_CommandEmpty = "Command must not be empty"
+            ERROR_CommandNotFound = "Command file not found: {0}"
+            ERROR_NameEmpty = "Task name must not be empty"
+            ERROR_NameDuplicated = "Task name already exists: {0}"
+            ERROR_WorkDirNotFound = "Working directory not found: {0}"
+            ERROR_NoSelection = "Please select a task from the list first"
+            ERROR_TaskStartFailed = "Failed to start task: {0}"
+            INFO_Started = "Task started: {0} (PID {1})"
+            INFO_Stopped = "Task stopped: {0}"
+            INFO_Exited = "Task exited: {0} (exit code {1})"
+            INFO_AlreadyRunning = "Task is already running: {0}"
+            INFO_Deleted = "Task deleted: {0}"
+            INFO_Saved = "Configuration saved to {0}"
+            INFO_ConfigLoaded = "Loaded {0} task(s)"
+            INFO_ConfigLoadFailed = "Failed to load configuration file: {0}"
+            INFO_ConfigNotFound = "Configuration file not found: {0}"
+            INFO_StartAllDone = "All tasks started"
+            INFO_StopAllDone = "All tasks stopped"
+            INFO_LogCopied = "Log copied to clipboard"
+            INFO_NoLog = "No log content"
+            INFO_TrayHint = "The program is minimized to the tray icon. Double-click the tray icon to reopen the window."
+            INFO_SystemInfo = "Config file: [ {0} ]"
+            DialogAddTitle = "Add Task"
+            DialogEditTitle = "Edit Task"
+            DialogName = "Task Name:"
+            DialogCommand = "Command:"
+            DialogArguments = "Arguments:"
+            DialogWorkingDir = "Working Directory:"
+            DialogAutoStart = "Auto start when the manager starts"
+            DialogBrowseCommand = "Browse..."
+            DialogBrowseDir = "Browse..."
+            DialogBrowseCommandTitle = "Select Command File"
+            DialogBrowseDirTitle = "Select Working Directory"
+            DialogExeFilter = "Executable files (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|All files (*.*)|*.*"
+            DialogOk = "OK"
+            DialogCancel = "Cancel"
+            FileFilterLog = "Log files (*.log)|*.log|All files (*.*)|*.*"
+            CloseTab = "Close Tab"
+            LogProcessHeader = "———————————— Start new process {0} ————————————————"
         }
     }
     $ui = $uiTextResources[$workingLanguage]
+    if (-not $ui) { $ui = $uiTextResources['zh-CN'] }
 } catch {
     Handle-Exception $_
     pause
@@ -336,8 +425,8 @@ try {
     # 创建主窗口
     $mainForm = [System.Windows.Forms.Form]::new()
     $mainForm.Text = $ui.FormTitle
-    $mainForm.Size = [System.Drawing.Size]::new(1280, 720)
-    $mainForm.MinimumSize = [System.Drawing.Size]::new(1000, 600)
+    $mainForm.Size = [System.Drawing.Size]::new(1440, 840)
+    $mainForm.MinimumSize = [System.Drawing.Size]::new(1100, 650)
     $mainForm.StartPosition = "CenterScreen"
     $mainForm.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10)
     $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
@@ -782,7 +871,7 @@ try {
         if ($script:runtimeTable.ContainsKey($taskName)) {
             $runtime = $script:runtimeTable[$taskName]
             if ($runtime.Process -and -not $runtime.Process.HasExited) {
-                Show-Log ("任务已在运行中: " + $taskName) "Warning"
+                Show-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
                 return
             }
         }
@@ -853,7 +942,7 @@ try {
         }
         # 初始化运行时状态
         $logBuilder = [System.Text.StringBuilder]::new()
-        $headerLine = "———————————— 开始新进程 {0} ————————————————" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
+        $headerLine = $ui.LogProcessHeader -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
         if (-not $script:runtimeTable.ContainsKey($taskName)) {
             $script:runtimeTable[$taskName] = @{
                 Process = $null
@@ -1077,7 +1166,7 @@ try {
             if ($runtime.Process -and $runtime.Process.HasExited) {
                 if ($runtime.Status -eq $ui.StatusRunning) {
                     $runtime.Status = $ui.StatusExited -f $runtime.Process.ExitCode
-                    Show-Log ("任务已退出: {0} (退出码 {1})" -f $taskName, $runtime.Process.ExitCode) "Warning"
+                    Show-Log ($ui.INFO_Exited -f $taskName, $runtime.Process.ExitCode) "Warning"
                 }
                 Stop-Task-Readers -Runtime $runtime
                 if ($runtime.Writer) {
