@@ -413,16 +413,16 @@ try {
     $ui = $uiTextResources[$workingLanguage]
     if (-not $ui) { $ui = $uiTextResources['zh-CN'] }
 
-    # 全局界面字体：窗体/表格/输入框/日志框等所有控件统一用微软雅黑 10
+    # 界面字体，统一用微软雅黑
     $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
 
-    # 全局运行日志颜色映射
+    # 运行日志的颜色映射
     $logColorMap = @{
         Info     = [System.Drawing.Color]::Black
         Success  = [System.Drawing.Color]::Green
         Warning  = [System.Drawing.Color]::DarkOrange
         Error    = [System.Drawing.Color]::Red
-        Progress = [System.Drawing.Color]::FromArgb(91, 155, 213)
+        Progress = [System.Drawing.Color]::Blue
         Debug    = [System.Drawing.Color]::Gray
     }
 
@@ -447,15 +447,7 @@ try {
 # ———————————————————————————————— 3: 功能实现 ————————————————————————————————
 
 try {
-    # 3.1 显示主窗口
-    function Show-MainWindow {
-        $mainForm.Show()
-        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
-        $mainForm.ShowInTaskbar = $true
-        $mainForm.Activate()
-    }
-
-    # 3.2 运行日志输出
+    # 运行日志输出
     function Show-Log {
         param([string]$Message = '', [string]$Level = 'Info')
         if ($logTextBox.IsDisposed) { return }
@@ -473,7 +465,7 @@ try {
         $logTextBox.ScrollToCaret()
     }
 
-    # 3.3 配置加载和保存
+    # 配置加载和保存
     # 保存任务列表到配置文件
     function Save-Config {
         $objects = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -524,7 +516,7 @@ try {
         return $true
     }
 
-    # 3.4 表格刷新与选中任务
+    # 表格刷新与选中任务
     # 用任务列表刷新整个表格
     function Update-Task-Grid {
         $dataGridView.SuspendLayout()
@@ -586,7 +578,7 @@ try {
         return $script:tasks[$index]
     }
 
-    # 3.5 任务输出收集
+    # 任务输出收集
     # 输出读取线程共用的 Runspace 池
     $script:readerRunspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(1, 16)
     $script:readerRunspacePool.Open()
@@ -698,7 +690,7 @@ try {
         Append-Task-Meta -TaskName $TaskName -Line ""
     }
 
-    # 3.6 任务进程管理
+    # 任务进程管理
     # 启动任务
     function Start-Task {
         param([int]$Index)
@@ -858,7 +850,7 @@ try {
         Show-Log $ui.INFO_StopAllDone "Info"
     }
 
-    # 3.7 任务日志标签页
+    # 任务日志标签页
     # 打开任务日志标签页（已存在则直接切换）
     function Show-Task-Log-Viewer {
         $task = Get-Selected-Task
@@ -951,7 +943,7 @@ try {
         $tabControl.SelectedTab = $logPage
     }
 
-    # 3.8 界面刷新定时器: 消化输出队列 + 检查进程退出
+    # 界面刷新定时器: 消化输出队列 + 检查进程退出
     $refreshTimer = [System.Windows.Forms.Timer]::new()
     $refreshTimer.Interval = 500
     $refreshTimer.Add_Tick({
@@ -983,7 +975,7 @@ try {
     })
     $refreshTimer.Start()
 
-    # 3.9 任务编辑对话框
+    # 任务编辑对话框
     # 打开新增/修改任务的对话框，返回 DialogResult
     function Open-Task-Dialog {
         param([int]$EditIndex = -1)
@@ -1213,7 +1205,7 @@ try {
 # ———————————————————————————————— 4: 窗体界面绘制 ————————————————————————————————
 
 try {
-    # 4.1 主窗口
+    # 主窗口
     $mainForm = [System.Windows.Forms.Form]::new()
     $mainForm.Text = $ui.FormTitle
     $mainForm.Size = [System.Drawing.Size]::new(1440, 840)
@@ -1224,6 +1216,13 @@ try {
     $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
     # 启用双缓冲减少闪烁
     Enable-Double-Buffered $mainForm | Out-Null
+    # 显示主窗口（从托盘恢复时使用）
+    function Show-MainWindow {
+        $mainForm.Show()
+        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
+        $mainForm.ShowInTaskbar = $true
+        $mainForm.Activate()
+    }
     # 窗体关闭事件: 默认隐藏到托盘，真正退出时才关闭
     $mainForm.Add_FormClosing({
         param($eventSender, $event)
@@ -1253,7 +1252,7 @@ try {
         }
     })
 
-    # 4.2 托盘图标与托盘菜单
+    # 托盘图标与托盘菜单
     # 绘制托盘图标（蓝色圆形 + 白色 M 字样）
     $trayBitmap = [System.Drawing.Bitmap]::new(32, 32)
     $trayGraphics = [System.Drawing.Graphics]::FromImage($trayBitmap)
@@ -1322,7 +1321,7 @@ try {
         $mainForm.Close()
     })
 
-    # 4.3 标签页容器（充满整个窗口，浏览器式布局）
+    # 标签页容器（充满整个窗口，浏览器式布局）
     $tabControl = [System.Windows.Forms.TabControl]::new()
     $tabControl.Dock = "Fill"
     $tabControl.Padding = [System.Drawing.Point]::new(20, 3)
@@ -1365,7 +1364,7 @@ try {
         $script:rightClickedTab = $null
     })
 
-    # 4.4 任务列表标签页
+    # 任务列表标签页
     $taskListTabPage = [System.Windows.Forms.TabPage]::new()
     $taskListTabPage.Text = $ui.TabTaskList
     $taskListTabPage.BackColor = [System.Drawing.Color]::White
@@ -1548,7 +1547,7 @@ try {
     $menuStartAllItem.Add_Click({ Start-All-Tasks })
     $menuStopAllItem.Add_Click({ Stop-All-Tasks })
 
-    # 4.5 运行日志标签页
+    # 运行日志标签页
     $logTabPage = [System.Windows.Forms.TabPage]::new()
     $logTabPage.Text = $ui.TabRunLog
     $logTabPage.BackColor = [System.Drawing.Color]::White
