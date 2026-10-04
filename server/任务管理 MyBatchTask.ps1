@@ -181,7 +181,7 @@ try {
 
 
 
-# ———————————————————————————————— 2: 程序设置 ————————————————————————————————
+# ———————————————————————————————— 2: 程序全局设置 ————————————————————————————————
 
 try {
     # 数据目录：/MyBatchTask
@@ -413,7 +413,7 @@ try {
 
 
 
-# ———————————————————————————————— 3: 主窗体界面绘制 ————————————————————————————————
+# ———————————————————————————————— 3: 窗体界面绘制 ————————————————————————————————
 
 try {
     # 任务运行时状态表: 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
@@ -426,7 +426,6 @@ try {
     $script:realExit = $false
     # 全局界面字体：窗体/表格/输入框/日志框等所有控件统一用微软雅黑 10
     $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
-    $logFont = $uiFont
     # 创建主窗口
     $mainForm = [System.Windows.Forms.Form]::new()
     $mainForm.Text = $ui.FormTitle
@@ -652,7 +651,7 @@ try {
     $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     $logTextBox.BackColor = [System.Drawing.Color]::White
     # 运行日志与全局字体统一使用微软雅黑
-    $logTextBox.Font = $logFont
+    $logTextBox.Font = $uiFont
     # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
     $logTextBox.DetectUrls = $false
     $logTextBox.WordWrap = $false
@@ -857,7 +856,17 @@ try {
         # 内存缓冲，超过 256KB 时丢弃前一半，避免无限增长
         $runtime.LogBuilder.AppendLine($logLine) | Out-Null
         if ($runtime.LogBuilder.Length -gt 262144) {
-            $runtime.LogBuilder.Remove(0, 131072) | Out-Null
+            # 裁剪终点对齐到下一个换行符，只删除完整行；避免按 UTF-16 代码单元硬切
+            # 时落在代理对（emoji、生僻字等）中间，导致缓冲区开头出现乱码。
+            # 注：StringBuilder 在 .NET Framework 下没有 IndexOf，故先用 ToString() 快照查找
+            $trimLength = 131072
+            $nlIndex = $runtime.LogBuilder.ToString().IndexOf("`n", $trimLength)
+            if ($nlIndex -ge 0) {
+                $trimLength = $nlIndex + 1  # 连同换行符一起删除，不残留孤立 \r
+            } else {
+                $trimLength = $runtime.LogBuilder.Length
+            }
+            $runtime.LogBuilder.Remove(0, $trimLength) | Out-Null
         }
         # 日志文件
         try {
@@ -866,12 +875,13 @@ try {
         } catch {}
         # 任务日志标签页
         if ($runtime.ViewerBox -and -not $runtime.ViewerBox.IsDisposed) {
-            # 统一字体和颜色（与运行日志一致：Consolas 10 / 黑色），防止 RichTextBox
-            # 继承光标/选区处的旧字体或颜色导致各行样式不一致
+            # 统一字体（与运行日志一致：微软雅黑 10），防止 RichTextBox 继承光标/选区处
+            # 的旧字体导致样式不一致；颜色按来源区分：stderr 深红、stdout 黑色
             $runtime.ViewerBox.SelectionStart = $runtime.ViewerBox.TextLength
             $runtime.ViewerBox.SelectionLength = 0
             $runtime.ViewerBox.SelectionFont = $runtime.ViewerBox.Font
-            $runtime.ViewerBox.SelectionColor = [System.Drawing.Color]::Black
+            $lineColor = if ($IsError) { [System.Drawing.Color]::FromArgb(180, 40, 40) } else { [System.Drawing.Color]::Black }
+            $runtime.ViewerBox.SelectionColor = $lineColor
             $runtime.ViewerBox.AppendText($logLine + "`r`n")
             $runtime.ViewerBox.ScrollToCaret()
         }
