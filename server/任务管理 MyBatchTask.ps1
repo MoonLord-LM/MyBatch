@@ -326,8 +326,8 @@ try {
             DialogCancel = "取消"
             FileFilterLog = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*"
             CloseTab = "关闭标签页"
-            LogProcessHeader = "———————————— 开始新进程 {0} ————————————————"
-            LogProcessFooter = "———————————— 结束进程 {0}，退出码 {1} ————————————————"
+            LogProcessHeader = "[{0}] ———————————— 开始新进程 ————————————————"
+            LogProcessFooter = "[{0}] ———————————— 结束进程，退出码 {1} ————————————————"
         }
         'en-US' = @{
             FormTitle = "MyBatchTask Batch Task Manager"
@@ -412,8 +412,8 @@ try {
             DialogCancel = "Cancel"
             FileFilterLog = "Log files (*.log)|*.log|All files (*.*)|*.*"
             CloseTab = "Close Tab"
-            LogProcessHeader = "———————————— Start new process {0} ————————————————"
-            LogProcessFooter = "———————————— End process {0}, exit code {1} ————————————————"
+            LogProcessHeader = "[{0}] ———————————— Start new process ————————————————"
+            LogProcessFooter = "[{0}] ———————————— End process, exit code {1} ————————————————"
         }
     }
     $ui = $uiTextResources[$workingLanguage]
@@ -445,8 +445,8 @@ try {
 try {
     # 记录系统日志
     # 使用 System-Log 函数：首先记录到文件 $myBatchTaskSystemLogFile 中，再尝试展示到 $systemLogTextBox 中
-    $systemLogTextBox = $null
     $systemLogFileLock = [object]::new()
+    $systemLogTextBox = $null
     $systemLogColorMap = @{
         Info     = [System.Drawing.Color]::Black
         Success  = [System.Drawing.Color]::Green
@@ -470,6 +470,11 @@ try {
         } catch {
             Handle-Exception $_
         }
+    }
+    $systemLogInternalAction = [Action[System.Windows.Forms.RichTextBox, string, System.Drawing.Color]]{
+        param($txtBox, $text, $color)
+
+        System-Log-Internal $txtBox $text $color
     }
     function System-Log {
         param([string]$Message = '', [string]$Level = 'Info')
@@ -498,11 +503,6 @@ try {
 
         if ($systemLogTextBox.IsHandleCreated -and $systemLogTextBox.InvokeRequired) {
             try {
-                $systemLogInternalAction = [Action[System.Windows.Forms.RichTextBox, string, System.Drawing.Color]]{
-                    param($txtBox, $text, $color)
-
-                    System-Log-Internal $txtBox $text $color
-                }
                 [void]$systemLogTextBox.BeginInvoke($systemLogInternalAction, $systemLogTextBox, $logLine, $logColor)
             } catch {
                 Handle-Exception $_
@@ -697,7 +697,7 @@ try {
             $runtime.ViewerBox.ScrollToCaret()
         }
     }
-    # 追加一条任务进程标记（开始/结束标记行，不带时间戳前缀；同步到内存缓冲 + 日志文件 + 日志标签页）
+    # 追加一条任务进程标记（开始/结束标记行，与普通输出行统一的时间戳前缀；同步到内存缓冲 + 日志文件 + 日志标签页）
     function Append-Task-Meta {
         param([string]$TaskName, [string]$Line)
         if (-not $script:runtimeTable.ContainsKey($TaskName)) { return }
