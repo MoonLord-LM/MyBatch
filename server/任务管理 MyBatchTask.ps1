@@ -441,6 +441,17 @@ try {
     function Show-Log {
         param([string]$Message = '', [string]$Level = 'Info')
 
+        if ($logTextBox -eq $null) { return }
+        if (-not $logTextBox.IsHandleCreated) { return }
+        if ($logTextBox.IsDisposed) { return }
+
+        if ($logTextBox.InvokeRequired) {
+            [void]$logTextBox.BeginInvoke([System.Windows.Forms.MethodInvoker]{
+                Show-Log -Message $Message -Level $Level
+            })
+            return
+        }
+
         $logColorMap = @{
             Info     = [System.Drawing.Color]::Black
             Success  = [System.Drawing.Color]::Green
