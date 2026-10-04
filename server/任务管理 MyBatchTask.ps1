@@ -1,4 +1,4 @@
-﻿# 批处理任务管理器
+﻿# MyBatchTask 批处理任务管理器
 #
 # 开源地址: https://github.com/MoonLord-LM/MyBatch
 #
@@ -55,8 +55,10 @@ try {
     $defaultOutputEncoding = [System.Console]::OutputEncoding.EncodingName
     [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     $currentOutputEncoding = [System.Console]::OutputEncoding.EncodingName
+    $workingEncoding = New-Object System.Text.UTF8Encoding($false)
     "[ Debug ] defaultOutputEncoding = $defaultOutputEncoding"
     "[ Debug ] currentOutputEncoding = $currentOutputEncoding"
+    "[ Debug ] workingEncoding = $workingEncoding"
 
     # 获取环境信息，使用单独进程隔离 Get-CimInstance 对语言的影响
     $windowsVersion = powershell -NoProfile -Command {
@@ -182,20 +184,34 @@ try {
 # ———————————————————————————————— 2: 程序设置 ————————————————————————————————
 
 try {
-    # 配置文件和日志目录
+    # 数据目录：/MyBatchTask
     $myBatchTaskDir = [System.IO.Path]::Combine($workingDirectory, "MyBatchTask")
     if (-not [System.IO.Directory]::Exists($myBatchTaskDir)) {
         [System.IO.Directory]::CreateDirectory($myBatchTaskDir) | Out-Null
     }
-    $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
+
+    # 日志目录：/MyBatchTask/logs
     $myBatchTaskLogsDir = [System.IO.Path]::Combine($myBatchTaskDir, "logs")
     if (-not [System.IO.Directory]::Exists($myBatchTaskLogsDir)) {
         [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
     }
-    $utf8NoBomEncoding = New-Object System.Text.UTF8Encoding($false)
 
-    # 默认 JSON 配置
-    $defaultJsonConfig =
+    # 配置文件：/MyBatchTask/config.json
+    $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
+    $defaultJsonConfig = @{
+        'zh-CN' =
+@'
+[
+    {
+        "name": "Ping 测试",
+        "command": "C:\\Windows\\System32\\cmd.exe",
+        "arguments": "/c \"chcp 65001 >nul && ping github.com\"",
+        "workingDirectory": "C:\\Windows\\System32",
+        "autoStart": true
+    }
+]
+'@
+        'en-US' =
 @'
 [
     {
@@ -207,14 +223,15 @@ try {
     }
 ]
 '@
+    }
     if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
-        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig, $utf8NoBomEncoding)
+        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig[$workingLanguage], $workingEncoding)
     }
 
-    # 界面文本资源
+    # 界面文本，包含中文和英文
     $uiTextResources = @{
         'zh-CN' = @{
-            FormTitle = "命令任务管理器"
+            FormTitle = "MyBatchTask 批处理任务管理器"
             ColumnStatus = "状态"
             ColumnPid = "PID"
             ColumnName = "任务名称"
@@ -296,7 +313,7 @@ try {
             CloseTab = "关闭标签页"
         }
     }
-    $ui = $uiTextResources['zh-CN']
+    $ui = $uiTextResources[$workingLanguage]
 } catch {
     Handle-Exception $_
     pause
@@ -601,7 +618,7 @@ try {
             })
         }
         $jsonText = ConvertTo-Json -InputObject @($objects) -Depth 5
-        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $jsonText, $utf8NoBomEncoding)
+        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $jsonText, $workingEncoding)
         Show-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) "Debug"
     }
     # 从配置文件加载任务列表并刷新表格
@@ -723,7 +740,7 @@ try {
             $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $safeName + ".log")
             # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
             $fileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
-            $streamWriter = [System.IO.StreamWriter]::new($fileStream, $utf8NoBomEncoding)
+            $streamWriter = [System.IO.StreamWriter]::new($fileStream, $workingEncoding)
             $streamWriter.AutoFlush = $true
             $runtime.Writer = $streamWriter
             $runtime.LogFile = $logFilePath
@@ -799,8 +816,8 @@ try {
         $startInfo.CreateNoWindow = $true
         $startInfo.RedirectStandardOutput = $true
         $startInfo.RedirectStandardError = $true
-        $startInfo.StandardOutputEncoding = $utf8NoBomEncoding
-        $startInfo.StandardErrorEncoding = $utf8NoBomEncoding
+        $startInfo.StandardOutputEncoding = $workingEncoding
+        $startInfo.StandardErrorEncoding = $workingEncoding
         try {
             $process = [System.Diagnostics.Process]::new()
             $process.StartInfo = $startInfo
