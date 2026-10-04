@@ -203,6 +203,12 @@ try {
         [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
     }
 
+    # 系统日志：/MyBatchTask/logs
+    $myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, "system.log")
+    if (-not [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {
+        [System.IO.File]::WriteAllText($myBatchTaskSystemLogFile, "", $workingEncoding)
+    }
+
     # 配置文件：/MyBatchTask/config.json
     $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
     $defaultJsonConfig = @{
@@ -246,7 +252,7 @@ try {
             ColumnArguments = "参数"
             ColumnWorkingDir = "工作目录"
             TabTaskList = "任务列表"
-            TabRunLog = "运行日志"
+            TabRunLog = "系统日志"
             AddButton = "新增"
             EditButton = "修改"
             DeleteButton = "删除"
@@ -332,7 +338,7 @@ try {
             ColumnArguments = "Arguments"
             ColumnWorkingDir = "Working Directory"
             TabTaskList = "Task List"
-            TabRunLog = "Run Log"
+            TabRunLog = "System Log"
             AddButton = "Add"
             EditButton = "Edit"
             DeleteButton = "Delete"
@@ -437,17 +443,19 @@ try {
 # ———————————————————————————————— 3: 功能实现 ————————————————————————————————
 
 try {
-    # 展示运行日志
-    function Show-Log {
+    # 记录系统日志
+    $systemLogTextBox = $null
+    function System-Log {
         param([string]$Message = '', [string]$Level = 'Info')
 
-        if ($logTextBox -eq $null) { return }
-        if (-not $logTextBox.IsHandleCreated) { return }
-        if ($logTextBox.IsDisposed) { return }
-
-        if ($logTextBox.InvokeRequired) {
-            [void]$logTextBox.BeginInvoke([System.Windows.Forms.MethodInvoker]{
-                Show-Log -Message $Message -Level $Level
+        $logText = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
+        if ($systemLogTextBox -eq $null -or $systemLogTextBox.IsDisposed) {
+            [System.IO.File]::AppendAllText($myBatchTaskSystemLogFile, $Message, $workingEncoding)
+            return
+        }
+        if ($systemLogTextBox.IsHandleCreated -and $systemLogTextBox.InvokeRequired) {
+            [void]$systemLogTextBox.BeginInvoke([System.Windows.Forms.MethodInvoker]{
+                System-Log -Message $Message -Level $Level
             })
             return
         }
@@ -465,15 +473,14 @@ try {
         } else {
             [System.Drawing.Color]::Black
         }
-        $logText = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
 
-        if (-not $logTextBox.IsDisposed) {
-            $logTextBox.SelectionStart = $logTextBox.TextLength
-            $logTextBox.SelectionLength = 0
-            $logTextBox.SelectionFont = $logTextBox.Font
-            $logTextBox.SelectionColor = $logColor
-            $logTextBox.AppendText($logText)
-            $logTextBox.ScrollToCaret()
+        if (-not $systemLogTextBox.IsDisposed) {
+            $systemLogTextBox.SelectionStart = $systemLogTextBox.TextLength
+            $systemLogTextBox.SelectionLength = 0
+            $systemLogTextBox.SelectionFont = $systemLogTextBox.Font
+            $systemLogTextBox.SelectionColor = $logColor
+            $systemLogTextBox.AppendText($logText)
+            $systemLogTextBox.ScrollToCaret()
         }
     }
 
@@ -500,12 +507,12 @@ try {
         }
         $jsonText = ConvertTo-Json -InputObject @($objects) -Depth 5
         [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $jsonText, $workingEncoding)
-        Show-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) "Debug"
+        System-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) "Debug"
     }
     # 从配置文件加载任务列表并刷新表格
     function Load-Config {
         if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
-            Show-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) "Warning"
+            System-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) "Warning"
             return $false
         }
         try {
@@ -520,11 +527,11 @@ try {
                 $script:tasks += $item
             }
         } catch {
-            Show-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) "Error"
+            System-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) "Error"
             return $false
         }
         Update-Task-Grid
-        Show-Log ($ui.INFO_ConfigLoaded -f $script:tasks.Count) "Success"
+        System-Log ($ui.INFO_ConfigLoaded -f $script:tasks.Count) "Success"
         return $true
     }
 
@@ -653,8 +660,6 @@ try {
         } catch {}
         # 任务日志标签页
         if ($runtime.ViewerBox -and -not $runtime.ViewerBox.IsDisposed) {
-            # 统一字体（与运行日志一致：微软雅黑 10），防止 RichTextBox 继承光标/选区处
-            # 的旧字体导致样式不一致；颜色按来源区分：stderr 深红、stdout 黑色
             $runtime.ViewerBox.SelectionStart = $runtime.ViewerBox.TextLength
             $runtime.ViewerBox.SelectionLength = 0
             $runtime.ViewerBox.SelectionFont = $runtime.ViewerBox.Font
@@ -712,7 +717,7 @@ try {
         if ($script:runtimeTable.ContainsKey($taskName)) {
             $runtime = $script:runtimeTable[$taskName]
             if ($runtime.Process -and -not $runtime.Process.HasExited) {
-                Show-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
+                System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
                 return
             }
         }
@@ -727,7 +732,7 @@ try {
             $workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$task.workingDirectory)
         }
         if (-not [System.IO.Directory]::Exists($workingDirText)) {
-            Show-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) "Error"
+            System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) "Error"
             return
         }
         # 构建进程启动信息，隐藏窗口并重定向输出
@@ -755,7 +760,7 @@ try {
                 throw ($ui.ERROR_TaskStartFailed -f $taskName)
             }
         } catch {
-            Show-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) "Error"
+            System-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) "Error"
             return
         }
         # 用独立线程的读取循环收集输出，入队后由定时器统一刷新界面
@@ -803,7 +808,7 @@ try {
         $runtime.Readers = $readerInstances
         Append-Task-Meta -TaskName $taskName -Line $headerLine
         Update-Task-Row -Index $Index
-        Show-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
+        System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
     # 停止任务（taskkill 结束整个进程树）
     function Stop-Task {
@@ -839,7 +844,7 @@ try {
             $runtime.Writer = $null
         }
         Update-Task-Row -Index $Index
-        Show-Log ($ui.INFO_Stopped -f $taskName) "Info"
+        System-Log ($ui.INFO_Stopped -f $taskName) "Info"
     }
     # 重启任务
     function Restart-Task {
@@ -852,14 +857,14 @@ try {
         for ($i = 0; $i -lt $script:tasks.Count; $i++) {
             Start-Task -Index $i
         }
-        Show-Log $ui.INFO_StartAllDone "Success"
+        System-Log $ui.INFO_StartAllDone "Success"
     }
     # 全部停止
     function Stop-All-Tasks {
         for ($i = 0; $i -lt $script:tasks.Count; $i++) {
             Stop-Task -Index $i
         }
-        Show-Log $ui.INFO_StopAllDone "Info"
+        System-Log $ui.INFO_StopAllDone "Info"
     }
 
     # 任务日志标签页
@@ -896,7 +901,7 @@ try {
         $logPage.Name = $logPageName
         $logPage.Text = $taskName
         $logPage.BackColor = [System.Drawing.Color]::White
-        # 日志文本框（样式与运行日志一致）
+        # 日志文本框
         $viewerTextBox = [System.Windows.Forms.RichTextBox]::new()
         $viewerTextBox.ReadOnly = $true
         $viewerTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
@@ -932,9 +937,9 @@ try {
         $viewerCopyItem.Add_Click({
             if ($viewerTextBox.Text.Length -gt 0) {
                 [System.Windows.Forms.Clipboard]::SetText($viewerTextBox.Text)
-                Show-Log $ui.INFO_LogCopied "Success"
+                System-Log $ui.INFO_LogCopied "Success"
             } else {
-                Show-Log $ui.INFO_NoLog "Warning"
+                System-Log $ui.INFO_NoLog "Warning"
             }
         })
         $viewerClearItem.Add_Click({
@@ -945,7 +950,7 @@ try {
             if ($runtime.LogFile -and [System.IO.File]::Exists($runtime.LogFile)) {
                 Start-Process "notepad.exe" -ArgumentList ('"' + $runtime.LogFile + '"')
             } else {
-                Show-Log $ui.INFO_NoLog "Warning"
+                System-Log $ui.INFO_NoLog "Warning"
             }
         })
         # 保存引用
@@ -973,7 +978,7 @@ try {
             if ($runtime.Process -and $runtime.Process.HasExited) {
                 if ($runtime.Status -eq $ui.StatusRunning) {
                     $runtime.Status = $ui.StatusExited -f $runtime.Process.ExitCode
-                    Show-Log ($ui.INFO_Exited -f $taskName, $runtime.Process.ExitCode) "Warning"
+                    System-Log ($ui.INFO_Exited -f $taskName, $runtime.Process.ExitCode) "Warning"
                     Write-Task-Exit-Log -TaskName $taskName
                 }
                 Stop-Task-Readers -Runtime $runtime
@@ -1553,31 +1558,31 @@ try {
         $script:tasks = $newTasks
         Save-Config
         Update-Task-Grid
-        Show-Log ($ui.INFO_Deleted -f $taskName) "Info"
+        System-Log ($ui.INFO_Deleted -f $taskName) "Info"
     })
     # 右键菜单: 全部启动 / 全部停止
     $menuStartAllItem.Add_Click({ Start-All-Tasks })
     $menuStopAllItem.Add_Click({ Stop-All-Tasks })
 
-    # 运行日志标签页
+    # 系统日志标签页
     $logTabPage = [System.Windows.Forms.TabPage]::new()
     $logTabPage.Text = $ui.TabRunLog
     $logTabPage.BackColor = [System.Drawing.Color]::White
     $tabControl.Controls.Add($logTabPage)
-    # 全局运行日志显示区域
+    # 全局系统日志显示区域
     $logTextBox = [System.Windows.Forms.RichTextBox]::new()
     $logTextBox.ReadOnly = $true
     $logTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
     $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     $logTextBox.BackColor = [System.Drawing.Color]::White
-    # 运行日志与全局字体统一使用微软雅黑
+    # 系统日志与全局字体统一使用微软雅黑
     $logTextBox.Font = $uiFont
     # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
     $logTextBox.DetectUrls = $false
     $logTextBox.WordWrap = $false
     $logTextBox.Dock = "Fill"
     $logTabPage.Controls.Add($logTextBox)
-    # 运行日志的右键菜单
+    # 系统日志的右键菜单
     $copyLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $copyLogMenuItem.Text = $ui.LogCopy
     $clearLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -1589,9 +1594,9 @@ try {
     $copyLogMenuItem.Add_Click({
         if ($logTextBox.Text.Length -gt 0) {
             [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
-            Show-Log $ui.INFO_LogCopied "Success"
+            System-Log $ui.INFO_LogCopied "Success"
         } else {
-            Show-Log $ui.INFO_NoLog "Warning"
+            System-Log $ui.INFO_NoLog "Warning"
         }
     })
     # 右键菜单: 清空日志
@@ -1610,7 +1615,7 @@ try {
 
 try {
     # 加载配置文件
-    Show-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) "Info"
+    System-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) "Info"
     Load-Config | Out-Null
     # 程序启动（首次显示时自动隐藏到托盘）
     [System.Windows.Forms.Application]::Run($mainForm)
