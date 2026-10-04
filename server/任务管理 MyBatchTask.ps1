@@ -31,6 +31,13 @@
 #
 # 运行方式：
 #     powershell -NoProfile -ExecutionPolicy Bypass -File "任务管理 MyBatchTask.ps1"
+#
+# 代码结构：
+#     1: 通用基础设置
+#     2: 程序全局设置
+#     3: 功能实现
+#     4: 窗体界面绘制
+#     5: 程序启动
 
 
 
@@ -405,267 +412,11 @@ try {
     }
     $ui = $uiTextResources[$workingLanguage]
     if (-not $ui) { $ui = $uiTextResources['zh-CN'] }
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
 
-
-
-# ———————————————————————————————— 3: 窗体界面绘制 ————————————————————————————————
-
-try {
-    # 任务运行时状态表: 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
-    $script:runtimeTable = @{}
-    # 任务配置列表（有序数组，元素为 PSCustomObject）
-    $script:tasks = @()
-    # 后台线程输出的异步日志队列
-    $script:outputQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
-    # 是否真正退出程序（区分「隐藏到托盘」和「关闭程序」）
-    $script:realExit = $false
     # 全局界面字体：窗体/表格/输入框/日志框等所有控件统一用微软雅黑 10
     $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
-    # 创建主窗口
-    $mainForm = [System.Windows.Forms.Form]::new()
-    $mainForm.Text = $ui.FormTitle
-    $mainForm.Size = [System.Drawing.Size]::new(1440, 840)
-    $mainForm.MinimumSize = [System.Drawing.Size]::new(1100, 650)
-    $mainForm.StartPosition = "CenterScreen"
-    $mainForm.Font = $uiFont
-    $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
-    $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
-    # 启用双缓冲减少闪烁
-    Enable-Double-Buffered $mainForm | Out-Null
-    # 绘制托盘图标（蓝色圆形 + 白色 M 字样）
-    $trayBitmap = [System.Drawing.Bitmap]::new(32, 32)
-    $trayGraphics = [System.Drawing.Graphics]::FromImage($trayBitmap)
-    $trayGraphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-    $trayGraphics.Clear([System.Drawing.Color]::Transparent)
-    $trayBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(91, 155, 213))
-    $trayGraphics.FillEllipse($trayBrush, 1, 1, 30, 30)
-    $trayFont = [System.Drawing.Font]::new("Microsoft YaHei", 15, [System.Drawing.FontStyle]::Bold)
-    $trayFormat = [System.Drawing.StringFormat]::new()
-    $trayFormat.Alignment = [System.Drawing.StringAlignment]::Center
-    $trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
-    $trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
-    $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
-    $trayGraphics.Dispose()
-    $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
-    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口（clone 避免共享句柄时一方 Dispose 影响另一方）
-    $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
-    $trayIcon.Icon = $appWindowIcon
-    $mainForm.Icon = $appWindowIcon.Clone()
-    $trayIcon.Text = $ui.FormTitle
-    $trayIcon.Visible = $true
-    # 托盘图标的右键菜单
-    $trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-    $trayShowItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayShowItem.Text = $ui.TrayShow
-    $trayStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayStartAllItem.Text = $ui.TrayStartAll
-    $trayStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayStopAllItem.Text = $ui.TrayStopAll
-    $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayExitItem.Text = $ui.TrayExit
-    foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {
-        $trayMenu.Items.Add($item) | Out-Null
-    }
-    $trayIcon.ContextMenuStrip = $trayMenu
-    # 显示主窗口
-    function Show-MainWindow {
-        $mainForm.Show()
-        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
-        $mainForm.ShowInTaskbar = $true
-        $mainForm.Activate()
-    }
-    # 托盘图标: 单击切换显示/隐藏，双击显示
-    $trayIcon.Add_MouseClick({
-        param($eventSender, $event)
-        if ($event.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-            if ($mainForm.Visible) {
-                $mainForm.Hide()
-                $mainForm.ShowInTaskbar = $false
-            } else {
-                Show-MainWindow
-            }
-        }
-    })
-    $trayIcon.Add_MouseDoubleClick({
-        param($eventSender, $event)
-        if ($event.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-            Show-MainWindow
-        }
-    })
-    $trayShowItem.Add_Click({
-        Show-MainWindow
-    })
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
-# ————————————————————————————— 4: 标签页容器与任务列表 —————————————————————————————
-try {
-    # 标签页容器（充满整个窗口，浏览器式布局）
-    $tabControl = [System.Windows.Forms.TabControl]::new()
-    $tabControl.Dock = "Fill"
-    $tabControl.Padding = [System.Drawing.Point]::new(20, 3)
-    $tabControl.Font = $uiFont
-    $mainForm.Controls.Add($tabControl)
-    # 标签页右键菜单（关闭标签页）
-    $tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-    $closeTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $closeTabMenuItem.Text = $ui.CloseTab
-    $tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
-    $tabControl.ContextMenuStrip = $tabContextMenu
-    # 记录右键点击的标签页
-    $script:rightClickedTab = $null
-    $tabControl.Add_MouseDown({
-        param($sender, $e)
-        if ($e.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
-        # 查找点击的标签页
-        for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
-            $tabRect = $tabControl.GetTabRect($i)
-            if ($tabRect.Contains($e.Location)) {
-                $script:rightClickedTab = $tabControl.TabPages[$i]
-                # 前两个固定标签页不可关闭
-                $closeTabMenuItem.Enabled = ($i -ge 2)
-                break
-            }
-        }
-    })
-    # 关闭标签页事件
-    $closeTabMenuItem.Add_Click({
-        if (-not $script:rightClickedTab -or $script:rightClickedTab.IsDisposed) { return }
-        $tabName = $script:rightClickedTab.Name
-        # 如果是任务日志页，清理运行时引用
-        if ($tabName.StartsWith("LogPage_")) {
-            $taskName = $tabName.Substring(8)
-            if ($script:runtimeTable.ContainsKey($taskName)) {
-                $script:runtimeTable[$taskName].ViewerBox = $null
-            }
-        }
-        $tabControl.TabPages.Remove($script:rightClickedTab)
-        $script:rightClickedTab.Dispose()
-        $script:rightClickedTab = $null
-    })
-    # 任务列表标签页
-    $taskListTabPage = [System.Windows.Forms.TabPage]::new()
-    $taskListTabPage.Text = $ui.TabTaskList
-    $taskListTabPage.BackColor = [System.Drawing.Color]::White
-    $tabControl.Controls.Add($taskListTabPage)
-    # 运行日志标签页
-    $logTabPage = [System.Windows.Forms.TabPage]::new()
-    $logTabPage.Text = $ui.TabRunLog
-    $logTabPage.BackColor = [System.Drawing.Color]::White
-    $tabControl.Controls.Add($logTabPage)
-    # 任务信息显示表格
-    $dataGridView = [System.Windows.Forms.DataGridView]::new()
-    $dataGridView.ReadOnly = $true
-    $dataGridView.AllowUserToAddRows = $false
-    $dataGridView.AllowUserToDeleteRows = $false
-    $dataGridView.AllowUserToResizeRows = $false
-    $dataGridView.RowHeadersVisible = $false
-    $dataGridView.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
-    $dataGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-    $dataGridView.BackgroundColor = [System.Drawing.Color]::White
-    $dataGridView.GridColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
-    $dataGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
-    $dataGridView.EnableHeadersVisualStyles = $false
-    $dataGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
-    $dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
-    $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($uiFont, [System.Drawing.FontStyle]::Bold)
-    $dataGridView.ColumnHeadersHeight = 40
-    $dataGridView.RowTemplate.Height = 32
-    $dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
-    # 单元格字体显式指定（默认依赖窗体字体继承，显式赋值可避免环境差异导致表格与其它控件字体不一致）
-    $dataGridView.DefaultCellStyle.Font = $uiFont
-    $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
-    $dataGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
-    $dataGridView.Dock = "Fill"
-    $dataGridView.ColumnCount = 6
-    $dataGridView.Columns[0].Name = $ui.ColumnStatus
-    $dataGridView.Columns[1].Name = $ui.ColumnPid
-    $dataGridView.Columns[2].Name = $ui.ColumnName
-    $dataGridView.Columns[3].Name = $ui.ColumnCommand
-    $dataGridView.Columns[4].Name = $ui.ColumnArguments
-    $dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
-    $dataGridView.Columns[0].Width = 90
-    $dataGridView.Columns[1].Width = 80
-    $dataGridView.Columns[2].Width = 200
-    $dataGridView.Columns[3].Width = 300
-    $dataGridView.Columns[4].Width = 260
-    $dataGridView.Columns[5].AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
-    # 只允许单行选择
-    $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
-    $dataGridView.MultiSelect = $false
-    # 鼠标按下时自动选中一行（包括左键和右键）
-    $dataGridView.Add_CellMouseDown({
-        param($eventSender, $event)
-        if ($event.RowIndex -ge 0) {
-            $dataGridView.ClearSelection()
-            $dataGridView.Rows[$event.RowIndex].Selected = $true
-            $dataGridView.CurrentCell = $dataGridView.Rows[$event.RowIndex].Cells[0]
-        }
-    })
-    # 双击行查看任务日志
-    $dataGridView.Add_CellDoubleClick({
-        Show-Task-Log-Viewer
-    })
-    $taskListTabPage.Controls.Add($dataGridView)
-    # 任务列表的右键菜单
-    $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-    $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuStartItem.Text = $ui.MenuStart
-    $menuStopItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuStopItem.Text = $ui.MenuStop
-    $menuRestartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuRestartItem.Text = $ui.MenuRestart
-    $menuViewLogItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuViewLogItem.Text = $ui.MenuViewLog
-    $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
-    $menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuStartAllItem.Text = $ui.MenuStartAll
-    $menuStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuStopAllItem.Text = $ui.MenuStopAll
-    $menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
-    $menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuAddItem.Text = $ui.MenuAdd
-    $menuEditItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuEditItem.Text = $ui.MenuEdit
-    $menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuDeleteItem.Text = $ui.MenuDelete
-    foreach ($item in @(
-        $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
-        $menuSep1, $menuStartAllItem, $menuStopAllItem,
-        $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem
-    )) {
-        $taskContextMenu.Items.Add($item) | Out-Null
-    }
-    $dataGridView.ContextMenuStrip = $taskContextMenu
-    # 全局运行日志显示区域
-    $logTextBox = [System.Windows.Forms.RichTextBox]::new()
-    $logTextBox.ReadOnly = $true
-    $logTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
-    $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-    $logTextBox.BackColor = [System.Drawing.Color]::White
-    # 运行日志与全局字体统一使用微软雅黑
-    $logTextBox.Font = $uiFont
-    # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
-    $logTextBox.DetectUrls = $false
-    $logTextBox.WordWrap = $false
-    $logTextBox.Dock = "Fill"
-    $logTabPage.Controls.Add($logTextBox)
-    # 全局运行日志的右键菜单
-    $copyLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $copyLogMenuItem.Text = $ui.LogCopy
-    $clearLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $clearLogMenuItem.Text = $ui.LogClear
-    $logTextBox.ContextMenuStrip = [System.Windows.Forms.ContextMenuStrip]::new()
-    $logTextBox.ContextMenuStrip.Items.Add($copyLogMenuItem) | Out-Null
-    $logTextBox.ContextMenuStrip.Items.Add($clearLogMenuItem) | Out-Null
-    # 全局日志颜色映射
+
+    # 全局运行日志颜色映射
     $logColorMap = @{
         Info     = [System.Drawing.Color]::Black
         Success  = [System.Drawing.Color]::Green
@@ -674,6 +425,37 @@ try {
         Progress = [System.Drawing.Color]::FromArgb(91, 155, 213)
         Debug    = [System.Drawing.Color]::Gray
     }
+
+    # 任务运行时状态表: 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
+    $script:runtimeTable = @{}
+    # 任务配置列表（有序数组，元素为 PSCustomObject）
+    $script:tasks = @()
+    # 后台线程输出的异步日志队列
+    $script:outputQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
+    # 是否真正退出程序（区分「隐藏到托盘」和「关闭程序」）
+    $script:realExit = $false
+    # 标签栏右键点击的标签页
+    $script:rightClickedTab = $null
+} catch {
+    Handle-Exception $_
+    pause
+    exit 1
+}
+
+
+
+# ———————————————————————————————— 3: 功能实现 ————————————————————————————————
+
+try {
+    # 3.1 显示主窗口
+    function Show-MainWindow {
+        $mainForm.Show()
+        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
+        $mainForm.ShowInTaskbar = $true
+        $mainForm.Activate()
+    }
+
+    # 3.2 运行日志输出
     function Show-Log {
         param([string]$Message = '', [string]$Level = 'Info')
         if ($logTextBox.IsDisposed) { return }
@@ -690,13 +472,8 @@ try {
         $logTextBox.AppendText($logText)
         $logTextBox.ScrollToCaret()
     }
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
-# ————————————————————————————— 5: 配置加载和保存 —————————————————————————————
-try {
+
+    # 3.3 配置加载和保存
     # 保存任务列表到配置文件
     function Save-Config {
         $objects = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -746,6 +523,8 @@ try {
         Show-Log ($ui.INFO_ConfigLoaded -f $script:tasks.Count) "Success"
         return $true
     }
+
+    # 3.4 表格刷新与选中任务
     # 用任务列表刷新整个表格
     function Update-Task-Grid {
         $dataGridView.SuspendLayout()
@@ -806,13 +585,8 @@ try {
         if ($index -lt 0 -or $index -ge $script:tasks.Count) { return $null }
         return $script:tasks[$index]
     }
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
-# ————————————————————————————— 6: 任务进程管理 —————————————————————————————
-try {
+
+    # 3.5 任务输出收集
     # 输出读取线程共用的 Runspace 池
     $script:readerRunspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(1, 16)
     $script:readerRunspacePool.Open()
@@ -923,6 +697,8 @@ try {
         Append-Task-Meta -TaskName $TaskName -Line ""
         Append-Task-Meta -TaskName $TaskName -Line ""
     }
+
+    # 3.6 任务进程管理
     # 启动任务
     function Start-Task {
         param([int]$Index)
@@ -1081,13 +857,8 @@ try {
         }
         Show-Log $ui.INFO_StopAllDone "Info"
     }
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
-# ————————————————————————————— 7: 输出刷新和任务日志标签页 —————————————————————————————
-try {
+
+    # 3.7 任务日志标签页
     # 打开任务日志标签页（已存在则直接切换）
     function Show-Task-Log-Viewer {
         $task = Get-Selected-Task
@@ -1128,7 +899,7 @@ try {
         $viewerTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
         $viewerTextBox.BackColor = [System.Drawing.Color]::White
         $viewerTextBox.WordWrap = $false
-        $viewerTextBox.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10)
+        $viewerTextBox.Font = $uiFont
         # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
         $viewerTextBox.DetectUrls = $false
         $viewerTextBox.Dock = "Fill"
@@ -1145,7 +916,7 @@ try {
         $viewerContextMenu.Items.Add($viewerClearItem) | Out-Null
         $viewerContextMenu.Items.Add($viewerOpenItem) | Out-Null
         $viewerTextBox.ContextMenuStrip = $viewerContextMenu
-        # 载入历史日志（与追加行统一字体和颜色：Consolas 10 / 黑色，防止历史段落继承默认字体导致样式不一致）
+        # 载入历史日志（与追加行统一字体和颜色：微软雅黑 10 / 黑色，防止历史段落继承默认字体导致样式不一致）
         $viewerTextBox.SelectionStart = $viewerTextBox.TextLength
         $viewerTextBox.SelectionLength = 0
         $viewerTextBox.SelectionFont = $viewerTextBox.Font
@@ -1179,7 +950,8 @@ try {
         $tabControl.TabPages.Add($logPage)
         $tabControl.SelectedTab = $logPage
     }
-    # 界面刷新定时器: 消化输出队列 + 检查进程退出
+
+    # 3.8 界面刷新定时器: 消化输出队列 + 检查进程退出
     $refreshTimer = [System.Windows.Forms.Timer]::new()
     $refreshTimer.Interval = 500
     $refreshTimer.Add_Tick({
@@ -1210,13 +982,8 @@ try {
         }
     })
     $refreshTimer.Start()
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
-# ————————————————————————————— 8: 任务编辑对话框 —————————————————————————————
-try {
+
+    # 3.9 任务编辑对话框
     # 打开新增/修改任务的对话框，返回 DialogResult
     function Open-Task-Dialog {
         param([int]$EditIndex = -1)
@@ -1232,7 +999,7 @@ try {
         $dialogForm.StartPosition = "CenterParent"
         $dialogForm.MaximizeBox = $false
         $dialogForm.MinimizeBox = $false
-        $dialogForm.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10)
+        $dialogForm.Font = $uiFont
         $dialogForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
         $dialogForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
         function New-Dialog-Label {
@@ -1440,10 +1207,256 @@ try {
     pause
     exit 1
 }
-# ————————————————————————————— 9: 事件绑定与程序启动 —————————————————————————————
+
+
+
+# ———————————————————————————————— 4: 窗体界面绘制 ————————————————————————————————
+
 try {
-    # 任务列表右键菜单事件
+    # 4.1 主窗口
+    $mainForm = [System.Windows.Forms.Form]::new()
+    $mainForm.Text = $ui.FormTitle
+    $mainForm.Size = [System.Drawing.Size]::new(1440, 840)
+    $mainForm.MinimumSize = [System.Drawing.Size]::new(1100, 650)
+    $mainForm.StartPosition = "CenterScreen"
+    $mainForm.Font = $uiFont
+    $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
+    $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+    # 启用双缓冲减少闪烁
+    Enable-Double-Buffered $mainForm | Out-Null
+    # 窗体关闭事件: 默认隐藏到托盘，真正退出时才关闭
+    $mainForm.Add_FormClosing({
+        param($eventSender, $event)
+        if (-not $script:realExit) {
+            $event.Cancel = $true
+            $eventSender.Hide()
+            $eventSender.ShowInTaskbar = $false
+        }
+    })
+    # 窗体首次显示事件: 隐藏到托盘 + 自动启动任务
+    $mainForm.Add_Shown({
+        param($eventSender, $event)
+        $eventSender.Opacity = 0
+        $eventSender.Hide()
+        $eventSender.Opacity = 1
+        $eventSender.ShowInTaskbar = $false
+        # 启动全部 autoStart 任务
+        for ($i = 0; $i -lt $script:tasks.Count; $i++) {
+            $task = $script:tasks[$i]
+            $needStart = $true
+            if ($task.PSObject.Properties.Match('autoStart').Count -gt 0 -and $null -ne $task.autoStart) {
+                $needStart = [bool]$task.autoStart
+            }
+            if ($needStart) {
+                Start-Task -Index $i
+            }
+        }
+    })
+
+    # 4.2 托盘图标与托盘菜单
+    # 绘制托盘图标（蓝色圆形 + 白色 M 字样）
+    $trayBitmap = [System.Drawing.Bitmap]::new(32, 32)
+    $trayGraphics = [System.Drawing.Graphics]::FromImage($trayBitmap)
+    $trayGraphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+    $trayGraphics.Clear([System.Drawing.Color]::Transparent)
+    $trayBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(91, 155, 213))
+    $trayGraphics.FillEllipse($trayBrush, 1, 1, 30, 30)
+    $trayFont = [System.Drawing.Font]::new("Microsoft YaHei", 15, [System.Drawing.FontStyle]::Bold)
+    $trayFormat = [System.Drawing.StringFormat]::new()
+    $trayFormat.Alignment = [System.Drawing.StringAlignment]::Center
+    $trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
+    $trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
+    $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
+    $trayGraphics.Dispose()
+    $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
+    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口（clone 避免共享句柄时一方 Dispose 影响另一方）
+    $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
+    $trayIcon.Icon = $appWindowIcon
+    $mainForm.Icon = $appWindowIcon.Clone()
+    $trayIcon.Text = $ui.FormTitle
+    $trayIcon.Visible = $true
+    # 托盘图标的右键菜单
+    $trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+    $trayShowItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayShowItem.Text = $ui.TrayShow
+    $trayStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayStartAllItem.Text = $ui.TrayStartAll
+    $trayStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayStopAllItem.Text = $ui.TrayStopAll
+    $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayExitItem.Text = $ui.TrayExit
+    foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {
+        $trayMenu.Items.Add($item) | Out-Null
+    }
+    $trayIcon.ContextMenuStrip = $trayMenu
+    # 托盘图标: 单击切换显示/隐藏，双击显示
+    $trayIcon.Add_MouseClick({
+        param($eventSender, $event)
+        if ($event.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+            if ($mainForm.Visible) {
+                $mainForm.Hide()
+                $mainForm.ShowInTaskbar = $false
+            } else {
+                Show-MainWindow
+            }
+        }
+    })
+    $trayIcon.Add_MouseDoubleClick({
+        param($eventSender, $event)
+        if ($event.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+            Show-MainWindow
+        }
+    })
+    # 托盘菜单: 显示主界面 / 全部启动 / 全部停止 / 退出
+    $trayShowItem.Add_Click({
+        Show-MainWindow
+    })
+    $trayStartAllItem.Add_Click({ Start-All-Tasks })
+    $trayStopAllItem.Add_Click({ Stop-All-Tasks })
+    $trayExitItem.Add_Click({
+        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
+        if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+        $script:realExit = $true
+        Stop-All-Tasks
+        $trayIcon.Visible = $false
+        $mainForm.Close()
+    })
+
+    # 4.3 标签页容器（充满整个窗口，浏览器式布局）
+    $tabControl = [System.Windows.Forms.TabControl]::new()
+    $tabControl.Dock = "Fill"
+    $tabControl.Padding = [System.Drawing.Point]::new(20, 3)
+    $tabControl.Font = $uiFont
+    $mainForm.Controls.Add($tabControl)
+    # 标签页右键菜单（关闭标签页）
+    $tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+    $closeTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $closeTabMenuItem.Text = $ui.CloseTab
+    $tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
+    $tabControl.ContextMenuStrip = $tabContextMenu
+    # 右键按下时记录点击的标签页
+    $tabControl.Add_MouseDown({
+        param($sender, $e)
+        if ($e.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
+        # 查找点击的标签页
+        for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
+            $tabRect = $tabControl.GetTabRect($i)
+            if ($tabRect.Contains($e.Location)) {
+                $script:rightClickedTab = $tabControl.TabPages[$i]
+                # 前两个固定标签页不可关闭
+                $closeTabMenuItem.Enabled = ($i -ge 2)
+                break
+            }
+        }
+    })
+    # 关闭标签页
+    $closeTabMenuItem.Add_Click({
+        if (-not $script:rightClickedTab -or $script:rightClickedTab.IsDisposed) { return }
+        $tabName = $script:rightClickedTab.Name
+        # 如果是任务日志页，清理运行时引用
+        if ($tabName.StartsWith("LogPage_")) {
+            $taskName = $tabName.Substring(8)
+            if ($script:runtimeTable.ContainsKey($taskName)) {
+                $script:runtimeTable[$taskName].ViewerBox = $null
+            }
+        }
+        $tabControl.TabPages.Remove($script:rightClickedTab)
+        $script:rightClickedTab.Dispose()
+        $script:rightClickedTab = $null
+    })
+
+    # 4.4 任务列表标签页
+    $taskListTabPage = [System.Windows.Forms.TabPage]::new()
+    $taskListTabPage.Text = $ui.TabTaskList
+    $taskListTabPage.BackColor = [System.Drawing.Color]::White
+    $tabControl.Controls.Add($taskListTabPage)
+    # 任务信息显示表格
+    $dataGridView = [System.Windows.Forms.DataGridView]::new()
+    $dataGridView.ReadOnly = $true
+    $dataGridView.AllowUserToAddRows = $false
+    $dataGridView.AllowUserToDeleteRows = $false
+    $dataGridView.AllowUserToResizeRows = $false
+    $dataGridView.RowHeadersVisible = $false
+    $dataGridView.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+    $dataGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+    $dataGridView.BackgroundColor = [System.Drawing.Color]::White
+    $dataGridView.GridColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+    $dataGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
+    $dataGridView.EnableHeadersVisualStyles = $false
+    $dataGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
+    $dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
+    $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($uiFont, [System.Drawing.FontStyle]::Bold)
+    $dataGridView.ColumnHeadersHeight = 40
+    $dataGridView.RowTemplate.Height = 32
+    $dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+    # 单元格字体显式指定（默认依赖窗体字体继承，显式赋值可避免环境差异导致表格与其它控件字体不一致）
+    $dataGridView.DefaultCellStyle.Font = $uiFont
+    $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
+    $dataGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
+    $dataGridView.Dock = "Fill"
+    $dataGridView.ColumnCount = 6
+    $dataGridView.Columns[0].Name = $ui.ColumnStatus
+    $dataGridView.Columns[1].Name = $ui.ColumnPid
+    $dataGridView.Columns[2].Name = $ui.ColumnName
+    $dataGridView.Columns[3].Name = $ui.ColumnCommand
+    $dataGridView.Columns[4].Name = $ui.ColumnArguments
+    $dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
+    $dataGridView.Columns[0].Width = 90
+    $dataGridView.Columns[1].Width = 80
+    $dataGridView.Columns[2].Width = 200
+    $dataGridView.Columns[3].Width = 300
+    $dataGridView.Columns[4].Width = 260
+    $dataGridView.Columns[5].AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
+    # 只允许单行选择
+    $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
+    $dataGridView.MultiSelect = $false
+    # 鼠标按下时自动选中一行（包括左键和右键）
+    $dataGridView.Add_CellMouseDown({
+        param($eventSender, $event)
+        if ($event.RowIndex -ge 0) {
+            $dataGridView.ClearSelection()
+            $dataGridView.Rows[$event.RowIndex].Selected = $true
+            $dataGridView.CurrentCell = $dataGridView.Rows[$event.RowIndex].Cells[0]
+        }
+    })
+    # 双击行查看任务日志
+    $dataGridView.Add_CellDoubleClick({
+        Show-Task-Log-Viewer
+    })
+    $taskListTabPage.Controls.Add($dataGridView)
+    # 任务列表的右键菜单
+    $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+    $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuStartItem.Text = $ui.MenuStart
+    $menuStopItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuStopItem.Text = $ui.MenuStop
+    $menuRestartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuRestartItem.Text = $ui.MenuRestart
+    $menuViewLogItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuViewLogItem.Text = $ui.MenuViewLog
+    $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
+    $menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuStartAllItem.Text = $ui.MenuStartAll
+    $menuStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuStopAllItem.Text = $ui.MenuStopAll
+    $menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
+    $menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuAddItem.Text = $ui.MenuAdd
+    $menuEditItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuEditItem.Text = $ui.MenuEdit
+    $menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuDeleteItem.Text = $ui.MenuDelete
+    foreach ($item in @(
+        $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
+        $menuSep1, $menuStartAllItem, $menuStopAllItem,
+        $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem
+    )) {
+        $taskContextMenu.Items.Add($item) | Out-Null
+    }
+    $dataGridView.ContextMenuStrip = $taskContextMenu
+    # 右键菜单: 新增任务
     $menuAddItem.Add_Click({ Open-Task-Dialog -EditIndex -1 })
+    # 右键菜单: 启动任务
     $menuStartItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1452,6 +1465,7 @@ try {
         }
         Start-Task -Index $index
     })
+    # 右键菜单: 停止任务
     $menuStopItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1460,6 +1474,7 @@ try {
         }
         Stop-Task -Index $index
     })
+    # 右键菜单: 重启任务
     $menuRestartItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1468,7 +1483,9 @@ try {
         }
         Restart-Task -Index $index
     })
+    # 右键菜单: 查看任务日志
     $menuViewLogItem.Add_Click({ Show-Task-Log-Viewer })
+    # 右键菜单: 修改任务（运行中则先停止，保存后再启动）
     $menuEditItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1493,6 +1510,7 @@ try {
             Start-Task -Index $index
         }
     })
+    # 右键菜单: 删除任务
     $menuDeleteItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1526,9 +1544,37 @@ try {
         Update-Task-Grid
         Show-Log ($ui.INFO_Deleted -f $taskName) "Info"
     })
+    # 右键菜单: 全部启动 / 全部停止
     $menuStartAllItem.Add_Click({ Start-All-Tasks })
     $menuStopAllItem.Add_Click({ Stop-All-Tasks })
-    # 全局日志右键菜单: 复制 / 清空
+
+    # 4.5 运行日志标签页
+    $logTabPage = [System.Windows.Forms.TabPage]::new()
+    $logTabPage.Text = $ui.TabRunLog
+    $logTabPage.BackColor = [System.Drawing.Color]::White
+    $tabControl.Controls.Add($logTabPage)
+    # 全局运行日志显示区域
+    $logTextBox = [System.Windows.Forms.RichTextBox]::new()
+    $logTextBox.ReadOnly = $true
+    $logTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
+    $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+    $logTextBox.BackColor = [System.Drawing.Color]::White
+    # 运行日志与全局字体统一使用微软雅黑
+    $logTextBox.Font = $uiFont
+    # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
+    $logTextBox.DetectUrls = $false
+    $logTextBox.WordWrap = $false
+    $logTextBox.Dock = "Fill"
+    $logTabPage.Controls.Add($logTextBox)
+    # 运行日志的右键菜单
+    $copyLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $copyLogMenuItem.Text = $ui.LogCopy
+    $clearLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $clearLogMenuItem.Text = $ui.LogClear
+    $logTextBox.ContextMenuStrip = [System.Windows.Forms.ContextMenuStrip]::new()
+    $logTextBox.ContextMenuStrip.Items.Add($copyLogMenuItem) | Out-Null
+    $logTextBox.ContextMenuStrip.Items.Add($clearLogMenuItem) | Out-Null
+    # 右键菜单: 复制日志
     $copyLogMenuItem.Add_Click({
         if ($logTextBox.Text.Length -gt 0) {
             [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
@@ -1537,48 +1583,21 @@ try {
             Show-Log $ui.INFO_NoLog "Warning"
         }
     })
+    # 右键菜单: 清空日志
     $clearLogMenuItem.Add_Click({
         $logTextBox.Clear()
     })
-    # 托盘菜单事件
-    $trayStartAllItem.Add_Click({ Start-All-Tasks })
-    $trayStopAllItem.Add_Click({ Stop-All-Tasks })
-    $trayExitItem.Add_Click({
-        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
-        if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
-        $script:realExit = $true
-        Stop-All-Tasks
-        $trayIcon.Visible = $false
-        $mainForm.Close()
-    })
-    # 窗体关闭事件: 默认隐藏到托盘，真正退出时才关闭
-    $mainForm.Add_FormClosing({
-        param($eventSender, $event)
-        if (-not $script:realExit) {
-            $event.Cancel = $true
-            $eventSender.Hide()
-            $eventSender.ShowInTaskbar = $false
-        }
-    })
-    # 窗体首次显示事件: 隐藏到托盘 + 自动启动任务
-    $mainForm.Add_Shown({
-        param($eventSender, $event)
-        $eventSender.Opacity = 0
-        $eventSender.Hide()
-        $eventSender.Opacity = 1
-        $eventSender.ShowInTaskbar = $false
-        # 启动全部 autoStart 任务
-        for ($i = 0; $i -lt $script:tasks.Count; $i++) {
-            $task = $script:tasks[$i]
-            $needStart = $true
-            if ($task.PSObject.Properties.Match('autoStart').Count -gt 0 -and $null -ne $task.autoStart) {
-                $needStart = [bool]$task.autoStart
-            }
-            if ($needStart) {
-                Start-Task -Index $i
-            }
-        }
-    })
+} catch {
+    Handle-Exception $_
+    pause
+    exit 1
+}
+
+
+
+# ———————————————————————————————— 5: 程序启动 ————————————————————————————————
+
+try {
     # 加载配置文件
     Show-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) "Info"
     Load-Config | Out-Null
