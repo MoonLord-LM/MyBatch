@@ -34,7 +34,7 @@
 
 
 
-# ————————————————————————————— 1: 通用基础设置 —————————————————————————————
+# ———————————————————————————————— 1: 通用基础设置 ————————————————————————————————
 
 # 异常处理
 function Handle-Exception {
@@ -51,8 +51,30 @@ function Handle-Exception {
 }
 
 try {
+    # 设置字符编码 UTF-8
+    $defaultOutputEncoding = [System.Console]::OutputEncoding.EncodingName
+    [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $currentOutputEncoding = [System.Console]::OutputEncoding.EncodingName
+    "[ Debug ] defaultOutputEncoding = $defaultOutputEncoding"
+    "[ Debug ] currentOutputEncoding = $currentOutputEncoding"
+
+    # 获取环境信息，使用单独进程隔离 Get-CimInstance 对语言的影响
+    $windowsVersion = powershell -NoProfile -Command {
+        $windowsOSInfo = Get-CimInstance Win32_OperatingSystem
+        $windowsCurrentVersion = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+        $windowsVersion = "$($windowsOSInfo.Caption) $($windowsCurrentVersion.DisplayVersion)"
+        return $windowsVersion
+    }
+    $powerShellVersion = "$($PSVersionTable.PSVersion.ToString()) $($PSVersionTable.PSEdition)"
+    $machineName = [System.Net.Dns]::GetHostName()
+    $userName = [Environment]::UserName
+    "[ Debug ] windowsVersion = $windowsVersion"
+    "[ Debug ] powerShellVersion = $powerShellVersion"
+    "[ Debug ] machineName = $machineName"
+    "[ Debug ] userName = $userName"
+
     # 加载 Win32 API 函数
-    $Win32TypeDefinition =
+    $Win32APICode =
 @'
     using System;
     using System.Runtime.InteropServices;
@@ -69,10 +91,13 @@ try {
         public static readonly IntPtr PER_MONITOR_AWARE_V2 = (IntPtr)(-4);
     }
 '@
-    Add-Type -TypeDefinition $Win32TypeDefinition
+    Add-Type -TypeDefinition $Win32APICode
 
     # 禁用自动缩放
-    $result = [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
+    $result = $false
+    try {
+        $result = [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
+    } catch { }
     if(-not $result){
         $result = [DpiHelper]::SetProcessDPIAware()
     }
@@ -92,6 +117,32 @@ try {
         $doubleBufferedProperty.SetValue($Control, $true)
         return $doubleBufferedProperty.GetValue($Control)
     }
+
+    # 分析合适的显示语言
+    $currentCulture = [System.Globalization.CultureInfo]::CurrentCulture.Name
+    $currentUICulture = [System.Globalization.CultureInfo]::CurrentUICulture.Name
+    $installedUICulture = [System.Globalization.CultureInfo]::InstalledUICulture.Name
+    $currentThreadCulture = [System.Threading.Thread]::CurrentThread.CurrentCulture.Name
+    $currentThreadUICulture = [System.Threading.Thread]::CurrentThread.CurrentUICulture.Name
+    $workingLanguage = 'en-US'
+    $zhCNCount = 0
+    $enUSCount = 0
+    if ($currentCulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+    if ($currentUICulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+    if ($installedUICulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+    if ($currentThreadCulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+    if ($currentThreadUICulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+    if ($zhCNCount -ge $enUSCount) {
+        $workingLanguage = 'zh-CN'
+    } else {
+        $workingLanguage = 'en-US'
+    }
+    "[ Debug ] currentCulture = $currentCulture"
+    "[ Debug ] currentUICulture = $currentUICulture"
+    "[ Debug ] installedUICulture = $installedUICulture"
+    "[ Debug ] currentThreadCulture = $currentThreadCulture"
+    "[ Debug ] currentThreadUICulture = $currentThreadUICulture"
+    "[ Debug ] workingLanguage = $workingLanguage"
 
     # 分析合适的工作目录
     $currentDirectory = [System.IO.Directory]::GetCurrentDirectory()
@@ -113,6 +164,13 @@ try {
             }
         }
     }
+    "[ Debug ] currentDirectory = $currentDirectory"
+    "[ Debug ] callDirectory = $callDirectory"
+    "[ Debug ] scriptDirectory = $scriptDirectory"
+    "[ Debug ] systemDirectory = $systemDirectory"
+    "[ Debug ] userDirectory = $userDirectory"
+    "[ Debug ] tempDirectory = $tempDirectory"
+    "[ Debug ] workingDirectory = $workingDirectory"
 } catch {
     Handle-Exception $_
     pause
@@ -121,7 +179,7 @@ try {
 
 
 
-# ————————————————————————————— 2: 界面文本资源 —————————————————————————————
+# ———————————————————————————————— 2: 程序设置 ————————————————————————————————
 
 try {
     # 配置文件和日志目录
@@ -244,7 +302,11 @@ try {
     pause
     exit 1
 }
-# ————————————————————————————— 3: 主窗体与托盘基础 —————————————————————————————
+
+
+
+# ———————————————————————————————— 3: 主窗体界面绘制 ————————————————————————————————
+
 try {
     # 任务运行时状态表: 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
     $script:runtimeTable = @{}
