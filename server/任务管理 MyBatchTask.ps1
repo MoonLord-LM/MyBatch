@@ -476,8 +476,11 @@ try {
 
         $logLine = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
         try {
-            lock($systemLogFileLock) {
+            [System.Threading.Monitor]::Enter($systemLogFileLock)
+            try {
                 [System.IO.File]::AppendAllText($myBatchTaskSystemLogFile, $logLine, $workingEncoding)
+            } finally {
+                [System.Threading.Monitor]::Exit($systemLogFileLock)
             }
         } catch {
             Handle-Exception $_
