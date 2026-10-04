@@ -424,13 +424,16 @@ try {
     $script:outputQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
     # 是否真正退出程序（区分「隐藏到托盘」和「关闭程序」）
     $script:realExit = $false
+    # 全局界面字体：窗体/表格/输入框/日志框等所有控件统一用微软雅黑 10
+    $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
+    $logFont = $uiFont
     # 创建主窗口
     $mainForm = [System.Windows.Forms.Form]::new()
     $mainForm.Text = $ui.FormTitle
     $mainForm.Size = [System.Drawing.Size]::new(1440, 840)
     $mainForm.MinimumSize = [System.Drawing.Size]::new(1100, 650)
     $mainForm.StartPosition = "CenterScreen"
-    $mainForm.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10)
+    $mainForm.Font = $uiFont
     $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
     $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
     # 启用双缓冲减少闪烁
@@ -442,7 +445,7 @@ try {
     $trayGraphics.Clear([System.Drawing.Color]::Transparent)
     $trayBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(91, 155, 213))
     $trayGraphics.FillEllipse($trayBrush, 1, 1, 30, 30)
-    $trayFont = [System.Drawing.Font]::new("Segoe UI", 15, [System.Drawing.FontStyle]::Bold)
+    $trayFont = [System.Drawing.Font]::new("Microsoft YaHei", 15, [System.Drawing.FontStyle]::Bold)
     $trayFormat = [System.Drawing.StringFormat]::new()
     $trayFormat.Alignment = [System.Drawing.StringAlignment]::Center
     $trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
@@ -509,7 +512,7 @@ try {
     $tabControl = [System.Windows.Forms.TabControl]::new()
     $tabControl.Dock = "Fill"
     $tabControl.Padding = [System.Drawing.Point]::new(20, 3)
-    $tabControl.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10)
+    $tabControl.Font = $uiFont
     $mainForm.Controls.Add($tabControl)
     # 标签页右键菜单（关闭标签页）
     $tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
@@ -573,10 +576,12 @@ try {
     $dataGridView.EnableHeadersVisualStyles = $false
     $dataGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
     $dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
-    $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10, [System.Drawing.FontStyle]::Bold)
+    $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($uiFont, [System.Drawing.FontStyle]::Bold)
     $dataGridView.ColumnHeadersHeight = 40
     $dataGridView.RowTemplate.Height = 32
     $dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+    # 单元格字体显式指定（默认依赖窗体字体继承，显式赋值可避免环境差异导致表格与其它控件字体不一致）
+    $dataGridView.DefaultCellStyle.Font = $uiFont
     $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
     $dataGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
     $dataGridView.Dock = "Fill"
@@ -646,7 +651,8 @@ try {
     $logTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
     $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     $logTextBox.BackColor = [System.Drawing.Color]::White
-    $logTextBox.Font = [System.Drawing.Font]::new("Consolas", 10)
+    # 运行日志与全局字体统一使用微软雅黑
+    $logTextBox.Font = $logFont
     # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
     $logTextBox.DetectUrls = $false
     $logTextBox.WordWrap = $false
@@ -1112,7 +1118,7 @@ try {
         $viewerTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
         $viewerTextBox.BackColor = [System.Drawing.Color]::White
         $viewerTextBox.WordWrap = $false
-        $viewerTextBox.Font = [System.Drawing.Font]::new("Consolas", 10)
+        $viewerTextBox.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10)
         # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
         $viewerTextBox.DetectUrls = $false
         $viewerTextBox.Dock = "Fill"
