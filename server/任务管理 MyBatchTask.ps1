@@ -259,8 +259,8 @@ try {
             MenuStop = "停止"
             MenuRestart = "重启"
             MenuViewLog = "查看日志"
-            MenuEdit = "修改"
-            MenuDelete = "删除"
+            MenuEdit = "修改任务"
+            MenuDelete = "删除任务"
             MenuStartAll = "全部启动"
             MenuStopAll = "全部停止"
             StatusRunning = "运行中"
@@ -314,6 +314,7 @@ try {
             FileFilterLog = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*"
             CloseTab = "关闭标签页"
             LogProcessHeader = "———————————— 开始新进程 {0} ————————————————"
+            LogProcessFooter = "———————————— 结束进程 {0}，退出码 {1} ————————————————"
         }
         'en-US' = @{
             FormTitle = "MyBatchTask Batch Task Manager"
@@ -344,8 +345,8 @@ try {
             MenuStop = "Stop"
             MenuRestart = "Restart"
             MenuViewLog = "View Log"
-            MenuEdit = "Edit"
-            MenuDelete = "Delete"
+            MenuEdit = "Edit Task"
+            MenuDelete = "Delete Task"
             MenuStartAll = "Start All"
             MenuStopAll = "Stop All"
             StatusRunning = "Running"
@@ -399,6 +400,7 @@ try {
             FileFilterLog = "Log files (*.log)|*.log|All files (*.*)|*.*"
             CloseTab = "Close Tab"
             LogProcessHeader = "———————————— Start new process {0} ————————————————"
+            LogProcessFooter = "———————————— End process {0}, exit code {1} ————————————————"
         }
     }
     $ui = $uiTextResources[$workingLanguage]
@@ -448,7 +450,10 @@ try {
     $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
     $trayGraphics.Dispose()
     $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
-    $trayIcon.Icon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
+    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口（clone 避免共享句柄时一方 Dispose 影响另一方）
+    $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
+    $trayIcon.Icon = $appWindowIcon
+    $mainForm.Icon = $appWindowIcon.Clone()
     $trayIcon.Text = $ui.FormTitle
     $trayIcon.Visible = $true
     # 托盘图标的右键菜单
@@ -607,9 +612,6 @@ try {
     $taskListTabPage.Controls.Add($dataGridView)
     # 任务列表的右键菜单
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-    $menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuAddItem.Text = $ui.MenuAdd
-    $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
     $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStartItem.Text = $ui.MenuStart
     $menuStopItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -618,21 +620,22 @@ try {
     $menuRestartItem.Text = $ui.MenuRestart
     $menuViewLogItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuViewLogItem.Text = $ui.MenuViewLog
-    $menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
-    $menuEditItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuEditItem.Text = $ui.MenuEdit
-    $menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuDeleteItem.Text = $ui.MenuDelete
-    $menuSep3 = [System.Windows.Forms.ToolStripSeparator]::new()
+    $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
     $menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStartAllItem.Text = $ui.MenuStartAll
     $menuStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStopAllItem.Text = $ui.MenuStopAll
+    $menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
+    $menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuAddItem.Text = $ui.MenuAdd
+    $menuEditItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuEditItem.Text = $ui.MenuEdit
+    $menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuDeleteItem.Text = $ui.MenuDelete
     foreach ($item in @(
-        $menuAddItem, $menuSep1,
         $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
-        $menuSep2, $menuEditItem, $menuDeleteItem,
-        $menuSep3, $menuStartAllItem, $menuStopAllItem
+        $menuSep1, $menuStartAllItem, $menuStopAllItem,
+        $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem
     )) {
         $taskContextMenu.Items.Add($item) | Out-Null
     }
@@ -644,6 +647,8 @@ try {
     $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     $logTextBox.BackColor = [System.Drawing.Color]::White
     $logTextBox.Font = [System.Drawing.Font]::new("Consolas", 10)
+    # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
+    $logTextBox.DetectUrls = $false
     $logTextBox.WordWrap = $false
     $logTextBox.Dock = "Fill"
     $logTabPage.Controls.Add($logTextBox)
@@ -675,6 +680,7 @@ try {
         $logText = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
         $logTextBox.SelectionStart = $logTextBox.TextLength
         $logTextBox.SelectionLength = 0
+        $logTextBox.SelectionFont = $logTextBox.Font
         $logTextBox.SelectionColor = $logColor
         $logTextBox.AppendText($logText)
         $logTextBox.ScrollToCaret()
@@ -854,13 +860,52 @@ try {
         } catch {}
         # 任务日志标签页
         if ($runtime.ViewerBox -and -not $runtime.ViewerBox.IsDisposed) {
-            $lineColor = if ($IsError) { [System.Drawing.Color]::Firebrick } else { [System.Drawing.Color]::Black }
+            # 统一字体和颜色（与运行日志一致：Consolas 10 / 黑色），防止 RichTextBox
+            # 继承光标/选区处的旧字体或颜色导致各行样式不一致
             $runtime.ViewerBox.SelectionStart = $runtime.ViewerBox.TextLength
             $runtime.ViewerBox.SelectionLength = 0
-            $runtime.ViewerBox.SelectionColor = $lineColor
+            $runtime.ViewerBox.SelectionFont = $runtime.ViewerBox.Font
+            $runtime.ViewerBox.SelectionColor = [System.Drawing.Color]::Black
             $runtime.ViewerBox.AppendText($logLine + "`r`n")
             $runtime.ViewerBox.ScrollToCaret()
         }
+    }
+    # 追加一条任务进程标记（开始/结束标记行，不带时间戳前缀；同步到内存缓冲 + 日志文件 + 日志标签页）
+    function Append-Task-Meta {
+        param([string]$TaskName, [string]$Line)
+        if (-not $script:runtimeTable.ContainsKey($TaskName)) { return }
+        $runtime = $script:runtimeTable[$TaskName]
+        # 内存缓冲
+        $runtime.LogBuilder.AppendLine($Line) | Out-Null
+        # 日志文件
+        try {
+            $writer = Get-Task-Writer -TaskName $TaskName
+            $writer.WriteLine($Line)
+        } catch {}
+        # 任务日志标签页
+        if ($runtime.ViewerBox -and -not $runtime.ViewerBox.IsDisposed) {
+            $runtime.ViewerBox.SelectionStart = $runtime.ViewerBox.TextLength
+            $runtime.ViewerBox.SelectionLength = 0
+            $runtime.ViewerBox.SelectionFont = $runtime.ViewerBox.Font
+            $runtime.ViewerBox.SelectionColor = [System.Drawing.Color]::Black
+            $runtime.ViewerBox.AppendText($Line + "`r`n")
+            $runtime.ViewerBox.ScrollToCaret()
+        }
+    }
+    # 记录任务结束标记（结束时间 + 退出码），随后补两个空行，与下一轮执行的日志分隔
+    function Write-Task-Exit-Log {
+        param([string]$TaskName)
+        if (-not $script:runtimeTable.ContainsKey($TaskName)) { return }
+        $runtime = $script:runtimeTable[$TaskName]
+        $exitCode = $runtime.ExitCode
+        if ($null -eq $exitCode -and $runtime.Process -and $runtime.Process.HasExited) {
+            $exitCode = $runtime.Process.ExitCode
+        }
+        $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
+        $footerLine = $ui.LogProcessFooter -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $exitCodeText
+        Append-Task-Meta -TaskName $TaskName -Line $footerLine
+        Append-Task-Meta -TaskName $TaskName -Line ""
+        Append-Task-Meta -TaskName $TaskName -Line ""
     }
     # 启动任务
     function Start-Task {
@@ -960,11 +1005,7 @@ try {
         $runtime.Status = $ui.StatusRunning
         $runtime.ExitCode = $null
         $runtime.Readers = $readerInstances
-        $runtime.LogBuilder.AppendLine($headerLine) | Out-Null
-        try {
-            $writer = Get-Task-Writer -TaskName $taskName
-            $writer.WriteLine($headerLine)
-        } catch {}
+        Append-Task-Meta -TaskName $taskName -Line $headerLine
         Update-Task-Row -Index $Index
         Show-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
@@ -995,6 +1036,7 @@ try {
         if ($runtime.Status -eq $ui.StatusRunning) {
             $runtime.Status = $ui.StatusStopped
         }
+        Write-Task-Exit-Log -TaskName $taskName
         Stop-Task-Readers -Runtime $runtime
         if ($runtime.Writer) {
             try { $runtime.Writer.Dispose() } catch {}
@@ -1063,67 +1105,40 @@ try {
         $logPage.Name = $logPageName
         $logPage.Text = $taskName
         $logPage.BackColor = [System.Drawing.Color]::White
-        $logPage.Padding = [System.Windows.Forms.Padding]::new(10, 10, 10, 10)
-        # 顶部工具栏
-        $toolPanel = [System.Windows.Forms.Panel]::new()
-        $toolPanel.Dock = "Top"
-        $toolPanel.Height = 40
-        $toolPanel.BackColor = [System.Drawing.Color]::Transparent
-        # 复制按钮
-        $copyBtn = [System.Windows.Forms.Button]::new()
-        $copyBtn.Text = $ui.LogCopy
-        $copyBtn.Size = [System.Drawing.Size]::new(100, 32)
-        $copyBtn.Location = [System.Drawing.Point]::new(0, 0)
-        $copyBtn.FlatStyle = "Flat"
-        $copyBtn.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
-        $copyBtn.ForeColor = [System.Drawing.Color]::White
-        $copyBtn.FlatAppearance.BorderSize = 0
-        $copyBtn.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(71, 135, 193)
-        $copyBtn.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
-        # 清空按钮
-        $clearBtn = [System.Windows.Forms.Button]::new()
-        $clearBtn.Text = $ui.LogClear
-        $clearBtn.Size = [System.Drawing.Size]::new(100, 32)
-        $clearBtn.Location = [System.Drawing.Point]::new(110, 0)
-        $clearBtn.FlatStyle = "Flat"
-        $clearBtn.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
-        $clearBtn.ForeColor = [System.Drawing.Color]::Black
-        $clearBtn.FlatAppearance.BorderSize = 0
-        $clearBtn.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
-        $clearBtn.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
-        # 打开日志文件按钮
-        $openBtn = [System.Windows.Forms.Button]::new()
-        $openBtn.Text = $ui.LogOpenFile
-        $openBtn.Size = [System.Drawing.Size]::new(120, 32)
-        $openBtn.Location = [System.Drawing.Point]::new(220, 0)
-        $openBtn.FlatStyle = "Flat"
-        $openBtn.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
-        $openBtn.ForeColor = [System.Drawing.Color]::Black
-        $openBtn.FlatAppearance.BorderSize = 0
-        $openBtn.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
-        $openBtn.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
-        $toolPanel.Controls.Add($copyBtn)
-        $toolPanel.Controls.Add($clearBtn)
-        $toolPanel.Controls.Add($openBtn)
-        # 日志文本框
+        # 日志文本框（样式与运行日志一致）
         $viewerTextBox = [System.Windows.Forms.RichTextBox]::new()
         $viewerTextBox.ReadOnly = $true
-        $viewerTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Both
+        $viewerTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
         $viewerTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
         $viewerTextBox.BackColor = [System.Drawing.Color]::White
         $viewerTextBox.WordWrap = $false
         $viewerTextBox.Font = [System.Drawing.Font]::new("Consolas", 10)
+        # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
+        $viewerTextBox.DetectUrls = $false
         $viewerTextBox.Dock = "Fill"
-        # 组装标签页
         $logPage.Controls.Add($viewerTextBox)
-        $logPage.Controls.Add($toolPanel)
-        $viewerTextBox.BringToFront()
-        # 载入历史日志
+        # 日志文本框右键菜单: 复制日志 / 清空日志 / 打开日志文件
+        $viewerContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+        $viewerCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $viewerCopyItem.Text = $ui.LogCopy
+        $viewerClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $viewerClearItem.Text = $ui.LogClear
+        $viewerOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $viewerOpenItem.Text = $ui.LogOpenFile
+        $viewerContextMenu.Items.Add($viewerCopyItem) | Out-Null
+        $viewerContextMenu.Items.Add($viewerClearItem) | Out-Null
+        $viewerContextMenu.Items.Add($viewerOpenItem) | Out-Null
+        $viewerTextBox.ContextMenuStrip = $viewerContextMenu
+        # 载入历史日志（与追加行统一字体和颜色：Consolas 10 / 黑色，防止历史段落继承默认字体导致样式不一致）
+        $viewerTextBox.SelectionStart = $viewerTextBox.TextLength
+        $viewerTextBox.SelectionLength = 0
+        $viewerTextBox.SelectionFont = $viewerTextBox.Font
+        $viewerTextBox.SelectionColor = [System.Drawing.Color]::Black
         $viewerTextBox.AppendText($runtime.LogBuilder.ToString())
         $viewerTextBox.SelectionStart = $viewerTextBox.TextLength
         $viewerTextBox.ScrollToCaret()
-        # 按钮事件绑定
-        $copyBtn.Add_Click({
+        # 右键菜单事件绑定
+        $viewerCopyItem.Add_Click({
             if ($viewerTextBox.Text.Length -gt 0) {
                 [System.Windows.Forms.Clipboard]::SetText($viewerTextBox.Text)
                 Show-Log $ui.INFO_LogCopied "Success"
@@ -1131,11 +1146,11 @@ try {
                 Show-Log $ui.INFO_NoLog "Warning"
             }
         })
-        $clearBtn.Add_Click({
+        $viewerClearItem.Add_Click({
             $viewerTextBox.Clear()
             $runtime.LogBuilder.Clear() | Out-Null
         })
-        $openBtn.Add_Click({
+        $viewerOpenItem.Add_Click({
             if ($runtime.LogFile -and [System.IO.File]::Exists($runtime.LogFile)) {
                 Start-Process "notepad.exe" -ArgumentList ('"' + $runtime.LogFile + '"')
             } else {
@@ -1167,6 +1182,7 @@ try {
                 if ($runtime.Status -eq $ui.StatusRunning) {
                     $runtime.Status = $ui.StatusExited -f $runtime.Process.ExitCode
                     Show-Log ($ui.INFO_Exited -f $taskName, $runtime.Process.ExitCode) "Warning"
+                    Write-Task-Exit-Log -TaskName $taskName
                 }
                 Stop-Task-Readers -Runtime $runtime
                 if ($runtime.Writer) {
