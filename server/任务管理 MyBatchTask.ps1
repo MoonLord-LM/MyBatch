@@ -416,16 +416,6 @@ try {
     # 界面字体，统一用微软雅黑
     $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
 
-    # 运行日志的颜色映射
-    $logColorMap = @{
-        Info     = [System.Drawing.Color]::Black
-        Success  = [System.Drawing.Color]::Green
-        Warning  = [System.Drawing.Color]::DarkOrange
-        Error    = [System.Drawing.Color]::Red
-        Progress = [System.Drawing.Color]::Blue
-        Debug    = [System.Drawing.Color]::Gray
-    }
-
     # 任务运行时状态表: 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
     $script:runtimeTable = @{}
     # 任务配置列表（有序数组，元素为 PSCustomObject）
@@ -447,22 +437,33 @@ try {
 # ———————————————————————————————— 3: 功能实现 ————————————————————————————————
 
 try {
-    # 运行日志输出
+    # 展示运行日志
     function Show-Log {
         param([string]$Message = '', [string]$Level = 'Info')
-        if ($logTextBox.IsDisposed) { return }
+
+        $logColorMap = @{
+            Info     = [System.Drawing.Color]::Black
+            Success  = [System.Drawing.Color]::Green
+            Warning  = [System.Drawing.Color]::DarkOrange
+            Error    = [System.Drawing.Color]::Red
+            Progress = [System.Drawing.Color]::Blue
+            Debug    = [System.Drawing.Color]::Gray
+        }
         $logColor = if ($logColorMap.ContainsKey($Level)) {
             $logColorMap[$Level]
         } else {
             [System.Drawing.Color]::Black
         }
         $logText = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
-        $logTextBox.SelectionStart = $logTextBox.TextLength
-        $logTextBox.SelectionLength = 0
-        $logTextBox.SelectionFont = $logTextBox.Font
-        $logTextBox.SelectionColor = $logColor
-        $logTextBox.AppendText($logText)
-        $logTextBox.ScrollToCaret()
+
+        if (-not $logTextBox.IsDisposed) {
+            $logTextBox.SelectionStart = $logTextBox.TextLength
+            $logTextBox.SelectionLength = 0
+            $logTextBox.SelectionFont = $logTextBox.Font
+            $logTextBox.SelectionColor = $logColor
+            $logTextBox.AppendText($logText)
+            $logTextBox.ScrollToCaret()
+        }
     }
 
     # 配置加载和保存
