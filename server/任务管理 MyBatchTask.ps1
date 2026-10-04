@@ -444,44 +444,69 @@ try {
 
 try {
     # 记录系统日志
+    # 使用 System-Log 函数：首先记录到文件 $myBatchTaskSystemLogFile 中，再尝试展示到 $systemLogTextBox 中
     $systemLogTextBox = $null
+    $systemLogFileLock = [object]::new()
+    $systemLogColorMap = @{
+        Info     = [System.Drawing.Color]::Black
+        Success  = [System.Drawing.Color]::Green
+        Warning  = [System.Drawing.Color]::DarkOrange
+        Error    = [System.Drawing.Color]::Red
+        Progress = [System.Drawing.Color]::Blue
+        Debug    = [System.Drawing.Color]::Gray
+    }
+    function System-Log-Internal {
+        param($txtBox, $text, $color)
+
+        try {
+            if ($null -eq $txtBox -or $txtBox.IsDisposed) {
+                return
+            }
+            $txtBox.SelectionStart = $txtBox.TextLength
+            $txtBox.SelectionLength = 0
+            $txtBox.SelectionColor = $color
+            $txtBox.AppendText($text)
+            $txtBox.ScrollToCaret()
+        } catch {
+            Handle-Exception $_
+        }
+    }
     function System-Log {
         param([string]$Message = '', [string]$Level = 'Info')
 
-        $logText = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
-        if ($systemLogTextBox -eq $null -or $systemLogTextBox.IsDisposed) {
-            [System.IO.File]::AppendAllText($myBatchTaskSystemLogFile, $Message, $workingEncoding)
-            return
+        $logLine = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
+        try {
+            lock($systemLogFileLock) {
+                [System.IO.File]::AppendAllText($myBatchTaskSystemLogFile, $logLine, $workingEncoding)
+            }
+        } catch {
+            Handle-Exception $_
         }
-        if ($systemLogTextBox.IsHandleCreated -and $systemLogTextBox.InvokeRequired) {
-            [void]$systemLogTextBox.BeginInvoke([System.Windows.Forms.MethodInvoker]{
-                System-Log -Message $Message -Level $Level
-            })
+
+        if ($null -eq $systemLogTextBox -or $systemLogTextBox.IsDisposed) {
             return
         }
 
-        $logColorMap = @{
-            Info     = [System.Drawing.Color]::Black
-            Success  = [System.Drawing.Color]::Green
-            Warning  = [System.Drawing.Color]::DarkOrange
-            Error    = [System.Drawing.Color]::Red
-            Progress = [System.Drawing.Color]::Blue
-            Debug    = [System.Drawing.Color]::Gray
-        }
-        $logColor = if ($logColorMap.ContainsKey($Level)) {
-            $logColorMap[$Level]
+        $logColor = if ($systemLogColorMap.ContainsKey($Level)) {
+            $systemLogColorMap[$Level]
         } else {
             [System.Drawing.Color]::Black
         }
 
-        if (-not $systemLogTextBox.IsDisposed) {
-            $systemLogTextBox.SelectionStart = $systemLogTextBox.TextLength
-            $systemLogTextBox.SelectionLength = 0
-            $systemLogTextBox.SelectionFont = $systemLogTextBox.Font
-            $systemLogTextBox.SelectionColor = $logColor
-            $systemLogTextBox.AppendText($logText)
-            $systemLogTextBox.ScrollToCaret()
+        if ($systemLogTextBox.IsHandleCreated -and $systemLogTextBox.InvokeRequired) {
+            try {
+                $systemLogInternalAction = [Action[System.Windows.Forms.RichTextBox, string, System.Drawing.Color]]{
+                    param($txtBox, $text, $color)
+
+                    System-Log-Internal $txtBox $text $color
+                }
+                [void]$systemLogTextBox.BeginInvoke($systemLogInternalAction, $systemLogTextBox, $logLine, $logColor)
+            } catch {
+                Handle-Exception $_
+            }
+            return
         }
+        System-Log-Internal $systemLogTextBox $logLine $logColor
     }
 
     # 配置加载和保存
@@ -1582,6 +1607,8 @@ try {
     $logTextBox.WordWrap = $false
     $logTextBox.Dock = "Fill"
     $logTabPage.Controls.Add($logTextBox)
+    # 系统日志展示控件交给 System-Log 使用
+    $script:systemLogTextBox = $logTextBox
     # 系统日志的右键菜单
     $copyLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $copyLogMenuItem.Text = $ui.LogCopy
