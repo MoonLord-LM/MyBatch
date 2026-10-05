@@ -1549,18 +1549,18 @@ try {
     $dataGridView.Columns[3].Name = $ui.ColumnCommand
     $dataGridView.Columns[4].Name = $ui.ColumnArguments
     $dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
-    $dataGridView.Columns[0].Width = 100
-    $dataGridView.Columns[0].MinimumWidth = 50
+    $dataGridView.Columns[0].Width = 200
+    $dataGridView.Columns[0].MinimumWidth = $dataGridView.Columns[0].Width / 2
     $dataGridView.Columns[1].Width = 100
-    $dataGridView.Columns[1].MinimumWidth = 50
+    $dataGridView.Columns[1].MinimumWidth = $dataGridView.Columns[1].Width / 2
     $dataGridView.Columns[2].Width = 200
-    $dataGridView.Columns[2].MinimumWidth = 100
+    $dataGridView.Columns[2].MinimumWidth = $dataGridView.Columns[2].Width / 2
     $dataGridView.Columns[3].Width = 400
-    $dataGridView.Columns[3].MinimumWidth = 200
+    $dataGridView.Columns[3].MinimumWidth = $dataGridView.Columns[3].Width / 2
     $dataGridView.Columns[4].Width = 400
-    $dataGridView.Columns[4].MinimumWidth = 200
-    $dataGridView.Columns[5].Width = 400
-    $dataGridView.Columns[5].MinimumWidth = 200
+    $dataGridView.Columns[4].MinimumWidth = $dataGridView.Columns[4].Width / 2
+    $dataGridView.Columns[5].Width = 300
+    $dataGridView.Columns[5].MinimumWidth = $dataGridView.Columns[5].Width / 2
     # 只允许单行选择
     $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
     $dataGridView.MultiSelect = $false
