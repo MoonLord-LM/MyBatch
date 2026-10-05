@@ -51,14 +51,44 @@ echo.
 echo 正在重启桌面进程
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "Stop-Process -Name explorer -Force -ErrorAction SilentlyContinue;" ^
-    "while (Get-Process -Name explorer -ErrorAction SilentlyContinue) {" ^
-    "    Start-Sleep -Milliseconds 200" ^
+    "if (Get-Process -Name explorer -ErrorAction SilentlyContinue) {" ^
+    "    try { Stop-Process -Name explorer -Force -ErrorAction Stop }" ^
+    "    catch {" ^
+    "        Write-Host '错误：结束桌面进程失败' -ForegroundColor Red;" ^
+    "        exit 1;" ^
+    "    };" ^
+    "    $n = 0;" ^
+    "    while (Get-Process -Name explorer -ErrorAction SilentlyContinue) {" ^
+    "        Start-Sleep -Milliseconds 200;" ^
+    "        $n++;" ^
+    "        if ($n -gt 50) {" ^
+    "            Write-Host '错误：等待桌面进程结束超时' -ForegroundColor Red;" ^
+    "            exit 1;" ^
+    "        }" ^
+    "    };" ^
     "};" ^
-    "Start-Process explorer.exe;" ^
+    "try { Start-Process explorer.exe -ErrorAction Stop }" ^
+    "catch {" ^
+    "    Write-Host '错误：启动桌面进程失败' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "};" ^
+    "$n = 0;" ^
     "while (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {" ^
-    "    Start-Sleep -Milliseconds 200" ^
-    "};"
+    "    Start-Sleep -Milliseconds 200;" ^
+    "    $n++;" ^
+    "    if ($n -gt 50) {" ^
+    "        Write-Host '错误：等待桌面进程启动超时' -ForegroundColor Red;" ^
+    "        exit 1;" ^
+    "    }" ^
+    "};" ^
+    "Start-Sleep -Milliseconds 800;"
+if !errorlevel! neq 0 (
+    if exist "!temp_list!" ( del /f /q "!temp_list!" )
+    echo 错误：桌面进程重启失败，请检查上面的报错信息
+    echo.
+    pause
+    endlocal & endlocal & exit /b 1
+)
 echo.
 
 echo 正在恢复已打开的文件夹窗口
@@ -70,6 +100,7 @@ powershell -NoProfile -Command ^
     "foreach ($p in $paths) {" ^
     "    if (Test-Path -LiteralPath $p -PathType Container) {" ^
     "        Start-Process explorer.exe -ArgumentList $p;" ^
+    "        Start-Sleep -Milliseconds 200;" ^
     "        $ok++;" ^
     "    }" ^
     "    else {" ^
