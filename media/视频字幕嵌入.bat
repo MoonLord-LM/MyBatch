@@ -261,7 +261,7 @@ if not "!working_dir!" == "" (
     set /a "skipped=has_sub+mkv_exist+no_sub_file"
     set /a "fail_total=embed_failed"
     echo 共计：!total! 个，成功：!succeeded! 个，跳过：!skipped! 个，失败：!fail_total! 个
-    echo 其中，嵌入成功 !succeeded! 个，嵌入失败 !embed_failed! 个（未找到 ass/srt 字幕文件 !no_sub_file! 个），视频已内嵌字幕跳过 !has_sub! 个，同名 mkv 已存在跳过 !mkv_exist! 个
+    echo 其中，嵌入成功 !succeeded! 个，嵌入失败 !embed_failed! 个，未找到 ass/srt 字幕文件跳过 !no_sub_file! 个，视频已内嵌字幕跳过 !has_sub! 个，同名 mkv 已存在跳过 !mkv_exist! 个
 )
 
 
