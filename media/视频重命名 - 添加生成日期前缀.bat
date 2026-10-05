@@ -148,7 +148,7 @@ if "!param1!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($timeStr) try { Write-Output $(if ($timeStr.Length -eq 8) { [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -timeStr '!creation_date!'" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($timeStr) try { Write-Output $(if ($timeStr.Length -eq 8) { [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -timeStr $env:creation_date" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
@@ -277,7 +277,7 @@ if not "!working_dir!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($timeStr) try { Write-Output $(if ($timeStr.Length -eq 8) { [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -timeStr '!creation_date!'" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($timeStr) try { Write-Output $(if ($timeStr.Length -eq 8) { [DateTime]::ParseExact($timeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($timeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -timeStr $env:creation_date" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
