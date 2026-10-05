@@ -273,6 +273,8 @@ try {
             MenuStop = "停止"
             MenuRestart = "重启"
             MenuViewLog = "查看日志"
+            MenuMoveUp = "上移"
+            MenuMoveDown = "下移"
             MenuEdit = "修改任务"
             MenuDelete = "删除任务"
             MenuStartAll = "全部启动"
@@ -294,6 +296,7 @@ try {
             ERROR_CommandNotFound = "命令文件不存在: {0}"
             ERROR_NameEmpty = "任务名称不能为空"
             ERROR_NameDuplicated = "任务名称已存在: {0}"
+            ERROR_NameInvalid = "任务名称包含特殊字符，不能作为 Windows 文件名: {0}"
             ERROR_WorkDirNotFound = "工作目录不存在: {0}"
             ERROR_NoSelection = "请先在列表中选择一个任务"
             ERROR_TaskStartFailed = "任务启动失败: {0}"
@@ -361,6 +364,8 @@ try {
             MenuStop = "Stop"
             MenuRestart = "Restart"
             MenuViewLog = "View Log"
+            MenuMoveUp = "Move Up"
+            MenuMoveDown = "Move Down"
             MenuEdit = "Edit Task"
             MenuDelete = "Delete Task"
             MenuStartAll = "Start All"
@@ -382,6 +387,7 @@ try {
             ERROR_CommandNotFound = "Command file not found: {0}"
             ERROR_NameEmpty = "Task name must not be empty"
             ERROR_NameDuplicated = "Task name already exists: {0}"
+            ERROR_NameInvalid = "Task name contains special characters and cannot be used as a Windows file name: {0}"
             ERROR_WorkDirNotFound = "Working directory not found: {0}"
             ERROR_NoSelection = "Please select a task from the list first"
             ERROR_TaskStartFailed = "Failed to start task: {0}"
@@ -569,10 +575,26 @@ try {
                 if ($item -isnot [PSCustomObject]) { continue; }
                 if ($item.PSObject.Properties.Match('name').Count -eq 0) { continue; }
                 if ($item.PSObject.Properties.Match('command').Count -eq 0) { continue; }
-                if (-not $item.name -or -not $item.command) { continue; }
+
+                # 任务名称：不能为空，且不能包含任何无法作为 Windows 文件名的字符
+                $taskName = [string]$item.name
+                if (-not $taskName) {
+                    System-Log ($ui.ERROR_NameEmpty) "Warning"
+                    continue
+                }
+                $invalidFileNameChars = [System.IO.Path]::GetInvalidFileNameChars()
+                if ($taskName.IndexOfAny($invalidFileNameChars) -ge 0) {
+                    System-Log ($ui.ERROR_NameInvalid -f $taskName) "Warning"
+                    continue
+                }
+
+                # 命令：不能为空
+                if (-not [string]$item.command) {
+                    System-Log ($ui.ERROR_CommandEmpty) "Warning"
+                    continue
+                }
 
                 # 配置任务重名时，自动重命名：原任务名 + 数字
-                $taskName = [string]$item.name
                 if ($seenNames.Contains($taskName)) {
                     $baseName = $taskName
                     $nameSuffix = 2
@@ -675,8 +697,6 @@ try {
         return $tasks[$index]
     }
 
-    # 任务输出收集
-    # 每个任务的输出读取线程使用独立的 Runspace 池（启动时创建，停止时关闭）
     # 停止并释放任务的输出读取线程
     function Stop-Task-Readers {
         param($execution)
@@ -704,8 +724,7 @@ try {
             $execution.Writer = $null
         }
         if ($null -eq $execution.Writer) {
-            $safeName = ($TaskName -replace '[:/\\|?*<>" ]', '_')
-            $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $safeName + ".log")
+            $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
             # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
             $fileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
             $streamWriter = [System.IO.StreamWriter]::new($fileStream, $workingEncoding)
@@ -1271,14 +1290,22 @@ try {
             $newCommand = $commandBox.Text.Trim()
             $newArguments = $argumentsBox.Text.Trim()
             $newWorkingDir = $workingDirBox.Text.Trim()
+
+            # 任务名称：不能为空，且不能包含任何无法作为 Windows 文件名的字符
+            $invalidFileNameChars = [System.IO.Path]::GetInvalidFileNameChars()
             if (-not $newName) {
                 [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NameEmpty, $ui.FormTitle, "OK", "Warning") | Out-Null
+                return
+            }
+            if ($newName.IndexOfAny($invalidFileNameChars) -ge 0) {
+                [System.Windows.Forms.MessageBox]::Show(($ui.ERROR_NameInvalid -f $newName), $ui.FormTitle, "OK", "Warning") | Out-Null
                 return
             }
             if (-not $newCommand) {
                 [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandEmpty, $ui.FormTitle, "OK", "Warning") | Out-Null
                 return
             }
+
             # 任务名称唯一性检查（修改时允许保持自身名称不变）
             for ($i = 0; $i -lt $script:tasks.Count; $i++) {
                 if ($i -eq $EditIndex) { continue }
@@ -1590,6 +1617,10 @@ try {
     $menuRestartItem.Text = $ui.MenuRestart
     $menuViewLogItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuViewLogItem.Text = $ui.MenuViewLog
+    $menuMoveUpItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuMoveUpItem.Text = $ui.MenuMoveUp
+    $menuMoveDownItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuMoveDownItem.Text = $ui.MenuMoveDown
     $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
     $menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStartAllItem.Text = $ui.MenuStartAll
@@ -1604,12 +1635,20 @@ try {
     $menuDeleteItem.Text = $ui.MenuDelete
     foreach ($item in @(
         $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
+        $menuMoveUpItem, $menuMoveDownItem,
         $menuSep1, $menuStartAllItem, $menuStopAllItem,
         $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem
     )) {
         $taskContextMenu.Items.Add($item) | Out-Null
     }
     $dataGridView.ContextMenuStrip = $taskContextMenu
+    # 右键菜单打开时，根据选中位置启用/禁用上移、下移
+    $taskContextMenu.Add_Opening({
+        $index = Get-Selected-Task-Index
+        $count = $script:tasks.Count
+        $menuMoveUpItem.Enabled = ($index -gt 0)
+        $menuMoveDownItem.Enabled = ($index -ge 0 -and $index -lt ($count - 1))
+    })
     # 右键菜单: 新增任务
     $menuAddItem.Add_Click({ Open-Task-Dialog -EditIndex -1 })
     # 右键菜单: 启动任务
@@ -1641,6 +1680,38 @@ try {
     })
     # 右键菜单: 查看任务日志
     $menuViewLogItem.Add_Click({ Show-Task-Log-Viewer })
+    # 右键菜单: 上移任务
+    $menuMoveUpItem.Add_Click({
+        $index = Get-Selected-Task-Index
+        if ($index -lt 0) {
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            return
+        }
+        if ($index -le 0) { return }
+        $upper = $script:tasks[$index - 1]
+        $script:tasks[$index - 1] = $script:tasks[$index]
+        $script:tasks[$index] = $upper
+        Save-Config
+        Update-Task-Grid
+        $dataGridView.Rows[$index - 1].Selected = $true
+        $dataGridView.CurrentCell = $dataGridView.Rows[$index - 1].Cells[0]
+    })
+    # 右键菜单: 下移任务
+    $menuMoveDownItem.Add_Click({
+        $index = Get-Selected-Task-Index
+        if ($index -lt 0) {
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            return
+        }
+        if ($index -ge ($script:tasks.Count - 1)) { return }
+        $lower = $script:tasks[$index + 1]
+        $script:tasks[$index + 1] = $script:tasks[$index]
+        $script:tasks[$index] = $lower
+        Save-Config
+        Update-Task-Grid
+        $dataGridView.Rows[$index + 1].Selected = $true
+        $dataGridView.CurrentCell = $dataGridView.Rows[$index + 1].Cells[0]
+    })
     # 右键菜单: 修改任务（运行中则先停止，保存后再启动）
     $menuEditItem.Add_Click({
         $index = Get-Selected-Task-Index
