@@ -9,7 +9,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '双击运行，重启桌面进程 explorer.exe' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '重启前记录已打开的文件夹窗口，重启后自动重新打开' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '部分窗口可能无法恢复，窗口内的文件夹选中项等也无法恢复' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '部分窗口可能无法恢复，窗口内的选中项等也无法恢复' -ForegroundColor Green"
 echo.
 
 
