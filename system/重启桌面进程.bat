@@ -51,14 +51,22 @@ echo.
 echo 正在重启桌面进程
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "if (Get-Process -Name explorer -ErrorAction SilentlyContinue) {" ^
-    "    try { Stop-Process -Name explorer -Force -ErrorAction Stop }" ^
+    "$winlogon = Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -ErrorAction SilentlyContinue;" ^
+    "$autoRestart = 0;" ^
+    "if ($winlogon -and $winlogon.Shell -eq 'explorer.exe' -and $winlogon.AutoRestartShell -eq 1) {" ^
+    "    $autoRestart = 1;" ^
+    "};" ^
+    "$old = @(Get-Process -Name explorer -ErrorAction SilentlyContinue | ForEach-Object { $_.Id });" ^
+    "if ($old.Count -gt 0) {" ^
+    "    try {" ^
+    "        Stop-Process -Id $old -Force -ErrorAction Stop;" ^
+    "    }" ^
     "    catch {" ^
     "        Write-Host '错误：结束桌面进程失败' -ForegroundColor Red;" ^
     "        exit 1;" ^
     "    };" ^
     "    $n = 0;" ^
-    "    while (Get-Process -Name explorer -ErrorAction SilentlyContinue) {" ^
+    "    while (@(Get-Process -Id $old -ErrorAction SilentlyContinue).Count -gt 0) {" ^
     "        Start-Sleep -Milliseconds 200;" ^
     "        $n++;" ^
     "        if ($n -gt 50) {" ^
@@ -66,20 +74,37 @@ powershell -NoProfile -Command ^
     "            exit 1;" ^
     "        }" ^
     "    };" ^
+    "    if ($autoRestart -eq 1) {" ^
+    "        Write-Host '系统已设置自动重启桌面进程，等待其自动重启';" ^
+    "        $n = 0;" ^
+    "        while (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {" ^
+    "            Start-Sleep -Milliseconds 200;" ^
+    "            $n++;" ^
+    "            if ($n -gt 50) {" ^
+    "                Write-Host '等待系统自动重启桌面进程超时';" ^
+    "                break;" ^
+    "            }" ^
+    "        };" ^
+    "    };" ^
     "};" ^
-    "try { Start-Process explorer.exe -ErrorAction Stop }" ^
-    "catch {" ^
-    "    Write-Host '错误：启动桌面进程失败' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$n = 0;" ^
-    "while (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {" ^
-    "    Start-Sleep -Milliseconds 200;" ^
-    "    $n++;" ^
-    "    if ($n -gt 50) {" ^
-    "        Write-Host '错误：等待桌面进程启动超时' -ForegroundColor Red;" ^
-    "        exit 1;" ^
+    "$new = @(Get-Process -Name explorer -ErrorAction SilentlyContinue | ForEach-Object { $_.Id });" ^
+    "if (-not $new.Count -gt 0) {" ^
+    "    try {" ^
+    "        Start-Process explorer.exe -ErrorAction Stop;" ^
     "    }" ^
+    "    catch {" ^
+    "        Write-Host '错误：启动桌面进程失败' -ForegroundColor Red;" ^
+    "        exit 1;" ^
+    "    };" ^
+    "    $n = 0;" ^
+    "    while (-not (Get-Process -Name explorer -ErrorAction SilentlyContinue)) {" ^
+    "        Start-Sleep -Milliseconds 200;" ^
+    "        $n++;" ^
+    "        if ($n -gt 50) {" ^
+    "            Write-Host '错误：等待桌面进程启动超时' -ForegroundColor Red;" ^
+    "            exit 1;" ^
+    "        }" ^
+    "    };" ^
     "};" ^
     "Start-Sleep -Milliseconds 800;"
 if !errorlevel! neq 0 (
