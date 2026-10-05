@@ -427,8 +427,6 @@ try {
 
     # 任务运行时状态表: 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
     $script:runtimeTable = @{}
-    # 任务配置列表（有序数组，元素为 PSCustomObject）
-    $script:tasks = @()
     # 后台线程输出的异步日志队列
     $script:outputQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
     # 是否真正退出程序（区分「隐藏到托盘」和「关闭程序」）
@@ -509,7 +507,7 @@ try {
 
         if ($systemLogTextBox.IsHandleCreated -and $systemLogTextBox.InvokeRequired) {
             try {
-                [void]$systemLogTextBox.BeginInvoke($systemLogInternalAction, $systemLogTextBox, $logLine, $logColor)
+                $systemLogTextBox.BeginInvoke($systemLogInternalAction, $systemLogTextBox, $logLine, $logColor) | Out-Null
             } catch {
                 Handle-Exception $_
             }
@@ -518,7 +516,10 @@ try {
         System-Log-Internal $systemLogTextBox $logLine $logColor
     }
 
-    # 配置加载和保存
+    # 任务配置列表
+    # 有序数组，元素为 PSCustomObject，字段：name，command，arguments，workingDirectory，autoStart
+    $tasks = @()
+
     # 保存任务列表到配置文件
     function Save-Config {
         $objects = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -539,11 +540,12 @@ try {
                 autoStart = $autoStart
             })
         }
-        $jsonText = ConvertTo-Json -InputObject @($objects) -Depth 5
-        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $jsonText, $workingEncoding)
+        $json = ConvertTo-Json -InputObject @($objects) -Depth 100
+        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $json, $workingEncoding)
         System-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) "Debug"
     }
-    # 从配置文件加载任务列表并刷新表格
+
+    # 从配置文件加载任务列表
     function Load-Config {
         if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
             System-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) "Warning"
@@ -553,16 +555,15 @@ try {
             $config = Get-Content -Path $myBatchTaskConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
             $configItems = @($config)
             $script:tasks = @()
-            # 名称唯一性校验（不区分大小写）：运行时状态表以名称为键，且大小写不敏感，
-            # 重名会导致后一个任务始终被判定为「已在运行中」而永远无法启动，状态列也会串台
             $seenNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
             foreach ($item in $configItems) {
-                if ($item -isnot [PSCustomObject]) { continue }
-                if ($item.PSObject.Properties.Match('name').Count -eq 0) { continue }
-                if ($item.PSObject.Properties.Match('command').Count -eq 0) { continue }
-                if (-not $item.name -or -not $item.command) { continue }
+                if ($item -isnot [PSCustomObject]) { continue; }
+                if ($item.PSObject.Properties.Match('name').Count -eq 0) { continue; }
+                if ($item.PSObject.Properties.Match('command').Count -eq 0) { continue; }
+                if (-not $item.name -or -not $item.command) { continue; }
+
+                # 配置任务重名时，自动重命名：原任务名 + 数字
                 $taskName = [string]$item.name
-                # 重名时不丢弃任务，自动追加序号，保证名称唯一且配置不丢失
                 if ($seenNames.Contains($taskName)) {
                     $baseName = $taskName
                     $nameSuffix = 2
@@ -573,7 +574,7 @@ try {
                     $item.name = $taskName
                     System-Log ($ui.INFO_NameRenamed -f $baseName, $taskName) "Warning"
                 }
-                [void]$seenNames.Add($taskName)
+                $seenNames.Add($taskName) | Out-Null
                 $script:tasks += $item
             }
         } catch {
@@ -585,12 +586,12 @@ try {
         return $true
     }
 
-    # 表格刷新与选中任务
-    # 用任务列表刷新整个表格
+    # 刷新界面展示的任务列表表格
+    $taskGridView = $null
     function Update-Task-Grid {
-        $dataGridView.SuspendLayout()
+        $taskGridView.SuspendLayout()
         try {
-            $dataGridView.Rows.Clear()
+            $taskGridView.Rows.Clear()
             for ($i = 0; $i -lt $script:tasks.Count; $i++) {
                 $task = $script:tasks[$i]
                 $statusText = $ui.StatusStopped
@@ -607,17 +608,17 @@ try {
                 if ($task.PSObject.Properties.Match('workingDirectory').Count -gt 0) {
                     $workingDirText = [string]$task.workingDirectory
                 }
-                $dataGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, $workingDirText) | Out-Null
+                $taskGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, $workingDirText) | Out-Null
             }
         }
         finally {
-            $dataGridView.ResumeLayout()
+            $taskGridView.ResumeLayout()
         }
     }
     # 刷新指定行的状态和 PID 两列
     function Update-Task-Row {
         param([int]$Index)
-        if ($Index -lt 0 -or $Index -ge $dataGridView.Rows.Count) { return }
+        if ($Index -lt 0 -or $Index -ge $taskGridView.Rows.Count) { return }
         $task = $script:tasks[$Index]
         if ($null -eq $task) { return }
         $runtime = $null
@@ -632,13 +633,13 @@ try {
                 $pidText = [string]$runtime.Process.Id
             }
         }
-        $dataGridView.Rows[$Index].Cells[0].Value = $statusText
-        $dataGridView.Rows[$Index].Cells[1].Value = $pidText
+        $taskGridView.Rows[$Index].Cells[0].Value = $statusText
+        $taskGridView.Rows[$Index].Cells[1].Value = $pidText
     }
     # 获取当前选中行对应的任务序号
     function Get-Selected-Task-Index {
-        if ($dataGridView.SelectedRows.Count -eq 0) { return -1 }
-        return $dataGridView.SelectedRows[0].Index
+        if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
+        return $taskGridView.SelectedRows[0].Index
     }
     # 获取当前选中行对应的任务配置
     function Get-Selected-Task {
@@ -863,7 +864,7 @@ try {
         foreach ($pair in @(@{ Reader = $process.StandardOutput; IsError = $false }, @{ Reader = $process.StandardError; IsError = $true })) {
             $readerPs = [System.Management.Automation.PowerShell]::Create()
             $readerPs.RunspacePool = $script:readerRunspacePool
-            [void]$readerPs.AddScript($readerScript)
+            $readerPs.AddScript($readerScript) | Out-Null
             $readerPs.AddParameter('reader', $pair.Reader)
             $readerPs.AddParameter('queue', $script:outputQueue)
             $readerPs.AddParameter('name', $taskName)
@@ -1472,59 +1473,61 @@ try {
     $taskListTabPage.BackColor = [System.Drawing.Color]::White
     $tabControl.Controls.Add($taskListTabPage)
     # 任务信息显示表格
-    $dataGridView = [System.Windows.Forms.DataGridView]::new()
-    $dataGridView.ReadOnly = $true
-    $dataGridView.AllowUserToAddRows = $false
-    $dataGridView.AllowUserToDeleteRows = $false
-    $dataGridView.AllowUserToResizeRows = $false
-    $dataGridView.RowHeadersVisible = $false
-    $dataGridView.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
-    $dataGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-    $dataGridView.BackgroundColor = [System.Drawing.Color]::White
-    $dataGridView.GridColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
-    $dataGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
-    $dataGridView.EnableHeadersVisualStyles = $false
-    $dataGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
-    $dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
-    $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($uiFont, [System.Drawing.FontStyle]::Bold)
-    $dataGridView.ColumnHeadersHeight = 40
-    $dataGridView.RowTemplate.Height = 32
-    $dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+    $taskGridView = [System.Windows.Forms.DataGridView]::new()
+    $taskGridView.ReadOnly = $true
+    $taskGridView.AllowUserToAddRows = $false
+    $taskGridView.AllowUserToDeleteRows = $false
+    $taskGridView.AllowUserToResizeRows = $false
+    $taskGridView.RowHeadersVisible = $false
+    $taskGridView.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+    $taskGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+    $taskGridView.BackgroundColor = [System.Drawing.Color]::White
+    $taskGridView.GridColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+    $taskGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
+    $taskGridView.EnableHeadersVisualStyles = $false
+    $taskGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
+    $taskGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
+    $taskGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($uiFont, [System.Drawing.FontStyle]::Bold)
+    $taskGridView.ColumnHeadersHeight = 40
+    $taskGridView.RowTemplate.Height = 32
+    $taskGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
     # 单元格字体显式指定（默认依赖窗体字体继承，显式赋值可避免环境差异导致表格与其它控件字体不一致）
-    $dataGridView.DefaultCellStyle.Font = $uiFont
-    $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
-    $dataGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
-    $dataGridView.Dock = "Fill"
-    $dataGridView.ColumnCount = 6
-    $dataGridView.Columns[0].Name = $ui.ColumnStatus
-    $dataGridView.Columns[1].Name = $ui.ColumnPid
-    $dataGridView.Columns[2].Name = $ui.ColumnName
-    $dataGridView.Columns[3].Name = $ui.ColumnCommand
-    $dataGridView.Columns[4].Name = $ui.ColumnArguments
-    $dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
-    $dataGridView.Columns[0].Width = 90
-    $dataGridView.Columns[1].Width = 80
-    $dataGridView.Columns[2].Width = 200
-    $dataGridView.Columns[3].Width = 300
-    $dataGridView.Columns[4].Width = 260
-    $dataGridView.Columns[5].AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
+    $taskGridView.DefaultCellStyle.Font = $uiFont
+    $taskGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
+    $taskGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
+    $taskGridView.Dock = "Fill"
+    $taskGridView.ColumnCount = 6
+    $taskGridView.Columns[0].Name = $ui.ColumnStatus
+    $taskGridView.Columns[1].Name = $ui.ColumnPid
+    $taskGridView.Columns[2].Name = $ui.ColumnName
+    $taskGridView.Columns[3].Name = $ui.ColumnCommand
+    $taskGridView.Columns[4].Name = $ui.ColumnArguments
+    $taskGridView.Columns[5].Name = $ui.ColumnWorkingDir
+    $taskGridView.Columns[0].Width = 90
+    $taskGridView.Columns[1].Width = 80
+    $taskGridView.Columns[2].Width = 200
+    $taskGridView.Columns[3].Width = 300
+    $taskGridView.Columns[4].Width = 260
+    $taskGridView.Columns[5].AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
     # 只允许单行选择
-    $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
-    $dataGridView.MultiSelect = $false
+    $taskGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
+    $taskGridView.MultiSelect = $false
     # 鼠标按下时自动选中一行（包括左键和右键）
-    $dataGridView.Add_CellMouseDown({
+    $taskGridView.Add_CellMouseDown({
         param($eventSender, $event)
         if ($event.RowIndex -ge 0) {
-            $dataGridView.ClearSelection()
-            $dataGridView.Rows[$event.RowIndex].Selected = $true
-            $dataGridView.CurrentCell = $dataGridView.Rows[$event.RowIndex].Cells[0]
+            $taskGridView.ClearSelection()
+            $taskGridView.Rows[$event.RowIndex].Selected = $true
+            $taskGridView.CurrentCell = $taskGridView.Rows[$event.RowIndex].Cells[0]
         }
     })
     # 双击行查看任务日志
-    $dataGridView.Add_CellDoubleClick({
+    $taskGridView.Add_CellDoubleClick({
         Show-Task-Log-Viewer
     })
-    $taskListTabPage.Controls.Add($dataGridView)
+    $taskListTabPage.Controls.Add($taskGridView)
+    # 任务表格交给 Update-Task-Grid / Update-Task-Row 等函数使用
+    $script:taskGridView = $taskGridView
     # 任务列表的右键菜单
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -1554,7 +1557,7 @@ try {
     )) {
         $taskContextMenu.Items.Add($item) | Out-Null
     }
-    $dataGridView.ContextMenuStrip = $taskContextMenu
+    $taskGridView.ContextMenuStrip = $taskContextMenu
     # 右键菜单: 新增任务
     $menuAddItem.Add_Click({ Open-Task-Dialog -EditIndex -1 })
     # 右键菜单: 启动任务

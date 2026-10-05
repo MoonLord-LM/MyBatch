@@ -56,7 +56,7 @@ powershell -NoProfile -Command ^
     "$nameTasks = foreach ($ip in $online) {" ^
     "    [Net.Dns]::GetHostEntryAsync($ip);" ^
     "};" ^
-    "[void][System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]$nameTasks, 3000);" ^
+    "[System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]$nameTasks, 3000) | Out-Null;" ^
     "for ($i = 0; $i -lt $online.Count; $i++) {" ^
     "    if ($nameTasks[$i].IsCompleted -and -not $nameTasks[$i].IsFaulted) {" ^
     "        try {" ^
