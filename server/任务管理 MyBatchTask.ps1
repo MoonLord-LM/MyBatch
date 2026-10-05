@@ -14,9 +14,9 @@
 #     [
 #         {
 #             "name": "Ping Test",
-#             "command": "C:\\Windows\\System32\\cmd.exe",
+#             "command": "%SystemRoot%\\System32\\cmd.exe",
 #             "arguments": "/c \"chcp 65001 >nul && ping github.com\"",
-#             "workingDirectory": "C:\\Windows\\System32",
+#             "workingDirectory": "%SystemRoot%\\System32",
 #             "autoStart": true
 #         }
 #     ]
@@ -28,6 +28,7 @@
 #     arguments 参数
 #     workingDirectory 工作目录（默认为脚本目录）
 #     autoStart 管理器启动时自动运行（默认 true）
+#     command / arguments / workingDirectory 三个字段都支持 %SystemRoot% 这类环境变量，运行时自动展开
 #
 # 运行方式：
 #     powershell -NoProfile -ExecutionPolicy Bypass -File "任务管理 MyBatchTask.ps1"
@@ -217,9 +218,9 @@ try {
 [
     {
         "name": "Ping 测试",
-        "command": "C:\\Windows\\System32\\cmd.exe",
+        "command": "%SystemRoot%\\System32\\cmd.exe",
         "arguments": "/c \"chcp 65001 >nul && ping github.com\"",
-        "workingDirectory": "C:\\Windows\\System32",
+        "workingDirectory": "%SystemRoot%\\System32",
         "autoStart": true
     }
 ]
@@ -229,9 +230,9 @@ try {
 [
     {
         "name": "Ping Test",
-        "command": "C:\\Windows\\System32\\cmd.exe",
+        "command": "%SystemRoot%\\System32\\cmd.exe",
         "arguments": "/c \"chcp 65001 >nul && ping github.com\"",
-        "workingDirectory": "C:\\Windows\\System32",
+        "workingDirectory": "%SystemRoot%\\System32",
         "autoStart": true
     }
 ]
@@ -304,6 +305,7 @@ try {
             INFO_ConfigLoaded = "已加载 {0} 个任务"
             INFO_ConfigLoadFailed = "配置文件加载失败: {0}"
             INFO_ConfigNotFound = "未找到配置文件: {0}"
+            INFO_NameRenamed = "任务名称「{0}」重复，已自动重命名为「{1}」"
             INFO_StartAllDone = "已启动全部任务"
             INFO_StopAllDone = "已停止全部任务"
             INFO_LogCopied = "日志已复制到剪贴板"
@@ -390,6 +392,7 @@ try {
             INFO_ConfigLoaded = "Loaded {0} task(s)"
             INFO_ConfigLoadFailed = "Failed to load configuration file: {0}"
             INFO_ConfigNotFound = "Configuration file not found: {0}"
+            INFO_NameRenamed = "Task name '{0}' is duplicated and has been renamed to '{1}'"
             INFO_StartAllDone = "All tasks started"
             INFO_StopAllDone = "All tasks stopped"
             INFO_LogCopied = "Log copied to clipboard"
@@ -550,11 +553,27 @@ try {
             $config = Get-Content -Path $myBatchTaskConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
             $configItems = @($config)
             $script:tasks = @()
+            # 名称唯一性校验（不区分大小写）：运行时状态表以名称为键，且大小写不敏感，
+            # 重名会导致后一个任务始终被判定为「已在运行中」而永远无法启动，状态列也会串台
+            $seenNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
             foreach ($item in $configItems) {
                 if ($item -isnot [PSCustomObject]) { continue }
                 if ($item.PSObject.Properties.Match('name').Count -eq 0) { continue }
                 if ($item.PSObject.Properties.Match('command').Count -eq 0) { continue }
                 if (-not $item.name -or -not $item.command) { continue }
+                $taskName = [string]$item.name
+                # 重名时不丢弃任务，自动追加序号，保证名称唯一且配置不丢失
+                if ($seenNames.Contains($taskName)) {
+                    $baseName = $taskName
+                    $nameSuffix = 2
+                    while ($seenNames.Contains($baseName + $nameSuffix)) {
+                        $nameSuffix += 1
+                    }
+                    $taskName = $baseName + $nameSuffix
+                    $item.name = $taskName
+                    System-Log ($ui.INFO_NameRenamed -f $baseName, $taskName) "Warning"
+                }
+                [void]$seenNames.Add($taskName)
                 $script:tasks += $item
             }
         } catch {
@@ -768,13 +787,48 @@ try {
         }
         # 构建进程启动信息，隐藏窗口并重定向输出
         $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-        $commandExtension = [System.IO.Path]::GetExtension($commandText).ToLower()
+        # UseShellExecute = false 走 CreateProcess，只能启动可执行文件，
+        # .ps1 / .py 这类脚本必须自动拼接解释器，否则报「指定的可执行文件不是此操作系统平台的有效应用程序」
+        # 命令可能是 PATH 中的裸名称，先用 Get-Command 取真实路径，再按扩展名判断
+        $resolvedCommand = $commandText
+        if (-not [System.IO.File]::Exists($resolvedCommand)) {
+            $resolvedItem = Get-Command $commandText -ErrorAction SilentlyContinue
+            if ($resolvedItem -and $resolvedItem.Source) {
+                $resolvedCommand = [string]$resolvedItem.Source
+            }
+        }
+        $commandExtension = [System.IO.Path]::GetExtension($resolvedCommand).ToLower()
         if ($commandExtension -eq ".bat" -or $commandExtension -eq ".cmd") {
-            # 批处理脚本通过 cmd /s /c 启动，兼容带空格路径
+            # 批处理脚本通过 cmd /s /c 启动；命令整体要再包一层引号，
+            # 因为 /s 会剥掉最外层引号，只包一层时含空格的路径会被截断成不存在的命令
             $startInfo.FileName = $env:ComSpec
-            $startInfo.Arguments = '/s /c "' + $commandText + '" ' + $argumentText
+            $startInfo.Arguments = '/s /c ""' + $resolvedCommand + '" ' + $argumentText + '"'
+        } elseif ($commandExtension -eq ".ps1") {
+            # PowerShell 脚本通过 powershell -File 启动
+            $powerShellExe = 'powershell.exe'
+            if ($PSVersionTable.PSEdition -eq 'Core') {
+                $powerShellExe = 'pwsh.exe'
+            }
+            $resolvedPowerShell = Get-Command $powerShellExe -ErrorAction SilentlyContinue
+            if ($resolvedPowerShell -and $resolvedPowerShell.Source) {
+                $powerShellExe = [string]$resolvedPowerShell.Source
+            }
+            $startInfo.FileName = $powerShellExe
+            $startInfo.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $resolvedCommand + '" ' + $argumentText
+        } elseif ($commandExtension -eq ".py") {
+            # Python 脚本通过 python.exe 启动，找不到解释器时退回裸名称，由进程启动失败统一报错
+            $pythonExe = 'python.exe'
+            foreach ($candidate in @('python.exe', 'python3.exe')) {
+                $resolvedPython = Get-Command $candidate -ErrorAction SilentlyContinue
+                if ($resolvedPython -and $resolvedPython.Source) {
+                    $pythonExe = [string]$resolvedPython.Source
+                    break
+                }
+            }
+            $startInfo.FileName = $pythonExe
+            $startInfo.Arguments = '"' + $resolvedCommand + '" ' + $argumentText
         } else {
-            $startInfo.FileName = $commandText
+            $startInfo.FileName = $resolvedCommand
             $startInfo.Arguments = $argumentText
         }
         $startInfo.WorkingDirectory = $workingDirText
