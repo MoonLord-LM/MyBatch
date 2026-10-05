@@ -875,14 +875,8 @@ try {
         }
         # 展开环境变量
         $commandText = [System.Environment]::ExpandEnvironmentVariables([string]$task.command)
-        $argumentText = ""
-        if ($task.PSObject.Properties.Match('arguments').Count -gt 0 -and $task.arguments) {
-            $argumentText = [System.Environment]::ExpandEnvironmentVariables([string]$task.arguments)
-        }
-        $workingDirText = $workingDirectory
-        if ($task.PSObject.Properties.Match('workingDirectory').Count -gt 0 -and $task.workingDirectory) {
-            $workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$task.workingDirectory)
-        }
+        $argumentText = [System.Environment]::ExpandEnvironmentVariables([string]$task.arguments)
+        $workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$task.workingDirectory)
         if (-not [System.IO.Directory]::Exists($workingDirText)) {
             System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) "Error"
             return
@@ -1325,15 +1319,9 @@ try {
             $originalName = [string]$task.name
             $nameBox.Text = $originalName
             $commandBox.Text = [string]$task.command
-            if ($task.PSObject.Properties.Match('arguments').Count -gt 0) {
-                $argumentsBox.Text = [string]$task.arguments
-            }
-            if ($task.PSObject.Properties.Match('workingDirectory').Count -gt 0) {
-                $workingDirBox.Text = [string]$task.workingDirectory
-            }
-            if ($task.PSObject.Properties.Match('autoStart').Count -gt 0) {
-                $autoStartBox.Checked = [bool]$task.autoStart
-            }
+            $argumentsBox.Text = [string]$task.arguments
+            $workingDirBox.Text = [string]$task.workingDirectory
+            $autoStartBox.Checked = [bool]$task.autoStart
         }
         # 确定按钮: 校验并写回任务列表
         $okButton.Add_Click({
@@ -1469,10 +1457,7 @@ try {
         # 启动全部 autoStart 任务
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
             $task = $script:taskConfigList[$i]
-            $needStart = $true
-            if ($task.PSObject.Properties.Match('autoStart').Count -gt 0 -and $null -ne $task.autoStart) {
-                $needStart = [bool]$task.autoStart
-            }
+            $needStart = [bool]$task.autoStart
             if ($needStart) {
                 Start-Task -Index $i
             }
