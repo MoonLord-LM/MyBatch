@@ -739,17 +739,10 @@ try {
         $taskGridView.Rows[$index].Cells[1].Value = $pidText
     }
 
-    # 获取任务列表展示表格当前选中的行，对应的任务序号
+    # 获取任务列表展示表格当前选中的行，对应的序号
     function Get-Selected-Task-Index {
         if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
         return $taskGridView.SelectedRows[0].Index
-    }
-
-    # 获取任务列表展示表格当前选中的行，对应的任务配置
-    function Get-Selected-Task {
-        $index = Get-Selected-Task-Index
-        if ($index -lt 0 -or $index -ge $taskConfigList.Count) { return $null }
-        return $taskConfigList[$index]
     }
 
     # TODO 审核后续代码
@@ -1070,11 +1063,12 @@ try {
     # 任务日志标签页
     # 打开任务日志标签页（已存在则直接切换）
     function Show-Task-Log-Viewer {
-        $task = Get-Selected-Task
-        if ($null -eq $task) {
+        $index = Get-Selected-Task-Index
+        if ($index -lt 0) {
             [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
             return
         }
+        $task = $taskConfigList[$index]
         $taskName = [string]$task.name
         $logPageName = "LogPage_" + $taskName
         # 已存在则直接切换
