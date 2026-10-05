@@ -586,8 +586,9 @@ try {
         return $true
     }
 
-    # 刷新界面展示的任务列表表格
+    # 任务列表表格
     $taskGridView = $null
+    # 刷新界面展示的任务列表表格
     function Update-Task-Grid {
         $taskGridView.SuspendLayout()
         try {
@@ -1473,61 +1474,61 @@ try {
     $taskListTabPage.BackColor = [System.Drawing.Color]::White
     $tabControl.Controls.Add($taskListTabPage)
     # 任务信息显示表格
-    $taskGridView = [System.Windows.Forms.DataGridView]::new()
-    $taskGridView.ReadOnly = $true
-    $taskGridView.AllowUserToAddRows = $false
-    $taskGridView.AllowUserToDeleteRows = $false
-    $taskGridView.AllowUserToResizeRows = $false
-    $taskGridView.RowHeadersVisible = $false
-    $taskGridView.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
-    $taskGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-    $taskGridView.BackgroundColor = [System.Drawing.Color]::White
-    $taskGridView.GridColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
-    $taskGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
-    $taskGridView.EnableHeadersVisualStyles = $false
-    $taskGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
-    $taskGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
-    $taskGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($uiFont, [System.Drawing.FontStyle]::Bold)
-    $taskGridView.ColumnHeadersHeight = 40
-    $taskGridView.RowTemplate.Height = 32
-    $taskGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+    $dataGridView = [System.Windows.Forms.DataGridView]::new()
+    $dataGridView.ReadOnly = $true
+    $dataGridView.AllowUserToAddRows = $false
+    $dataGridView.AllowUserToDeleteRows = $false
+    $dataGridView.AllowUserToResizeRows = $false
+    $dataGridView.RowHeadersVisible = $false
+    $dataGridView.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+    $dataGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+    $dataGridView.BackgroundColor = [System.Drawing.Color]::White
+    $dataGridView.GridColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+    $dataGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
+    $dataGridView.EnableHeadersVisualStyles = $false
+    $dataGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
+    $dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
+    $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($uiFont, [System.Drawing.FontStyle]::Bold)
+    $dataGridView.ColumnHeadersHeight = 40
+    $dataGridView.RowTemplate.Height = 32
+    $dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
     # 单元格字体显式指定（默认依赖窗体字体继承，显式赋值可避免环境差异导致表格与其它控件字体不一致）
-    $taskGridView.DefaultCellStyle.Font = $uiFont
-    $taskGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
-    $taskGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
-    $taskGridView.Dock = "Fill"
-    $taskGridView.ColumnCount = 6
-    $taskGridView.Columns[0].Name = $ui.ColumnStatus
-    $taskGridView.Columns[1].Name = $ui.ColumnPid
-    $taskGridView.Columns[2].Name = $ui.ColumnName
-    $taskGridView.Columns[3].Name = $ui.ColumnCommand
-    $taskGridView.Columns[4].Name = $ui.ColumnArguments
-    $taskGridView.Columns[5].Name = $ui.ColumnWorkingDir
-    $taskGridView.Columns[0].Width = 90
-    $taskGridView.Columns[1].Width = 80
-    $taskGridView.Columns[2].Width = 200
-    $taskGridView.Columns[3].Width = 300
-    $taskGridView.Columns[4].Width = 260
-    $taskGridView.Columns[5].AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
+    $dataGridView.DefaultCellStyle.Font = $uiFont
+    $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
+    $dataGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
+    $dataGridView.Dock = "Fill"
+    $dataGridView.ColumnCount = 6
+    $dataGridView.Columns[0].Name = $ui.ColumnStatus
+    $dataGridView.Columns[1].Name = $ui.ColumnPid
+    $dataGridView.Columns[2].Name = $ui.ColumnName
+    $dataGridView.Columns[3].Name = $ui.ColumnCommand
+    $dataGridView.Columns[4].Name = $ui.ColumnArguments
+    $dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
+    $dataGridView.Columns[0].Width = 90
+    $dataGridView.Columns[1].Width = 80
+    $dataGridView.Columns[2].Width = 200
+    $dataGridView.Columns[3].Width = 300
+    $dataGridView.Columns[4].Width = 260
+    $dataGridView.Columns[5].AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
     # 只允许单行选择
-    $taskGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
-    $taskGridView.MultiSelect = $false
+    $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
+    $dataGridView.MultiSelect = $false
     # 鼠标按下时自动选中一行（包括左键和右键）
-    $taskGridView.Add_CellMouseDown({
+    $dataGridView.Add_CellMouseDown({
         param($eventSender, $event)
         if ($event.RowIndex -ge 0) {
-            $taskGridView.ClearSelection()
-            $taskGridView.Rows[$event.RowIndex].Selected = $true
-            $taskGridView.CurrentCell = $taskGridView.Rows[$event.RowIndex].Cells[0]
+            $dataGridView.ClearSelection()
+            $dataGridView.Rows[$event.RowIndex].Selected = $true
+            $dataGridView.CurrentCell = $dataGridView.Rows[$event.RowIndex].Cells[0]
         }
     })
     # 双击行查看任务日志
-    $taskGridView.Add_CellDoubleClick({
+    $dataGridView.Add_CellDoubleClick({
         Show-Task-Log-Viewer
     })
-    $taskListTabPage.Controls.Add($taskGridView)
-    # 任务表格交给 Update-Task-Grid / Update-Task-Row 等函数使用
-    $script:taskGridView = $taskGridView
+    $taskListTabPage.Controls.Add($dataGridView)
+    # 任务表格创建完成，交给全局变量供 Update-Task-Grid / Update-Task-Row 等函数使用
+    $script:taskGridView = $dataGridView
     # 任务列表的右键菜单
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -1557,7 +1558,7 @@ try {
     )) {
         $taskContextMenu.Items.Add($item) | Out-Null
     }
-    $taskGridView.ContextMenuStrip = $taskContextMenu
+    $dataGridView.ContextMenuStrip = $taskContextMenu
     # 右键菜单: 新增任务
     $menuAddItem.Add_Click({ Open-Task-Dialog -EditIndex -1 })
     # 右键菜单: 启动任务
