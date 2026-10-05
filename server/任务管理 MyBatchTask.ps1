@@ -1114,7 +1114,7 @@ try {
         } else {
             $dialogForm.Text = $ui.DialogAddTitle
         }
-        $dialogForm.Size = [System.Drawing.Size]::new(720, 380)
+        $dialogForm.Size = [System.Drawing.Size]::new(750, 550)
         $dialogForm.FormBorderStyle = "FixedDialog"
         $dialogForm.StartPosition = "CenterParent"
         $dialogForm.MaximizeBox = $false
@@ -1336,8 +1336,8 @@ try {
     # 主窗口
     $mainForm = [System.Windows.Forms.Form]::new()
     $mainForm.Text = $ui.FormTitle
-    $mainForm.Size = [System.Drawing.Size]::new(1440, 840)
-    $mainForm.MinimumSize = [System.Drawing.Size]::new(1100, 650)
+    $mainForm.Size = [System.Drawing.Size]::new(1650, 950)
+    $mainForm.MinimumSize = [System.Drawing.Size]::new(850, 650)
     $mainForm.StartPosition = "CenterScreen"
     $mainForm.Font = $uiFont
     $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
@@ -1528,12 +1528,18 @@ try {
     $dataGridView.Columns[3].Name = $ui.ColumnCommand
     $dataGridView.Columns[4].Name = $ui.ColumnArguments
     $dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
-    $dataGridView.Columns[0].Width = 90
-    $dataGridView.Columns[1].Width = 80
+    $dataGridView.Columns[0].Width = 100
+    $dataGridView.Columns[0].MinimumWidth = 50
+    $dataGridView.Columns[1].Width = 100
+    $dataGridView.Columns[1].MinimumWidth = 50
     $dataGridView.Columns[2].Width = 200
-    $dataGridView.Columns[3].Width = 300
-    $dataGridView.Columns[4].Width = 260
-    $dataGridView.Columns[5].AutoSizeMode = [System.Windows.Forms.DataGridViewAutoSizeColumnMode]::Fill
+    $dataGridView.Columns[2].MinimumWidth = 100
+    $dataGridView.Columns[3].Width = 400
+    $dataGridView.Columns[3].MinimumWidth = 200
+    $dataGridView.Columns[4].Width = 400
+    $dataGridView.Columns[4].MinimumWidth = 200
+    $dataGridView.Columns[5].Width = 400
+    $dataGridView.Columns[5].MinimumWidth = 200
     # 只允许单行选择
     $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
     $dataGridView.MultiSelect = $false
