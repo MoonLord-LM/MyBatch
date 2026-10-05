@@ -1635,9 +1635,9 @@ try {
     $dataGridView.Columns[3].Name = $ui.ColumnCommand
     $dataGridView.Columns[4].Name = $ui.ColumnArguments
     $dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
-    $dataGridView.Columns[0].Width = 200
+    $dataGridView.Columns[0].Width = 175
     $dataGridView.Columns[0].MinimumWidth = $dataGridView.Columns[0].Width / 2
-    $dataGridView.Columns[1].Width = 100
+    $dataGridView.Columns[1].Width = 125
     $dataGridView.Columns[1].MinimumWidth = $dataGridView.Columns[1].Width / 2
     $dataGridView.Columns[2].Width = 200
     $dataGridView.Columns[2].MinimumWidth = $dataGridView.Columns[2].Width / 2
