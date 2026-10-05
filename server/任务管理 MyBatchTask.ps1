@@ -425,8 +425,6 @@ try {
     # 界面字体，统一用微软雅黑
     $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
 
-    # 任务运行时状态表: 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
-    $script:runtimeTable = @{}
     # 后台线程输出的异步日志队列
     $script:outputQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
     # 是否真正退出程序（区分「隐藏到托盘」和「关闭程序」）
@@ -463,11 +461,17 @@ try {
             if ($null -eq $txtBox -or $txtBox.IsDisposed) {
                 return
             }
-            $txtBox.SelectionStart = $txtBox.TextLength
-            $txtBox.SelectionLength = 0
-            $txtBox.SelectionColor = $color
-            $txtBox.AppendText($text)
-            $txtBox.ScrollToCaret()
+            $txtBox.SuspendLayout()
+            try {
+                $txtBox.SelectionStart = $txtBox.TextLength
+                $txtBox.SelectionLength = 0
+                $txtBox.SelectionColor = $color
+                $txtBox.AppendText($text)
+                $txtBox.ScrollToCaret()
+            }
+            finally {
+                $txtBox.ResumeLayout()
+            }
         } catch {
             Handle-Exception $_
         }
@@ -528,15 +532,17 @@ try {
             if ($task.PSObject.Properties.Match('autoStart').Count -gt 0 -and $null -ne $task.autoStart) {
                 $autoStart = [bool]$task.autoStart
             }
-            $workingDirValue = ""
+
+            $workingDirectoryConfig = Split-Path -Path ([string]$task.command) -Parent
             if ($task.PSObject.Properties.Match('workingDirectory').Count -gt 0 -and $task.workingDirectory) {
-                $workingDirValue = [string]$task.workingDirectory
+                $workingDirectoryConfig = [string]$task.workingDirectory
             }
+
             $objects.Add([PSCustomObject]@{
                 name = [string]$task.name
                 command = [string]$task.command
                 arguments = [string]$task.arguments
-                workingDirectory = $workingDirValue
+                workingDirectory = $workingDirectoryConfig
                 autoStart = $autoStart
             })
         }
@@ -551,6 +557,7 @@ try {
             System-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) "Warning"
             return $false
         }
+
         try {
             $config = Get-Content -Path $myBatchTaskConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
             $configItems = @($config)
@@ -577,76 +584,93 @@ try {
                 $seenNames.Add($taskName) | Out-Null
                 $script:tasks += $item
             }
+            Update-Task-Grid
         } catch {
             System-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) "Error"
             return $false
         }
-        Update-Task-Grid
         System-Log ($ui.INFO_ConfigLoaded -f $script:tasks.Count) "Success"
         return $true
     }
 
+    # 任务运行实例列表
+    # 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
+    $executions = @{}
+
     # 任务列表表格
     $taskGridView = $null
+
     # 刷新界面展示的任务列表表格
     function Update-Task-Grid {
+        if ($null -eq $taskGridView -or $taskGridView.IsDisposed) {
+            return
+        }
+
         $taskGridView.SuspendLayout()
         try {
             $taskGridView.Rows.Clear()
-            for ($i = 0; $i -lt $script:tasks.Count; $i++) {
-                $task = $script:tasks[$i]
+            for ($i = 0; $i -lt $tasks.Count; $i++) {
+                $task = $tasks[$i]
+                $taskName = $task.name
+
                 $statusText = $ui.StatusStopped
                 $pidText = ""
-                $runtime = $null
-                if ($script:runtimeTable.ContainsKey([string]$task.name)) {
-                    $runtime = $script:runtimeTable[[string]$task.name]
-                    if ($runtime.Status) { $statusText = $runtime.Status }
-                    if ($runtime.Process -and -not $runtime.Process.HasExited) {
-                        $pidText = [string]$runtime.Process.Id
+                if ($executions.ContainsKey([string]$taskName)) {
+                    $execution = $executions[[string]$taskName]
+                    if ($execution.Status) {
+                        $statusText = $execution.Status
+                    }
+                    if ($execution.Process -and -not $execution.Process.HasExited) {
+                        $pidText = [string]$execution.Process.Id
                     }
                 }
-                $workingDirText = ""
-                if ($task.PSObject.Properties.Match('workingDirectory').Count -gt 0) {
-                    $workingDirText = [string]$task.workingDirectory
-                }
-                $taskGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, $workingDirText) | Out-Null
+
+                $taskGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, [string]$task.workingDirectory) | Out-Null
             }
         }
         finally {
             $taskGridView.ResumeLayout()
         }
     }
-    # 刷新指定行的状态和 PID 两列
+
+    # 刷新界面展示的任务列表表格的指定行
     function Update-Task-Row {
         param([int]$Index)
-        if ($Index -lt 0 -or $Index -ge $taskGridView.Rows.Count) { return }
-        $task = $script:tasks[$Index]
-        if ($null -eq $task) { return }
-        $runtime = $null
-        if ($script:runtimeTable.ContainsKey([string]$task.name)) {
-            $runtime = $script:runtimeTable[[string]$task.name]
+
+        if ($Index -lt 0 -or $Index -ge $taskGridView.Rows.Count) {
+            return
         }
+
+        $task = $tasks[$Index]
+        $taskName = $task.name
+
         $statusText = $ui.StatusStopped
         $pidText = ""
-        if ($runtime) {
-            if ($runtime.Status) { $statusText = $runtime.Status }
-            if ($runtime.Process -and -not $runtime.Process.HasExited) {
-                $pidText = [string]$runtime.Process.Id
+        if ($executions.ContainsKey([string]$taskName)) {
+            $execution = $executions[[string]$taskName]
+            if ($execution.Status) {
+                $statusText = $execution.Status
+            }
+            if ($execution.Process -and -not $execution.Process.HasExited) {
+                $pidText = [string]$execution.Process.Id
             }
         }
+
         $taskGridView.Rows[$Index].Cells[0].Value = $statusText
         $taskGridView.Rows[$Index].Cells[1].Value = $pidText
     }
-    # 获取当前选中行对应的任务序号
+
+    # 获取任务列表当前选中的行，对应的任务序号
     function Get-Selected-Task-Index {
         if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
         return $taskGridView.SelectedRows[0].Index
     }
-    # 获取当前选中行对应的任务配置
+
+    # 获取任务列表当前选中的行，对应的任务配置
     function Get-Selected-Task {
         $index = Get-Selected-Task-Index
-        if ($index -lt 0 -or $index -ge $script:tasks.Count) { return $null }
-        return $script:tasks[$index]
+        if ($index -lt 0 -or $index -ge $tasks.Count) { return $null }
+        return $tasks[$index]
     }
 
     # 任务输出收集
@@ -668,7 +692,7 @@ try {
     # 获取任务日志文件的写入器（懒创建，追加模式 UTF-8 无 BOM）
     function Get-Task-Writer {
         param([string]$TaskName)
-        $runtime = $script:runtimeTable[$TaskName]
+        $runtime = $script:executions[$TaskName]
         if ($runtime.Writer -and -not $runtime.Writer.BaseStream.CanWrite) {
             $runtime.Writer = $null
         }
@@ -687,8 +711,8 @@ try {
     # 追加一条任务输出（内存缓冲 + 日志文件 + 日志窗口）
     function Append-Task-Output {
         param([string]$TaskName, [string]$Line, [bool]$IsError)
-        if (-not $script:runtimeTable.ContainsKey($TaskName)) { return }
-        $runtime = $script:runtimeTable[$TaskName]
+        if (-not $script:executions.ContainsKey($TaskName)) { return }
+        $runtime = $script:executions[$TaskName]
         $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Line
         # 内存缓冲，超过 256KB 时丢弃前一半，避免无限增长
         $runtime.LogBuilder.AppendLine($logLine) | Out-Null
@@ -724,8 +748,8 @@ try {
     # 追加一条任务进程标记（开始/结束标记行，与普通输出行统一的时间戳前缀；同步到内存缓冲 + 日志文件 + 日志标签页）
     function Append-Task-Meta {
         param([string]$TaskName, [string]$Line)
-        if (-not $script:runtimeTable.ContainsKey($TaskName)) { return }
-        $runtime = $script:runtimeTable[$TaskName]
+        if (-not $script:executions.ContainsKey($TaskName)) { return }
+        $runtime = $script:executions[$TaskName]
         # 内存缓冲
         $runtime.LogBuilder.AppendLine($Line) | Out-Null
         # 日志文件
@@ -746,8 +770,8 @@ try {
     # 记录任务结束标记（结束时间 + 退出码），随后补两个空行，与下一轮执行的日志分隔
     function Write-Task-Exit-Log {
         param([string]$TaskName)
-        if (-not $script:runtimeTable.ContainsKey($TaskName)) { return }
-        $runtime = $script:runtimeTable[$TaskName]
+        if (-not $script:executions.ContainsKey($TaskName)) { return }
+        $runtime = $script:executions[$TaskName]
         $exitCode = $runtime.ExitCode
         if ($null -eq $exitCode -and $runtime.Process -and $runtime.Process.HasExited) {
             $exitCode = $runtime.Process.ExitCode
@@ -766,8 +790,8 @@ try {
         if ($Index -lt 0 -or $Index -ge $script:tasks.Count) { return }
         $task = $script:tasks[$Index]
         $taskName = [string]$task.name
-        if ($script:runtimeTable.ContainsKey($taskName)) {
-            $runtime = $script:runtimeTable[$taskName]
+        if ($script:executions.ContainsKey($taskName)) {
+            $runtime = $script:executions[$taskName]
             if ($runtime.Process -and -not $runtime.Process.HasExited) {
                 System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
                 return
@@ -876,8 +900,8 @@ try {
         # 初始化运行时状态
         $logBuilder = [System.Text.StringBuilder]::new()
         $headerLine = $ui.LogProcessHeader -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
-        if (-not $script:runtimeTable.ContainsKey($taskName)) {
-            $script:runtimeTable[$taskName] = @{
+        if (-not $script:executions.ContainsKey($taskName)) {
+            $script:executions[$taskName] = @{
                 Process = $null
                 Status = ""
                 ExitCode = $null
@@ -888,7 +912,7 @@ try {
                 Readers = @()
             }
         }
-        $runtime = $script:runtimeTable[$taskName]
+        $runtime = $script:executions[$taskName]
         $runtime.Process = $process
         $runtime.Status = $ui.StatusRunning
         $runtime.ExitCode = $null
@@ -903,8 +927,8 @@ try {
         if ($Index -lt 0 -or $Index -ge $script:tasks.Count) { return }
         $task = $script:tasks[$Index]
         $taskName = [string]$task.name
-        if (-not $script:runtimeTable.ContainsKey($taskName)) { return }
-        $runtime = $script:runtimeTable[$taskName]
+        if (-not $script:executions.ContainsKey($taskName)) { return }
+        $runtime = $script:executions[$taskName]
         if (-not $runtime.Process -or $runtime.Process.HasExited) { return }
         try {
             $killInfo = [System.Diagnostics.ProcessStartInfo]::new()
@@ -971,8 +995,8 @@ try {
             return
         }
         # 确保运行时条目存在
-        if (-not $script:runtimeTable.ContainsKey($taskName)) {
-            $script:runtimeTable[$taskName] = @{
+        if (-not $script:executions.ContainsKey($taskName)) {
+            $script:executions[$taskName] = @{
                 Process = $null
                 Status = ""
                 ExitCode = $null
@@ -982,7 +1006,7 @@ try {
                 ViewerBox = $null
             }
         }
-        $runtime = $script:runtimeTable[$taskName]
+        $runtime = $script:executions[$taskName]
         # 新建日志标签页
         $logPage = [System.Windows.Forms.TabPage]::new()
         $logPage.Name = $logPageName
@@ -1060,8 +1084,8 @@ try {
         for ($i = 0; $i -lt $script:tasks.Count; $i++) {
             $task = $script:tasks[$i]
             $taskName = [string]$task.name
-            if (-not $script:runtimeTable.ContainsKey($taskName)) { continue }
-            $runtime = $script:runtimeTable[$taskName]
+            if (-not $script:executions.ContainsKey($taskName)) { continue }
+            $runtime = $script:executions[$taskName]
             if ($runtime.Process -and $runtime.Process.HasExited) {
                 if ($runtime.Status -eq $ui.StatusRunning) {
                     $runtime.Status = $ui.StatusExited -f $runtime.Process.ExitCode
@@ -1269,8 +1293,8 @@ try {
                 # 修改任务: 替换配置
                 $script:tasks[$EditIndex] = $newTask
                 # 名称变更时，迁移运行时数据并移除旧日志标签页
-                if ($originalName -ine $newName -and $script:runtimeTable.ContainsKey($originalName)) {
-                    $oldRuntime = $script:runtimeTable[$originalName]
+                if ($originalName -ine $newName -and $script:executions.ContainsKey($originalName)) {
+                    $oldRuntime = $script:executions[$originalName]
                     # 移除旧的日志标签页
                     $oldPageName = "LogPage_" + $originalName
                     $oldPage = $tabControl.TabPages[$oldPageName]
@@ -1279,8 +1303,8 @@ try {
                         $oldPage.Dispose()
                     }
                     # 迁移运行时数据到新名称
-                    $script:runtimeTable[$newName] = $oldRuntime
-                    $script:runtimeTable.Remove($originalName) | Out-Null
+                    $script:executions[$newName] = $oldRuntime
+                    $script:executions.Remove($originalName) | Out-Null
                 }
             } else {
                 $script:tasks += $newTask
@@ -1459,8 +1483,8 @@ try {
         # 如果是任务日志页，清理运行时引用
         if ($tabName.StartsWith("LogPage_")) {
             $taskName = $tabName.Substring(8)
-            if ($script:runtimeTable.ContainsKey($taskName)) {
-                $script:runtimeTable[$taskName].ViewerBox = $null
+            if ($script:executions.ContainsKey($taskName)) {
+                $script:executions[$taskName].ViewerBox = $null
             }
         }
         $tabControl.TabPages.Remove($script:rightClickedTab)
@@ -1599,8 +1623,8 @@ try {
         }
         $taskName = [string]$script:tasks[$index].name
         $isRunning = $false
-        if ($script:runtimeTable.ContainsKey($taskName)) {
-            $runtime = $script:runtimeTable[$taskName]
+        if ($script:executions.ContainsKey($taskName)) {
+            $runtime = $script:executions[$taskName]
             if ($runtime.Process -and -not $runtime.Process.HasExited) { $isRunning = $true }
         }
         $needRestart = $false
@@ -1626,8 +1650,8 @@ try {
         $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmDelete -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         Stop-Task -Index $index
-        if ($script:runtimeTable.ContainsKey($taskName)) {
-            $runtime = $script:runtimeTable[$taskName]
+        if ($script:executions.ContainsKey($taskName)) {
+            $runtime = $script:executions[$taskName]
             # 移除对应的日志标签页
             $logPageName = "LogPage_" + $taskName
             $logPage = $tabControl.TabPages[$logPageName]
@@ -1638,7 +1662,7 @@ try {
             if ($runtime.Writer) {
                 try { $runtime.Writer.Dispose() } catch {}
             }
-            $script:runtimeTable.Remove($taskName) | Out-Null
+            $script:executions.Remove($taskName) | Out-Null
         }
         $newTasks = @()
         for ($i = 0; $i -lt $script:tasks.Count; $i++) {
