@@ -90,11 +90,13 @@ if "!param1!" == "" (
         set "base_name=!param1_name!"
         set "file_ext=!param1_ext!"
 
-        if /i not "!file_ext!"==".mkv" if /i not "!file_ext!"==".mp4" (
-            echo 错误：仅支持 mkv mp4 格式的视频
-            echo.
-            pause
-            endlocal & endlocal & exit /b 1
+        if /i not "!file_ext!"==".mkv" (
+            if /i not "!file_ext!"==".mp4" (
+                echo 错误：仅支持 mkv mp4 格式的视频
+                echo.
+                pause
+                endlocal & endlocal & exit /b 1
+            )
         )
 
         REM mp4 容器不支持 ass / srt 字幕轨，需要先转封装为同名的 mkv 文件再嵌入，原 mp4 文件保留
@@ -105,9 +107,14 @@ if "!param1!" == "" (
         set "target_file=!param1!"
         if "!remux_mp4!"=="1" set "target_file=!file_dir!!base_name!.mkv"
 
-        if "!remux_mp4!"=="1" if exist "!target_file!" (
-            echo 已存在："!target_file!"，跳过此文件
-        ) else (
+        set "remux_mp4_target_exist=0"
+        if "!remux_mp4!"=="1" (
+            if exist "!target_file!" (
+                set "remux_mp4_target_exist=1"
+                echo 已存在："!target_file!"，跳过此文件
+            )
+        )
+        if "!remux_mp4_target_exist!"=="0" (
             set "has_sub=0"
             for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
                 set "has_sub=1"
@@ -184,10 +191,15 @@ if not "!working_dir!" == "" (
         set "target_file=!video_file!"
         if "!remux_mp4!"=="1" set "target_file=!file_dir!!base_name!.mkv"
 
-        if "!remux_mp4!"=="1" if exist "!target_file!" (
-            echo set /a "mkv_exist+=1">>"!temp_set!"
-            echo 已存在："!target_file!"，跳过此文件
-        ) else (
+        set "remux_mp4_target_exist=0"
+        if "!remux_mp4!"=="1" (
+            if exist "!target_file!" (
+                set "remux_mp4_target_exist=1"
+                echo set /a "mkv_exist+=1">>"!temp_set!"
+                echo 已存在："!target_file!"，跳过此文件
+            )
+        )
+        if "!remux_mp4_target_exist!"=="0" (
             set "has_sub=0"
             for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "has_sub=1"
@@ -246,10 +258,10 @@ if not "!working_dir!" == "" (
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
     echo 批量处理完成
-    set /a "ok_total=succeeded"
-    set /a "fail_total=has_sub+embed_failed+no_sub_file+mkv_exist"
-    echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，嵌入成功 !succeeded! 个，嵌入失败 !embed_failed! 个，未找到 ass/srt 字幕文件 !no_sub_file! 个，视频已内嵌字幕跳过 !has_sub! 个，同名 mkv 已存在跳过 !mkv_exist! 个
+    set /a "skipped=has_sub+mkv_exist+no_sub_file"
+    set /a "fail_total=embed_failed"
+    echo 共计：!total! 个，成功：!succeeded! 个，跳过：!skipped! 个，失败：!fail_total! 个
+    echo 其中，嵌入成功 !succeeded! 个，嵌入失败 !embed_failed! 个（未找到 ass/srt 字幕文件 !no_sub_file! 个），视频已内嵌字幕跳过 !has_sub! 个，同名 mkv 已存在跳过 !mkv_exist! 个
 )
 
 
