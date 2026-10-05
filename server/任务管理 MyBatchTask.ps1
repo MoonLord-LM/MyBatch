@@ -297,6 +297,7 @@ try {
             ERROR_NameEmpty = "任务名称不能为空"
             ERROR_NameDuplicated = "任务名称已存在: {0}"
             ERROR_NameInvalid = "任务名称包含特殊字符，不能作为 Windows 文件名: {0}"
+            ERROR_FieldMissing = "任务配置缺少必填字段，已跳过该任务: {0}"
             ERROR_WorkDirNotFound = "工作目录不存在: {0}"
             ERROR_NoSelection = "请先在列表中选择一个任务"
             ERROR_TaskStartFailed = "任务启动失败: {0}"
@@ -388,6 +389,7 @@ try {
             ERROR_NameEmpty = "Task name must not be empty"
             ERROR_NameDuplicated = "Task name already exists: {0}"
             ERROR_NameInvalid = "Task name contains special characters and cannot be used as a Windows file name: {0}"
+            ERROR_FieldMissing = "Task config is missing required field, task skipped: {0}"
             ERROR_WorkDirNotFound = "Working directory not found: {0}"
             ERROR_NoSelection = "Please select a task from the list first"
             ERROR_TaskStartFailed = "Failed to start task: {0}"
@@ -569,15 +571,22 @@ try {
         try {
             $config = Get-Content -Path $myBatchTaskConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
             $configItems = @($config)
-            $script:tasks = @()
+            $newTasks = @()
             $seenNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
             foreach ($item in $configItems) {
                 if ($item -isnot [PSCustomObject]) { continue; }
-                if ($item.PSObject.Properties.Match('name').Count -eq 0) { continue; }
-                if ($item.PSObject.Properties.Match('command').Count -eq 0) { continue; }
 
-                # 任务名称：不能为空，且不能包含任何无法作为 Windows 文件名的字符
+                # 任务名称：不能为空，不能包含任何无法作为 Windows 文件名的字符，不能重复
+                if ($item.PSObject.Properties.Match('name').Count -eq 0) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'name') "Warning"
+                    continue
+                }
                 $taskName = [string]$item.name
+                if (-not $taskName) {
+                    System-Log ($ui.ERROR_NameEmpty) "Warning"
+                    continue
+                }
+                $taskName = $taskName.Trim()
                 if (-not $taskName) {
                     System-Log ($ui.ERROR_NameEmpty) "Warning"
                     continue
@@ -587,14 +596,6 @@ try {
                     System-Log ($ui.ERROR_NameInvalid -f $taskName) "Warning"
                     continue
                 }
-
-                # 命令：不能为空
-                if (-not [string]$item.command) {
-                    System-Log ($ui.ERROR_CommandEmpty) "Warning"
-                    continue
-                }
-
-                # 配置任务重名时，自动重命名：原任务名 + 数字
                 if ($seenNames.Contains($taskName)) {
                     $baseName = $taskName
                     $nameSuffix = 2
@@ -605,9 +606,67 @@ try {
                     $item.name = $taskName
                     System-Log ($ui.INFO_NameRenamed -f $baseName, $taskName) "Warning"
                 }
+                $item.name = $taskName
                 $seenNames.Add($taskName) | Out-Null
-                $script:tasks += $item
+
+                # 命令：不能为空
+                if ($item.PSObject.Properties.Match('command').Count -eq 0) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'command') "Warning"
+                    continue
+                }
+                $commandValue = [string]$item.command
+                if (-not $commandValue) {
+                    System-Log ($ui.ERROR_CommandEmpty) "Warning"
+                    continue
+                }
+                $commandValue = $commandValue.Trim()
+                if (-not $commandValue) {
+                    System-Log ($ui.ERROR_CommandEmpty) "Warning"
+                    continue
+                }
+                $item.command = $commandValue
+
+                # 参数：不能为 $null
+                if ($item.PSObject.Properties.Match('arguments').Count -eq 0) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'arguments') "Warning"
+                    continue
+                }
+                if ($null -eq $item.arguments) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'arguments') "Warning"
+                    continue
+                }
+                $argumentsValue = [string]$item.arguments
+                $argumentsValue = $argumentsValue.Trim()
+                $item.arguments = $argumentsValue
+
+                # 工作目录：不能为 $null
+                if ($item.PSObject.Properties.Match('workingDirectory').Count -eq 0) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') "Warning"
+                    continue
+                }
+                if ($null -eq $item.workingDirectory) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') "Warning"
+                    continue
+                }
+                $workingDirectoryValue = [string]$item.workingDirectory
+                $workingDirectoryValue = $workingDirectoryValue.Trim()
+                $item.workingDirectory = $workingDirectoryValue
+
+                # 是否自动启动：不能为 $null
+                if ($item.PSObject.Properties.Match('autoStart').Count -eq 0) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'autoStart') "Warning"
+                    continue
+                }
+                if ($null -eq $item.autoStart) {
+                    System-Log ($ui.ERROR_FieldMissing -f 'autoStart') "Warning"
+                    continue
+                }
+                $autoStartValue = [boolean]$item.autoStart
+                $item.autoStart = $autoStartValue
+
+                $newTasks += $item
             }
+            $script:tasks = $newTasks
             Update-Task-Grid
         } catch {
             System-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) "Error"
