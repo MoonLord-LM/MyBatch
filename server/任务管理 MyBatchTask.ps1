@@ -784,49 +784,13 @@ try {
         }
         return $execution.Writer
     }
-    # 追加一条任务输出（内存缓冲 + 日志文件 + 日志窗口）
-    function Append-Task-Output {
-        param([string]$TaskName, [string]$Line, [bool]$IsError)
+    # 追加一条任务日志（内存缓冲 + 日志文件 + 日志标签页）；行由调用方提供（已含时间戳），按 Level 决定颜色
+    function Append-Task-Log {
+        param([string]$TaskName, [string]$Line, [string]$Level = 'Info')
+
         if (-not $script:TaskExecutionMap.ContainsKey($TaskName)) { return }
         $execution = $script:TaskExecutionMap[$TaskName]
-        $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Line
-        # 内存缓冲，超过 256KB 时丢弃前一半，避免无限增长
-        $execution.LogBuilder.AppendLine($logLine) | Out-Null
-        if ($execution.LogBuilder.Length -gt 262144) {
-            # 裁剪终点对齐到下一个换行符，只删除完整行；避免按 UTF-16 代码单元硬切
-            # 时落在代理对（emoji、生僻字等）中间，导致缓冲区开头出现乱码。
-            # 注：StringBuilder 在 .NET Framework 下没有 IndexOf，故先用 ToString() 快照查找
-            $trimLength = 131072
-            $nlIndex = $execution.LogBuilder.ToString().IndexOf("`n", $trimLength)
-            if ($nlIndex -ge 0) {
-                $trimLength = $nlIndex + 1  # 连同换行符一起删除，不残留孤立 \r
-            } else {
-                $trimLength = $execution.LogBuilder.Length
-            }
-            $execution.LogBuilder.Remove(0, $trimLength) | Out-Null
-        }
-        # 日志文件
-        try {
-            $writer = Get-Task-Writer -TaskName $TaskName
-            $writer.WriteLine($logLine)
-        } catch {}
-        # 任务日志标签页
-        if ($execution.ViewerBox -and -not $execution.ViewerBox.IsDisposed) {
-            $execution.ViewerBox.SelectionStart = $execution.ViewerBox.TextLength
-            $execution.ViewerBox.SelectionLength = 0
-            $execution.ViewerBox.SelectionFont = $execution.ViewerBox.Font
-            $lineColor = if ($IsError) { [System.Drawing.Color]::FromArgb(180, 40, 40) } else { [System.Drawing.Color]::Black }
-            $execution.ViewerBox.SelectionColor = $lineColor
-            $execution.ViewerBox.AppendText($logLine + "`r`n")
-            $execution.ViewerBox.ScrollToCaret()
-        }
-    }
-    # 追加一条任务进程标记（开始/结束标记行，与普通输出行统一的时间戳前缀；同步到内存缓冲 + 日志文件 + 日志标签页）
-    function Append-Task-Meta {
-        param([string]$TaskName, [string]$Line)
-        if (-not $script:TaskExecutionMap.ContainsKey($TaskName)) { return }
-        $execution = $script:TaskExecutionMap[$TaskName]
-        # 内存缓冲
+        # 内存缓冲（完整保留，供日志标签页打开时回放历史，日志完整展示优先）
         $execution.LogBuilder.AppendLine($Line) | Out-Null
         # 日志文件
         try {
@@ -838,12 +802,13 @@ try {
             $execution.ViewerBox.SelectionStart = $execution.ViewerBox.TextLength
             $execution.ViewerBox.SelectionLength = 0
             $execution.ViewerBox.SelectionFont = $execution.ViewerBox.Font
-            $execution.ViewerBox.SelectionColor = [System.Drawing.Color]::Black
+            $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } else { [System.Drawing.Color]::Red }
+            $execution.ViewerBox.SelectionColor = $lineColor
             $execution.ViewerBox.AppendText($Line + "`r`n")
             $execution.ViewerBox.ScrollToCaret()
         }
     }
-    # 记录任务结束标记（结束时间 + 退出码），随后补两个空行，与下一轮执行的日志分隔
+    # 记录任务结束标记（结束时间 + 退出码）
     function Write-Task-Exit-Log {
         param([string]$TaskName)
         if (-not $script:TaskExecutionMap.ContainsKey($TaskName)) { return }
@@ -854,9 +819,7 @@ try {
         }
         $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
         $footerLine = $ui.LogProcessFooter -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $exitCodeText
-        Append-Task-Meta -TaskName $TaskName -Line $footerLine
-        Append-Task-Meta -TaskName $TaskName -Line ""
-        Append-Task-Meta -TaskName $TaskName -Line ""
+        Append-Task-Log -TaskName $TaskName -Line $footerLine
     }
 
     # 任务进程管理
@@ -993,7 +956,7 @@ try {
         $execution.RunspacePool = $runspacePool
         $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $runspacePool
         $execution.StandardErrorReader = & $newReader $process.StandardError $true $runspacePool
-        Append-Task-Meta -TaskName $taskName -Line $headerLine
+        Append-Task-Log -TaskName $taskName -Line $headerLine
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
@@ -1158,7 +1121,8 @@ try {
         # 消化后台线程的输出队列
         $logItem = $null
         while ($script:outputQueue.TryDequeue([ref]$logItem)) {
-            Append-Task-Output -TaskName $logItem.TaskName -Line $logItem.Line -IsError $logItem.IsError
+            $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $logItem.Line
+            Append-Task-Log -TaskName $logItem.TaskName -Line $logLine -Level $(if ($logItem.IsError) { 'Error' } else { 'Info' })
         }
         # 检查进程退出状态
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
