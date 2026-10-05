@@ -279,7 +279,8 @@ try {
             MenuStopAll = "全部停止"
             StatusRunning = "运行中"
             StatusStopped = "已停止"
-            StatusExited = "已退出({0})"
+            StatusExited = "已退出"
+            StatusExitedError = "异常退出"
             StatusStarting = "启动中"
             LogCopy = "复制日志"
             LogClear = "清空日志"
@@ -319,8 +320,8 @@ try {
             DialogArguments = "参数:"
             DialogWorkingDir = "工作目录:"
             DialogAutoStart = "管理器启动时自动运行"
-            DialogBrowseCommand = "选择命令..."
-            DialogBrowseDir = "选择目录..."
+            DialogBrowseCommand = "选择命令"
+            DialogBrowseDir = "选择目录"
             DialogBrowseCommandTitle = "选择命令文件"
             DialogBrowseDirTitle = "选择工作目录"
             DialogExeFilter = "可执行文件 (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|所有文件 (*.*)|*.*"
@@ -366,7 +367,8 @@ try {
             MenuStopAll = "Stop All"
             StatusRunning = "Running"
             StatusStopped = "Stopped"
-            StatusExited = "Exited ({0})"
+            StatusExited = "Exited"
+            StatusExitedError = "Abnormal Exit"
             StatusStarting = "Starting"
             LogCopy = "Copy Log"
             LogClear = "Clear Log"
@@ -406,8 +408,8 @@ try {
             DialogArguments = "Arguments:"
             DialogWorkingDir = "Working Directory:"
             DialogAutoStart = "Auto start when the manager starts"
-            DialogBrowseCommand = "Browse..."
-            DialogBrowseDir = "Browse..."
+            DialogBrowseCommand = "Browse"
+            DialogBrowseDir = "Browse"
             DialogBrowseCommandTitle = "Select Command File"
             DialogBrowseDirTitle = "Select Working Directory"
             DialogExeFilter = "Executable files (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|All files (*.*)|*.*"
@@ -679,55 +681,55 @@ try {
     $script:readerRunspacePool.Open()
     # 停止并释放任务的输出读取线程
     function Stop-Task-Readers {
-        param($Runtime)
-        if ($null -eq $Runtime -or $null -eq $Runtime.Readers) { return }
-        foreach ($item in $Runtime.Readers) {
+        param($execution)
+        if ($null -eq $execution -or $null -eq $execution.Readers) { return }
+        foreach ($item in $execution.Readers) {
             try {
                 $item.PowerShell.Stop()
                 $item.PowerShell.Dispose()
             } catch {}
         }
-        $Runtime.Readers = @()
+        $execution.Readers = @()
     }
     # 获取任务日志文件的写入器（懒创建，追加模式 UTF-8 无 BOM）
     function Get-Task-Writer {
         param([string]$TaskName)
-        $runtime = $script:executions[$TaskName]
-        if ($runtime.Writer -and -not $runtime.Writer.BaseStream.CanWrite) {
-            $runtime.Writer = $null
+        $execution = $script:executions[$TaskName]
+        if ($execution.Writer -and -not $execution.Writer.BaseStream.CanWrite) {
+            $execution.Writer = $null
         }
-        if ($null -eq $runtime.Writer) {
+        if ($null -eq $execution.Writer) {
             $safeName = ($TaskName -replace '[:/\\|?*<>" ]', '_')
             $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $safeName + ".log")
             # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
             $fileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
             $streamWriter = [System.IO.StreamWriter]::new($fileStream, $workingEncoding)
             $streamWriter.AutoFlush = $true
-            $runtime.Writer = $streamWriter
-            $runtime.LogFile = $logFilePath
+            $execution.Writer = $streamWriter
+            $execution.LogFile = $logFilePath
         }
-        return $runtime.Writer
+        return $execution.Writer
     }
     # 追加一条任务输出（内存缓冲 + 日志文件 + 日志窗口）
     function Append-Task-Output {
         param([string]$TaskName, [string]$Line, [bool]$IsError)
         if (-not $script:executions.ContainsKey($TaskName)) { return }
-        $runtime = $script:executions[$TaskName]
+        $execution = $script:executions[$TaskName]
         $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Line
         # 内存缓冲，超过 256KB 时丢弃前一半，避免无限增长
-        $runtime.LogBuilder.AppendLine($logLine) | Out-Null
-        if ($runtime.LogBuilder.Length -gt 262144) {
+        $execution.LogBuilder.AppendLine($logLine) | Out-Null
+        if ($execution.LogBuilder.Length -gt 262144) {
             # 裁剪终点对齐到下一个换行符，只删除完整行；避免按 UTF-16 代码单元硬切
             # 时落在代理对（emoji、生僻字等）中间，导致缓冲区开头出现乱码。
             # 注：StringBuilder 在 .NET Framework 下没有 IndexOf，故先用 ToString() 快照查找
             $trimLength = 131072
-            $nlIndex = $runtime.LogBuilder.ToString().IndexOf("`n", $trimLength)
+            $nlIndex = $execution.LogBuilder.ToString().IndexOf("`n", $trimLength)
             if ($nlIndex -ge 0) {
                 $trimLength = $nlIndex + 1  # 连同换行符一起删除，不残留孤立 \r
             } else {
-                $trimLength = $runtime.LogBuilder.Length
+                $trimLength = $execution.LogBuilder.Length
             }
-            $runtime.LogBuilder.Remove(0, $trimLength) | Out-Null
+            $execution.LogBuilder.Remove(0, $trimLength) | Out-Null
         }
         # 日志文件
         try {
@@ -735,46 +737,46 @@ try {
             $writer.WriteLine($logLine)
         } catch {}
         # 任务日志标签页
-        if ($runtime.ViewerBox -and -not $runtime.ViewerBox.IsDisposed) {
-            $runtime.ViewerBox.SelectionStart = $runtime.ViewerBox.TextLength
-            $runtime.ViewerBox.SelectionLength = 0
-            $runtime.ViewerBox.SelectionFont = $runtime.ViewerBox.Font
+        if ($execution.ViewerBox -and -not $execution.ViewerBox.IsDisposed) {
+            $execution.ViewerBox.SelectionStart = $execution.ViewerBox.TextLength
+            $execution.ViewerBox.SelectionLength = 0
+            $execution.ViewerBox.SelectionFont = $execution.ViewerBox.Font
             $lineColor = if ($IsError) { [System.Drawing.Color]::FromArgb(180, 40, 40) } else { [System.Drawing.Color]::Black }
-            $runtime.ViewerBox.SelectionColor = $lineColor
-            $runtime.ViewerBox.AppendText($logLine + "`r`n")
-            $runtime.ViewerBox.ScrollToCaret()
+            $execution.ViewerBox.SelectionColor = $lineColor
+            $execution.ViewerBox.AppendText($logLine + "`r`n")
+            $execution.ViewerBox.ScrollToCaret()
         }
     }
     # 追加一条任务进程标记（开始/结束标记行，与普通输出行统一的时间戳前缀；同步到内存缓冲 + 日志文件 + 日志标签页）
     function Append-Task-Meta {
         param([string]$TaskName, [string]$Line)
         if (-not $script:executions.ContainsKey($TaskName)) { return }
-        $runtime = $script:executions[$TaskName]
+        $execution = $script:executions[$TaskName]
         # 内存缓冲
-        $runtime.LogBuilder.AppendLine($Line) | Out-Null
+        $execution.LogBuilder.AppendLine($Line) | Out-Null
         # 日志文件
         try {
             $writer = Get-Task-Writer -TaskName $TaskName
             $writer.WriteLine($Line)
         } catch {}
         # 任务日志标签页
-        if ($runtime.ViewerBox -and -not $runtime.ViewerBox.IsDisposed) {
-            $runtime.ViewerBox.SelectionStart = $runtime.ViewerBox.TextLength
-            $runtime.ViewerBox.SelectionLength = 0
-            $runtime.ViewerBox.SelectionFont = $runtime.ViewerBox.Font
-            $runtime.ViewerBox.SelectionColor = [System.Drawing.Color]::Black
-            $runtime.ViewerBox.AppendText($Line + "`r`n")
-            $runtime.ViewerBox.ScrollToCaret()
+        if ($execution.ViewerBox -and -not $execution.ViewerBox.IsDisposed) {
+            $execution.ViewerBox.SelectionStart = $execution.ViewerBox.TextLength
+            $execution.ViewerBox.SelectionLength = 0
+            $execution.ViewerBox.SelectionFont = $execution.ViewerBox.Font
+            $execution.ViewerBox.SelectionColor = [System.Drawing.Color]::Black
+            $execution.ViewerBox.AppendText($Line + "`r`n")
+            $execution.ViewerBox.ScrollToCaret()
         }
     }
     # 记录任务结束标记（结束时间 + 退出码），随后补两个空行，与下一轮执行的日志分隔
     function Write-Task-Exit-Log {
         param([string]$TaskName)
         if (-not $script:executions.ContainsKey($TaskName)) { return }
-        $runtime = $script:executions[$TaskName]
-        $exitCode = $runtime.ExitCode
-        if ($null -eq $exitCode -and $runtime.Process -and $runtime.Process.HasExited) {
-            $exitCode = $runtime.Process.ExitCode
+        $execution = $script:executions[$TaskName]
+        $exitCode = $execution.ExitCode
+        if ($null -eq $exitCode -and $execution.Process -and $execution.Process.HasExited) {
+            $exitCode = $execution.Process.ExitCode
         }
         $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
         $footerLine = $ui.LogProcessFooter -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $exitCodeText
@@ -791,8 +793,8 @@ try {
         $task = $script:tasks[$Index]
         $taskName = [string]$task.name
         if ($script:executions.ContainsKey($taskName)) {
-            $runtime = $script:executions[$taskName]
-            if ($runtime.Process -and -not $runtime.Process.HasExited) {
+            $execution = $script:executions[$taskName]
+            if ($execution.Process -and -not $execution.Process.HasExited) {
                 System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
                 return
             }
@@ -912,11 +914,11 @@ try {
                 Readers = @()
             }
         }
-        $runtime = $script:executions[$taskName]
-        $runtime.Process = $process
-        $runtime.Status = $ui.StatusRunning
-        $runtime.ExitCode = $null
-        $runtime.Readers = $readerInstances
+        $execution = $script:executions[$taskName]
+        $execution.Process = $process
+        $execution.Status = $ui.StatusRunning
+        $execution.ExitCode = $null
+        $execution.Readers = $readerInstances
         Append-Task-Meta -TaskName $taskName -Line $headerLine
         Update-Task-Row -Index $Index
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
@@ -928,31 +930,31 @@ try {
         $task = $script:tasks[$Index]
         $taskName = [string]$task.name
         if (-not $script:executions.ContainsKey($taskName)) { return }
-        $runtime = $script:executions[$taskName]
-        if (-not $runtime.Process -or $runtime.Process.HasExited) { return }
+        $execution = $script:executions[$taskName]
+        if (-not $execution.Process -or $execution.Process.HasExited) { return }
         try {
             $killInfo = [System.Diagnostics.ProcessStartInfo]::new()
             $killInfo.FileName = "taskkill.exe"
-            $killInfo.Arguments = "/PID $($runtime.Process.Id) /T /F"
+            $killInfo.Arguments = "/PID $($execution.Process.Id) /T /F"
             $killInfo.UseShellExecute = $false
             $killInfo.CreateNoWindow = $true
             $killProcess = [System.Diagnostics.Process]::Start($killInfo)
             $killProcess.WaitForExit(10000) | Out-Null
             $killProcess.Dispose()
         } catch {
-            try { $runtime.Process.Kill() } catch {}
+            try { $execution.Process.Kill() } catch {}
         }
-        if (-not $runtime.Process.HasExited) {
-            $runtime.Process.WaitForExit(500) | Out-Null
+        if (-not $execution.Process.HasExited) {
+            $execution.Process.WaitForExit(500) | Out-Null
         }
-        if ($runtime.Status -eq $ui.StatusRunning) {
-            $runtime.Status = $ui.StatusStopped
+        if ($execution.Status -eq $ui.StatusRunning) {
+            $execution.Status = $ui.StatusStopped
         }
         Write-Task-Exit-Log -TaskName $taskName
-        Stop-Task-Readers -Runtime $runtime
-        if ($runtime.Writer) {
-            try { $runtime.Writer.Dispose() } catch {}
-            $runtime.Writer = $null
+        Stop-Task-Readers -execution $execution
+        if ($execution.Writer) {
+            try { $execution.Writer.Dispose() } catch {}
+            $execution.Writer = $null
         }
         Update-Task-Row -Index $Index
         System-Log ($ui.INFO_Stopped -f $taskName) "Info"
@@ -1006,7 +1008,7 @@ try {
                 ViewerBox = $null
             }
         }
-        $runtime = $script:executions[$taskName]
+        $execution = $script:executions[$taskName]
         # 新建日志标签页
         $logPage = [System.Windows.Forms.TabPage]::new()
         $logPage.Name = $logPageName
@@ -1041,7 +1043,7 @@ try {
         $viewerTextBox.SelectionLength = 0
         $viewerTextBox.SelectionFont = $viewerTextBox.Font
         $viewerTextBox.SelectionColor = [System.Drawing.Color]::Black
-        $viewerTextBox.AppendText($runtime.LogBuilder.ToString())
+        $viewerTextBox.AppendText($execution.LogBuilder.ToString())
         $viewerTextBox.SelectionStart = $viewerTextBox.TextLength
         $viewerTextBox.ScrollToCaret()
         # 右键菜单事件绑定
@@ -1055,17 +1057,17 @@ try {
         })
         $viewerClearItem.Add_Click({
             $viewerTextBox.Clear()
-            $runtime.LogBuilder.Clear() | Out-Null
+            $execution.LogBuilder.Clear() | Out-Null
         })
         $viewerOpenItem.Add_Click({
-            if ($runtime.LogFile -and [System.IO.File]::Exists($runtime.LogFile)) {
-                Start-Process "notepad.exe" -ArgumentList ('"' + $runtime.LogFile + '"')
+            if ($execution.LogFile -and [System.IO.File]::Exists($execution.LogFile)) {
+                Start-Process "notepad.exe" -ArgumentList ('"' + $execution.LogFile + '"')
             } else {
                 System-Log $ui.INFO_NoLog "Warning"
             }
         })
         # 保存引用
-        $runtime.ViewerBox = $viewerTextBox
+        $execution.ViewerBox = $viewerTextBox
         # 添加到标签栏并选中
         $tabControl.TabPages.Add($logPage)
         $tabControl.SelectedTab = $logPage
@@ -1085,17 +1087,21 @@ try {
             $task = $script:tasks[$i]
             $taskName = [string]$task.name
             if (-not $script:executions.ContainsKey($taskName)) { continue }
-            $runtime = $script:executions[$taskName]
-            if ($runtime.Process -and $runtime.Process.HasExited) {
-                if ($runtime.Status -eq $ui.StatusRunning) {
-                    $runtime.Status = $ui.StatusExited -f $runtime.Process.ExitCode
-                    System-Log ($ui.INFO_Exited -f $taskName, $runtime.Process.ExitCode) "Warning"
+            $execution = $script:executions[$taskName]
+            if ($execution.Process -and $execution.Process.HasExited) {
+                if ($execution.Status -eq $ui.StatusRunning) {
+                    if ($execution.Process.ExitCode -eq 0) {
+                        $execution.Status = $ui.StatusExited
+                    } else {
+                        $execution.Status = $ui.StatusExitedError
+                    }
+                    System-Log ($ui.INFO_Exited -f $taskName, $execution.Process.ExitCode) "Warning"
                     Write-Task-Exit-Log -TaskName $taskName
                 }
-                Stop-Task-Readers -Runtime $runtime
-                if ($runtime.Writer) {
-                    try { $runtime.Writer.Dispose() } catch {}
-                    $runtime.Writer = $null
+                Stop-Task-Readers -execution $execution
+                if ($execution.Writer) {
+                    try { $execution.Writer.Dispose() } catch {}
+                    $execution.Writer = $null
                 }
                 Update-Task-Row -Index $i
             }
@@ -1126,29 +1132,30 @@ try {
             param([string]$Text, [int]$Y)
             $label = [System.Windows.Forms.Label]::new()
             $label.Text = $Text
-            $label.Location = [System.Drawing.Point]::new(20, $Y + 4)
-            $label.Size = [System.Drawing.Size]::new(110, 28)
+            $label.Location = [System.Drawing.Point]::new(36, $Y + 4)
+            $label.Size = [System.Drawing.Size]::new(100, 28)
+            $label.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
             $dialogForm.Controls.Add($label)
         }
         function New-Dialog-TextBox {
             param([int]$Y)
             $textBox = [System.Windows.Forms.TextBox]::new()
-            $textBox.Location = [System.Drawing.Point]::new(135, $Y)
-            $textBox.Size = [System.Drawing.Size]::new(430, 30)
+            $textBox.Location = [System.Drawing.Point]::new(146, $Y)
+            $textBox.Size = [System.Drawing.Size]::new(428, 30)
             $textBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
             $dialogForm.Controls.Add($textBox)
             return $textBox
         }
         # 任务名称
-        New-Dialog-Label $ui.DialogName 20
-        $nameBox = New-Dialog-TextBox 20
+        New-Dialog-Label $ui.DialogName 36
+        $nameBox = New-Dialog-TextBox 36
         # 命令
-        New-Dialog-Label $ui.DialogCommand 65
-        $commandBox = New-Dialog-TextBox 65
+        New-Dialog-Label $ui.DialogCommand 96
+        $commandBox = New-Dialog-TextBox 96
         $browseCommandButton = [System.Windows.Forms.Button]::new()
         $browseCommandButton.Text = $ui.DialogBrowseCommand
-        $browseCommandButton.Location = [System.Drawing.Point]::new(575, 63)
-        $browseCommandButton.Size = [System.Drawing.Size]::new(115, 32)
+        $browseCommandButton.Location = [System.Drawing.Point]::new(584, 95)
+        $browseCommandButton.Size = [System.Drawing.Size]::new(130, 32)
         $browseCommandButton.FlatStyle = "Flat"
         $browseCommandButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseCommandButton.ForeColor = [System.Drawing.Color]::Black
@@ -1157,15 +1164,15 @@ try {
         $browseCommandButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
         $dialogForm.Controls.Add($browseCommandButton)
         # 参数
-        New-Dialog-Label $ui.DialogArguments 110
-        $argumentsBox = New-Dialog-TextBox 110
+        New-Dialog-Label $ui.DialogArguments 156
+        $argumentsBox = New-Dialog-TextBox 156
         # 工作目录
-        New-Dialog-Label $ui.DialogWorkingDir 155
-        $workingDirBox = New-Dialog-TextBox 155
+        New-Dialog-Label $ui.DialogWorkingDir 216
+        $workingDirBox = New-Dialog-TextBox 216
         $browseDirButton = [System.Windows.Forms.Button]::new()
         $browseDirButton.Text = $ui.DialogBrowseDir
-        $browseDirButton.Location = [System.Drawing.Point]::new(575, 153)
-        $browseDirButton.Size = [System.Drawing.Size]::new(115, 32)
+        $browseDirButton.Location = [System.Drawing.Point]::new(584, 215)
+        $browseDirButton.Size = [System.Drawing.Size]::new(130, 32)
         $browseDirButton.FlatStyle = "Flat"
         $browseDirButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseDirButton.ForeColor = [System.Drawing.Color]::Black
@@ -1176,14 +1183,14 @@ try {
         # 自动启动
         $autoStartBox = [System.Windows.Forms.CheckBox]::new()
         $autoStartBox.Text = $ui.DialogAutoStart
-        $autoStartBox.Location = [System.Drawing.Point]::new(135, 200)
+        $autoStartBox.Location = [System.Drawing.Point]::new(146, 276)
         $autoStartBox.Size = [System.Drawing.Size]::new(400, 28)
         $autoStartBox.Checked = $true
         $dialogForm.Controls.Add($autoStartBox)
         # 确定和取消按钮
         $okButton = [System.Windows.Forms.Button]::new()
         $okButton.Text = $ui.DialogOk
-        $okButton.Location = [System.Drawing.Point]::new(400, 280)
+        $okButton.Location = [System.Drawing.Point]::new(444, 478)
         $okButton.Size = [System.Drawing.Size]::new(130, 36)
         $okButton.FlatStyle = "Flat"
         $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
@@ -1194,7 +1201,7 @@ try {
         $dialogForm.Controls.Add($okButton)
         $cancelButton = [System.Windows.Forms.Button]::new()
         $cancelButton.Text = $ui.DialogCancel
-        $cancelButton.Location = [System.Drawing.Point]::new(545, 280)
+        $cancelButton.Location = [System.Drawing.Point]::new(584, 478)
         $cancelButton.Size = [System.Drawing.Size]::new(130, 36)
         $cancelButton.FlatStyle = "Flat"
         $cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
@@ -1630,8 +1637,8 @@ try {
         $taskName = [string]$script:tasks[$index].name
         $isRunning = $false
         if ($script:executions.ContainsKey($taskName)) {
-            $runtime = $script:executions[$taskName]
-            if ($runtime.Process -and -not $runtime.Process.HasExited) { $isRunning = $true }
+            $execution = $script:executions[$taskName]
+            if ($execution.Process -and -not $execution.Process.HasExited) { $isRunning = $true }
         }
         $needRestart = $false
         if ($isRunning) {
@@ -1657,7 +1664,7 @@ try {
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         Stop-Task -Index $index
         if ($script:executions.ContainsKey($taskName)) {
-            $runtime = $script:executions[$taskName]
+            $execution = $script:executions[$taskName]
             # 移除对应的日志标签页
             $logPageName = "LogPage_" + $taskName
             $logPage = $tabControl.TabPages[$logPageName]
@@ -1665,8 +1672,8 @@ try {
                 $tabControl.TabPages.Remove($logPage)
                 $logPage.Dispose()
             }
-            if ($runtime.Writer) {
-                try { $runtime.Writer.Dispose() } catch {}
+            if ($execution.Writer) {
+                try { $execution.Writer.Dispose() } catch {}
             }
             $script:executions.Remove($taskName) | Out-Null
         }
