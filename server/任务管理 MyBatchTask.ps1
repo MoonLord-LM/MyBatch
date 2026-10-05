@@ -676,20 +676,25 @@ try {
     }
 
     # 任务输出收集
-    # 输出读取线程共用的 Runspace 池
-    $script:readerRunspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(1, 16)
-    $script:readerRunspacePool.Open()
+    # 每个任务的输出读取线程使用独立的 Runspace 池（启动时创建，停止时关闭）
     # 停止并释放任务的输出读取线程
     function Stop-Task-Readers {
         param($execution)
-        if ($null -eq $execution -or $null -eq $execution.Readers) { return }
-        foreach ($item in $execution.Readers) {
+        if ($null -eq $execution) { return }
+        foreach ($item in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
+            if ($null -eq $item) { continue }
             try {
-                $item.PowerShell.Stop()
-                $item.PowerShell.Dispose()
+                $item.Stop()
+                $item.Dispose()
             } catch {}
         }
-        $execution.Readers = @()
+        $execution.StandardOutputReader = $null
+        $execution.StandardErrorReader = $null
+        if ($execution.RunspacePool) {
+            try { $execution.RunspacePool.Close() } catch {}
+            try { $execution.RunspacePool.Dispose() } catch {}
+            $execution.RunspacePool = $null
+        }
     }
     # 获取任务日志文件的写入器（懒创建，追加模式 UTF-8 无 BOM）
     function Get-Task-Writer {
@@ -887,17 +892,17 @@ try {
                 }
             } catch {}
         }
-        $readerInstances = @()
-        foreach ($pair in @(@{ Reader = $process.StandardOutput; IsError = $false }, @{ Reader = $process.StandardError; IsError = $true })) {
+        $newReader = {
+            param($Reader, $IsError, $RunspacePool)
             $readerPs = [System.Management.Automation.PowerShell]::Create()
-            $readerPs.RunspacePool = $script:readerRunspacePool
+            $readerPs.RunspacePool = $RunspacePool
             $readerPs.AddScript($readerScript) | Out-Null
-            $readerPs.AddParameter('reader', $pair.Reader)
+            $readerPs.AddParameter('reader', $Reader)
             $readerPs.AddParameter('queue', $script:outputQueue)
             $readerPs.AddParameter('name', $taskName)
-            $readerPs.AddParameter('isError', $pair.IsError)
-            $asyncResult = $readerPs.BeginInvoke()
-            $readerInstances += @{ PowerShell = $readerPs; AsyncResult = $asyncResult }
+            $readerPs.AddParameter('isError', $IsError)
+            $readerPs.BeginInvoke() | Out-Null
+            return $readerPs
         }
         # 初始化运行时状态
         $logBuilder = [System.Text.StringBuilder]::new()
@@ -911,14 +916,20 @@ try {
                 Writer = $null
                 LogFile = ""
                 ViewerBox = $null
-                Readers = @()
+                StandardOutputReader = $null
+                StandardErrorReader = $null
+                RunspacePool = $null
             }
         }
         $execution = $script:executions[$taskName]
         $execution.Process = $process
         $execution.Status = $ui.StatusRunning
         $execution.ExitCode = $null
-        $execution.Readers = $readerInstances
+        $runspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(2, 2)
+        $runspacePool.Open()
+        $execution.RunspacePool = $runspacePool
+        $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $runspacePool
+        $execution.StandardErrorReader = & $newReader $process.StandardError $true $runspacePool
         Append-Task-Meta -TaskName $taskName -Line $headerLine
         Update-Task-Row -Index $Index
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
@@ -1006,6 +1017,9 @@ try {
                 Writer = $null
                 LogFile = ""
                 ViewerBox = $null
+                StandardOutputReader = $null
+                StandardErrorReader = $null
+                RunspacePool = $null
             }
         }
         $execution = $script:executions[$taskName]
@@ -1753,7 +1767,6 @@ try {
     Stop-All-Tasks
     $trayIcon.Visible = $false
     $trayIcon.Dispose()
-    $script:readerRunspacePool.Close()
 } catch {
     Handle-Exception $_
     pause
