@@ -665,12 +665,18 @@ try {
         return $true
     }
 
+    # 任务列表展示表格
+    $taskGridView = $null
+
+    # 获取任务列表展示表格当前选中的行，对应的序号
+    function Get-Selected-Task-Index {
+        if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
+        return $taskGridView.SelectedRows[0].Index
+    }
+
     # 任务运行实例列表
     # 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
     $TaskExecutionMap = @{}
-
-    # 任务列表展示表格
-    $taskGridView = $null
 
     # 刷新任务列表展示表格，刷新全部
     function Update-Task-Grid {
@@ -737,12 +743,6 @@ try {
 
         $taskGridView.Rows[$index].Cells[0].Value = $statusText
         $taskGridView.Rows[$index].Cells[1].Value = $pidText
-    }
-
-    # 获取任务列表展示表格当前选中的行，对应的序号
-    function Get-Selected-Task-Index {
-        if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
-        return $taskGridView.SelectedRows[0].Index
     }
 
     # TODO 审核后续代码
