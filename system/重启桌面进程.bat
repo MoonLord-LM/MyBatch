@@ -23,17 +23,18 @@ powershell -NoProfile -Command ^
     "$paths = @();" ^
     "foreach ($w in @($shell.Windows())) {" ^
     "    try {" ^
-    "        $u = $w.LocationURL;" ^
-    "        if (-not $u) {" ^
+    "        $url = $w.LocationURL;" ^
+    "        if (-not $url) {" ^
     "            continue;" ^
     "        }" ^
-    "        if ($u -match '^file:///') {" ^
-    "            $p = $u.Substring(8);" ^
+    "        if ($url -match '^file:///') {" ^
+    "            $p = $url.Substring(8);" ^
     "        }" ^
-    "        elseif ($u -match '^file://') {" ^
-    "            $p = '\' + $u.Substring(7);" ^
+    "        elseif ($url -match '^file://') {" ^
+    "            $p = '\' + $url.Substring(7);" ^
     "        }" ^
     "        else {" ^
+    "            Write-Host ('异常路径：' + $url);" ^
     "            continue;" ^
     "        }" ^
     "        $path = [Uri]::UnescapeDataString($p) -replace '/', '\';" ^
@@ -43,7 +44,7 @@ powershell -NoProfile -Command ^
     "}" ^
     "[Runtime.InteropServices.Marshal]::ReleaseComObject($shell) | Out-Null;" ^
     "if ($paths.Count -gt 0) {" ^
-    "        Set-Content -LiteralPath $env:temp_list -Value $paths -Encoding UTF8;" ^
+    "    Set-Content -LiteralPath $env:temp_list -Value $paths -Encoding UTF8;" ^
     "};" ^
     "Write-Host ('已记录 ' + $paths.Count + ' 个文件夹窗口');"
 echo.
@@ -81,14 +82,14 @@ powershell -NoProfile -Command ^
     "            Start-Sleep -Milliseconds 200;" ^
     "            $n++;" ^
     "            if ($n -gt 50) {" ^
-    "                Write-Host '等待系统自动重启桌面进程超时';" ^
+    "                Write-Host '等待系统自动重启桌面进程超时，执行主动启动';" ^
     "                break;" ^
     "            }" ^
     "        };" ^
     "    };" ^
     "};" ^
     "$new = @(Get-Process -Name explorer -ErrorAction SilentlyContinue | ForEach-Object { $_.Id });" ^
-    "if (-not $new.Count -gt 0) {" ^
+    "if ($new.Count -eq 0) {" ^
     "    try {" ^
     "        Start-Process explorer.exe -ErrorAction Stop;" ^
     "    }" ^
