@@ -672,7 +672,7 @@ try {
     # 任务列表展示表格
     $taskGridView = $null
 
-    # 刷新界面展示的任务列表表格
+    # 刷新任务列表展示表格，刷新全部
     function Update-Task-Grid {
         if ($null -eq $taskGridView -or $taskGridView.IsDisposed) {
             return
@@ -705,15 +705,22 @@ try {
         }
     }
 
-    # 刷新界面展示的任务列表表格的指定行
-    function Update-Task-Row {
-        param([int]$Index)
+    # 刷新任务列表展示表格，只刷新指定任务名的行
+    function Update-Task-Grid-Row {
+        param([string]$TaskName)
 
-        if ($Index -lt 0 -or $Index -ge $taskGridView.Rows.Count) {
+        $index = -1
+        for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
+            if ([string]$taskConfigList[$i].name -eq $TaskName) {
+                $index = $i
+                break
+            }
+        }
+        if ($index -lt 0 -or $index -ge $taskGridView.Rows.Count) {
             return
         }
 
-        $task = $taskConfigList[$Index]
+        $task = $taskConfigList[$index]
         $taskName = $task.name
 
         $statusText = $ui.StatusStopped
@@ -728,22 +735,24 @@ try {
             }
         }
 
-        $taskGridView.Rows[$Index].Cells[0].Value = $statusText
-        $taskGridView.Rows[$Index].Cells[1].Value = $pidText
+        $taskGridView.Rows[$index].Cells[0].Value = $statusText
+        $taskGridView.Rows[$index].Cells[1].Value = $pidText
     }
 
-    # 获取任务列表当前选中的行，对应的任务序号
+    # 获取任务列表展示表格当前选中的行，对应的任务序号
     function Get-Selected-Task-Index {
         if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
         return $taskGridView.SelectedRows[0].Index
     }
 
-    # 获取任务列表当前选中的行，对应的任务配置
+    # 获取任务列表展示表格当前选中的行，对应的任务配置
     function Get-Selected-Task {
         $index = Get-Selected-Task-Index
         if ($index -lt 0 -or $index -ge $taskConfigList.Count) { return $null }
         return $taskConfigList[$index]
     }
+
+    # TODO 审核后续代码
 
     # 停止并释放任务的输出读取线程
     function Stop-Task-Readers {
@@ -998,7 +1007,7 @@ try {
         $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $runspacePool
         $execution.StandardErrorReader = & $newReader $process.StandardError $true $runspacePool
         Append-Task-Meta -TaskName $taskName -Line $headerLine
-        Update-Task-Row -Index $Index
+        Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
     # 停止任务（taskkill 结束整个进程树）
@@ -1034,7 +1043,7 @@ try {
             try { $execution.Writer.Dispose() } catch {}
             $execution.Writer = $null
         }
-        Update-Task-Row -Index $Index
+        Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Stopped -f $taskName) "Info"
     }
     # 重启任务
@@ -1184,7 +1193,7 @@ try {
                     try { $execution.Writer.Dispose() } catch {}
                     $execution.Writer = $null
                 }
-                Update-Task-Row -Index $i
+                Update-Task-Grid-Row -TaskName $taskName
             }
         }
     })
@@ -1653,8 +1662,7 @@ try {
         Show-Task-Log-Viewer
     })
     $taskListTabPage.Controls.Add($dataGridView)
-    # 任务表格创建完成，交给全局变量供 Update-Task-Grid / Update-Task-Row 等函数使用
-    $script:taskGridView = $dataGridView
+    $taskGridView = $dataGridView
     # 任务列表的右键菜单
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
