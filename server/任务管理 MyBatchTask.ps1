@@ -791,20 +791,6 @@ try {
         }
     }
 
-    # 记录任务结束标记（结束时间 + 退出码）
-    function Write-Task-Exit-Log {
-        param([string]$TaskName)
-        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) { return }
-        $execution = $script:taskExecutionMap[$TaskName]
-        $exitCode = $execution.exitCode
-        if ($null -eq $exitCode -and $execution.process -and $execution.process.HasExited) {
-            $exitCode = $execution.process.ExitCode
-        }
-        $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
-        Append-Task-Log -TaskName $TaskName -Message ($ui.LogProcessFooter -f $exitCodeText)
-    }
-
-    # 任务进程管理
     # 启动任务
     function Start-Task {
         param([int]$Index)
@@ -972,7 +958,13 @@ try {
         if ($execution.status -eq $ui.StatusRunning) {
             $execution.status = $ui.StatusStopped
         }
-        Write-Task-Exit-Log -TaskName $taskName
+        # 记录任务结束标记（结束时间 + 退出码）
+        $exitCode = $execution.exitCode
+        if ($null -eq $exitCode -and $execution.process -and $execution.process.HasExited) {
+            $exitCode = $execution.process.ExitCode
+        }
+        $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
+        Append-Task-Log -TaskName $taskName -Message ($ui.LogProcessFooter -f $exitCodeText)
         # 停止并释放任务的输出读取线程
         foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
             if ($null -eq $taskReader) { continue }
@@ -1137,7 +1129,13 @@ try {
                         $execution.status = $ui.StatusExitedError
                     }
                     System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) "Warning"
-                    Write-Task-Exit-Log -TaskName $taskName
+                    # 记录任务结束标记（结束时间 + 退出码）
+                    $exitCode = $execution.exitCode
+                    if ($null -eq $exitCode -and $execution.process -and $execution.process.HasExited) {
+                        $exitCode = $execution.process.ExitCode
+                    }
+                    $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
+                    Append-Task-Log -TaskName $taskName -Message ($ui.LogProcessFooter -f $exitCodeText)
                 }
                 # 停止并释放任务的输出读取线程
                 foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
