@@ -72,6 +72,16 @@ set "ssl_subject_name=OpenList"
 set "ssl_key=OpenListData\ssl-key.pem"
 set "ssl_cert=OpenListData\ssl-cert.pem"
 
+if not exist "OpenListData\" (
+    mkdir "OpenListData"
+    if !errorlevel! neq 0 (
+        echo 错误：创建数据存储文件夹 OpenListData 失败
+        echo.
+        pause
+        endlocal & endlocal & exit /b 1
+    )
+)
+
 "!openssl_path!" req ^
     -newkey rsa:4096 -nodes -keyout "!ssl_key!" ^
     -x509 -days 365000 -out "!ssl_cert!" ^

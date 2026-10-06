@@ -840,10 +840,6 @@ try {
         $commandText = [System.Environment]::ExpandEnvironmentVariables([string]$task.command)
         $argumentText = [System.Environment]::ExpandEnvironmentVariables([string]$task.arguments)
         $workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$task.workingDirectory)
-        if (-not [System.IO.Directory]::Exists($workingDirText)) {
-            System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) "Error"
-            return
-        }
         # 构建进程启动信息，隐藏窗口并重定向输出
         $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
         # UseShellExecute = false 走 CreateProcess，只能启动可执行文件，
@@ -889,6 +885,14 @@ try {
         } else {
             $startInfo.FileName = $resolvedCommand
             $startInfo.Arguments = $argumentText
+        }
+        # 工作目录为空时，自动取命令文件的父目录
+        if ([string]::IsNullOrWhiteSpace($workingDirText)) {
+            $workingDirText = [System.IO.Path]::GetDirectoryName($resolvedCommand)
+        }
+        if (-not [System.IO.Directory]::Exists($workingDirText)) {
+            System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) "Error"
+            return
         }
         $startInfo.WorkingDirectory = $workingDirText
         $startInfo.UseShellExecute = $false

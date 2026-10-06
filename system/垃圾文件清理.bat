@@ -47,7 +47,7 @@ powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8;
 
 REM 龙之谷 DragonNest
 set "reg_value="
-for /f "tokens=2,*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\SHENGQUGAMES\DN" /v "Loader"') do (
+for /f "tokens=2,*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\SHENGQUGAMES\DN" /v "Loader" 2^>nul') do (
     setlocal disabledelayedexpansion
     set "reg_value=%%b"
     set "root_dir=%%~dpb"
@@ -65,7 +65,7 @@ for /f "tokens=2,*" %%a in ('reg query "HKEY_LOCAL_MACHINE\SOFTWARE\WOW6432Node\
 
 REM 原神 Genshin Impact
 set "reg_value="
-for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_1\hk4e_cn" /v "GameInstallPath"') do (
+for /f "tokens=2,*" %%a in ('reg query "HKEY_CURRENT_USER\Software\miHoYo\HYP\1_1\hk4e_cn" /v "GameInstallPath" 2^>nul') do (
     setlocal disabledelayedexpansion
     set "reg_value=%%b"
     set "root_dir=%%b"
