@@ -98,6 +98,8 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 调用 PowerShell 的 Get-Content、Set-Content、Out-File 读写文件时，添加 `-Encoding UTF8` 参数，指定 UTF-8 编码  
 
+如果需要更加严格的无 BOM 的 UTF-8 编码，使用 `New-Object System.Text.UTF8Encoding($false)` 的方式来指定  
+
 ## 判断上一个命令是否执行成功
 
 需要考虑到一些程序的异常退出码可能是负数，因此不建议使用 `if errorlevel 1` 的写法，这种写法是判断大于等于 1，才认为属于异常  
