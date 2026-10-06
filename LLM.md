@@ -1,14 +1,23 @@
-# Batch 编码问题和解决方案
+# Issue
 
-## 测试环境
+这里记录一些已知问题  
+在使用 LLM 分析代码时，请参考已有结论，避免重复报告问题  
 
-| 系统版本 | PowerShell 版本 | Windows 语言设置 |
-| -- | -- | -- |
-| Microsoft Windows 11 专业工作站版 24H2 | 5.1.26100.4061 Desktop | 中文 |
+## 关于环境信息
 
-## 问题清单
+Windows 系统，优先考虑：Microsoft Windows 11 专业工作站版 24H2  
+PowerShell 组件，优先考虑：5.1.26100.4061 Desktop  
 
-### 基本编码规范
+## example 已知问题
+
+这里保存一些零散示例代码，仅用于参考  
+不需要对这个目录进行代码分析  
+
+
+
+# 编码规范
+
+## 最佳实践
 
 批处理脚本最佳实践：  
 
@@ -17,9 +26,11 @@
     组合使用 setlocal 和 endlocal 处理变量实时生效和特殊符号转义问题  
     开头位置，使用 powershell 显示带颜色的提示信息  
     正常退出时，使用 exit /b，异常退出时，使用 exit /b 1  
-    结尾使用 pause，来保证异常信息可以显示  
+    结尾位置，使用 pause，来保证异常信息可以显示  
 
-代码示例如下：  
+## 代码结构
+
+建议的代码结构，示例如下：  
 
 ```batch
 @echo off
@@ -55,12 +66,12 @@ endlocal & endlocal & exit /b
 
 ```
 
-### 注释代码
+## 注释代码
 
 统一用 `REM` 开头的注释  
 避免用 `::` 开头的注释，这种代码本质是按标签解析的，部分场景下会导致错误  
 
-### 右键以管理员身份运行
+## 右键以管理员身份运行
 
 脚本如果用右键的“以管理员权限运行”，默认会切换到系统目录  
 通常情况下，脚本并不想改变当前目录，因此需要主动切换回脚本所在目录  
@@ -74,7 +85,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 )
 ```
 
-### 输出中文乱码问题
+## 输出中文乱码问题
 
 首先，脚本需要保存为 UTF-8 without BOM 格式  
 然后，中文系统的默认代码页为 936（GBK），需要使用 chcp 65001 将当前的代码页设置为 65001（UTF-8）  
@@ -87,7 +98,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 调用 PowerShell 的 Get-Content、Set-Content、Out-File 读写文件时，添加 `-Encoding UTF8` 参数，指定 UTF-8 编码  
 
-### 判断上一个命令是否执行成功
+## 判断上一个命令是否执行成功
 
 需要考虑到一些程序的异常退出码可能是负数，因此不建议使用 `if errorlevel 1` 的写法，这种写法是判断大于等于 1，才认为属于异常  
 推荐使用 `if !errorlevel! neq 0` 的写法，不等于 0，就认为属于异常  
@@ -104,7 +115,7 @@ if !errorlevel! neq 0 (
 )
 ```
 
-### 调用 PowerShell 命令
+## 调用 PowerShell 命令
 
 代码示例如下：  
 
@@ -116,7 +127,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本
 调用 PowerShell 的 Invoke-WebRequest 方法时，屏幕可能会出现闪烁和文字错乱  
 需要在前面添加 `$ProgressPreference='SilentlyContinue';` 代码，来关闭进度条显示  
 
-### 遍历文件时，处理路径的特殊符号
+## 遍历文件时，处理路径的特殊符号
 
 文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  
 因此，需要切换到 disabledelayedexpansion 的环境中，才能正确读取路径信息  
@@ -170,7 +181,7 @@ call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 REM 这里可以获取到内层的 "!total!" 的值
 ```
 
-### 调用外部程序并读取输出内容
+## 调用外部程序并读取输出内容
 
 常用的写法为 for /f "delims=" %%a in ('外部程序命令') do set "变量名=%%a"  
 
@@ -213,7 +224,7 @@ for /f "delims=" %%a in ('" "!ffprobe_path!" -v error -select_streams a:0 -show_
 )
 ```
 
-### 安全删除文件
+## 安全删除文件
 
 禁止出现 del /f /q "!xxx!" 的写法  
 一旦变量为空值，当前目录下所有文件都会被删除，必须写成 if exist "!xxx!" ( del /f /q "!xxx!" ) 的形式  
