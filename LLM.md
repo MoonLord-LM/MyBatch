@@ -237,3 +237,9 @@ for /f "delims=" %%a in ('" "!ffprobe_path!" -v error -select_streams a:0 -show_
 set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_file!"
 if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 ```
+
+## Powershell 变量命名
+
+变量名，使用 $xxxYyyZzz 的形式，例如 $configFilePath，小写字母开头，无分隔  
+函数名，使用 XXX-XXX-XXX 的形式，例如 Save-Config-File，大写字母开头，横线分隔  
+函数入参，使用 $XxxYyyZzz 的形式，例如 $ConfigFilePath，大写字母开头，无分隔  

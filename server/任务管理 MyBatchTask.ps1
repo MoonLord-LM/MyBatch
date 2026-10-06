@@ -537,7 +537,7 @@ try {
     # 保存任务列表到配置文件
     function Save-Config {
         $objects = [System.Collections.Generic.List[PSCustomObject]]::new()
-        foreach ($task in $script:taskConfigList) {
+        foreach ($task in $taskConfigList) {
             $objects.Add([PSCustomObject]@{
                 name = [string]$task.name
                 command = [string]$task.command
@@ -675,8 +675,8 @@ try {
     }
 
     # 任务运行实例列表
-    # 任务名 → @{ Process; Status; ExitCode; LogBuilder; Writer; ViewerBox }
-    $TaskExecutionMap = @{}
+    # 任务名 → @{ process; status; exitCode; logViewContent; logFileWriter; logFilePath; logViewTextBox }
+    $taskExecutionMap = @{}
 
     # 刷新任务列表展示表格，刷新全部
     function Update-Task-Grid {
@@ -693,13 +693,13 @@ try {
 
                 $statusText = $ui.StatusStopped
                 $pidText = ""
-                if ($TaskExecutionMap.ContainsKey([string]$taskName)) {
-                    $execution = $TaskExecutionMap[[string]$taskName]
-                    if ($execution.Status) {
-                        $statusText = $execution.Status
+                if ($taskExecutionMap.ContainsKey([string]$taskName)) {
+                    $execution = $taskExecutionMap[[string]$taskName]
+                    if ($execution.status) {
+                        $statusText = $execution.status
                     }
-                    if ($execution.Process -and -not $execution.Process.HasExited) {
-                        $pidText = [string]$execution.Process.Id
+                    if ($execution.process -and -not $execution.process.HasExited) {
+                        $pidText = [string]$execution.process.Id
                     }
                 }
 
@@ -731,13 +731,13 @@ try {
 
         $statusText = $ui.StatusStopped
         $pidText = ""
-        if ($TaskExecutionMap.ContainsKey([string]$taskName)) {
-            $execution = $TaskExecutionMap[[string]$taskName]
-            if ($execution.Status) {
-                $statusText = $execution.Status
+        if ($taskExecutionMap.ContainsKey([string]$taskName)) {
+            $execution = $taskExecutionMap[[string]$taskName]
+            if ($execution.status) {
+                $statusText = $execution.status
             }
-            if ($execution.Process -and -not $execution.Process.HasExited) {
-                $pidText = [string]$execution.Process.Id
+            if ($execution.process -and -not $execution.process.HasExited) {
+                $pidText = [string]$execution.process.Id
             }
         }
 
@@ -747,75 +747,56 @@ try {
 
     # TODO 审核后续代码，优先整理 Append-Task-Log 和 Start-Task
 
-    # 停止并释放任务的输出读取线程
-    function Stop-Task-Readers {
-        param($execution)
-        if ($null -eq $execution) { return }
-        foreach ($item in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
-            if ($null -eq $item) { continue }
-            try {
-                $item.Stop()
-                $item.Dispose()
-            } catch {}
-        }
-        $execution.StandardOutputReader = $null
-        $execution.StandardErrorReader = $null
-        if ($execution.RunspacePool) {
-            try { $execution.RunspacePool.Close() } catch {}
-            try { $execution.RunspacePool.Dispose() } catch {}
-            $execution.RunspacePool = $null
-        }
-    }
     # 获取任务日志文件的写入器（懒创建，追加模式 UTF-8 无 BOM）
     function Get-Task-Writer {
         param([string]$TaskName)
-        $execution = $script:TaskExecutionMap[$TaskName]
-        if ($execution.Writer -and -not $execution.Writer.BaseStream.CanWrite) {
-            $execution.Writer = $null
+        $execution = $script:taskExecutionMap[$TaskName]
+        if ($execution.logFileWriter -and -not $execution.logFileWriter.BaseStream.CanWrite) {
+            $execution.logFileWriter = $null
         }
-        if ($null -eq $execution.Writer) {
+        if ($null -eq $execution.logFileWriter) {
             $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
             # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
-            $fileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
-            $streamWriter = [System.IO.StreamWriter]::new($fileStream, $workingEncoding)
-            $streamWriter.AutoFlush = $true
-            $execution.Writer = $streamWriter
-            $execution.LogFile = $logFilePath
+            $logFileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+            $logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
+            $logFileWriter.AutoFlush = $true
+            $execution.logFileWriter = $logFileWriter
+            $execution.logFilePath = $logFilePath
         }
-        return $execution.Writer
+        return $execution.logFileWriter
     }
     # 追加一条任务日志（内存缓冲 + 日志文件 + 日志标签页）；行由调用方提供（已含时间戳），按 Level 决定颜色
     function Append-Task-Log {
         param([string]$TaskName, [string]$Line, [string]$Level = 'Info')
 
-        if (-not $script:TaskExecutionMap.ContainsKey($TaskName)) { return }
-        $execution = $script:TaskExecutionMap[$TaskName]
+        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) { return }
+        $execution = $script:taskExecutionMap[$TaskName]
         # 内存缓冲（完整保留，供日志标签页打开时回放历史，日志完整展示优先）
-        $execution.LogBuilder.AppendLine($Line) | Out-Null
+        $execution.logViewContent.AppendLine($Line) | Out-Null
         # 日志文件
         try {
-            $writer = Get-Task-Writer -TaskName $TaskName
-            $writer.WriteLine($Line)
+            $logFileWriter = Get-Task-Writer -TaskName $TaskName
+            $logFileWriter.WriteLine($Line)
         } catch {}
         # 任务日志标签页
-        if ($execution.ViewerBox -and -not $execution.ViewerBox.IsDisposed) {
-            $execution.ViewerBox.SelectionStart = $execution.ViewerBox.TextLength
-            $execution.ViewerBox.SelectionLength = 0
-            $execution.ViewerBox.SelectionFont = $execution.ViewerBox.Font
+        if ($execution.logViewTextBox -and -not $execution.logViewTextBox.IsDisposed) {
+            $execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
+            $execution.logViewTextBox.SelectionLength = 0
+            $execution.logViewTextBox.SelectionFont = $execution.logViewTextBox.Font
             $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } else { [System.Drawing.Color]::Red }
-            $execution.ViewerBox.SelectionColor = $lineColor
-            $execution.ViewerBox.AppendText($Line + "`r`n")
-            $execution.ViewerBox.ScrollToCaret()
+            $execution.logViewTextBox.SelectionColor = $lineColor
+            $execution.logViewTextBox.AppendText($Line + "`r`n")
+            $execution.logViewTextBox.ScrollToCaret()
         }
     }
     # 记录任务结束标记（结束时间 + 退出码）
     function Write-Task-Exit-Log {
         param([string]$TaskName)
-        if (-not $script:TaskExecutionMap.ContainsKey($TaskName)) { return }
-        $execution = $script:TaskExecutionMap[$TaskName]
-        $exitCode = $execution.ExitCode
-        if ($null -eq $exitCode -and $execution.Process -and $execution.Process.HasExited) {
-            $exitCode = $execution.Process.ExitCode
+        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) { return }
+        $execution = $script:taskExecutionMap[$TaskName]
+        $exitCode = $execution.exitCode
+        if ($null -eq $exitCode -and $execution.process -and $execution.process.HasExited) {
+            $exitCode = $execution.process.ExitCode
         }
         $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
         $footerLine = $ui.LogProcessFooter -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $exitCodeText
@@ -829,9 +810,9 @@ try {
         if ($Index -lt 0 -or $Index -ge $script:taskConfigList.Count) { return }
         $task = $script:taskConfigList[$Index]
         $taskName = [string]$task.name
-        if ($script:TaskExecutionMap.ContainsKey($taskName)) {
-            $execution = $script:TaskExecutionMap[$taskName]
-            if ($execution.Process -and -not $execution.Process.HasExited) {
+        if ($script:taskExecutionMap.ContainsKey($taskName)) {
+            $execution = $script:taskExecutionMap[$taskName]
+            if ($execution.process -and -not $execution.process.HasExited) {
                 System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
                 return
             }
@@ -935,26 +916,26 @@ try {
             return $readerPs
         }
         # 初始化运行时状态
-        $logBuilder = [System.Text.StringBuilder]::new()
+        $logViewContent = [System.Text.StringBuilder]::new()
         $headerLine = $ui.LogProcessHeader -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
-        if (-not $script:TaskExecutionMap.ContainsKey($taskName)) {
-            $script:TaskExecutionMap[$taskName] = @{
-                Process = $null
-                Status = ""
-                ExitCode = $null
-                LogBuilder = $logBuilder
-                Writer = $null
-                LogFile = ""
-                ViewerBox = $null
+        if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
+            $script:taskExecutionMap[$taskName] = @{
+                process = $null
+                status = ""
+                exitCode = $null
+                logViewContent = $logViewContent
+                logFileWriter = $null
+                logFilePath = ""
+                logViewTextBox = $null
                 StandardOutputReader = $null
                 StandardErrorReader = $null
                 RunspacePool = $null
             }
         }
-        $execution = $script:TaskExecutionMap[$taskName]
-        $execution.Process = $process
-        $execution.Status = $ui.StatusRunning
-        $execution.ExitCode = $null
+        $execution = $script:taskExecutionMap[$taskName]
+        $execution.process = $process
+        $execution.status = $ui.StatusRunning
+        $execution.exitCode = $null
         $runspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(2, 2)
         $runspacePool.Open()
         $execution.RunspacePool = $runspacePool
@@ -970,32 +951,46 @@ try {
         if ($Index -lt 0 -or $Index -ge $script:taskConfigList.Count) { return }
         $task = $script:taskConfigList[$Index]
         $taskName = [string]$task.name
-        if (-not $script:TaskExecutionMap.ContainsKey($taskName)) { return }
-        $execution = $script:TaskExecutionMap[$taskName]
-        if (-not $execution.Process -or $execution.Process.HasExited) { return }
+        if (-not $script:taskExecutionMap.ContainsKey($taskName)) { return }
+        $execution = $script:taskExecutionMap[$taskName]
+        if (-not $execution.process -or $execution.process.HasExited) { return }
         try {
             $killInfo = [System.Diagnostics.ProcessStartInfo]::new()
             $killInfo.FileName = "taskkill.exe"
-            $killInfo.Arguments = "/PID $($execution.Process.Id) /T /F"
+            $killInfo.Arguments = "/PID $($execution.process.Id) /T /F"
             $killInfo.UseShellExecute = $false
             $killInfo.CreateNoWindow = $true
             $killProcess = [System.Diagnostics.Process]::Start($killInfo)
             $killProcess.WaitForExit(10000) | Out-Null
             $killProcess.Dispose()
         } catch {
-            try { $execution.Process.Kill() } catch {}
+            try { $execution.process.Kill() } catch {}
         }
-        if (-not $execution.Process.HasExited) {
-            $execution.Process.WaitForExit(500) | Out-Null
+        if (-not $execution.process.HasExited) {
+            $execution.process.WaitForExit(500) | Out-Null
         }
-        if ($execution.Status -eq $ui.StatusRunning) {
-            $execution.Status = $ui.StatusStopped
+        if ($execution.status -eq $ui.StatusRunning) {
+            $execution.status = $ui.StatusStopped
         }
         Write-Task-Exit-Log -TaskName $taskName
-        Stop-Task-Readers -execution $execution
-        if ($execution.Writer) {
-            try { $execution.Writer.Dispose() } catch {}
-            $execution.Writer = $null
+        # 停止并释放任务的输出读取线程
+        foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
+            if ($null -eq $taskReader) { continue }
+            try {
+                $taskReader.Stop()
+                $taskReader.Dispose()
+            } catch {}
+        }
+        $execution.StandardOutputReader = $null
+        $execution.StandardErrorReader = $null
+        if ($execution.RunspacePool) {
+            try { $execution.RunspacePool.Close() } catch {}
+            try { $execution.RunspacePool.Dispose() } catch {}
+            $execution.RunspacePool = $null
+        }
+        if ($execution.logFileWriter) {
+            try { $execution.logFileWriter.Dispose() } catch {}
+            $execution.logFileWriter = $null
         }
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Stopped -f $taskName) "Info"
@@ -1031,91 +1026,91 @@ try {
         }
         $task = $taskConfigList[$index]
         $taskName = [string]$task.name
-        $logPageName = "LogPage_" + $taskName
+        $logViewTabPageName = "LogPage_" + $taskName
         # 已存在则直接切换
-        $existingPage = $tabControl.TabPages[$logPageName]
-        if ($existingPage) {
-            $tabControl.SelectedTab = $existingPage
+        $existingLogViewTabPage = $tabControl.TabPages[$logViewTabPageName]
+        if ($existingLogViewTabPage) {
+            $tabControl.SelectedTab = $existingLogViewTabPage
             return
         }
         # 确保运行时条目存在
-        if (-not $script:TaskExecutionMap.ContainsKey($taskName)) {
-            $script:TaskExecutionMap[$taskName] = @{
-                Process = $null
-                Status = ""
-                ExitCode = $null
-                LogBuilder = [System.Text.StringBuilder]::new()
-                Writer = $null
-                LogFile = ""
-                ViewerBox = $null
+        if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
+            $script:taskExecutionMap[$taskName] = @{
+                process = $null
+                status = ""
+                exitCode = $null
+                logViewContent = [System.Text.StringBuilder]::new()
+                logFileWriter = $null
+                logFilePath = ""
+                logViewTextBox = $null
                 StandardOutputReader = $null
                 StandardErrorReader = $null
                 RunspacePool = $null
             }
         }
-        $execution = $script:TaskExecutionMap[$taskName]
+        $execution = $script:taskExecutionMap[$taskName]
         # 新建日志标签页
-        $logPage = [System.Windows.Forms.TabPage]::new()
-        $logPage.Name = $logPageName
-        $logPage.Text = $taskName
-        $logPage.BackColor = [System.Drawing.Color]::White
+        $logViewTabPage = [System.Windows.Forms.TabPage]::new()
+        $logViewTabPage.Name = $logViewTabPageName
+        $logViewTabPage.Text = $taskName
+        $logViewTabPage.BackColor = [System.Drawing.Color]::White
         # 日志文本框
-        $viewerTextBox = [System.Windows.Forms.RichTextBox]::new()
-        $viewerTextBox.ReadOnly = $true
-        $viewerTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
-        $viewerTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
-        $viewerTextBox.BackColor = [System.Drawing.Color]::White
-        $viewerTextBox.WordWrap = $false
-        $viewerTextBox.Font = $uiFont
+        $logViewTextBox = [System.Windows.Forms.RichTextBox]::new()
+        $logViewTextBox.ReadOnly = $true
+        $logViewTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
+        $logViewTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+        $logViewTextBox.BackColor = [System.Drawing.Color]::White
+        $logViewTextBox.WordWrap = $false
+        $logViewTextBox.Font = $uiFont
         # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
-        $viewerTextBox.DetectUrls = $false
-        $viewerTextBox.Dock = "Fill"
-        $logPage.Controls.Add($viewerTextBox)
+        $logViewTextBox.DetectUrls = $false
+        $logViewTextBox.Dock = "Fill"
+        $logViewTabPage.Controls.Add($logViewTextBox)
         # 日志文本框右键菜单: 复制日志 / 清空日志 / 打开日志文件
-        $viewerContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-        $viewerCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-        $viewerCopyItem.Text = $ui.LogCopy
-        $viewerClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-        $viewerClearItem.Text = $ui.LogClear
-        $viewerOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-        $viewerOpenItem.Text = $ui.LogOpenFile
-        $viewerContextMenu.Items.Add($viewerCopyItem) | Out-Null
-        $viewerContextMenu.Items.Add($viewerClearItem) | Out-Null
-        $viewerContextMenu.Items.Add($viewerOpenItem) | Out-Null
-        $viewerTextBox.ContextMenuStrip = $viewerContextMenu
+        $logViewContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+        $logViewCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $logViewCopyItem.Text = $ui.LogCopy
+        $logViewClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $logViewClearItem.Text = $ui.LogClear
+        $logViewOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $logViewOpenItem.Text = $ui.LogOpenFile
+        $logViewContextMenu.Items.Add($logViewCopyItem) | Out-Null
+        $logViewContextMenu.Items.Add($logViewClearItem) | Out-Null
+        $logViewContextMenu.Items.Add($logViewOpenItem) | Out-Null
+        $logViewTextBox.ContextMenuStrip = $logViewContextMenu
         # 载入历史日志（与追加行统一字体和颜色：微软雅黑 10 / 黑色，防止历史段落继承默认字体导致样式不一致）
-        $viewerTextBox.SelectionStart = $viewerTextBox.TextLength
-        $viewerTextBox.SelectionLength = 0
-        $viewerTextBox.SelectionFont = $viewerTextBox.Font
-        $viewerTextBox.SelectionColor = [System.Drawing.Color]::Black
-        $viewerTextBox.AppendText($execution.LogBuilder.ToString())
-        $viewerTextBox.SelectionStart = $viewerTextBox.TextLength
-        $viewerTextBox.ScrollToCaret()
+        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+        $logViewTextBox.SelectionLength = 0
+        $logViewTextBox.SelectionFont = $logViewTextBox.Font
+        $logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
+        $logViewTextBox.AppendText($execution.logViewContent.ToString())
+        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+        $logViewTextBox.ScrollToCaret()
         # 右键菜单事件绑定
-        $viewerCopyItem.Add_Click({
-            if ($viewerTextBox.Text.Length -gt 0) {
-                [System.Windows.Forms.Clipboard]::SetText($viewerTextBox.Text)
+        $logViewCopyItem.Add_Click({
+            if ($logViewTextBox.Text.Length -gt 0) {
+                [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
                 System-Log $ui.INFO_LogCopied "Success"
             } else {
                 System-Log $ui.INFO_NoLog "Warning"
             }
         })
-        $viewerClearItem.Add_Click({
-            $viewerTextBox.Clear()
-            $execution.LogBuilder.Clear() | Out-Null
+        $logViewClearItem.Add_Click({
+            $logViewTextBox.Clear()
+            $execution.logViewContent.Clear() | Out-Null
         })
-        $viewerOpenItem.Add_Click({
-            if ($execution.LogFile -and [System.IO.File]::Exists($execution.LogFile)) {
-                Start-Process "notepad.exe" -ArgumentList ('"' + $execution.LogFile + '"')
+        $logViewOpenItem.Add_Click({
+            if ($execution.logFilePath -and [System.IO.File]::Exists($execution.logFilePath)) {
+                Start-Process "notepad.exe" -ArgumentList ('"' + $execution.logFilePath + '"')
             } else {
                 System-Log $ui.INFO_NoLog "Warning"
             }
         })
         # 保存引用
-        $execution.ViewerBox = $viewerTextBox
+        $execution.logViewTextBox = $logViewTextBox
         # 添加到标签栏并选中
-        $tabControl.TabPages.Add($logPage)
-        $tabControl.SelectedTab = $logPage
+        $tabControl.TabPages.Add($logViewTabPage)
+        $tabControl.SelectedTab = $logViewTabPage
     }
 
     # 界面刷新定时器: 消化输出队列 + 检查进程退出
@@ -1132,22 +1127,36 @@ try {
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
             $task = $script:taskConfigList[$i]
             $taskName = [string]$task.name
-            if (-not $script:TaskExecutionMap.ContainsKey($taskName)) { continue }
-            $execution = $script:TaskExecutionMap[$taskName]
-            if ($execution.Process -and $execution.Process.HasExited) {
-                if ($execution.Status -eq $ui.StatusRunning) {
-                    if ($execution.Process.ExitCode -eq 0) {
-                        $execution.Status = $ui.StatusExited
+            if (-not $script:taskExecutionMap.ContainsKey($taskName)) { continue }
+            $execution = $script:taskExecutionMap[$taskName]
+            if ($execution.process -and $execution.process.HasExited) {
+                if ($execution.status -eq $ui.StatusRunning) {
+                    if ($execution.process.ExitCode -eq 0) {
+                        $execution.status = $ui.StatusExited
                     } else {
-                        $execution.Status = $ui.StatusExitedError
+                        $execution.status = $ui.StatusExitedError
                     }
-                    System-Log ($ui.INFO_Exited -f $taskName, $execution.Process.ExitCode) "Warning"
+                    System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) "Warning"
                     Write-Task-Exit-Log -TaskName $taskName
                 }
-                Stop-Task-Readers -execution $execution
-                if ($execution.Writer) {
-                    try { $execution.Writer.Dispose() } catch {}
-                    $execution.Writer = $null
+                # 停止并释放任务的输出读取线程
+                foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
+                    if ($null -eq $taskReader) { continue }
+                    try {
+                        $taskReader.Stop()
+                        $taskReader.Dispose()
+                    } catch {}
+                }
+                $execution.StandardOutputReader = $null
+                $execution.StandardErrorReader = $null
+                if ($execution.RunspacePool) {
+                    try { $execution.RunspacePool.Close() } catch {}
+                    try { $execution.RunspacePool.Dispose() } catch {}
+                    $execution.RunspacePool = $null
+                }
+                if ($execution.logFileWriter) {
+                    try { $execution.logFileWriter.Dispose() } catch {}
+                    $execution.logFileWriter = $null
                 }
                 Update-Task-Grid-Row -TaskName $taskName
             }
@@ -1348,18 +1357,18 @@ try {
                 # 修改任务: 替换配置
                 $script:taskConfigList[$EditIndex] = $newTask
                 # 名称变更时，迁移运行时数据并移除旧日志标签页
-                if ($originalName -ine $newName -and $script:TaskExecutionMap.ContainsKey($originalName)) {
-                    $oldRuntime = $script:TaskExecutionMap[$originalName]
+                if ($originalName -ine $newName -and $script:taskExecutionMap.ContainsKey($originalName)) {
+                    $oldRuntime = $script:taskExecutionMap[$originalName]
                     # 移除旧的日志标签页
-                    $oldPageName = "LogPage_" + $originalName
-                    $oldPage = $tabControl.TabPages[$oldPageName]
-                    if ($oldPage) {
-                        $tabControl.TabPages.Remove($oldPage)
-                        $oldPage.Dispose()
+                    $oldLogViewTabPageName = "LogPage_" + $originalName
+                    $oldLogViewTabPage = $tabControl.TabPages[$oldLogViewTabPageName]
+                    if ($oldLogViewTabPage) {
+                        $tabControl.TabPages.Remove($oldLogViewTabPage)
+                        $oldLogViewTabPage.Dispose()
                     }
                     # 迁移运行时数据到新名称
-                    $script:TaskExecutionMap[$newName] = $oldRuntime
-                    $script:TaskExecutionMap.Remove($originalName) | Out-Null
+                    $script:taskExecutionMap[$newName] = $oldRuntime
+                    $script:taskExecutionMap.Remove($originalName) | Out-Null
                 }
             } else {
                 $script:taskConfigList += $newTask
@@ -1535,8 +1544,8 @@ try {
         # 如果是任务日志页，清理运行时引用
         if ($tabName.StartsWith("LogPage_")) {
             $taskName = $tabName.Substring(8)
-            if ($script:TaskExecutionMap.ContainsKey($taskName)) {
-                $script:TaskExecutionMap[$taskName].ViewerBox = $null
+            if ($script:taskExecutionMap.ContainsKey($taskName)) {
+                $script:taskExecutionMap[$taskName].logViewTextBox = $null
             }
         }
         $tabControl.TabPages.Remove($script:rightClickedTab)
@@ -1724,9 +1733,9 @@ try {
         }
         $taskName = [string]$script:taskConfigList[$index].name
         $isRunning = $false
-        if ($script:TaskExecutionMap.ContainsKey($taskName)) {
-            $execution = $script:TaskExecutionMap[$taskName]
-            if ($execution.Process -and -not $execution.Process.HasExited) { $isRunning = $true }
+        if ($script:taskExecutionMap.ContainsKey($taskName)) {
+            $execution = $script:taskExecutionMap[$taskName]
+            if ($execution.process -and -not $execution.process.HasExited) { $isRunning = $true }
         }
         $needRestart = $false
         if ($isRunning) {
@@ -1751,19 +1760,19 @@ try {
         $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmDelete -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         Stop-Task -Index $index
-        if ($script:TaskExecutionMap.ContainsKey($taskName)) {
-            $execution = $script:TaskExecutionMap[$taskName]
+        if ($script:taskExecutionMap.ContainsKey($taskName)) {
+            $execution = $script:taskExecutionMap[$taskName]
             # 移除对应的日志标签页
-            $logPageName = "LogPage_" + $taskName
-            $logPage = $tabControl.TabPages[$logPageName]
-            if ($logPage) {
-                $tabControl.TabPages.Remove($logPage)
-                $logPage.Dispose()
+            $logViewTabPageName = "LogPage_" + $taskName
+            $logViewTabPage = $tabControl.TabPages[$logViewTabPageName]
+            if ($logViewTabPage) {
+                $tabControl.TabPages.Remove($logViewTabPage)
+                $logViewTabPage.Dispose()
             }
-            if ($execution.Writer) {
-                try { $execution.Writer.Dispose() } catch {}
+            if ($execution.logFileWriter) {
+                try { $execution.logFileWriter.Dispose() } catch {}
             }
-            $script:TaskExecutionMap.Remove($taskName) | Out-Null
+            $script:taskExecutionMap.Remove($taskName) | Out-Null
         }
         $newTasks = @()
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
