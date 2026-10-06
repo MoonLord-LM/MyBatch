@@ -791,29 +791,23 @@ try {
         }
     }
 
-    # 启动任务（按任务名查找配置，任务名在配置里唯一）
+    # 启动任务（参数 $Task 为任务配置对象，即 $taskConfigList 中的一个元素）
     function Start-Task {
-        param([string]$TaskName)
+        param([PSCustomObject]$Task)
 
-        $task = $null
-        foreach ($taskItem in $script:taskConfigList) {
-            if ([string]$taskItem.name -eq $TaskName) {
-                $task = $taskItem
-                break
-            }
-        }
-        if ($null -eq $task) { return }
-        if ($script:taskExecutionMap.ContainsKey($TaskName)) {
-            $execution = $script:taskExecutionMap[$TaskName]
+        if ($null -eq $Task) { return }
+        $taskName = [string]$Task.name
+        if ($script:taskExecutionMap.ContainsKey($taskName)) {
+            $execution = $script:taskExecutionMap[$taskName]
             if ($execution.process -and -not $execution.process.HasExited) {
-                System-Log ($ui.INFO_AlreadyRunning -f $TaskName) "Warning"
+                System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
                 return
             }
         }
         # 展开环境变量
-        $commandText = [System.Environment]::ExpandEnvironmentVariables([string]$task.command)
-        $argumentText = [System.Environment]::ExpandEnvironmentVariables([string]$task.arguments)
-        $workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$task.workingDirectory)
+        $commandText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.command)
+        $argumentText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.arguments)
+        $workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.workingDirectory)
         # 构建进程启动信息，隐藏窗口并重定向输出
         $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
         # UseShellExecute = false 走 CreateProcess，只能启动可执行文件，
@@ -879,7 +873,7 @@ try {
             $process = [System.Diagnostics.Process]::new()
             $process.StartInfo = $startInfo
             if (-not $process.Start()) {
-                throw ($ui.ERROR_TaskStartFailed -f $TaskName)
+                throw ($ui.ERROR_TaskStartFailed -f $taskName)
             }
         } catch {
             System-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) "Error"
@@ -903,14 +897,14 @@ try {
             $readerPs.AddScript($readerScript) | Out-Null
             $readerPs.AddParameter('Reader', $Reader)
             $readerPs.AddParameter('Queue', $script:outputQueue)
-            $readerPs.AddParameter('Name', $TaskName)
+            $readerPs.AddParameter('Name', $taskName)
             $readerPs.AddParameter('IsError', $IsError)
             $readerPs.BeginInvoke() | Out-Null
             return $readerPs
         }
         # 初始化运行时状态
-        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) {
-            $script:taskExecutionMap[$TaskName] = @{
+        if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
+            $script:taskExecutionMap[$taskName] = @{
                 process = $null
                 status = ""
                 exitCode = $null
@@ -923,7 +917,7 @@ try {
                 RunspacePool = $null
             }
         }
-        $execution = $script:taskExecutionMap[$TaskName]
+        $execution = $script:taskExecutionMap[$taskName]
         $execution.process = $process
         $execution.status = $ui.StatusRunning
         $execution.exitCode = $null
@@ -933,15 +927,17 @@ try {
         $execution.RunspacePool = $readerRunspacePool
         $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $readerRunspacePool
         $execution.StandardErrorReader = & $newReader $process.StandardError $true $readerRunspacePool
-        Append-Task-Log -TaskName $TaskName -Message $ui.LogProcessHeader
-        Update-Task-Grid-Row -TaskName $TaskName
-        System-Log ($ui.INFO_Started -f $TaskName, $process.Id) "Success"
+        Append-Task-Log -TaskName $taskName -Message $ui.LogProcessHeader
+        Update-Task-Grid-Row -TaskName $taskName
+        System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
-    # 停止任务（taskkill 结束整个进程树）
+    # 停止任务（参数 $Task 为任务配置对象，即 $taskConfigList 中的一个元素）
     function Stop-Task {
-        param([string]$TaskName)
-        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) { return }
-        $execution = $script:taskExecutionMap[$TaskName]
+        param([PSCustomObject]$Task)
+        if ($null -eq $Task) { return }
+        $taskName = [string]$Task.name
+        if (-not $script:taskExecutionMap.ContainsKey($taskName)) { return }
+        $execution = $script:taskExecutionMap[$taskName]
         if (-not $execution.process -or $execution.process.HasExited) { return }
         try {
             $killInfo = [System.Diagnostics.ProcessStartInfo]::new()
@@ -967,7 +963,7 @@ try {
             $exitCode = $execution.process.ExitCode
         }
         $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
-        Append-Task-Log -TaskName $TaskName -Message ($ui.LogProcessFooter -f $exitCodeText)
+        Append-Task-Log -TaskName $taskName -Message ($ui.LogProcessFooter -f $exitCodeText)
         # 停止并释放任务的输出读取线程
         foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
             if ($null -eq $taskReader) { continue }
@@ -987,26 +983,26 @@ try {
             try { $execution.logFileWriter.Dispose() } catch {}
             $execution.logFileWriter = $null
         }
-        Update-Task-Grid-Row -TaskName $TaskName
-        System-Log ($ui.INFO_Stopped -f $TaskName) "Info"
+        Update-Task-Grid-Row -TaskName $taskName
+        System-Log ($ui.INFO_Stopped -f $taskName) "Info"
     }
     # 重启任务
     function Restart-Task {
-        param([string]$TaskName)
-        Stop-Task -TaskName $TaskName
-        Start-Task -TaskName $TaskName
+        param([PSCustomObject]$Task)
+        Stop-Task -Task $Task
+        Start-Task -Task $Task
     }
     # 全部启动
     function Start-All-Tasks {
         foreach ($task in $script:taskConfigList) {
-            Start-Task -TaskName ([string]$task.name)
+            Start-Task -Task $task
         }
         System-Log $ui.INFO_StartAllDone "Success"
     }
     # 全部停止
     function Stop-All-Tasks {
         foreach ($task in $script:taskConfigList) {
-            Stop-Task -TaskName ([string]$task.name)
+            Stop-Task -Task $task
         }
         System-Log $ui.INFO_StopAllDone "Info"
     }
@@ -1437,7 +1433,7 @@ try {
             $task = $script:taskConfigList[$i]
             $needStart = [bool]$task.autoStart
             if ($needStart) {
-                Start-Task -TaskName ([string]$task.name)
+                Start-Task -Task $task
             }
         }
     })
@@ -1671,8 +1667,7 @@ try {
             [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
             return
         }
-        $taskName = [string]$script:taskConfigList[$index].name
-        Start-Task -TaskName $taskName
+        Start-Task -Task $script:taskConfigList[$index]
     })
     # 右键菜单: 停止任务
     $menuStopItem.Add_Click({
@@ -1681,8 +1676,7 @@ try {
             [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
             return
         }
-        $taskName = [string]$script:taskConfigList[$index].name
-        Stop-Task -TaskName $taskName
+        Stop-Task -Task $script:taskConfigList[$index]
     })
     # 右键菜单: 重启任务
     $menuRestartItem.Add_Click({
@@ -1691,8 +1685,7 @@ try {
             [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
             return
         }
-        $taskName = [string]$script:taskConfigList[$index].name
-        Restart-Task -TaskName $taskName
+        Restart-Task -Task $script:taskConfigList[$index]
     })
     # 右键菜单: 查看任务日志
     $menuViewLogItem.Add_Click({ Show-Task-Log-Viewer })
@@ -1735,7 +1728,8 @@ try {
             [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
             return
         }
-        $taskName = [string]$script:taskConfigList[$index].name
+        $task = $script:taskConfigList[$index]
+        $taskName = [string]$task.name
         $isRunning = $false
         if ($script:taskExecutionMap.ContainsKey($taskName)) {
             $execution = $script:taskExecutionMap[$taskName]
@@ -1745,13 +1739,13 @@ try {
         if ($isRunning) {
             $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
             if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
-            Stop-Task -TaskName $taskName
+            Stop-Task -Task $task
             $needRestart = $true
         }
         $result = Open-Task-Dialog -EditIndex $index
         if ($needRestart -and $result -eq [System.Windows.Forms.DialogResult]::OK) {
-            # 任务可能在对话框里被改名，这里按改后的名字重新启动
-            Start-Task -TaskName ([string]$script:taskConfigList[$index].name)
+            # 任务可能在对话框里被改配置，这里重新取一次修改后的任务配置
+            Start-Task -Task $script:taskConfigList[$index]
         }
     })
     # 右键菜单: 删除任务
@@ -1764,7 +1758,7 @@ try {
         $taskName = [string]$script:taskConfigList[$index].name
         $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmDelete -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
-        Stop-Task -TaskName $taskName
+        Stop-Task -Task $script:taskConfigList[$index]
         if ($script:taskExecutionMap.ContainsKey($taskName)) {
             $execution = $script:taskExecutionMap[$taskName]
             # 移除对应的日志标签页
