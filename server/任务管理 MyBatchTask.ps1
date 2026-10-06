@@ -84,7 +84,7 @@ try {
     "[ Debug ] userName = $userName"
 
     # 加载 Win32 API 函数
-    $Win32APICode =
+    $win32ApiCode =
 @'
     using System;
     using System.Runtime.InteropServices;
@@ -101,15 +101,15 @@ try {
         public static readonly IntPtr PER_MONITOR_AWARE_V2 = (IntPtr)(-4);
     }
 '@
-    Add-Type -TypeDefinition $Win32APICode
+    Add-Type -TypeDefinition $win32ApiCode
 
     # 禁用自动缩放
-    $result = $false
+    $dpiResult = $false
     try {
-        $result = [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
+        $dpiResult = [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
     } catch { }
-    if(-not $result){
-        $result = [DpiHelper]::SetProcessDPIAware()
+    if(-not $dpiResult){
+        $dpiResult = [DpiHelper]::SetProcessDPIAware()
     }
 
     # 设置更现代的窗口样式
@@ -465,31 +465,31 @@ try {
         Debug    = [System.Drawing.Color]::Gray
     }
     function System-Log-Internal {
-        param($txtBox, $text, $color)
+        param($TextBox, $Text, $Color)
 
         try {
-            if ($null -eq $txtBox -or $txtBox.IsDisposed) {
+            if ($null -eq $TextBox -or $TextBox.IsDisposed) {
                 return
             }
-            $txtBox.SuspendLayout()
+            $TextBox.SuspendLayout()
             try {
-                $txtBox.SelectionStart = $txtBox.TextLength
-                $txtBox.SelectionLength = 0
-                $txtBox.SelectionColor = $color
-                $txtBox.AppendText($text)
-                $txtBox.ScrollToCaret()
+                $TextBox.SelectionStart = $TextBox.TextLength
+                $TextBox.SelectionLength = 0
+                $TextBox.SelectionColor = $Color
+                $TextBox.AppendText($Text)
+                $TextBox.ScrollToCaret()
             }
             finally {
-                $txtBox.ResumeLayout()
+                $TextBox.ResumeLayout()
             }
         } catch {
             Handle-Exception $_
         }
     }
     $systemLogInternalAction = [Action[System.Windows.Forms.RichTextBox, string, System.Drawing.Color]]{
-        param($txtBox, $text, $color)
+        param($TextBox, $Text, $Color)
 
-        System-Log-Internal $txtBox $text $color
+        System-Log-Internal $TextBox $Text $Color
     }
     function System-Log {
         param([string]$Message = '', [string]$Level = 'Info')
@@ -726,13 +726,11 @@ try {
             return
         }
 
-        $task = $taskConfigList[$index]
-        $taskName = $task.name
-
+        # 直接用入参 $TaskName 查运行时条目（PowerShell 变量名不区分大小写，这里不能再用同名局部变量覆盖入参）
         $statusText = $ui.StatusStopped
         $pidText = ""
-        if ($taskExecutionMap.ContainsKey([string]$taskName)) {
-            $execution = $taskExecutionMap[[string]$taskName]
+        if ($taskExecutionMap.ContainsKey([string]$TaskName)) {
+            $execution = $taskExecutionMap[[string]$TaskName]
             if ($execution.status) {
                 $statusText = $execution.status
             }
@@ -747,24 +745,6 @@ try {
 
     # TODO 审核后续代码，优先整理 Append-Task-Log 和 Start-Task
 
-    # 获取任务日志文件的写入器（懒创建，追加模式 UTF-8 无 BOM）
-    function Get-Task-Writer {
-        param([string]$TaskName)
-        $execution = $script:taskExecutionMap[$TaskName]
-        if ($execution.logFileWriter -and -not $execution.logFileWriter.BaseStream.CanWrite) {
-            $execution.logFileWriter = $null
-        }
-        if ($null -eq $execution.logFileWriter) {
-            $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
-            # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
-            $logFileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
-            $logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
-            $logFileWriter.AutoFlush = $true
-            $execution.logFileWriter = $logFileWriter
-            $execution.logFilePath = $logFilePath
-        }
-        return $execution.logFileWriter
-    }
     # 追加一条任务日志（内存缓冲 + 日志文件 + 日志标签页）；行由调用方提供（已含时间戳），按 Level 决定颜色
     function Append-Task-Log {
         param([string]$TaskName, [string]$Line, [string]$Level = 'Info')
@@ -773,10 +753,20 @@ try {
         $execution = $script:taskExecutionMap[$TaskName]
         # 内存缓冲（完整保留，供日志标签页打开时回放历史，日志完整展示优先）
         $execution.logViewContent.AppendLine($Line) | Out-Null
-        # 日志文件
+        # 日志文件（写入器懒创建，追加模式 UTF-8 无 BOM）
         try {
-            $logFileWriter = Get-Task-Writer -TaskName $TaskName
-            $logFileWriter.WriteLine($Line)
+            if ($execution.logFileWriter -and -not $execution.logFileWriter.BaseStream.CanWrite) {
+                $execution.logFileWriter = $null
+            }
+            if ($null -eq $execution.logFileWriter) {
+                $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
+                # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
+                $logFileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+                $execution.logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
+                $execution.logFileWriter.AutoFlush = $true
+                $execution.logFilePath = $logFilePath
+            }
+            $execution.logFileWriter.WriteLine($Line)
         } catch {}
         # 任务日志标签页
         if ($execution.logViewTextBox -and -not $execution.logViewTextBox.IsDisposed) {
@@ -894,12 +884,12 @@ try {
         }
         # 用独立线程的读取循环收集输出，入队后由定时器统一刷新界面
         $readerScript = {
-            param($reader, $queue, $name, $isError)
+            param($Reader, $Queue, $Name, $IsError)
             try {
                 while ($true) {
-                    $line = $reader.ReadLine()
+                    $line = $Reader.ReadLine()
                     if ($null -eq $line) { break }
-                    $queue.Enqueue(@{ TaskName = $name; Line = $line; IsError = $isError })
+                    $Queue.Enqueue(@{ TaskName = $Name; Line = $line; IsError = $IsError })
                 }
             } catch {}
         }
@@ -936,11 +926,12 @@ try {
         $execution.process = $process
         $execution.status = $ui.StatusRunning
         $execution.exitCode = $null
-        $runspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(2, 2)
-        $runspacePool.Open()
-        $execution.RunspacePool = $runspacePool
-        $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $runspacePool
-        $execution.StandardErrorReader = & $newReader $process.StandardError $true $runspacePool
+        # 读取线程共用的运行空间池（局部变量名不能与 $newReader 的入参 RunspacePool 同名，PowerShell 变量名不区分大小写）
+        $readerRunspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(2, 2)
+        $readerRunspacePool.Open()
+        $execution.RunspacePool = $readerRunspacePool
+        $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $readerRunspacePool
+        $execution.StandardErrorReader = & $newReader $process.StandardError $true $readerRunspacePool
         Append-Task-Log -TaskName $taskName -Line $headerLine
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
@@ -1184,18 +1175,18 @@ try {
         $dialogForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
         $dialogForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
         function New-Dialog-Label {
-            param([string]$Text, [int]$Y)
+            param([string]$Text, [int]$Top)
             $label = [System.Windows.Forms.Label]::new()
             $label.Text = $Text
-            $label.Location = [System.Drawing.Point]::new(36, $Y + 4)
+            $label.Location = [System.Drawing.Point]::new(36, $Top + 4)
             $label.Size = [System.Drawing.Size]::new(100, 28)
             $label.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
             $dialogForm.Controls.Add($label)
         }
         function New-Dialog-TextBox {
-            param([int]$Y)
+            param([int]$Top)
             $textBox = [System.Windows.Forms.TextBox]::new()
-            $textBox.Location = [System.Drawing.Point]::new(146, $Y)
+            $textBox.Location = [System.Drawing.Point]::new(146, $Top)
             $textBox.Size = [System.Drawing.Size]::new(428, 30)
             $textBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
             $dialogForm.Controls.Add($textBox)
@@ -1417,20 +1408,20 @@ try {
     }
     # 窗体关闭事件: 默认隐藏到托盘，真正退出时才关闭
     $mainForm.Add_FormClosing({
-        param($eventSender, $event)
+        param($EventSender, $EventArgs)
         if (-not $script:realExit) {
-            $event.Cancel = $true
-            $eventSender.Hide()
-            $eventSender.ShowInTaskbar = $false
+            $EventArgs.Cancel = $true
+            $EventSender.Hide()
+            $EventSender.ShowInTaskbar = $false
         }
     })
     # 窗体首次显示事件: 隐藏到托盘 + 自动启动任务
     $mainForm.Add_Shown({
-        param($eventSender, $event)
-        $eventSender.Opacity = 0
-        $eventSender.Hide()
-        $eventSender.Opacity = 1
-        $eventSender.ShowInTaskbar = $false
+        param($EventSender, $EventArgs)
+        $EventSender.Opacity = 0
+        $EventSender.Hide()
+        $EventSender.Opacity = 1
+        $EventSender.ShowInTaskbar = $false
         # 启动全部 autoStart 任务
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
             $task = $script:taskConfigList[$i]
@@ -1479,8 +1470,8 @@ try {
     $trayIcon.ContextMenuStrip = $trayMenu
     # 托盘图标: 单击切换显示/隐藏，双击显示
     $trayIcon.Add_MouseClick({
-        param($eventSender, $event)
-        if ($event.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+        param($EventSender, $EventArgs)
+        if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
             if ($mainForm.Visible) {
                 $mainForm.Hide()
                 $mainForm.ShowInTaskbar = $false
@@ -1490,8 +1481,8 @@ try {
         }
     })
     $trayIcon.Add_MouseDoubleClick({
-        param($eventSender, $event)
-        if ($event.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+        param($EventSender, $EventArgs)
+        if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
             Show-MainWindow
         }
     })
@@ -1524,12 +1515,12 @@ try {
     $tabControl.ContextMenuStrip = $tabContextMenu
     # 右键按下时记录点击的标签页
     $tabControl.Add_MouseDown({
-        param($sender, $e)
-        if ($e.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
+        param($EventSender, $EventArgs)
+        if ($EventArgs.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
         # 查找点击的标签页
         for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
             $tabRect = $tabControl.GetTabRect($i)
-            if ($tabRect.Contains($e.Location)) {
+            if ($tabRect.Contains($EventArgs.Location)) {
                 $script:rightClickedTab = $tabControl.TabPages[$i]
                 # 前两个固定标签页不可关闭
                 $closeTabMenuItem.Enabled = ($i -ge 2)
@@ -1606,11 +1597,11 @@ try {
     $dataGridView.MultiSelect = $false
     # 鼠标按下时自动选中一行（包括左键和右键）
     $dataGridView.Add_CellMouseDown({
-        param($eventSender, $event)
-        if ($event.RowIndex -ge 0) {
+        param($EventSender, $EventArgs)
+        if ($EventArgs.RowIndex -ge 0) {
             $dataGridView.ClearSelection()
-            $dataGridView.Rows[$event.RowIndex].Selected = $true
-            $dataGridView.CurrentCell = $dataGridView.Rows[$event.RowIndex].Cells[0]
+            $dataGridView.Rows[$EventArgs.RowIndex].Selected = $true
+            $dataGridView.CurrentCell = $dataGridView.Rows[$EventArgs.RowIndex].Cells[0]
         }
     })
     # 双击行查看任务日志
