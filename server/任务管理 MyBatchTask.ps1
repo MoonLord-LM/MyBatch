@@ -333,8 +333,8 @@ try {
             DialogCancel = "取消"
             FileFilterLog = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*"
             CloseTab = "关闭标签页"
-            LogProcessHeader = "[{0}] ———————————— 开始新进程 ————————————————"
-            LogProcessFooter = "[{0}] ———————————— 结束进程，退出码 {1} ————————————————"
+            LogProcessHeader = "———————————— 开始新进程 ————————————————"
+            LogProcessFooter = "———————————— 结束进程，退出码 {0} ————————————————"
         }
         'en-US' = @{
             FormTitle = "MyBatchTask Batch Task Manager"
@@ -425,8 +425,8 @@ try {
             DialogCancel = "Cancel"
             FileFilterLog = "Log files (*.log)|*.log|All files (*.*)|*.*"
             CloseTab = "Close Tab"
-            LogProcessHeader = "[{0}] ———————————— Start new process ————————————————"
-            LogProcessFooter = "[{0}] ———————————— End process, exit code {1} ————————————————"
+            LogProcessHeader = "———————————— Start new process ————————————————"
+            LogProcessFooter = "———————————— End process, exit code {0} ————————————————"
         }
     }
     $ui = $uiTextResources[$workingLanguage]
@@ -742,16 +742,15 @@ try {
         $taskGridView.Rows[$index].Cells[1].Value = $pidText
     }
 
-    # TODO 审核后续代码，优先整理 Append-Task-Log 和 Start-Task
-
     # 新增一条任务日志，需要刷新：内存缓存 + 日志文件 + 日志展示框，按 Level 决定颜色
     function Append-Task-Log {
-        param([string]$TaskName, [string]$Line, [string]$Level = 'Info')
+        param([string]$TaskName, [string]$Message, [string]$Level = 'Info')
 
         if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
 
+        $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
         $execution = $taskExecutionMap[$TaskName]
-        $execution.logViewContent.AppendLine($Line) | Out-Null
+        $execution.logViewContent.AppendLine($logLine) | Out-Null
 
         try {
             if ($null -eq $execution.logFilePath) {
@@ -765,7 +764,7 @@ try {
                 $execution.logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
                 $execution.logFileWriter.AutoFlush = $true
             }
-            $execution.logFileWriter.WriteLine($Line)
+            $execution.logFileWriter.WriteLine($logLine)
         } catch {
             Handle-Exception $_
         }
@@ -781,7 +780,7 @@ try {
                 $execution.logViewTextBox.SelectionFont = $execution.logViewTextBox.Font
                 $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } else { [System.Drawing.Color]::Red }
                 $execution.logViewTextBox.SelectionColor = $lineColor
-                $execution.logViewTextBox.AppendText($Line + "`r`n")
+                $execution.logViewTextBox.AppendText($logLine + "`r`n")
                 $execution.logViewTextBox.ScrollToCaret()
             }
             finally {
@@ -802,8 +801,7 @@ try {
             $exitCode = $execution.process.ExitCode
         }
         $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
-        $footerLine = $ui.LogProcessFooter -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $exitCodeText
-        Append-Task-Log -TaskName $TaskName -Line $footerLine
+        Append-Task-Log -TaskName $TaskName -Message ($ui.LogProcessFooter -f $exitCodeText)
     }
 
     # 任务进程管理
@@ -919,7 +917,6 @@ try {
             return $readerPs
         }
         # 初始化运行时状态
-        $headerLine = $ui.LogProcessHeader -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
         if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
             $script:taskExecutionMap[$taskName] = @{
                 process = $null
@@ -927,7 +924,7 @@ try {
                 exitCode = $null
                 logViewContent = [System.Text.StringBuilder]::new()
                 logFileWriter = $null
-                logFilePath = ""
+                logFilePath = $null
                 logViewTextBox = $null
                 StandardOutputReader = $null
                 StandardErrorReader = $null
@@ -944,7 +941,7 @@ try {
         $execution.RunspacePool = $readerRunspacePool
         $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $readerRunspacePool
         $execution.StandardErrorReader = & $newReader $process.StandardError $true $readerRunspacePool
-        Append-Task-Log -TaskName $taskName -Line $headerLine
+        Append-Task-Log -TaskName $taskName -Message $ui.LogProcessHeader
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
@@ -1044,7 +1041,7 @@ try {
                 exitCode = $null
                 logViewContent = [System.Text.StringBuilder]::new()
                 logFileWriter = $null
-                logFilePath = ""
+                logFilePath = $null
                 logViewTextBox = $null
                 StandardOutputReader = $null
                 StandardErrorReader = $null
@@ -1123,8 +1120,8 @@ try {
         # 消化后台线程的输出队列
         $logItem = $null
         while ($script:outputQueue.TryDequeue([ref]$logItem)) {
-            $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $logItem.Line
-            Append-Task-Log -TaskName $logItem.TaskName -Line $logLine -Level $(if ($logItem.IsError) { 'Error' } else { 'Info' })
+            $level = if ($logItem.IsError) { 'Error' } else { 'Info' }
+            Append-Task-Log -TaskName $logItem.TaskName -Message $logItem.Line -Level $level
         }
         # 检查进程退出状态
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
