@@ -57,8 +57,11 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         "} catch [System.Text.DecoderFallbackException] {" ^
             "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
         "}" ^
-        "$content = $content -replace '(\r?\n)', \""`r`n\"";" ^
-        "[System.IO.File]::WriteAllText($env:bat_file, $content, $utf8NoBOM);"
+        "$newContent = $content -replace '(\r?\n)', \""`r`n\"";" ^
+        "if ($newContent -ne [System.Text.Encoding]::UTF8.GetString($bytes)) {" ^
+            "[System.IO.File]::WriteAllText($env:bat_file, $newContent, $utf8NoBOM);" ^
+            "Write-Output '已将编码统一为 UTF-8 without BOM，换行符统一为 CRLF';" ^
+        "}"
     if !errorlevel! neq 0 (
         echo [错误] 编码转换失败："!bat_file!"
         echo.
@@ -90,6 +93,52 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         exit /b 1
     )
 
+    REM 删除行末尾的空格
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
+        "$changed = 0;" ^
+        "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+            "if ($lines[$i] -match '[ \t]+$') {" ^
+                "$lines[$i] = $lines[$i] -replace '[ \t]+$', '';" ^
+                "$changed++;" ^
+            "}" ^
+        "}" ^
+        "if ($changed -gt 0) {" ^
+            "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
+            "Write-Output ('已将 ' + $changed + ' 行中的末尾的空格删除');" ^
+        "}"
+    if !errorlevel! neq 0 (
+        echo [错误] 删除行末尾空格失败："!bat_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM 注释统一使用 REM 注释
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
+        "$changed = 0;" ^
+        "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+            "if ($lines[$i] -match '^\s*::') {" ^
+                "$lines[$i] = $lines[$i] -replace '^(\s*)::\s*', '${1}REM ';" ^
+                "$changed++;" ^
+            "}" ^
+        "}" ^
+        "if ($changed -gt 0) {" ^
+            "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
+            "Write-Output ('已将 ' + $changed + ' 行中的 :: 注释改为 REM 写法');" ^
+        "}"
+    if !errorlevel! neq 0 (
+        echo [错误] 检查/修改 REM 注释失败："!bat_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
     REM 检查每个文件都必须包含 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
@@ -98,6 +147,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         "if (-not (($lines -join '`r`n').ToLowerInvariant().Contains('@echo '))) {" ^
             "$lines = @('@echo off') + $lines;" ^
             "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
+            "Write-Output '已在第 1 行添加 @echo off';" ^
         "}"
     if !errorlevel! neq 0 (
         echo [错误] 检查/添加 @echo 失败："!bat_file!"
@@ -119,32 +169,10 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
                 "$newLines.AddRange($lines[1..($lines.Count - 1)]);" ^
             "}" ^
             "[System.IO.File]::WriteAllLines($env:bat_file, $newLines, $utf8NoBOM);" ^
+            "Write-Output '已在第 2 行添加 chcp 65001 >nul';" ^
         "}"
     if !errorlevel! neq 0 (
         echo [错误] 检查/添加 chcp 失败："!bat_file!"
-        echo.
-        pause
-        exit /b 1
-    )
-
-    REM 注释统一使用 REM 注释
-    powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
-        "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
-        "$changed = 0;" ^
-        "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
-            "if ($lines[$i] -match '^\s*::') {" ^
-                "$lines[$i] = $lines[$i] -replace '^(\s*)::\s*', '${1}REM ';" ^
-                "$changed++;" ^
-            "}" ^
-        "}" ^
-        "if ($changed -gt 0) {" ^
-            "[System.IO.File]::WriteAllLines($env:bat_file, $lines, $utf8NoBOM);" ^
-            "Write-Output ('已将 ' + $changed + ' 处 :: 注释改为 REM 写法');" ^
-        "}"
-    if !errorlevel! neq 0 (
-        echo [错误] 检查/修改 REM 注释失败："!bat_file!"
         echo.
         pause
         exit /b 1
