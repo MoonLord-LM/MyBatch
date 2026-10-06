@@ -911,10 +911,10 @@ try {
             $readerPs = [System.Management.Automation.PowerShell]::Create()
             $readerPs.RunspacePool = $RunspacePool
             $readerPs.AddScript($readerScript) | Out-Null
-            $readerPs.AddParameter('reader', $Reader)
-            $readerPs.AddParameter('queue', $script:outputQueue)
-            $readerPs.AddParameter('name', $taskName)
-            $readerPs.AddParameter('isError', $IsError)
+            $readerPs.AddParameter('Reader', $Reader)
+            $readerPs.AddParameter('Queue', $script:outputQueue)
+            $readerPs.AddParameter('Name', $taskName)
+            $readerPs.AddParameter('IsError', $IsError)
             $readerPs.BeginInvoke() | Out-Null
             return $readerPs
         }
