@@ -919,14 +919,13 @@ try {
             return $readerPs
         }
         # 初始化运行时状态
-        $logViewContent = [System.Text.StringBuilder]::new()
         $headerLine = $ui.LogProcessHeader -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')
         if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
             $script:taskExecutionMap[$taskName] = @{
                 process = $null
                 status = ""
                 exitCode = $null
-                logViewContent = $logViewContent
+                logViewContent = [System.Text.StringBuilder]::new()
                 logFileWriter = $null
                 logFilePath = ""
                 logViewTextBox = $null
