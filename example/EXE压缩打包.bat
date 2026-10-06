@@ -72,12 +72,12 @@ REM ;!@Install@!UTF-8!
 REM RunProgram="Setup.exe"
 REM ;!@InstallEnd@!
 setlocal disabledelayedexpansion
-REM 
+REM
 set ExeConfig="%windir%\Temp\EXE_Compress_Pack_Config_%random%.txt"
 echo ;!@Install@!UTF-8!>%ExeConfig%
 echo RunProgram=%ExeFileName%>>%ExeConfig%
 echo ;!@InstallEnd@!>>%ExeConfig%
-REM 
+REM
 setlocal enabledelayedexpansion
 
 echo 正在打包文件……
