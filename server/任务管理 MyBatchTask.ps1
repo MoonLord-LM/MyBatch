@@ -475,6 +475,7 @@ try {
             try {
                 $TextBox.SelectionStart = $TextBox.TextLength
                 $TextBox.SelectionLength = 0
+                $TextBox.SelectionFont = $TextBox.Font
                 $TextBox.SelectionColor = $Color
                 $TextBox.AppendText($Text)
                 $TextBox.ScrollToCaret()
@@ -495,18 +496,16 @@ try {
         param([string]$Message = '', [string]$Level = 'Info')
 
         $logLine = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
+        $lockTaken = $false
         try {
-            $lockTaken = $false
-            try {
-                [System.Threading.Monitor]::Enter($systemLogFileLock, [ref]$lockTaken)
-                [System.IO.File]::AppendAllText($myBatchTaskSystemLogFile, $logLine, $workingEncoding)
-            } finally {
-                if ($lockTaken) {
-                    [System.Threading.Monitor]::Exit($systemLogFileLock)
-                }
-            }
+            [System.Threading.Monitor]::Enter($systemLogFileLock, [ref]$lockTaken)
+            [System.IO.File]::AppendAllText($myBatchTaskSystemLogFile, $logLine, $workingEncoding)
         } catch {
             Handle-Exception $_
+        } finally {
+            if ($lockTaken) {
+                [System.Threading.Monitor]::Exit($systemLogFileLock)
+            }
         }
 
         if ($null -eq $systemLogTextBox -or $systemLogTextBox.IsDisposed) {
@@ -675,7 +674,7 @@ try {
     }
 
     # 任务运行实例列表
-    # 任务名 → @{ process; status; exitCode; logViewContent; logFileWriter; logFilePath; logViewTextBox }
+    # 任务名 → @{ process; status; exitCode; logViewContent; logFilePath; logFileWriter; logViewTextBox }
     $taskExecutionMap = @{}
 
     # 刷新任务列表展示表格，刷新全部
@@ -745,40 +744,54 @@ try {
 
     # TODO 审核后续代码，优先整理 Append-Task-Log 和 Start-Task
 
-    # 追加一条任务日志（内存缓冲 + 日志文件 + 日志标签页）；行由调用方提供（已含时间戳），按 Level 决定颜色
+    # 新增一条任务日志，需要刷新：内存缓存 + 日志文件 + 日志展示框，按 Level 决定颜色
     function Append-Task-Log {
         param([string]$TaskName, [string]$Line, [string]$Level = 'Info')
 
-        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) { return }
-        $execution = $script:taskExecutionMap[$TaskName]
-        # 内存缓冲（完整保留，供日志标签页打开时回放历史，日志完整展示优先）
+        if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
+
+        $execution = $taskExecutionMap[$TaskName]
         $execution.logViewContent.AppendLine($Line) | Out-Null
-        # 日志文件（写入器懒创建，追加模式 UTF-8 无 BOM）
+
         try {
+            if ($null -eq $execution.logFilePath) {
+                $execution.logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
+            }
             if ($execution.logFileWriter -and -not $execution.logFileWriter.BaseStream.CanWrite) {
                 $execution.logFileWriter = $null
             }
             if ($null -eq $execution.logFileWriter) {
-                $logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
-                # 允许其他程序以共享读取方式打开日志文件（如记事本实时查看）
-                $logFileStream = [System.IO.File]::Open($logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+                $logFileStream = [System.IO.File]::Open($execution.logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
                 $execution.logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
                 $execution.logFileWriter.AutoFlush = $true
-                $execution.logFilePath = $logFilePath
             }
             $execution.logFileWriter.WriteLine($Line)
-        } catch {}
-        # 任务日志标签页
-        if ($execution.logViewTextBox -and -not $execution.logViewTextBox.IsDisposed) {
-            $execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
-            $execution.logViewTextBox.SelectionLength = 0
-            $execution.logViewTextBox.SelectionFont = $execution.logViewTextBox.Font
-            $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } else { [System.Drawing.Color]::Red }
-            $execution.logViewTextBox.SelectionColor = $lineColor
-            $execution.logViewTextBox.AppendText($Line + "`r`n")
-            $execution.logViewTextBox.ScrollToCaret()
+        } catch {
+            Handle-Exception $_
+        }
+
+        try {
+            if ($null -eq $execution.logViewTextBox -or $execution.logViewTextBox.IsDisposed) {
+                return
+            }
+            $execution.logViewTextBox.SuspendLayout()
+            try {
+                $execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
+                $execution.logViewTextBox.SelectionLength = 0
+                $execution.logViewTextBox.SelectionFont = $execution.logViewTextBox.Font
+                $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } else { [System.Drawing.Color]::Red }
+                $execution.logViewTextBox.SelectionColor = $lineColor
+                $execution.logViewTextBox.AppendText($Line + "`r`n")
+                $execution.logViewTextBox.ScrollToCaret()
+            }
+            finally {
+                $execution.logViewTextBox.ResumeLayout()
+            }
+        } catch {
+            Handle-Exception $_
         }
     }
+
     # 记录任务结束标记（结束时间 + 退出码）
     function Write-Task-Exit-Log {
         param([string]$TaskName)
