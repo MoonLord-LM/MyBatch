@@ -947,6 +947,32 @@ try {
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
 
+    # 释放任务的运行资源
+    function Release-Task-Resources {
+        param([string]$TaskName)
+
+        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) { return }
+        $execution = $script:taskExecutionMap[$TaskName]
+
+        if ($execution.logFileWriter) {
+            try { $execution.logFileWriter.Dispose() } catch {}
+        }
+        foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
+            if ($null -eq $taskReader) { continue }
+            try { $taskReader.Stop() } catch {}
+            try { $taskReader.Dispose() } catch {}
+        }
+        if ($execution.RunspacePool) {
+            try { $execution.RunspacePool.Close() } catch {}
+            try { $execution.RunspacePool.Dispose() } catch {}
+        }
+
+        $execution.logFileWriter = $null
+        $execution.StandardOutputReader = $null
+        $execution.StandardErrorReader = $null
+        $execution.RunspacePool = $null
+    }
+
     # 停止任务（参数 $Task 为任务配置对象，即 $taskConfigList 中的一个元素）
     function Stop-Task {
         param([PSCustomObject]$Task)
@@ -984,69 +1010,33 @@ try {
         }
 
         $execution.status = $ui.StatusStopped
-        # 记录任务结束标记（结束时间 + 退出码）
-        Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $execution.process.ExitCode)
-        # 停止并释放任务的输出读取线程
-        foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
-            if ($null -eq $taskReader) { continue }
-            try {
-                $taskReader.Stop()
-                $taskReader.Dispose()
-            } catch {}
-        }
-        $execution.StandardOutputReader = $null
-        $execution.StandardErrorReader = $null
-        if ($execution.RunspacePool) {
-            try { $execution.RunspacePool.Close() } catch {}
-            try { $execution.RunspacePool.Dispose() } catch {}
-            $execution.RunspacePool = $null
-        }
-        if ($execution.logFileWriter) {
-            try { $execution.logFileWriter.Dispose() } catch {}
-            $execution.logFileWriter = $null
-        }
+        Release-Task-Resources -TaskName $taskName
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Stopped -f $taskName) "Info"
+        Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $execution.process.ExitCode)
     }
 
-    # 任务状态监视：检查进程是否退出，更新状态并释放相关资源
+    # 监视任务状态：如果进程退出，更新状态并释放相关资源
     function Monitor-Task-Status {
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
             $task = $script:taskConfigList[$i]
             $taskName = [string]$task.name
             if (-not $script:taskExecutionMap.ContainsKey($taskName)) { continue }
             $execution = $script:taskExecutionMap[$taskName]
-            if ($execution.process -and $execution.process.HasExited) {
-                if ($execution.status -eq $ui.StatusRunning) {
+
+            if (-not $execution.process) { continue }
+            if ($execution.status -eq $ui.StatusRunning) {
+                if ($execution.process.HasExited) {
                     if ($execution.process.ExitCode -eq 0) {
                         $execution.status = $ui.StatusExited
                     } else {
                         $execution.status = $ui.StatusExitedError
                     }
+                    Release-Task-Resources -TaskName $taskName
+                    Update-Task-Grid-Row -TaskName $taskName
                     System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) "Warning"
-                    # 记录任务结束标记（结束时间 + 退出码）
                     Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $execution.process.ExitCode)
                 }
-                # 停止并释放任务的输出读取线程
-                foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
-                    if ($null -eq $taskReader) { continue }
-                    try {
-                        $taskReader.Stop()
-                        $taskReader.Dispose()
-                    } catch {}
-                }
-                $execution.StandardOutputReader = $null
-                $execution.StandardErrorReader = $null
-                if ($execution.RunspacePool) {
-                    try { $execution.RunspacePool.Close() } catch {}
-                    try { $execution.RunspacePool.Dispose() } catch {}
-                    $execution.RunspacePool = $null
-                }
-                if ($execution.logFileWriter) {
-                    try { $execution.logFileWriter.Dispose() } catch {}
-                    $execution.logFileWriter = $null
-                }
-                Update-Task-Grid-Row -TaskName $taskName
             }
         }
     }
@@ -1057,14 +1047,16 @@ try {
         Stop-Task -Task $Task
         Start-Task -Task $Task
     }
-    # 全部启动
+
+    # 启动全部任务
     function Start-All-Tasks {
         foreach ($task in $script:taskConfigList) {
             Start-Task -Task $task
         }
         System-Log $ui.INFO_StartAllDone "Success"
     }
-    # 全部停止
+
+    # 停止全部任务
     function Stop-All-Tasks {
         foreach ($task in $script:taskConfigList) {
             Stop-Task -Task $task
