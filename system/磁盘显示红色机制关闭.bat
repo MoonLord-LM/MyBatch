@@ -7,8 +7,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '双击运行，关闭磁盘显示红色的机制' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '避免大容量磁盘还有较大空间时，就显示为红色，影响体验' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行，关闭磁盘剩余空间少于 10% 时显示为红色的机制' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '避免大容量磁盘还有很大空间时，就显示为红色，影响体验' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '修改设置后，需要重启桌面进程 explorer.exe 才会生效' -ForegroundColor Green"
 echo.
 
