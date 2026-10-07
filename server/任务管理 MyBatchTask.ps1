@@ -1000,14 +1000,20 @@ try {
             $killProcess = [System.Diagnostics.Process]::Start($killInfo)
             if ($killProcess.WaitForExit(10000)) {
                 if ($killProcess.ExitCode -ne 0) {
-                    System-Log ($ui.ERROR_TaskStopFailed -f $taskName) "Error"
+                    if ($execution.process.HasExited) {
+                        System-Log ($ui.INFO_AlreadyStopped -f $taskName) "Warning"
+                    } else {
+                        System-Log ($ui.ERROR_TaskStopFailed -f $taskName) "Error"
+                        return
+                    }
                 }
             } else {
                 System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) "Warning"
             }
-            $killProcess.Dispose()
         } catch {
             System-Log ($ui.ERROR_TaskStopFailed -f $_.Exception.Message) "Error"
+        } finally {
+            if ($killProcess) { $killProcess.Dispose() }
         }
         if (-not $execution.process.WaitForExit(5000)) {
             System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) "Warning"
