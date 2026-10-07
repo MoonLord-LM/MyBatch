@@ -301,10 +301,13 @@ try {
             ERROR_WorkDirNotFound = "工作目录不存在: {0}"
             ERROR_NoSelection = "请先在列表中选择一个任务"
             ERROR_TaskStartFailed = "任务启动失败: {0}"
+            ERROR_TaskStopFailed = "任务停止失败: {0}"
+            ERROR_TaskStopTimeout = "停止任务超时: {0}"
             INFO_Started = "任务已启动: {0} (PID {1})"
             INFO_Stopped = "任务已停止: {0}"
             INFO_Exited = "任务已退出: {0} (退出码 {1})"
             INFO_AlreadyRunning = "任务已在运行中: {0}"
+            INFO_AlreadyStopped = "任务已处于停止状态: {0}"
             INFO_Deleted = "任务已删除: {0}"
             INFO_Saved = "配置已保存到 {0}"
             INFO_ConfigLoaded = "已加载 {0} 个任务"
@@ -393,10 +396,13 @@ try {
             ERROR_WorkDirNotFound = "Working directory not found: {0}"
             ERROR_NoSelection = "Please select a task from the list first"
             ERROR_TaskStartFailed = "Failed to start task: {0}"
+            ERROR_TaskStopFailed = "Failed to stop task: {0}"
+            ERROR_TaskStopTimeout = "Stopping task timed out: {0}"
             INFO_Started = "Task started: {0} (PID {1})"
             INFO_Stopped = "Task stopped: {0}"
             INFO_Exited = "Task exited: {0} (exit code {1})"
             INFO_AlreadyRunning = "Task is already running: {0}"
+            INFO_AlreadyStopped = "Task is already stopped: {0}"
             INFO_Deleted = "Task deleted: {0}"
             INFO_Saved = "Configuration saved to {0}"
             INFO_ConfigLoaded = "Loaded {0} task(s)"
@@ -751,18 +757,9 @@ try {
         $execution.logViewContent.AppendLine($logLine) | Out-Null
 
         try {
-            if ($null -eq $execution.logFilePath) {
-                $execution.logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
+            if ($execution.logFileWriter) {
+                $execution.logFileWriter.WriteLine($logLine)
             }
-            if ($execution.logFileWriter -and -not $execution.logFileWriter.BaseStream.CanWrite) {
-                $execution.logFileWriter = $null
-            }
-            if ($null -eq $execution.logFileWriter) {
-                $logFileStream = [System.IO.File]::Open($execution.logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
-                $execution.logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
-                $execution.logFileWriter.AutoFlush = $true
-            }
-            $execution.logFileWriter.WriteLine($logLine)
         } catch {
             Handle-Exception $_
         }
@@ -888,8 +885,8 @@ try {
                 status = ""
                 exitCode = $null
                 logViewContent = [System.Text.StringBuilder]::new()
+                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $taskName + ".log")
                 logFileWriter = $null
-                logFilePath = $null
                 logViewTextBox = $null
                 StandardOutputReader = $null
                 StandardErrorReader = $null
@@ -900,6 +897,17 @@ try {
         $execution.process = $process
         $execution.status = $ui.StatusRunning
         $execution.exitCode = $null
+        if ($execution.logFileWriter) {
+            try { $execution.logFileWriter.Dispose() } catch {}
+            $execution.logFileWriter = $null
+        }
+        try {
+            $logFileStream = [System.IO.File]::Open($execution.logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+            $execution.logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
+            $execution.logFileWriter.AutoFlush = $true
+        } catch {
+            Handle-Exception $_
+        }
 
         $readerScript = {
             param($Reader, $Queue, $TaskName, $Level)
@@ -944,23 +952,35 @@ try {
     # 停止任务（参数 $Task 为任务配置对象，即 $taskConfigList 中的一个元素）
     function Stop-Task {
         param([PSCustomObject]$Task)
+
         if ($null -eq $Task) { return }
         $taskName = [string]$Task.name
         if (-not $script:taskExecutionMap.ContainsKey($taskName)) { return }
         $execution = $script:taskExecutionMap[$taskName]
-        if (-not $execution.process -or $execution.process.HasExited) { return }
+        if (-not $execution.process -or $execution.process.HasExited) {
+            System-Log ($ui.INFO_AlreadyStopped -f $taskName) "Warning"
+            return
+        }
+
         try {
             $killInfo = [System.Diagnostics.ProcessStartInfo]::new()
             $killInfo.FileName = "taskkill.exe"
-            $killInfo.Arguments = "/PID $($execution.process.Id) /T /F"
+            $killInfo.Arguments = "/pid $($execution.process.Id) /t /f"
             $killInfo.UseShellExecute = $false
             $killInfo.CreateNoWindow = $true
             $killProcess = [System.Diagnostics.Process]::Start($killInfo)
-            $killProcess.WaitForExit(10000) | Out-Null
+            if ($killProcess.WaitForExit(10000)) {
+                if ($killProcess.ExitCode -ne 0) {
+                    System-Log ($ui.ERROR_TaskStopFailed -f $taskName) "Error"
+                }
+            } else {
+                System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) "Warning"
+            }
             $killProcess.Dispose()
         } catch {
-            try { $execution.process.Kill() } catch {}
+            System-Log ($ui.ERROR_TaskStopFailed -f $_.Exception.Message) "Error"
         }
+
         if (-not $execution.process.HasExited) {
             $execution.process.WaitForExit(500) | Out-Null
         }
@@ -1042,7 +1062,7 @@ try {
                 exitCode = $null
                 logViewContent = [System.Text.StringBuilder]::new()
                 logFileWriter = $null
-                logFilePath = $null
+                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $taskName + ".log")
                 logViewTextBox = $null
                 StandardOutputReader = $null
                 StandardErrorReader = $null
