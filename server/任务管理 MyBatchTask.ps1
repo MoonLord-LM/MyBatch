@@ -333,8 +333,8 @@ try {
             DialogCancel = "取消"
             FileFilterLog = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*"
             CloseTab = "关闭标签页"
-            LogProcessHeader = "———————————— 开始新进程 ————————————————"
-            LogProcessFooter = "———————————— 结束进程，退出码 {0} ————————————————"
+            LogTaskStart = "———————————— 开始新进程 ————————————————"
+            LogTaskEnd = "———————————— 结束进程，退出码 {0} ————————————————"
         }
         'en-US' = @{
             FormTitle = "MyBatchTask Batch Task Manager"
@@ -425,8 +425,8 @@ try {
             DialogCancel = "Cancel"
             FileFilterLog = "Log files (*.log)|*.log|All files (*.*)|*.*"
             CloseTab = "Close Tab"
-            LogProcessHeader = "———————————— Start new process ————————————————"
-            LogProcessFooter = "———————————— End process, exit code {0} ————————————————"
+            LogTaskStart = "———————————— Start new process ————————————————"
+            LogTaskEnd = "———————————— End process, exit code {0} ————————————————"
         }
     }
     $ui = $uiTextResources[$workingLanguage]
@@ -435,8 +435,6 @@ try {
     # 界面字体，统一用微软雅黑
     $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
 
-    # 后台线程输出的异步日志队列
-    $script:outputQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
     # 是否真正退出程序（区分「隐藏到托盘」和「关闭程序」）
     $script:realExit = $false
     # 标签栏右键点击的标签页
@@ -791,6 +789,9 @@ try {
         }
     }
 
+    # 任务日志的异步队列
+    $script:taskLogAppendQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
+
     # 启动任务（参数 $Task 为任务配置对象，即 $taskConfigList 中的一个元素）
     function Start-Task {
         param([PSCustomObject]$Task)
@@ -804,15 +805,12 @@ try {
                 return
             }
         }
-        # 展开环境变量
+
         $commandText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.command)
         $argumentText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.arguments)
         $workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.workingDirectory)
-        # 构建进程启动信息，隐藏窗口并重定向输出
-        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
-        # UseShellExecute = false 走 CreateProcess，只能启动可执行文件，
-        # .ps1 / .py 这类脚本必须自动拼接解释器，否则报「指定的可执行文件不是此操作系统平台的有效应用程序」
-        # 命令可能是 PATH 中的裸名称，先用 Get-Command 取真实路径，再按扩展名判断
+
+        # 把命令解析为真实文件路径
         $resolvedCommand = $commandText
         if (-not [System.IO.File]::Exists($resolvedCommand)) {
             $resolvedItem = Get-Command $commandText -ErrorAction SilentlyContinue
@@ -820,18 +818,18 @@ try {
                 $resolvedCommand = [string]$resolvedItem.Source
             }
         }
+
+        $startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+        $startInfo.FileName = $resolvedCommand
+        $startInfo.Arguments = $argumentText
+
+        # 根据文件扩展名，选择合适的启动方式，支持 .bat/.cmd/.ps1/.py 后缀
         $commandExtension = [System.IO.Path]::GetExtension($resolvedCommand).ToLower()
         if ($commandExtension -eq ".bat" -or $commandExtension -eq ".cmd") {
-            # 批处理脚本通过 cmd /s /c 启动；命令整体要再包一层引号，
-            # 因为 /s 会剥掉最外层引号，只包一层时含空格的路径会被截断成不存在的命令
             $startInfo.FileName = $env:ComSpec
             $startInfo.Arguments = '/s /c ""' + $resolvedCommand + '" ' + $argumentText + '"'
         } elseif ($commandExtension -eq ".ps1") {
-            # PowerShell 脚本通过 powershell -File 启动
             $powerShellExe = 'powershell.exe'
-            if ($PSVersionTable.PSEdition -eq 'Core') {
-                $powerShellExe = 'pwsh.exe'
-            }
             $resolvedPowerShell = Get-Command $powerShellExe -ErrorAction SilentlyContinue
             if ($resolvedPowerShell -and $resolvedPowerShell.Source) {
                 $powerShellExe = [string]$resolvedPowerShell.Source
@@ -839,29 +837,24 @@ try {
             $startInfo.FileName = $powerShellExe
             $startInfo.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $resolvedCommand + '" ' + $argumentText
         } elseif ($commandExtension -eq ".py") {
-            # Python 脚本通过 python.exe 启动，找不到解释器时退回裸名称，由进程启动失败统一报错
             $pythonExe = 'python.exe'
-            foreach ($candidate in @('python.exe', 'python3.exe')) {
-                $resolvedPython = Get-Command $candidate -ErrorAction SilentlyContinue
-                if ($resolvedPython -and $resolvedPython.Source) {
-                    $pythonExe = [string]$resolvedPython.Source
-                    break
-                }
+            $resolvedPython = Get-Command $pythonExe -ErrorAction SilentlyContinue
+            if ($resolvedPython -and $resolvedPython.Source) {
+                $pythonExe = [string]$resolvedPython.Source
             }
             $startInfo.FileName = $pythonExe
             $startInfo.Arguments = '"' + $resolvedCommand + '" ' + $argumentText
-        } else {
-            $startInfo.FileName = $resolvedCommand
-            $startInfo.Arguments = $argumentText
         }
+
         # 工作目录为空时，自动取命令文件的父目录
-        if ([string]::IsNullOrWhiteSpace($workingDirText)) {
+        if ([string]::IsNullOrEmpty($workingDirText)) {
             $workingDirText = [System.IO.Path]::GetDirectoryName($resolvedCommand)
         }
         if (-not [System.IO.Directory]::Exists($workingDirText)) {
             System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) "Error"
             return
         }
+
         $startInfo.WorkingDirectory = $workingDirText
         $startInfo.UseShellExecute = $false
         $startInfo.CreateNoWindow = $true
@@ -879,30 +872,7 @@ try {
             System-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) "Error"
             return
         }
-        # 用独立线程的读取循环收集输出，入队后由定时器统一刷新界面
-        $readerScript = {
-            param($Reader, $Queue, $Name, $IsError)
-            try {
-                while ($true) {
-                    $line = $Reader.ReadLine()
-                    if ($null -eq $line) { break }
-                    $Queue.Enqueue(@{ TaskName = $Name; Line = $line; IsError = $IsError })
-                }
-            } catch {}
-        }
-        $newReader = {
-            param($Reader, $IsError, $RunspacePool)
-            $readerPs = [System.Management.Automation.PowerShell]::Create()
-            $readerPs.RunspacePool = $RunspacePool
-            $readerPs.AddScript($readerScript) | Out-Null
-            $readerPs.AddParameter('Reader', $Reader)
-            $readerPs.AddParameter('Queue', $script:outputQueue)
-            $readerPs.AddParameter('Name', $taskName)
-            $readerPs.AddParameter('IsError', $IsError)
-            $readerPs.BeginInvoke() | Out-Null
-            return $readerPs
-        }
-        # 初始化运行时状态
+
         if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
             $script:taskExecutionMap[$taskName] = @{
                 process = $null
@@ -921,16 +891,47 @@ try {
         $execution.process = $process
         $execution.status = $ui.StatusRunning
         $execution.exitCode = $null
-        # 读取线程共用的运行空间池（局部变量名不能与 $newReader 的入参 RunspacePool 同名，PowerShell 变量名不区分大小写）
+
+        $readerScript = {
+            param($Reader, $Queue, $Name, $IsError)
+            try {
+                while ($true) {
+                    $line = $Reader.ReadLine()
+                    if ($null -eq $line) { break }
+                    $Queue.Enqueue(@{ TaskName = $Name; Line = $line; IsError = $IsError })
+                }
+            } catch {}
+        }
+
         $readerRunspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(2, 2)
         $readerRunspacePool.Open()
+        # 标准输出读取
+        $stdoutReaderPs = [System.Management.Automation.PowerShell]::Create()
+        $stdoutReaderPs.RunspacePool = $readerRunspacePool
+        $stdoutReaderPs.AddScript($readerScript) | Out-Null
+        $stdoutReaderPs.AddParameter('Reader', $process.StandardOutput)
+        $stdoutReaderPs.AddParameter('Queue', $script:taskLogAppendQueue)
+        $stdoutReaderPs.AddParameter('Name', $taskName)
+        $stdoutReaderPs.AddParameter('IsError', $false)
+        $stdoutReaderPs.BeginInvoke() | Out-Null
+        $execution.StandardOutputReader = $stdoutReaderPs
+        # 标准错误读取
+        $stderrReaderPs = [System.Management.Automation.PowerShell]::Create()
+        $stderrReaderPs.RunspacePool = $readerRunspacePool
+        $stderrReaderPs.AddScript($readerScript) | Out-Null
+        $stderrReaderPs.AddParameter('Reader', $process.StandardError)
+        $stderrReaderPs.AddParameter('Queue', $script:taskLogAppendQueue)
+        $stderrReaderPs.AddParameter('Name', $taskName)
+        $stderrReaderPs.AddParameter('IsError', $true)
+        $stderrReaderPs.BeginInvoke() | Out-Null
+        $execution.StandardErrorReader = $stderrReaderPs
         $execution.RunspacePool = $readerRunspacePool
-        $execution.StandardOutputReader = & $newReader $process.StandardOutput $false $readerRunspacePool
-        $execution.StandardErrorReader = & $newReader $process.StandardError $true $readerRunspacePool
-        Append-Task-Log -TaskName $taskName -Message $ui.LogProcessHeader
+
+        Append-Task-Log -TaskName $taskName -Message $ui.LogTaskStart
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
     }
+
     # 停止任务（参数 $Task 为任务配置对象，即 $taskConfigList 中的一个元素）
     function Stop-Task {
         param([PSCustomObject]$Task)
@@ -963,7 +964,7 @@ try {
             $exitCode = $execution.process.ExitCode
         }
         $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
-        Append-Task-Log -TaskName $taskName -Message ($ui.LogProcessFooter -f $exitCodeText)
+        Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $exitCodeText)
         # 停止并释放任务的输出读取线程
         foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
             if ($null -eq $taskReader) { continue }
@@ -1110,7 +1111,7 @@ try {
     $refreshTimer.Add_Tick({
         # 消化后台线程的输出队列
         $logItem = $null
-        while ($script:outputQueue.TryDequeue([ref]$logItem)) {
+        while ($script:taskLogAppendQueue.TryDequeue([ref]$logItem)) {
             $level = if ($logItem.IsError) { 'Error' } else { 'Info' }
             Append-Task-Log -TaskName $logItem.TaskName -Message $logItem.Line -Level $level
         }
@@ -1134,7 +1135,7 @@ try {
                         $exitCode = $execution.process.ExitCode
                     }
                     $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
-                    Append-Task-Log -TaskName $taskName -Message ($ui.LogProcessFooter -f $exitCodeText)
+                    Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $exitCodeText)
                 }
                 # 停止并释放任务的输出读取线程
                 foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
