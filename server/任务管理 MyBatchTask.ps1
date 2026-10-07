@@ -790,7 +790,16 @@ try {
     }
 
     # 任务日志的异步队列
+    # 字段：{ TaskName; Message; Level }，与 Append-Task-Log 的参数一致
     $script:taskLogAppendQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
+
+    # 任务日志处理
+    function Process-Task-Log-Queue {
+        $logItem = $null
+        while ($script:taskLogAppendQueue.TryDequeue([ref]$logItem)) {
+            Append-Task-Log -TaskName $logItem.TaskName -Message $logItem.Message -Level $logItem.Level
+        }
+    }
 
     # 启动任务（参数 $Task 为任务配置对象，即 $taskConfigList 中的一个元素）
     function Start-Task {
@@ -893,12 +902,12 @@ try {
         $execution.exitCode = $null
 
         $readerScript = {
-            param($Reader, $Queue, $Name, $IsError)
+            param($Reader, $Queue, $TaskName, $Level)
             try {
                 while ($true) {
                     $line = $Reader.ReadLine()
                     if ($null -eq $line) { break }
-                    $Queue.Enqueue(@{ TaskName = $Name; Line = $line; IsError = $IsError })
+                    $Queue.Enqueue(@{ TaskName = $TaskName; Message = $line; Level = $Level })
                 }
             } catch {}
         }
@@ -911,8 +920,8 @@ try {
         $stdoutReaderPs.AddScript($readerScript) | Out-Null
         $stdoutReaderPs.AddParameter('Reader', $process.StandardOutput)
         $stdoutReaderPs.AddParameter('Queue', $script:taskLogAppendQueue)
-        $stdoutReaderPs.AddParameter('Name', $taskName)
-        $stdoutReaderPs.AddParameter('IsError', $false)
+        $stdoutReaderPs.AddParameter('TaskName', $taskName)
+        $stdoutReaderPs.AddParameter('Level', 'Info')
         $stdoutReaderPs.BeginInvoke() | Out-Null
         $execution.StandardOutputReader = $stdoutReaderPs
         # 标准错误读取
@@ -921,8 +930,8 @@ try {
         $stderrReaderPs.AddScript($readerScript) | Out-Null
         $stderrReaderPs.AddParameter('Reader', $process.StandardError)
         $stderrReaderPs.AddParameter('Queue', $script:taskLogAppendQueue)
-        $stderrReaderPs.AddParameter('Name', $taskName)
-        $stderrReaderPs.AddParameter('IsError', $true)
+        $stderrReaderPs.AddParameter('TaskName', $taskName)
+        $stderrReaderPs.AddParameter('Level', 'Error')
         $stderrReaderPs.BeginInvoke() | Out-Null
         $execution.StandardErrorReader = $stderrReaderPs
         $execution.RunspacePool = $readerRunspacePool
@@ -1105,16 +1114,18 @@ try {
         $tabControl.SelectedTab = $logViewTabPage
     }
 
-    # 界面刷新定时器: 消化输出队列 + 检查进程退出
+    # 日志队列处理定时器: 消化后台线程的输出队列
+    $taskLogQueueProcessTimer = [System.Windows.Forms.Timer]::new()
+    $taskLogQueueProcessTimer.Interval = 200
+    $taskLogQueueProcessTimer.Add_Tick({
+        Process-Task-Log-Queue
+    })
+    $taskLogQueueProcessTimer.Start()
+
+    # 界面刷新定时器: 检查进程退出
     $refreshTimer = [System.Windows.Forms.Timer]::new()
     $refreshTimer.Interval = 500
     $refreshTimer.Add_Tick({
-        # 消化后台线程的输出队列
-        $logItem = $null
-        while ($script:taskLogAppendQueue.TryDequeue([ref]$logItem)) {
-            $level = if ($logItem.IsError) { 'Error' } else { 'Info' }
-            Append-Task-Log -TaskName $logItem.TaskName -Message $logItem.Line -Level $level
-        }
         # 检查进程退出状态
         for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
             $task = $script:taskConfigList[$i]
@@ -1845,6 +1856,8 @@ try {
     # 程序启动（首次显示时自动隐藏到托盘）
     [System.Windows.Forms.Application]::Run($mainForm)
     # 主循环结束后清理资源
+    $taskLogQueueProcessTimer.Stop()
+    $taskLogQueueProcessTimer.Dispose()
     $refreshTimer.Stop()
     $refreshTimer.Dispose()
     Stop-All-Tasks
