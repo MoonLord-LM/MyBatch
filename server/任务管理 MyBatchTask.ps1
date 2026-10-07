@@ -1095,15 +1095,31 @@ try {
     $mainForm.Font = $uiFont
     $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
     $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+    $mainForm.Opacity = 0
+    $mainForm.ShowInTaskbar = $false
 
     # 启用双缓冲减少闪烁
     Enable-Double-Buffered $mainForm | Out-Null
 
-    # 显示主窗口
+    # 窗体首次显示: 隐藏到托盘 + 自动启动任务
+    $mainForm.Add_Shown({
+        param($EventSender, $EventArgs)
+        $EventSender.Hide()
+        for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
+            $task = $script:taskConfigList[$i]
+            $needStart = [bool]$task.autoStart
+            if ($needStart) {
+                Start-Task -Task $task
+            }
+        }
+    })
+
+    # 从托盘图标点击，显示主窗口
     function Show-MainWindow {
+        $EventSender.Opacity = 1
+        $mainForm.ShowInTaskbar = $true
         $mainForm.Show()
         $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
-        $mainForm.ShowInTaskbar = $true
         $mainForm.Activate()
     }
 
@@ -1115,25 +1131,8 @@ try {
         param($EventSender, $EventArgs)
         if (-not $mainFormRealExit) {
             $EventArgs.Cancel = $true
-            $EventSender.Hide()
             $EventSender.ShowInTaskbar = $false
-        }
-    })
-
-    # 窗体首次显示事件: 隐藏到托盘 + 自动启动任务
-    $mainForm.Add_Shown({
-        param($EventSender, $EventArgs)
-        $EventSender.Opacity = 0
-        $EventSender.Hide()
-        $EventSender.Opacity = 1
-        $EventSender.ShowInTaskbar = $false
-        # 启动全部 autoStart 任务
-        for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
-            $task = $script:taskConfigList[$i]
-            $needStart = [bool]$task.autoStart
-            if ($needStart) {
-                Start-Task -Task $task
-            }
+            $EventSender.Hide()
         }
     })
 
