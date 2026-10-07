@@ -746,8 +746,8 @@ try {
         $taskGridView.Rows[$index].Cells[1].Value = $pidText
     }
 
-    # 新增一条任务日志，需要刷新：内存缓存 + 日志文件 + 日志展示框，按 Level 决定颜色
-    function Append-Task-Log {
+    # 新增任务日志：刷新内存缓存 + 日志文件 + 日志展示框，按 Level 决定颜色
+    function Append-Task-Log-Internal {
         param([string]$TaskName, [string]$Message, [string]$Level = 'Info')
 
         if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
@@ -786,15 +786,20 @@ try {
         }
     }
 
-    # 任务日志的异步队列
-    # 字段：{ TaskName; Message; Level }，与 Append-Task-Log 的参数一致
+    # 任务日志的异步队列，字段：{ TaskName; Message; Level }
     $script:taskLogAppendQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
 
-    # 任务日志处理
+    # 新增任务日志，投递到异步队列
+    function Append-Task-Log {
+        param([string]$TaskName, [string]$Message, [string]$Level = 'Info')
+        $script:taskLogAppendQueue.Enqueue(@{ TaskName = $TaskName; Message = $Message; Level = $Level })
+    }
+
+    # 任务日志处理：按顺序处理队列
     function Process-Task-Log-Queue {
         $logItem = $null
         while ($script:taskLogAppendQueue.TryDequeue([ref]$logItem)) {
-            Append-Task-Log -TaskName $logItem.TaskName -Message $logItem.Message -Level $logItem.Level
+            Append-Task-Log-Internal -TaskName $logItem.TaskName -Message $logItem.Message -Level $logItem.Level
         }
     }
 
@@ -1867,6 +1872,8 @@ try {
     $taskStatusMonitorTimer.Stop()
     $taskStatusMonitorTimer.Dispose()
     Stop-All-Tasks
+    # 定时器已停止，最后排空一次队列，保证退出前产生的日志都已落盘
+    Process-Task-Log-Queue
     $trayIcon.Visible = $false
     $trayIcon.Dispose()
 } catch {
