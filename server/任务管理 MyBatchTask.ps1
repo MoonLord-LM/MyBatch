@@ -1067,14 +1067,10 @@ try {
     # 任务日志标签页
     # 打开任务日志标签页（已存在则直接切换）
     function Show-Task-Log-Viewer {
-        $index = Get-Selected-Task-Index
-        if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
-            return
-        }
-        $task = $taskConfigList[$index]
-        $taskName = [string]$task.name
-        $logViewTabPageName = "LogPage_" + $taskName
+        param([string]$TaskName)
+
+        if ([string]::IsNullOrEmpty($TaskName)) { return }
+        $logViewTabPageName = "LogPage_" + $TaskName
         # 已存在则直接切换
         $existingLogViewTabPage = $tabControl.TabPages[$logViewTabPageName]
         if ($existingLogViewTabPage) {
@@ -1082,24 +1078,24 @@ try {
             return
         }
         # 确保运行时条目存在
-        if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
-            $script:taskExecutionMap[$taskName] = @{
+        if (-not $script:taskExecutionMap.ContainsKey($TaskName)) {
+            $script:taskExecutionMap[$TaskName] = @{
                 process = $null
                 status = $ui.StatusNotStarted
                 logViewContent = [System.Text.StringBuilder]::new()
                 logFileWriter = $null
-                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $taskName + ".log")
+                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
                 logViewTextBox = $null
                 StandardOutputReader = $null
                 StandardErrorReader = $null
                 RunspacePool = $null
             }
         }
-        $execution = $script:taskExecutionMap[$taskName]
+        $execution = $script:taskExecutionMap[$TaskName]
         # 新建日志标签页
         $logViewTabPage = [System.Windows.Forms.TabPage]::new()
         $logViewTabPage.Name = $logViewTabPageName
-        $logViewTabPage.Text = $taskName
+        $logViewTabPage.Text = $TaskName
         $logViewTabPage.BackColor = [System.Drawing.Color]::White
         # 日志文本框
         $logViewTextBox = [System.Windows.Forms.RichTextBox]::new()
@@ -1611,7 +1607,12 @@ try {
     })
     # 双击行查看任务日志
     $dataGridView.Add_CellDoubleClick({
-        Show-Task-Log-Viewer
+        $index = Get-Selected-Task-Index
+        if ($index -lt 0) {
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            return
+        }
+        Show-Task-Log-Viewer -TaskName ([string]$script:taskConfigList[$index].name)
     })
     $taskListTabPage.Controls.Add($dataGridView)
     $taskGridView = $dataGridView
@@ -1687,7 +1688,14 @@ try {
         Restart-Task -Task $script:taskConfigList[$index]
     })
     # 右键菜单: 查看任务日志
-    $menuViewLogItem.Add_Click({ Show-Task-Log-Viewer })
+    $menuViewLogItem.Add_Click({
+        $index = Get-Selected-Task-Index
+        if ($index -lt 0) {
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            return
+        }
+        Show-Task-Log-Viewer -TaskName ([string]$script:taskConfigList[$index].name)
+    })
     # 右键菜单: 上移任务
     $menuMoveUpItem.Add_Click({
         $index = Get-Selected-Task-Index
