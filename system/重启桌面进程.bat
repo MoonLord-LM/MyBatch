@@ -33,7 +33,7 @@ powershell -NoProfile -Command ^
     "        $url = $w.LocationURL;" ^
     "        if (-not $url) {" ^
     "            $skip++;" ^
-    "            Write-Host ('异常路径：' + $w.LocationName) -ForegroundColor Yellow;" ^
+    "            Write-Host ('忽略空路径：' + $w.LocationName) -ForegroundColor Yellow;" ^
     "            continue;" ^
     "        }" ^
     "        if ($url -match '^file:///') {" ^
@@ -44,7 +44,7 @@ powershell -NoProfile -Command ^
     "        }" ^
     "        else {" ^
     "            $skip++;" ^
-    "            Write-Host ('异常路径：' + $url) -ForegroundColor Yellow;" ^
+    "            Write-Host ('忽略异常协议路径：' + $url) -ForegroundColor Yellow;" ^
     "            continue;" ^
     "        }" ^
     "        $path = [Uri]::UnescapeDataString($p) -replace '/', '\';" ^
@@ -130,7 +130,7 @@ powershell -NoProfile -Command ^
     "Start-Sleep -Milliseconds 800;"
 if !errorlevel! neq 0 (
     if exist "!temp_list!" ( del /f /q "!temp_list!" )
-    echo 错误：桌面进程重启失败，请检查上面的报错信息
+    echo 错误：桌面进程重启失败，请检查报错信息
     echo.
     pause
     endlocal & endlocal & exit /b 1
