@@ -1115,8 +1115,8 @@ try {
     })
 
     # 从托盘图标点击，显示主窗口
-    function Show-MainWindow {
-        $EventSender.Opacity = 1
+    function Show-Main-Window {
+        $mainForm.Opacity = 1
         $mainForm.ShowInTaskbar = $true
         $mainForm.Show()
         $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
@@ -1131,6 +1131,7 @@ try {
         param($EventSender, $EventArgs)
         if (-not $mainFormRealExit) {
             $EventArgs.Cancel = $true
+            $EventSender.Opacity = 0
             $EventSender.ShowInTaskbar = $false
             $EventSender.Hide()
         }
@@ -1180,19 +1181,19 @@ try {
                 $mainForm.Hide()
                 $mainForm.ShowInTaskbar = $false
             } else {
-                Show-MainWindow
+                Show-Main-Window
             }
         }
     })
     $trayIcon.Add_MouseDoubleClick({
         param($EventSender, $EventArgs)
         if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-            Show-MainWindow
+            Show-Main-Window
         }
     })
     # 托盘菜单: 显示主界面 / 全部启动 / 全部停止 / 退出
     $trayShowItem.Add_Click({
-        Show-MainWindow
+        Show-Main-Window
     })
     $trayStartAllItem.Add_Click({ Start-All-Tasks })
     $trayStopAllItem.Add_Click({ Stop-All-Tasks })
