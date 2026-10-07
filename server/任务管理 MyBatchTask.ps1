@@ -279,11 +279,11 @@ try {
             MenuDelete = "删除任务"
             MenuStartAll = "全部启动"
             MenuStopAll = "全部停止"
+            StatusNotStarted = "未启动"
             StatusRunning = "运行中"
-            StatusStopped = "已停止"
-            StatusExited = "已退出"
-            StatusExitedError = "异常退出"
-            StatusStarting = "启动中"
+            StatusStopped = "手动结束"
+            StatusExited = "正常结束"
+            StatusExitedError = "异常结束"
             LogCopy = "复制日志"
             LogClear = "清空日志"
             LogOpenFile = "打开日志文件"
@@ -374,11 +374,11 @@ try {
             MenuDelete = "Delete Task"
             MenuStartAll = "Start All"
             MenuStopAll = "Stop All"
+            StatusNotStarted = "Not Started"
             StatusRunning = "Running"
-            StatusStopped = "Stopped"
-            StatusExited = "Exited"
+            StatusStopped = "Manual Stop"
+            StatusExited = "Exited Normally"
             StatusExitedError = "Abnormal Exit"
-            StatusStarting = "Starting"
             LogCopy = "Copy Log"
             LogClear = "Clear Log"
             LogOpenFile = "Open Log File"
@@ -678,7 +678,7 @@ try {
     }
 
     # 任务运行实例列表
-    # 任务名 → @{ process; status; exitCode; logViewContent; logFilePath; logFileWriter; logViewTextBox }
+    # 任务名 → @{ process; status; logViewContent; logFilePath; logFileWriter; logViewTextBox }
     $taskExecutionMap = @{}
 
     # 刷新任务列表展示表格，刷新全部
@@ -694,7 +694,7 @@ try {
                 $task = $taskConfigList[$i]
                 $taskName = $task.name
 
-                $statusText = $ui.StatusStopped
+                $statusText = $ui.StatusNotStarted
                 $pidText = ""
                 if ($taskExecutionMap.ContainsKey([string]$taskName)) {
                     $execution = $taskExecutionMap[[string]$taskName]
@@ -730,7 +730,7 @@ try {
         }
 
         # 直接用入参 $TaskName 查运行时条目（PowerShell 变量名不区分大小写，这里不能再用同名局部变量覆盖入参）
-        $statusText = $ui.StatusStopped
+        $statusText = $ui.StatusNotStarted
         $pidText = ""
         if ($taskExecutionMap.ContainsKey([string]$TaskName)) {
             $execution = $taskExecutionMap[[string]$TaskName]
@@ -882,8 +882,7 @@ try {
         if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
             $script:taskExecutionMap[$taskName] = @{
                 process = $null
-                status = ""
-                exitCode = $null
+                status = $ui.StatusNotStarted
                 logViewContent = [System.Text.StringBuilder]::new()
                 logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $taskName + ".log")
                 logFileWriter = $null
@@ -896,7 +895,6 @@ try {
         $execution = $script:taskExecutionMap[$taskName]
         $execution.process = $process
         $execution.status = $ui.StatusRunning
-        $execution.exitCode = $null
         if ($execution.logFileWriter) {
             try { $execution.logFileWriter.Dispose() } catch {}
             $execution.logFileWriter = $null
@@ -980,20 +978,14 @@ try {
         } catch {
             System-Log ($ui.ERROR_TaskStopFailed -f $_.Exception.Message) "Error"
         }
+        if (-not $execution.process.WaitForExit(5000)) {
+            System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) "Warning"
+            return
+        }
 
-        if (-not $execution.process.HasExited) {
-            $execution.process.WaitForExit(500) | Out-Null
-        }
-        if ($execution.status -eq $ui.StatusRunning) {
-            $execution.status = $ui.StatusStopped
-        }
+        $execution.status = $ui.StatusStopped
         # 记录任务结束标记（结束时间 + 退出码）
-        $exitCode = $execution.exitCode
-        if ($null -eq $exitCode -and $execution.process -and $execution.process.HasExited) {
-            $exitCode = $execution.process.ExitCode
-        }
-        $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
-        Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $exitCodeText)
+        Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $execution.process.ExitCode)
         # 停止并释放任务的输出读取线程
         foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
             if ($null -eq $taskReader) { continue }
@@ -1016,6 +1008,49 @@ try {
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Stopped -f $taskName) "Info"
     }
+
+    # 任务状态监视：检查进程是否退出，更新状态并释放相关资源
+    function Monitor-Task-Status {
+        for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
+            $task = $script:taskConfigList[$i]
+            $taskName = [string]$task.name
+            if (-not $script:taskExecutionMap.ContainsKey($taskName)) { continue }
+            $execution = $script:taskExecutionMap[$taskName]
+            if ($execution.process -and $execution.process.HasExited) {
+                if ($execution.status -eq $ui.StatusRunning) {
+                    if ($execution.process.ExitCode -eq 0) {
+                        $execution.status = $ui.StatusExited
+                    } else {
+                        $execution.status = $ui.StatusExitedError
+                    }
+                    System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) "Warning"
+                    # 记录任务结束标记（结束时间 + 退出码）
+                    Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $execution.process.ExitCode)
+                }
+                # 停止并释放任务的输出读取线程
+                foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
+                    if ($null -eq $taskReader) { continue }
+                    try {
+                        $taskReader.Stop()
+                        $taskReader.Dispose()
+                    } catch {}
+                }
+                $execution.StandardOutputReader = $null
+                $execution.StandardErrorReader = $null
+                if ($execution.RunspacePool) {
+                    try { $execution.RunspacePool.Close() } catch {}
+                    try { $execution.RunspacePool.Dispose() } catch {}
+                    $execution.RunspacePool = $null
+                }
+                if ($execution.logFileWriter) {
+                    try { $execution.logFileWriter.Dispose() } catch {}
+                    $execution.logFileWriter = $null
+                }
+                Update-Task-Grid-Row -TaskName $taskName
+            }
+        }
+    }
+
     # 重启任务
     function Restart-Task {
         param([PSCustomObject]$Task)
@@ -1058,8 +1093,7 @@ try {
         if (-not $script:taskExecutionMap.ContainsKey($taskName)) {
             $script:taskExecutionMap[$taskName] = @{
                 process = $null
-                status = ""
-                exitCode = $null
+                status = $ui.StatusNotStarted
                 logViewContent = [System.Text.StringBuilder]::new()
                 logFileWriter = $null
                 logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $taskName + ".log")
@@ -1133,65 +1167,6 @@ try {
         $tabControl.TabPages.Add($logViewTabPage)
         $tabControl.SelectedTab = $logViewTabPage
     }
-
-    # 日志队列处理定时器: 消化后台线程的输出队列
-    $taskLogQueueProcessTimer = [System.Windows.Forms.Timer]::new()
-    $taskLogQueueProcessTimer.Interval = 200
-    $taskLogQueueProcessTimer.Add_Tick({
-        Process-Task-Log-Queue
-    })
-    $taskLogQueueProcessTimer.Start()
-
-    # 界面刷新定时器: 检查进程退出
-    $refreshTimer = [System.Windows.Forms.Timer]::new()
-    $refreshTimer.Interval = 500
-    $refreshTimer.Add_Tick({
-        # 检查进程退出状态
-        for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
-            $task = $script:taskConfigList[$i]
-            $taskName = [string]$task.name
-            if (-not $script:taskExecutionMap.ContainsKey($taskName)) { continue }
-            $execution = $script:taskExecutionMap[$taskName]
-            if ($execution.process -and $execution.process.HasExited) {
-                if ($execution.status -eq $ui.StatusRunning) {
-                    if ($execution.process.ExitCode -eq 0) {
-                        $execution.status = $ui.StatusExited
-                    } else {
-                        $execution.status = $ui.StatusExitedError
-                    }
-                    System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) "Warning"
-                    # 记录任务结束标记（结束时间 + 退出码）
-                    $exitCode = $execution.exitCode
-                    if ($null -eq $exitCode -and $execution.process -and $execution.process.HasExited) {
-                        $exitCode = $execution.process.ExitCode
-                    }
-                    $exitCodeText = if ($null -eq $exitCode) { "N/A" } else { $exitCode }
-                    Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $exitCodeText)
-                }
-                # 停止并释放任务的输出读取线程
-                foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
-                    if ($null -eq $taskReader) { continue }
-                    try {
-                        $taskReader.Stop()
-                        $taskReader.Dispose()
-                    } catch {}
-                }
-                $execution.StandardOutputReader = $null
-                $execution.StandardErrorReader = $null
-                if ($execution.RunspacePool) {
-                    try { $execution.RunspacePool.Close() } catch {}
-                    try { $execution.RunspacePool.Dispose() } catch {}
-                    $execution.RunspacePool = $null
-                }
-                if ($execution.logFileWriter) {
-                    try { $execution.logFileWriter.Dispose() } catch {}
-                    $execution.logFileWriter = $null
-                }
-                Update-Task-Grid-Row -TaskName $taskName
-            }
-        }
-    })
-    $refreshTimer.Start()
 
     # 任务编辑对话框
     # 打开新增/修改任务的对话框，返回 DialogResult
@@ -1859,6 +1834,22 @@ try {
     $clearLogMenuItem.Add_Click({
         $logTextBox.Clear()
     })
+
+    # 日志队列处理定时器: 消化后台线程的输出队列
+    $taskLogQueueProcessTimer = [System.Windows.Forms.Timer]::new()
+    $taskLogQueueProcessTimer.Interval = 200
+    $taskLogQueueProcessTimer.Add_Tick({
+        Process-Task-Log-Queue
+    })
+    $taskLogQueueProcessTimer.Start()
+
+    # 界面刷新定时器: 检查进程退出
+    $taskStatusMonitorTimer = [System.Windows.Forms.Timer]::new()
+    $taskStatusMonitorTimer.Interval = 500
+    $taskStatusMonitorTimer.Add_Tick({
+        Monitor-Task-Status
+    })
+    $taskStatusMonitorTimer.Start()
 } catch {
     Handle-Exception $_
     pause
@@ -1878,8 +1869,8 @@ try {
     # 主循环结束后清理资源
     $taskLogQueueProcessTimer.Stop()
     $taskLogQueueProcessTimer.Dispose()
-    $refreshTimer.Stop()
-    $refreshTimer.Dispose()
+    $taskStatusMonitorTimer.Stop()
+    $taskStatusMonitorTimer.Dispose()
     Stop-All-Tasks
     $trayIcon.Visible = $false
     $trayIcon.Dispose()
