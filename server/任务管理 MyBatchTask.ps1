@@ -815,6 +815,9 @@ try {
                 System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
                 return
             }
+            if ($execution.process) {
+                Release-Task-Resources -TaskName $taskName
+            }
         }
 
         $commandText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.command)
@@ -1145,7 +1148,7 @@ try {
     $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
     $trayGraphics.Dispose()
     $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
-    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口（clone 避免共享句柄时一方 Dispose 影响另一方）
+    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口
     $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
     $trayIcon.Icon = $appWindowIcon
     $mainForm.Icon = $appWindowIcon.Clone()
