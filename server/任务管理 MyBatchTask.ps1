@@ -1063,6 +1063,172 @@ try {
         }
         System-Log $ui.INFO_StopAllDone "Info"
     }
+} catch {
+    Handle-Exception $_
+    pause
+    exit 1
+}
+
+
+
+# ———————————————————————————————— 4: 窗体界面绘制 ————————————————————————————————
+
+try {
+    # 主窗口
+    $mainForm = [System.Windows.Forms.Form]::new()
+    $mainForm.Text = $ui.FormTitle
+    $mainForm.Size = [System.Drawing.Size]::new(1650, 950)
+    $mainForm.MinimumSize = [System.Drawing.Size]::new(850, 650)
+    $mainForm.StartPosition = "CenterScreen"
+    $mainForm.Font = $uiFont
+    $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
+    $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+    # 启用双缓冲减少闪烁
+    Enable-Double-Buffered $mainForm | Out-Null
+    # 显示主窗口（从托盘恢复时使用）
+    function Show-MainWindow {
+        $mainForm.Show()
+        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
+        $mainForm.ShowInTaskbar = $true
+        $mainForm.Activate()
+    }
+    # 窗体关闭事件: 默认隐藏到托盘，真正退出时才关闭
+    $mainForm.Add_FormClosing({
+        param($EventSender, $EventArgs)
+        if (-not $script:realExit) {
+            $EventArgs.Cancel = $true
+            $EventSender.Hide()
+            $EventSender.ShowInTaskbar = $false
+        }
+    })
+    # 窗体首次显示事件: 隐藏到托盘 + 自动启动任务
+    $mainForm.Add_Shown({
+        param($EventSender, $EventArgs)
+        $EventSender.Opacity = 0
+        $EventSender.Hide()
+        $EventSender.Opacity = 1
+        $EventSender.ShowInTaskbar = $false
+        # 启动全部 autoStart 任务
+        for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
+            $task = $script:taskConfigList[$i]
+            $needStart = [bool]$task.autoStart
+            if ($needStart) {
+                Start-Task -Task $task
+            }
+        }
+    })
+
+    # 托盘图标与托盘菜单
+    # 绘制托盘图标（蓝色圆形 + 白色 M 字样）
+    $trayBitmap = [System.Drawing.Bitmap]::new(32, 32)
+    $trayGraphics = [System.Drawing.Graphics]::FromImage($trayBitmap)
+    $trayGraphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+    $trayGraphics.Clear([System.Drawing.Color]::Transparent)
+    $trayBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(91, 155, 213))
+    $trayGraphics.FillEllipse($trayBrush, 1, 1, 30, 30)
+    $trayFont = [System.Drawing.Font]::new("Microsoft YaHei", 15, [System.Drawing.FontStyle]::Bold)
+    $trayFormat = [System.Drawing.StringFormat]::new()
+    $trayFormat.Alignment = [System.Drawing.StringAlignment]::Center
+    $trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
+    $trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
+    $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
+    $trayGraphics.Dispose()
+    $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
+    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口（clone 避免共享句柄时一方 Dispose 影响另一方）
+    $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
+    $trayIcon.Icon = $appWindowIcon
+    $mainForm.Icon = $appWindowIcon.Clone()
+    $trayIcon.Text = $ui.FormTitle
+    $trayIcon.Visible = $true
+    # 托盘图标的右键菜单
+    $trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+    $trayShowItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayShowItem.Text = $ui.TrayShow
+    $trayStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayStartAllItem.Text = $ui.TrayStartAll
+    $trayStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayStopAllItem.Text = $ui.TrayStopAll
+    $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayExitItem.Text = $ui.TrayExit
+    foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {
+        $trayMenu.Items.Add($item) | Out-Null
+    }
+    $trayIcon.ContextMenuStrip = $trayMenu
+    # 托盘图标: 单击切换显示/隐藏，双击显示
+    $trayIcon.Add_MouseClick({
+        param($EventSender, $EventArgs)
+        if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+            if ($mainForm.Visible) {
+                $mainForm.Hide()
+                $mainForm.ShowInTaskbar = $false
+            } else {
+                Show-MainWindow
+            }
+        }
+    })
+    $trayIcon.Add_MouseDoubleClick({
+        param($EventSender, $EventArgs)
+        if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+            Show-MainWindow
+        }
+    })
+    # 托盘菜单: 显示主界面 / 全部启动 / 全部停止 / 退出
+    $trayShowItem.Add_Click({
+        Show-MainWindow
+    })
+    $trayStartAllItem.Add_Click({ Start-All-Tasks })
+    $trayStopAllItem.Add_Click({ Stop-All-Tasks })
+    $trayExitItem.Add_Click({
+        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
+        if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+        $script:realExit = $true
+        Stop-All-Tasks
+        $trayIcon.Visible = $false
+        $mainForm.Close()
+    })
+
+    # 标签页容器（充满整个窗口，浏览器式布局）
+    $tabControl = [System.Windows.Forms.TabControl]::new()
+    $tabControl.Dock = "Fill"
+    $tabControl.Padding = [System.Drawing.Point]::new(20, 3)
+    $tabControl.Font = $uiFont
+    $mainForm.Controls.Add($tabControl)
+    # 标签页右键菜单（关闭标签页）
+    $tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+    $closeTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $closeTabMenuItem.Text = $ui.CloseTab
+    $tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
+    $tabControl.ContextMenuStrip = $tabContextMenu
+    # 右键按下时记录点击的标签页
+    $tabControl.Add_MouseDown({
+        param($EventSender, $EventArgs)
+        if ($EventArgs.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
+        # 查找点击的标签页
+        for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
+            $tabRect = $tabControl.GetTabRect($i)
+            if ($tabRect.Contains($EventArgs.Location)) {
+                $script:rightClickedTab = $tabControl.TabPages[$i]
+                # 前两个固定标签页不可关闭
+                $closeTabMenuItem.Enabled = ($i -ge 2)
+                break
+            }
+        }
+    })
+    # 关闭标签页
+    $closeTabMenuItem.Add_Click({
+        if (-not $script:rightClickedTab -or $script:rightClickedTab.IsDisposed) { return }
+        $tabName = $script:rightClickedTab.Name
+        # 如果是任务日志页，清理运行时引用
+        if ($tabName.StartsWith("LogPage_")) {
+            $taskName = $tabName.Substring(8)
+            if ($script:taskExecutionMap.ContainsKey($taskName)) {
+                $script:taskExecutionMap[$taskName].logViewTextBox = $null
+            }
+        }
+        $tabControl.TabPages.Remove($script:rightClickedTab)
+        $script:rightClickedTab.Dispose()
+        $script:rightClickedTab = $null
+    })
 
     # 任务日志标签页
     # 打开任务日志标签页（已存在则直接切换）
@@ -1378,172 +1544,6 @@ try {
         $dialogForm.Dispose()
         return $result
     }
-} catch {
-    Handle-Exception $_
-    pause
-    exit 1
-}
-
-
-
-# ———————————————————————————————— 4: 窗体界面绘制 ————————————————————————————————
-
-try {
-    # 主窗口
-    $mainForm = [System.Windows.Forms.Form]::new()
-    $mainForm.Text = $ui.FormTitle
-    $mainForm.Size = [System.Drawing.Size]::new(1650, 950)
-    $mainForm.MinimumSize = [System.Drawing.Size]::new(850, 650)
-    $mainForm.StartPosition = "CenterScreen"
-    $mainForm.Font = $uiFont
-    $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
-    $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
-    # 启用双缓冲减少闪烁
-    Enable-Double-Buffered $mainForm | Out-Null
-    # 显示主窗口（从托盘恢复时使用）
-    function Show-MainWindow {
-        $mainForm.Show()
-        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
-        $mainForm.ShowInTaskbar = $true
-        $mainForm.Activate()
-    }
-    # 窗体关闭事件: 默认隐藏到托盘，真正退出时才关闭
-    $mainForm.Add_FormClosing({
-        param($EventSender, $EventArgs)
-        if (-not $script:realExit) {
-            $EventArgs.Cancel = $true
-            $EventSender.Hide()
-            $EventSender.ShowInTaskbar = $false
-        }
-    })
-    # 窗体首次显示事件: 隐藏到托盘 + 自动启动任务
-    $mainForm.Add_Shown({
-        param($EventSender, $EventArgs)
-        $EventSender.Opacity = 0
-        $EventSender.Hide()
-        $EventSender.Opacity = 1
-        $EventSender.ShowInTaskbar = $false
-        # 启动全部 autoStart 任务
-        for ($i = 0; $i -lt $script:taskConfigList.Count; $i++) {
-            $task = $script:taskConfigList[$i]
-            $needStart = [bool]$task.autoStart
-            if ($needStart) {
-                Start-Task -Task $task
-            }
-        }
-    })
-
-    # 托盘图标与托盘菜单
-    # 绘制托盘图标（蓝色圆形 + 白色 M 字样）
-    $trayBitmap = [System.Drawing.Bitmap]::new(32, 32)
-    $trayGraphics = [System.Drawing.Graphics]::FromImage($trayBitmap)
-    $trayGraphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
-    $trayGraphics.Clear([System.Drawing.Color]::Transparent)
-    $trayBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(91, 155, 213))
-    $trayGraphics.FillEllipse($trayBrush, 1, 1, 30, 30)
-    $trayFont = [System.Drawing.Font]::new("Microsoft YaHei", 15, [System.Drawing.FontStyle]::Bold)
-    $trayFormat = [System.Drawing.StringFormat]::new()
-    $trayFormat.Alignment = [System.Drawing.StringAlignment]::Center
-    $trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
-    $trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
-    $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
-    $trayGraphics.Dispose()
-    $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
-    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口（clone 避免共享句柄时一方 Dispose 影响另一方）
-    $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
-    $trayIcon.Icon = $appWindowIcon
-    $mainForm.Icon = $appWindowIcon.Clone()
-    $trayIcon.Text = $ui.FormTitle
-    $trayIcon.Visible = $true
-    # 托盘图标的右键菜单
-    $trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-    $trayShowItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayShowItem.Text = $ui.TrayShow
-    $trayStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayStartAllItem.Text = $ui.TrayStartAll
-    $trayStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayStopAllItem.Text = $ui.TrayStopAll
-    $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayExitItem.Text = $ui.TrayExit
-    foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {
-        $trayMenu.Items.Add($item) | Out-Null
-    }
-    $trayIcon.ContextMenuStrip = $trayMenu
-    # 托盘图标: 单击切换显示/隐藏，双击显示
-    $trayIcon.Add_MouseClick({
-        param($EventSender, $EventArgs)
-        if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-            if ($mainForm.Visible) {
-                $mainForm.Hide()
-                $mainForm.ShowInTaskbar = $false
-            } else {
-                Show-MainWindow
-            }
-        }
-    })
-    $trayIcon.Add_MouseDoubleClick({
-        param($EventSender, $EventArgs)
-        if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-            Show-MainWindow
-        }
-    })
-    # 托盘菜单: 显示主界面 / 全部启动 / 全部停止 / 退出
-    $trayShowItem.Add_Click({
-        Show-MainWindow
-    })
-    $trayStartAllItem.Add_Click({ Start-All-Tasks })
-    $trayStopAllItem.Add_Click({ Stop-All-Tasks })
-    $trayExitItem.Add_Click({
-        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
-        if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
-        $script:realExit = $true
-        Stop-All-Tasks
-        $trayIcon.Visible = $false
-        $mainForm.Close()
-    })
-
-    # 标签页容器（充满整个窗口，浏览器式布局）
-    $tabControl = [System.Windows.Forms.TabControl]::new()
-    $tabControl.Dock = "Fill"
-    $tabControl.Padding = [System.Drawing.Point]::new(20, 3)
-    $tabControl.Font = $uiFont
-    $mainForm.Controls.Add($tabControl)
-    # 标签页右键菜单（关闭标签页）
-    $tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-    $closeTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $closeTabMenuItem.Text = $ui.CloseTab
-    $tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
-    $tabControl.ContextMenuStrip = $tabContextMenu
-    # 右键按下时记录点击的标签页
-    $tabControl.Add_MouseDown({
-        param($EventSender, $EventArgs)
-        if ($EventArgs.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
-        # 查找点击的标签页
-        for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
-            $tabRect = $tabControl.GetTabRect($i)
-            if ($tabRect.Contains($EventArgs.Location)) {
-                $script:rightClickedTab = $tabControl.TabPages[$i]
-                # 前两个固定标签页不可关闭
-                $closeTabMenuItem.Enabled = ($i -ge 2)
-                break
-            }
-        }
-    })
-    # 关闭标签页
-    $closeTabMenuItem.Add_Click({
-        if (-not $script:rightClickedTab -or $script:rightClickedTab.IsDisposed) { return }
-        $tabName = $script:rightClickedTab.Name
-        # 如果是任务日志页，清理运行时引用
-        if ($tabName.StartsWith("LogPage_")) {
-            $taskName = $tabName.Substring(8)
-            if ($script:taskExecutionMap.ContainsKey($taskName)) {
-                $script:taskExecutionMap[$taskName].logViewTextBox = $null
-            }
-        }
-        $tabControl.TabPages.Remove($script:rightClickedTab)
-        $script:rightClickedTab.Dispose()
-        $script:rightClickedTab = $null
-    })
 
     # 任务列表标签页
     $taskListTabPage = [System.Windows.Forms.TabPage]::new()
@@ -1607,12 +1607,7 @@ try {
     })
     # 双击行查看任务日志
     $dataGridView.Add_CellDoubleClick({
-        $index = Get-Selected-Task-Index
-        if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
-            return
-        }
-        Show-Task-Log-Viewer -TaskName ([string]$script:taskConfigList[$index].name)
+        $menuViewLogItem.PerformClick()
     })
     $taskListTabPage.Controls.Add($dataGridView)
     $taskGridView = $dataGridView
