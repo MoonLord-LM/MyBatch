@@ -441,8 +441,6 @@ try {
     # 界面字体，统一用微软雅黑
     $uiFont = [System.Drawing.Font]::new("Microsoft YaHei", 10)
 
-    # 是否真正退出程序（区分「隐藏到托盘」和「关闭程序」）
-    $script:realExit = $false
     # 标签栏右键点击的标签页
     $script:rightClickedTab = $null
 } catch {
@@ -1097,24 +1095,31 @@ try {
     $mainForm.Font = $uiFont
     $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
     $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+
     # 启用双缓冲减少闪烁
     Enable-Double-Buffered $mainForm | Out-Null
-    # 显示主窗口（从托盘恢复时使用）
+
+    # 显示主窗口
     function Show-MainWindow {
         $mainForm.Show()
         $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
         $mainForm.ShowInTaskbar = $true
         $mainForm.Activate()
     }
-    # 窗体关闭事件: 默认隐藏到托盘，真正退出时才关闭
+
+    # 是否真正退出程序，默认 $false，只隐藏主窗口
+    $mainFormRealExit = $false
+
+    # 窗体关闭事件
     $mainForm.Add_FormClosing({
         param($EventSender, $EventArgs)
-        if (-not $script:realExit) {
+        if (-not $mainFormRealExit) {
             $EventArgs.Cancel = $true
             $EventSender.Hide()
             $EventSender.ShowInTaskbar = $false
         }
     })
+
     # 窗体首次显示事件: 隐藏到托盘 + 自动启动任务
     $mainForm.Add_Shown({
         param($EventSender, $EventArgs)
@@ -1195,7 +1200,7 @@ try {
     $trayExitItem.Add_Click({
         $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
-        $script:realExit = $true
+        $script:mainFormRealExit = $true
         Stop-All-Tasks
         $trayIcon.Visible = $false
         $mainForm.Close()
