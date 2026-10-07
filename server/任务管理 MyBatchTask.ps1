@@ -1123,6 +1123,13 @@ try {
         $mainForm.Activate()
     }
 
+    # 从托盘图标点击，隐藏主窗口
+    function Hide-Main-Window {
+        $mainForm.Opacity = 0
+        $mainForm.ShowInTaskbar = $false
+        $mainForm.Hide()
+    }
+
     # 是否真正退出程序，默认 $false，只隐藏主窗口
     $mainFormRealExit = $false
 
@@ -1178,8 +1185,7 @@ try {
         param($EventSender, $EventArgs)
         if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
             if ($mainForm.Visible) {
-                $mainForm.Hide()
-                $mainForm.ShowInTaskbar = $false
+                Hide-Main-Window
             } else {
                 Show-Main-Window
             }
