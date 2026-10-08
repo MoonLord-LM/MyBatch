@@ -1286,7 +1286,14 @@ try {
         $logViewContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
         $logViewCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
         $logViewCopyItem.Text = $ui.LogCopy
+        $logViewCopyItem.Tag = @{ taskName = $TaskName }
         $logViewCopyItem.Add_Click({
+            param($MenuItem, $EventArgs)
+            $logViewTextBox = (Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)).logViewTextBox
+            if ($null -eq $logViewTextBox -or $logViewTextBox.IsDisposed) {
+                System-Log $ui.INFO_NoLog "Warning"
+                return
+            }
             if ($logViewTextBox.Text.Length -gt 0) {
                 [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
                 System-Log $ui.INFO_LogCopied "Success"
@@ -1296,13 +1303,21 @@ try {
         })
         $logViewClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
         $logViewClearItem.Text = $ui.LogClear
+        $logViewClearItem.Tag = @{ taskName = $TaskName }
         $logViewClearItem.Add_Click({
-            $logViewTextBox.Clear()
+            param($MenuItem, $EventArgs)
+            $execution = Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)
+            if ($execution.logViewTextBox) {
+                $execution.logViewTextBox.Clear()
+            }
             $execution.logViewContent.Clear() | Out-Null
         })
         $logViewOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
         $logViewOpenItem.Text = $ui.LogOpenFile
+        $logViewOpenItem.Tag = @{ taskName = $TaskName }
         $logViewOpenItem.Add_Click({
+            param($MenuItem, $EventArgs)
+            $execution = Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)
             System-Log $execution.logFilePath
             if ($execution.logFilePath -and [System.IO.File]::Exists($execution.logFilePath)) {
                 Start-Process "explorer.exe" -ArgumentList ('/select,"' + $execution.logFilePath + '"')
