@@ -22,6 +22,7 @@
 #         }
 #     ]
 #     日志目录：\MyBatchTask\logs 目录，按任务名自动创建对应的 [任务名称.log] 文件
+#     系统日志：\MyBatchTask\logs\MyBatchTask.log，因此任务名称不能是 MyBatchTask
 #
 # 配置文件说明：
 #     name 任务名称（唯一）
@@ -236,6 +237,7 @@ try {
             ERROR_CommandNotFound = '命令文件不存在: {0}'
             ERROR_NameEmpty = '任务名称不能为空'
             ERROR_NameDuplicated = '任务名称已存在: {0}'
+            ERROR_NameReserved = '任务名称不能使用为系统日志保留的名称: {0}'
             ERROR_NameInvalid = '任务名称包含特殊字符，不能作为 Windows 文件名: {0}'
             ERROR_FieldMissing = '任务配置缺少必填字段，已跳过该任务: {0}'
             ERROR_WorkDirNotFound = '工作目录不存在: {0}'
@@ -326,6 +328,7 @@ try {
             ERROR_CommandNotFound = 'Command file not found: {0}'
             ERROR_NameEmpty = 'Task name must not be empty'
             ERROR_NameDuplicated = 'Task name already exists: {0}'
+            ERROR_NameReserved = 'Task name must not use the name reserved for the system log: {0}'
             ERROR_NameInvalid = 'Task name contains special characters and cannot be used as a Windows file name: {0}'
             ERROR_FieldMissing = 'Task config is missing required field, task skipped: {0}'
             ERROR_WorkDirNotFound = 'Working directory not found: {0}'
@@ -401,8 +404,8 @@ try {
         [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
     }
 
-    # 系统日志：/MyBatchTask/logs
-    $myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, 'system.log')
+    # 系统日志：/MyBatchTask/logs/MyBatchTask.log
+    $myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, $appName + '.log')
     if (-not [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {
         [System.IO.File]::WriteAllText($myBatchTaskSystemLogFile, '', $workingEncoding)
     }
@@ -545,6 +548,9 @@ try {
         }
         if (-not $name) {
             return $ui.ERROR_NameEmpty
+        }
+        if ($name -ieq $appName) {
+            return ($ui.ERROR_NameReserved -f $name)
         }
         if ($name.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0) {
             return ($ui.ERROR_NameInvalid -f $name)
@@ -951,7 +957,8 @@ try {
             $process = [System.Diagnostics.Process]::new()
             $process.StartInfo = $startInfo
             if (-not $process.Start()) {
-                throw ($ui.ERROR_TaskStartFailed -f $taskName)
+                System-Log ($ui.ERROR_TaskStartFailed -f $taskName) 'Error'
+                return
             }
         } catch {
             System-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) 'Error'
