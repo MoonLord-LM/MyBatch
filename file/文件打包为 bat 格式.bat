@@ -49,7 +49,7 @@ if not "!seven_zip!"=="" (
 
 set "input_file=!param1_path!"
 
-REM input_file
+:input_file
     if "!input_file!"=="" (
         echo 请输入要转换的 ps1 bat exe 文件的路径
         set /p "input_file="
@@ -128,7 +128,11 @@ for %%i in ("!input_file!") do (
         "    [System.IO.File]::Copy($env:input_file, $env:temp_payload, $true);" ^
         "} else {" ^
         "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
-        "    if ($ext -eq '.ps1') { $enc = New-Object System.Text.UTF8Encoding($true) } else { $enc = New-Object System.Text.UTF8Encoding($false) };" ^
+        "    if ($ext -eq '.ps1') {" ^
+        "        $enc = New-Object System.Text.UTF8Encoding($true);" ^
+        "    } else {" ^
+        "        $enc = New-Object System.Text.UTF8Encoding($false);" ^
+        "    };" ^
         "    [System.IO.File]::WriteAllLines($env:temp_payload, $lines, $enc);" ^
         "};"
     if !errorlevel! neq 0 (
@@ -155,7 +159,8 @@ for %%i in ("!input_file!") do (
             "Add-Type -AssemblyName System.IO.Compression;" ^
             "$rawBytes = [System.IO.File]::ReadAllBytes($env:temp_payload);" ^
             "$memStream = New-Object System.IO.MemoryStream;" ^
-            "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, [System.IO.Compression.CompressionMode]::Compress);" ^
+            "$mode = [System.IO.Compression.CompressionMode]::Compress;" ^
+            "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
             "$gzipStream.Write($rawBytes, 0, $rawBytes.Length);" ^
             "$gzipStream.Close();" ^
             "$bytes = $memStream.ToArray();" ^
@@ -197,7 +202,8 @@ for %%i in ("!input_file!") do (
         "$base64 = [Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
         "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
-        "    $list.Add($base64.Substring($i, [Math]::Min(64, $base64.Length - $i)));" ^
+        "    $length = [Math]::Min(64, $base64.Length - $i);" ^
+        "    $list.Add($base64.Substring($i, $length));" ^
         "};" ^
         "$enc = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $enc);"
@@ -226,7 +232,10 @@ for %%i in ("!input_file!") do (
         "};" ^
         "$code = $lines[$begin..($end - 1)];" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
-        "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT_NAME__', $env:payload_ext.TrimStart('.')).Replace('__PAYLOAD_EXT__', $env:payload_ext).Replace('__BEGIN_MARKER__', $env:begin_marker).Replace('__END_MARKER__', $env:end_marker);" ^
+        "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT_NAME__', $env:payload_ext.TrimStart('.'));" ^
+        "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT__', $env:payload_ext);" ^
+        "    $code[$i] = $code[$i].Replace('__BEGIN_MARKER__', $env:begin_marker);" ^
+        "    $code[$i] = $code[$i].Replace('__END_MARKER__', $env:end_marker);" ^
         "};" ^
         "$enc = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $enc);"
@@ -314,10 +323,12 @@ powershell -NoProfile -Command ^
     "    Write-Host '错误：未找到内嵌的压缩内容' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
-    "$base64 = ($lines[$begin..($end - 1)] -join '') -replace '\s', '';" ^
+    "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
+    "$base64 = $base64 -replace '\s', '';" ^
     "$bytes = [Convert]::FromBase64String($base64);" ^
     "$memStream = New-Object System.IO.MemoryStream (,$bytes);" ^
-    "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, [System.IO.Compression.CompressionMode]::Decompress);" ^
+    "$mode = [System.IO.Compression.CompressionMode]::Decompress;" ^
+    "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
     "$outStream = New-Object System.IO.MemoryStream;" ^
     "$gzipStream.CopyTo($outStream);" ^
     "$gzipStream.Close();" ^
