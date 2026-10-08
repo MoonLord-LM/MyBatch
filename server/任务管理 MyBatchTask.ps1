@@ -571,8 +571,12 @@ try {
             $config = Get-Content -Path $myBatchTaskConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
             $seenNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
             $newTaskConfigList = @()
+            $configItemCount = 0
+            $configChanged = $false
             foreach ($item in @($config)) {
                 if ($item -isnot [PSCustomObject]) { continue; }
+                $configItemCount += 1
+                $itemOriginalJson = ConvertTo-Json -InputObject $item -Depth 10 -Compress
 
                 # 任务名称：不能为空，不能包含任何无法作为 Windows 文件名的字符，不能重复
                 if ($item.PSObject.Properties.Match('name').Count -eq 0) {
@@ -663,9 +667,15 @@ try {
                 $item.autoStart = $autoStartValue
 
                 $newTaskConfigList += $item
+                if ((ConvertTo-Json -InputObject $item -Depth 10 -Compress) -cne $itemOriginalJson) {
+                    $configChanged = $true
+                }
             }
             $script:taskConfigList = $newTaskConfigList
             Update-Task-Grid
+            if ($configChanged -or $newTaskConfigList.Count -ne $configItemCount) {
+                Save-Config
+            }
         } catch {
             System-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) "Error"
             return $false
@@ -1277,15 +1287,17 @@ try {
     $tabControl.Add_MouseDown({
         param($EventSender, $EventArgs)
         if ($EventArgs.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
+        $script:tabControlCurrentTab = $null
         for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
             $tabRect = $tabControl.GetTabRect($i)
             if ($tabRect.Contains($EventArgs.Location)) {
                 $script:tabControlCurrentTab = $tabControl.TabPages[$i]
                 # 前两个固定标签页不可关闭
                 $closeTabMenuItem.Enabled = ($i -ge 2)
-                break
+                return
             }
         }
+        $closeTabMenuItem.Enabled = $false
     })
 
     # 打开任务日志标签页，不存在时创建，已存在则直接切换
@@ -1349,7 +1361,6 @@ try {
         $logViewOpenItem.Add_Click({
             param($MenuItem, $EventArgs)
             $execution = Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)
-            System-Log $execution.logFilePath
             if ($execution.logFilePath -and [System.IO.File]::Exists($execution.logFilePath)) {
                 Start-Process "explorer.exe" -ArgumentList ('/select,"' + $execution.logFilePath + '"')
                 System-Log ($ui.INFO_LogOpened -f $execution.logFilePath) "Success"
@@ -1582,7 +1593,28 @@ try {
                         $tabControl.TabPages.Remove($oldLogViewTabPage)
                         $oldLogViewTabPage.Dispose()
                     }
-                    # 迁移运行时数据到新名称
+                    # 迁移运行时数据到新名称，日志文件同步改名
+                    $newLogFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $newName + '.log')
+                    if ($oldRuntime.logFilePath -and $oldRuntime.logFilePath -ne $newLogFilePath) {
+                        $logWriterWasOpen = ($null -ne $oldRuntime.logFileWriter)
+                        if ($logWriterWasOpen) {
+                            try { $oldRuntime.logFileWriter.Dispose() } catch { }
+                            $oldRuntime.logFileWriter = $null
+                        }
+                        if ([System.IO.File]::Exists($oldRuntime.logFilePath)) {
+                            try {
+                                [System.IO.File]::Move($oldRuntime.logFilePath, $newLogFilePath)
+                            } catch { }
+                        }
+                        $oldRuntime.logFilePath = $newLogFilePath
+                        if ($logWriterWasOpen) {
+                            try {
+                                $newLogFileStream = [System.IO.File]::Open($newLogFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+                                $oldRuntime.logFileWriter = [System.IO.StreamWriter]::new($newLogFileStream, $workingEncoding)
+                                $oldRuntime.logFileWriter.AutoFlush = $true
+                            } catch { }
+                        }
+                    }
                     $script:taskExecutionMap[$newName] = $oldRuntime
                     $taskExecutionMap.Remove($originalName) | Out-Null
                 }
