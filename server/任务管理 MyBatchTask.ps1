@@ -1496,32 +1496,6 @@ try {
         $manualStartRadioButton.Location = [System.Drawing.Point]::new(420, 280)
         $manualStartRadioButton.Size = [System.Drawing.Size]::new(240, 28)
         $dialogForm.Controls.Add($manualStartRadioButton)
-        # 确定按钮
-        $okButton = [System.Windows.Forms.Button]::new()
-        $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
-        $okButton.Location = [System.Drawing.Point]::new(190, 400)
-        $okButton.Size = [System.Drawing.Size]::new(180, 46)
-        $okButton.FlatStyle = "Flat"
-        $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
-        $okButton.ForeColor = [System.Drawing.Color]::White
-        $okButton.FlatAppearance.BorderSize = 0
-        $okButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(71, 135, 193)
-        $okButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
-        $dialogForm.Controls.Add($okButton)
-        # 取消按钮
-        $cancelButton = [System.Windows.Forms.Button]::new()
-        $cancelButton.Text = $ui.DialogCancel
-        $cancelButton.Location = [System.Drawing.Point]::new(384, 400)
-        $cancelButton.Size = [System.Drawing.Size]::new(180, 46)
-        $cancelButton.FlatStyle = "Flat"
-        $cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
-        $cancelButton.ForeColor = [System.Drawing.Color]::Black
-        $cancelButton.FlatAppearance.BorderSize = 0
-        $cancelButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
-        $cancelButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
-        $dialogForm.Controls.Add($cancelButton)
-        $dialogForm.AcceptButton = $okButton
-        $dialogForm.CancelButton = $cancelButton
 
         # 修改模式时填充原始值
         $originalName = ""
@@ -1535,14 +1509,25 @@ try {
             $autoStartRadioButton.Checked = [bool]$task.autoStart
             $manualStartRadioButton.Checked = -not [bool]$task.autoStart
         }
-        # 确定按钮: 校验并写回任务列表
+
+        # 确定按钮
+        $okButton = [System.Windows.Forms.Button]::new()
+        $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
+        $okButton.Location = [System.Drawing.Point]::new(190, 400)
+        $okButton.Size = [System.Drawing.Size]::new(180, 46)
+        $okButton.FlatStyle = "Flat"
+        $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
+        $okButton.ForeColor = [System.Drawing.Color]::White
+        $okButton.FlatAppearance.BorderSize = 0
+        $okButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(71, 135, 193)
+        $okButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
         $okButton.Add_Click({
             $newName = $nameBox.Text.Trim()
             $newCommand = $commandBox.Text.Trim()
             $newArguments = $argumentsBox.Text.Trim()
             $newWorkingDir = $workingDirBox.Text.Trim()
 
-            # 任务名称：不能为空，且不能包含任何无法作为 Windows 文件名的字符
+            # 任务名称：不能为空，不能包含任何无法作为 Windows 文件名的字符，不能重复
             $invalidFileNameChars = [System.IO.Path]::GetInvalidFileNameChars()
             if (-not $newName) {
                 [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NameEmpty, $ui.FormTitle, "OK", "Warning") | Out-Null
@@ -1556,8 +1541,6 @@ try {
                 [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandEmpty, $ui.FormTitle, "OK", "Warning") | Out-Null
                 return
             }
-
-            # 任务名称唯一性检查（修改时允许保持自身名称不变）
             for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
                 if ($i -eq $editIndex) { continue }
                 if ([string]$taskConfigList[$i].name -ieq $newName) {
@@ -1565,7 +1548,7 @@ try {
                     return
                 }
             }
-            # 命令和工作目录的存在性检查（支持环境变量，允许 relauncher 类命令行）
+
             $expandedCommand = [System.Environment]::ExpandEnvironmentVariables($newCommand)
             if ($expandedCommand -and -not [System.IO.File]::Exists($expandedCommand) -and -not (Get-Command $expandedCommand -ErrorAction SilentlyContinue)) {
                 $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandNotFound -f $expandedCommand, $ui.FormTitle, "YesNo", "Warning")
@@ -1580,7 +1563,7 @@ try {
                     return
                 }
             }
-            # 构建新的任务配置对象
+
             $newTask = [PSCustomObject]@{
                 name = $newName
                 command = $newCommand
@@ -1589,9 +1572,7 @@ try {
                 autoStart = $autoStartRadioButton.Checked
             }
             if ($editIndex -ge 0) {
-                # 修改任务: 替换配置
                 $script:taskConfigList[$editIndex] = $newTask
-                # 名称变更时，迁移运行时数据并移除旧日志标签页
                 if ($originalName -ine $newName -and $taskExecutionMap.ContainsKey($originalName)) {
                     $oldRuntime = $taskExecutionMap[$originalName]
                     # 移除旧的日志标签页
@@ -1608,15 +1589,36 @@ try {
             } else {
                 $script:taskConfigList += $newTask
             }
+
             Save-Config
             Update-Task-Grid
+            if ($willRestart) {
+                Restart-Task -Task $script:taskConfigList[$editIndex]
+            }
             $dialogForm.DialogResult = [System.Windows.Forms.DialogResult]::OK
             $dialogForm.Close()
         })
+        $dialogForm.Controls.Add($okButton)
+        $dialogForm.AcceptButton = $okButton
+
+        # 取消按钮
+        $cancelButton = [System.Windows.Forms.Button]::new()
+        $cancelButton.Text = $ui.DialogCancel
+        $cancelButton.Location = [System.Drawing.Point]::new(384, 400)
+        $cancelButton.Size = [System.Drawing.Size]::new(180, 46)
+        $cancelButton.FlatStyle = "Flat"
+        $cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+        $cancelButton.ForeColor = [System.Drawing.Color]::Black
+        $cancelButton.FlatAppearance.BorderSize = 0
+        $cancelButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+        $cancelButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
         $cancelButton.Add_Click({
             $dialogForm.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
             $dialogForm.Close()
         })
+        $dialogForm.Controls.Add($cancelButton)
+        $dialogForm.CancelButton = $cancelButton
+
         $result = $dialogForm.ShowDialog($mainForm)
         $dialogForm.Dispose()
         return $result
@@ -1627,6 +1629,7 @@ try {
     $taskListTabPage.Text = $ui.TabTaskList
     $taskListTabPage.BackColor = [System.Drawing.Color]::White
     $tabControl.Controls.Add($taskListTabPage)
+
     # 任务信息显示表格
     $dataGridView = [System.Windows.Forms.DataGridView]::new()
     $dataGridView.ReadOnly = $true
@@ -1669,10 +1672,8 @@ try {
     $dataGridView.Columns[4].MinimumWidth = $dataGridView.Columns[4].Width / 2
     $dataGridView.Columns[5].Width = 300
     $dataGridView.Columns[5].MinimumWidth = $dataGridView.Columns[5].Width / 2
-    # 只允许单行选择
     $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
     $dataGridView.MultiSelect = $false
-    # 鼠标按下时自动选中一行（包括左键和右键）
     $dataGridView.Add_CellMouseDown({
         param($EventSender, $EventArgs)
         if ($EventArgs.RowIndex -ge 0) {
@@ -1681,57 +1682,19 @@ try {
             $dataGridView.CurrentCell = $dataGridView.Rows[$EventArgs.RowIndex].Cells[0]
         }
     })
-    # 双击行查看任务日志
+    # 双击行查看任务日志（直接调用，不经过右键菜单，避免菜单项禁用时失效）
     $dataGridView.Add_CellDoubleClick({
-        $menuViewLogItem.PerformClick()
+        param($EventSender, $EventArgs)
+        if ($EventArgs.RowIndex -lt 0 -or $EventArgs.RowIndex -ge $taskConfigList.Count) { return }
+        Show-Task-Log-Viewer -TaskName ([string]$taskConfigList[$EventArgs.RowIndex].name)
     })
     $taskListTabPage.Controls.Add($dataGridView)
     $taskGridView = $dataGridView
-    # 任务列表的右键菜单
+
+    # 任务列表的右键菜单: 启动任务 / 停止任务 / 重启任务 / 查看日志 / 上移 / 下移 / 启动所有 / 停止所有 / 新增 / 编辑 / 删除
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStartItem.Text = $ui.MenuStart
-    $menuStopItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuStopItem.Text = $ui.MenuStop
-    $menuRestartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuRestartItem.Text = $ui.MenuRestart
-    $menuViewLogItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuViewLogItem.Text = $ui.MenuViewLog
-    $menuMoveUpItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuMoveUpItem.Text = $ui.MenuMoveUp
-    $menuMoveDownItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuMoveDownItem.Text = $ui.MenuMoveDown
-    $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
-    $menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuStartAllItem.Text = $ui.MenuStartAll
-    $menuStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuStopAllItem.Text = $ui.MenuStopAll
-    $menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
-    $menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuAddItem.Text = $ui.MenuAdd
-    $menuEditItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuEditItem.Text = $ui.MenuEdit
-    $menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuDeleteItem.Text = $ui.MenuDelete
-    foreach ($item in @(
-        $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
-        $menuMoveUpItem, $menuMoveDownItem,
-        $menuSep1, $menuStartAllItem, $menuStopAllItem,
-        $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem
-    )) {
-        $taskContextMenu.Items.Add($item) | Out-Null
-    }
-    $dataGridView.ContextMenuStrip = $taskContextMenu
-    # 右键菜单打开时，根据选中位置启用/禁用上移、下移
-    $taskContextMenu.Add_Opening({
-        $index = Get-Selected-Task-Index
-        $count = $taskConfigList.Count
-        $menuMoveUpItem.Enabled = ($index -gt 0)
-        $menuMoveDownItem.Enabled = ($index -ge 0 -and $index -lt ($count - 1))
-    })
-    # 右键菜单: 新增任务
-    $menuAddItem.Add_Click({ Edit-Task-Dialog -TaskName '' })
-    # 右键菜单: 启动任务
     $menuStartItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1740,7 +1703,8 @@ try {
         }
         Start-Task -Task $taskConfigList[$index]
     })
-    # 右键菜单: 停止任务
+    $menuStopItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuStopItem.Text = $ui.MenuStop
     $menuStopItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1749,7 +1713,8 @@ try {
         }
         Stop-Task -Task $taskConfigList[$index]
     })
-    # 右键菜单: 重启任务
+    $menuRestartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuRestartItem.Text = $ui.MenuRestart
     $menuRestartItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1758,7 +1723,8 @@ try {
         }
         Restart-Task -Task $taskConfigList[$index]
     })
-    # 右键菜单: 查看任务日志
+    $menuViewLogItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuViewLogItem.Text = $ui.MenuViewLog
     $menuViewLogItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1767,7 +1733,8 @@ try {
         }
         Show-Task-Log-Viewer -TaskName ([string]$taskConfigList[$index].name)
     })
-    # 右键菜单: 上移任务
+    $menuMoveUpItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuMoveUpItem.Text = $ui.MenuMoveUp
     $menuMoveUpItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1783,7 +1750,8 @@ try {
         $dataGridView.Rows[$index - 1].Selected = $true
         $dataGridView.CurrentCell = $dataGridView.Rows[$index - 1].Cells[0]
     })
-    # 右键菜单: 下移任务
+    $menuMoveDownItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuMoveDownItem.Text = $ui.MenuMoveDown
     $menuMoveDownItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1799,7 +1767,19 @@ try {
         $dataGridView.Rows[$index + 1].Selected = $true
         $dataGridView.CurrentCell = $dataGridView.Rows[$index + 1].Cells[0]
     })
-    # 右键菜单: 修改任务（不保存则什么都不做，保存后如果任务原本在运行就重启）
+    $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
+    $menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuStartAllItem.Text = $ui.MenuStartAll
+    $menuStartAllItem.Add_Click({ Start-All-Tasks })
+    $menuStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuStopAllItem.Text = $ui.MenuStopAll
+    $menuStopAllItem.Add_Click({ Stop-All-Tasks })
+    $menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
+    $menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuAddItem.Text = $ui.MenuAdd
+    $menuAddItem.Add_Click({ Edit-Task-Dialog -TaskName '' })
+    $menuEditItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuEditItem.Text = $ui.MenuEdit
     $menuEditItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1808,22 +1788,15 @@ try {
         }
         $task = $taskConfigList[$index]
         $taskName = [string]$task.name
-        $isRunning = $false
         $execution = Get-Task-Execution -TaskName $taskName
-        if ($execution.process -and -not $execution.process.HasExited) { $isRunning = $true }
-        if ($isRunning) {
+        if ($execution.process -and -not $execution.process.HasExited) {
             $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
             if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         }
-        $result = Edit-Task-Dialog -TaskName $taskName
-        # 取消保存时保持原状，任务继续运行
-        if ($result -ne [System.Windows.Forms.DialogResult]::OK) { return }
-        if ($isRunning) {
-            # 任务可能在对话框里被改配置，这里重新取一次修改后的任务配置，再重启让新配置生效
-            Restart-Task -Task $taskConfigList[$index]
-        }
+        Edit-Task-Dialog -TaskName $taskName | Out-Null
     })
-    # 右键菜单: 删除任务
+    $menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuDeleteItem.Text = $ui.MenuDelete
     $menuDeleteItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1835,14 +1808,12 @@ try {
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         Stop-Task -Task $taskConfigList[$index]
         if ($taskExecutionMap.ContainsKey($taskName)) {
-            # 移除对应的日志标签页
             $logViewTabPageName = "LogPage_" + $taskName
             $logViewTabPage = $tabControl.TabPages[$logViewTabPageName]
             if ($logViewTabPage) {
                 $tabControl.TabPages.Remove($logViewTabPage)
                 $logViewTabPage.Dispose()
             }
-            # Stop-Task 已经保证运行资源被释放，这里直接移除运行实例
             $taskExecutionMap.Remove($taskName) | Out-Null
         }
         $newTasks = @()
@@ -1854,15 +1825,51 @@ try {
         Update-Task-Grid
         System-Log ($ui.INFO_Deleted -f $taskName) "Info"
     })
-    # 右键菜单: 全部启动 / 全部停止
-    $menuStartAllItem.Add_Click({ Start-All-Tasks })
-    $menuStopAllItem.Add_Click({ Stop-All-Tasks })
+    foreach ($item in @(
+        $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
+        $menuMoveUpItem, $menuMoveDownItem,
+        $menuSep1, $menuStartAllItem, $menuStopAllItem,
+        $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem
+    )) {
+        $taskContextMenu.Items.Add($item) | Out-Null
+    }
+    $taskContextMenu.Add_Opening({
+        $index = Get-Selected-Task-Index
+        $count = $taskConfigList.Count
+        $hasSelection = ($index -ge 0)
+        $selectedIsRunning = $false
+        if ($hasSelection) {
+            $selectedExecution = Get-Task-Execution -TaskName ([string]$taskConfigList[$index].name)
+            if ($selectedExecution.process -and -not $selectedExecution.process.HasExited) {
+                $selectedIsRunning = $true
+            }
+        }
+        $runningCount = 0
+        foreach ($task in $taskConfigList) {
+            $taskExecution = Get-Task-Execution -TaskName ([string]$task.name)
+            if ($taskExecution.process -and -not $taskExecution.process.HasExited) {
+                $runningCount += 1
+            }
+        }
+        $menuStartItem.Enabled = ($hasSelection -and -not $selectedIsRunning)
+        $menuStopItem.Enabled = ($hasSelection -and $selectedIsRunning)
+        $menuRestartItem.Enabled = ($hasSelection)
+        $menuViewLogItem.Enabled = $hasSelection
+        $menuEditItem.Enabled = $hasSelection
+        $menuDeleteItem.Enabled = $hasSelection
+        $menuMoveUpItem.Enabled = ($index -gt 0)
+        $menuMoveDownItem.Enabled = ($index -ge 0 -and $index -lt ($count - 1))
+        $menuStartAllItem.Enabled = ($count -gt 0)
+        $menuStopAllItem.Enabled = ($count -gt 0)
+    })
+    $dataGridView.ContextMenuStrip = $taskContextMenu
 
     # 系统日志标签页
     $logTabPage = [System.Windows.Forms.TabPage]::new()
     $logTabPage.Text = $ui.TabRunLog
     $logTabPage.BackColor = [System.Drawing.Color]::White
     $tabControl.Controls.Add($logTabPage)
+
     # 全局系统日志显示区域
     $logTextBox = [System.Windows.Forms.RichTextBox]::new()
     $logTextBox.ReadOnly = $true
@@ -1870,22 +1877,15 @@ try {
     $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     $logTextBox.BackColor = [System.Drawing.Color]::White
     $logTextBox.Font = $mainForm.Font
-    # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
     $logTextBox.DetectUrls = $false
     $logTextBox.WordWrap = $false
     $logTextBox.Dock = "Fill"
     $logTabPage.Controls.Add($logTextBox)
-    # 系统日志展示控件交给 System-Log 使用
-    $script:systemLogTextBox = $logTextBox
-    # 系统日志的右键菜单
+    $systemLogTextBox = $logTextBox
+
+    # 系统日志的右键菜单：复制日志 / 清空日志
     $copyLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $copyLogMenuItem.Text = $ui.LogCopy
-    $clearLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $clearLogMenuItem.Text = $ui.LogClear
-    $logTextBox.ContextMenuStrip = [System.Windows.Forms.ContextMenuStrip]::new()
-    $logTextBox.ContextMenuStrip.Items.Add($copyLogMenuItem) | Out-Null
-    $logTextBox.ContextMenuStrip.Items.Add($clearLogMenuItem) | Out-Null
-    # 右键菜单: 复制日志
     $copyLogMenuItem.Add_Click({
         if ($logTextBox.Text.Length -gt 0) {
             [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
@@ -1894,12 +1894,16 @@ try {
             System-Log $ui.INFO_NoLog "Warning"
         }
     })
-    # 右键菜单: 清空日志
+    $clearLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $clearLogMenuItem.Text = $ui.LogClear
     $clearLogMenuItem.Add_Click({
         $logTextBox.Clear()
     })
+    $logTextBox.ContextMenuStrip = [System.Windows.Forms.ContextMenuStrip]::new()
+    $logTextBox.ContextMenuStrip.Items.Add($copyLogMenuItem) | Out-Null
+    $logTextBox.ContextMenuStrip.Items.Add($clearLogMenuItem) | Out-Null
 
-    # 日志队列处理定时器: 消化后台线程的输出队列
+    # 日志队列处理定时器
     $taskLogQueueProcessTimer = [System.Windows.Forms.Timer]::new()
     $taskLogQueueProcessTimer.Interval = 200
     $taskLogQueueProcessTimer.Add_Tick({
@@ -1907,7 +1911,7 @@ try {
     })
     $taskLogQueueProcessTimer.Start()
 
-    # 界面刷新定时器: 检查进程退出
+    # 任务状态刷新定时器
     $taskStatusMonitorTimer = [System.Windows.Forms.Timer]::new()
     $taskStatusMonitorTimer.Interval = 500
     $taskStatusMonitorTimer.Add_Tick({
@@ -1928,18 +1932,21 @@ try {
     # 加载配置文件
     System-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) "Info"
     Load-Config | Out-Null
-    # 程序启动（首次显示时自动隐藏到托盘）
+
+    # 程序启动
     [System.Windows.Forms.Application]::Run($mainForm)
-    # 主循环结束后清理资源
-    $taskLogQueueProcessTimer.Stop()
-    $taskLogQueueProcessTimer.Dispose()
-    $taskStatusMonitorTimer.Stop()
-    $taskStatusMonitorTimer.Dispose()
+
+    # 结束后，销毁托盘图标
+    try { $trayIcon.Visible = $false } catch { }
+    try { $trayIcon.Dispose() } catch { }
+
+    # 停止任务，并确保日志处理完成
     Stop-All-Tasks
-    # 定时器已停止，最后排空一次队列，保证退出前产生的日志都已落盘
+    try { $taskLogQueueProcessTimer.Stop() } catch { }
+    try { $taskLogQueueProcessTimer.Dispose() } catch { }
+    try { $taskStatusMonitorTimer.Stop() } catch { }
+    try { $taskStatusMonitorTimer.Dispose() } catch { }
     Process-Task-Log-Queue
-    $trayIcon.Visible = $false
-    $trayIcon.Dispose()
 } catch {
     Handle-Exception $_
     pause
