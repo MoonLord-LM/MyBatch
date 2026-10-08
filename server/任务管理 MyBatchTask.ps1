@@ -1,4 +1,4 @@
-﻿# MyBatchTask 批处理任务管理器
+# MyBatchTask 批处理任务管理器
 #
 # 开源地址: https://github.com/MoonLord-LM/MyBatch
 #
@@ -48,7 +48,7 @@
 # 异常处理
 function Handle-Exception {
     param([Parameter(Mandatory=$true)][System.Management.Automation.ErrorRecord]$ErrorRecord)
-    ""
+    ''
     "[ Error ] Message: $($ErrorRecord.Exception.Message)"
     if ($ErrorRecord.InvocationInfo) {
         "[ Error ] Line: $($ErrorRecord.InvocationInfo.ScriptLineNumber)"
@@ -56,7 +56,7 @@ function Handle-Exception {
             "[ Error ] Code: $($ErrorRecord.InvocationInfo.Line.Trim())"
         }
     }
-    ""
+    ''
 }
 
 try {
@@ -72,7 +72,7 @@ try {
     # 获取环境信息，使用单独进程隔离 Get-CimInstance 对语言的影响
     $windowsVersion = powershell -NoProfile -Command {
         $windowsOSInfo = Get-CimInstance Win32_OperatingSystem
-        $windowsCurrentVersion = Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"
+        $windowsCurrentVersion = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
         $windowsVersion = "$($windowsOSInfo.Caption) $($windowsCurrentVersion.DisplayVersion)"
         return $windowsVersion
     }
@@ -124,7 +124,7 @@ try {
         param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
 
         $doubleBufferedBindingFlags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
-        $doubleBufferedProperty = [System.Windows.Forms.Control].GetProperty("DoubleBuffered", $doubleBufferedBindingFlags)
+        $doubleBufferedProperty = [System.Windows.Forms.Control].GetProperty('DoubleBuffered', $doubleBufferedBindingFlags)
         $doubleBufferedProperty.SetValue($Control, $true)
         return $doubleBufferedProperty.GetValue($Control)
     }
@@ -196,184 +196,184 @@ try {
     # 界面文本，包含中文和英文
     $uiTextResources = @{
         'zh-CN' = @{
-            FormTitle = "MyBatchTask 批处理任务管理器"
-            ColumnStatus = "状态"
-            ColumnPid = "PID"
-            ColumnName = "任务名称"
-            ColumnCommand = "命令"
-            ColumnArguments = "参数"
-            ColumnWorkingDir = "工作目录"
-            TabTaskList = "任务列表"
-            TabRunLog = "系统日志"
-            TrayShow = "显示主界面"
-            TrayStartAll = "全部启动"
-            TrayStopAll = "全部停止"
-            TrayExit = "退出"
-            MenuAdd = "新增任务"
-            MenuStart = "启动"
-            MenuStop = "停止"
-            MenuRestart = "重启"
-            MenuViewLog = "查看日志"
-            MenuMoveUp = "上移"
-            MenuMoveDown = "下移"
-            MenuEdit = "修改任务"
-            MenuDelete = "删除任务"
-            MenuStartAll = "全部启动"
-            MenuStopAll = "全部停止"
-            StatusNotStarted = "未启动"
-            StatusRunning = "运行中"
-            StatusStopped = "手动结束"
-            StatusExited = "正常结束"
-            StatusExitedError = "异常结束"
-            LogCopy = "复制日志"
-            LogClear = "清空日志"
-            LogOpenFile = "打开日志文件"
-            ConfirmTitle = "确认"
-            ConfirmDelete = "确定删除任务「{0}」吗？"
-            ConfirmExit = "退出将停止所有运行中的任务，是否继续？"
-            ConfirmRestart = "任务「{0}」正在运行，修改后将自动重启，是否继续？"
-            ERROR_CommandEmpty = "命令不能为空"
-            ERROR_CommandNotFound = "命令文件不存在: {0}"
-            ERROR_NameEmpty = "任务名称不能为空"
-            ERROR_NameDuplicated = "任务名称已存在: {0}"
-            ERROR_NameInvalid = "任务名称包含特殊字符，不能作为 Windows 文件名: {0}"
-            ERROR_FieldMissing = "任务配置缺少必填字段，已跳过该任务: {0}"
-            ERROR_WorkDirNotFound = "工作目录不存在: {0}"
-            ERROR_NoSelection = "请先在列表中选择一个任务"
-            ERROR_AlreadyRunning = "程序已经在运行中，请查看桌面右下角的托盘图标"
-            ERROR_TaskStartFailed = "任务启动失败: {0}"
-            ERROR_TaskStopFailed = "任务停止失败: {0}"
-            ERROR_TaskStopTimeout = "停止任务超时: {0}"
-            INFO_Started = "任务已启动: {0} (PID {1})"
-            INFO_Stopped = "任务已停止: {0}"
-            INFO_Exited = "任务已退出: {0} (退出码 {1})"
-            INFO_AlreadyRunning = "任务已在运行中: {0}"
-            INFO_NotStarted = "任务尚未启动: {0}"
-            INFO_AlreadyStopped = "任务已处于停止状态: {0}"
-            INFO_Deleted = "任务已删除: {0}"
-            INFO_Saved = "配置已保存到 {0}"
-            INFO_ConfigLoaded = "已加载 {0} 个任务"
-            INFO_ConfigLoadFailed = "配置文件加载失败: {0}"
-            INFO_ConfigNotFound = "未找到配置文件: {0}"
-            INFO_NameRenamed = "任务名称「{0}」重复，已自动重命名为「{1}」"
-            INFO_StartAllDone = "已启动全部任务"
-            INFO_StopAllDone = "已停止全部任务"
-            INFO_LogCopied = "日志已复制到剪贴板"
-            INFO_LogOpened = "已打开日志文件: {0}"
-            INFO_NoLog = "当前没有日志内容"
-            INFO_SystemInfo = "配置文件: [ {0} ]"
-            DialogAddTitle = "新增任务"
-            DialogEditTitle = "修改任务"
-            DialogName = "任务名称:"
-            DialogCommand = "命令:"
-            DialogArguments = "参数:"
-            DialogWorkingDir = "工作目录:"
-            DialogStartMode = "启动方式:"
-            DialogAutoStart = "管理器启动时自动运行"
-            DialogManualStart = "手动执行"
-            DialogBrowseCommand = "选择文件"
-            DialogBrowseDir = "选择目录"
-            DialogBrowseCommandTitle = "选择命令文件"
-            DialogBrowseDirTitle = "选择工作目录"
-            DialogExeFilter = "可执行文件 (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|所有文件 (*.*)|*.*"
-            DialogSave = "保存"
-            DialogSaveRestart = "保存并重启任务"
-            DialogCancel = "取消"
-            CloseTab = "关闭标签页"
-            LogTaskStart = "———————————— 开始新进程 ————————————————"
-            LogTaskEndNormal = "———————————— 正常退出进程 ————————————————"
-            LogTaskEndError = "———————————— 异常结束进程，错误码 {0} ————————————————"
-            LogTaskStopManual = "———————————— 手动结束进程 ————————————————"
+            FormTitle = 'MyBatchTask 批处理任务管理器'
+            ColumnStatus = '状态'
+            ColumnPid = 'PID'
+            ColumnName = '任务名称'
+            ColumnCommand = '命令'
+            ColumnArguments = '参数'
+            ColumnWorkingDir = '工作目录'
+            TabTaskList = '任务列表'
+            TabRunLog = '系统日志'
+            TrayShow = '显示主界面'
+            TrayStartAll = '全部启动'
+            TrayStopAll = '全部停止'
+            TrayExit = '退出'
+            MenuAdd = '新增任务'
+            MenuStart = '启动'
+            MenuStop = '停止'
+            MenuRestart = '重启'
+            MenuViewLog = '查看日志'
+            MenuMoveUp = '上移'
+            MenuMoveDown = '下移'
+            MenuEdit = '修改任务'
+            MenuDelete = '删除任务'
+            MenuStartAll = '全部启动'
+            MenuStopAll = '全部停止'
+            StatusNotStarted = '未启动'
+            StatusRunning = '运行中'
+            StatusStopped = '手动结束'
+            StatusExited = '正常结束'
+            StatusExitedError = '异常结束'
+            LogCopy = '复制日志'
+            LogClear = '清空日志显示'
+            LogOpenFile = '打开完整日志文件'
+            ConfirmTitle = '确认'
+            ConfirmDelete = '确定删除任务「{0}」吗？'
+            ConfirmExit = '退出将停止所有运行中的任务，是否继续？'
+            ConfirmRestart = '任务「{0}」正在运行，修改后将自动重启，是否继续？'
+            ERROR_CommandEmpty = '命令不能为空'
+            ERROR_CommandNotFound = '命令文件不存在: {0}'
+            ERROR_NameEmpty = '任务名称不能为空'
+            ERROR_NameDuplicated = '任务名称已存在: {0}'
+            ERROR_NameInvalid = '任务名称包含特殊字符，不能作为 Windows 文件名: {0}'
+            ERROR_FieldMissing = '任务配置缺少必填字段，已跳过该任务: {0}'
+            ERROR_WorkDirNotFound = '工作目录不存在: {0}'
+            ERROR_NoSelection = '请先在列表中选择一个任务'
+            ERROR_AlreadyRunning = '程序已经在运行中，请查看桌面右下角的托盘图标'
+            ERROR_TaskStartFailed = '任务启动失败: {0}'
+            ERROR_TaskStopFailed = '任务停止失败: {0}'
+            ERROR_TaskStopTimeout = '停止任务超时: {0}'
+            INFO_Started = '任务已启动: {0} (PID {1})'
+            INFO_Stopped = '任务已停止: {0}'
+            INFO_Exited = '任务已退出: {0} (退出码 {1})'
+            INFO_AlreadyRunning = '任务已在运行中: {0}'
+            INFO_NotStarted = '任务尚未启动: {0}'
+            INFO_AlreadyStopped = '任务已处于停止状态: {0}'
+            INFO_Deleted = '任务已删除: {0}'
+            INFO_Saved = '配置已保存到 {0}'
+            INFO_ConfigLoaded = '已加载 {0} 个任务'
+            INFO_ConfigLoadFailed = '配置文件加载失败: {0}'
+            INFO_ConfigNotFound = '未找到配置文件: {0}'
+            INFO_NameRenamed = '任务名称「{0}」重复，已自动重命名为「{1}」'
+            INFO_StartAllDone = '已启动全部任务'
+            INFO_StopAllDone = '已停止全部任务'
+            INFO_LogCopied = '日志已复制到剪贴板'
+            INFO_LogOpened = '已打开日志文件: {0}'
+            INFO_NoLog = '当前没有日志内容'
+            INFO_SystemInfo = '配置文件: [ {0} ]'
+            DialogAddTitle = '新增任务'
+            DialogEditTitle = '修改任务'
+            DialogName = '任务名称:'
+            DialogCommand = '命令:'
+            DialogArguments = '参数:'
+            DialogWorkingDir = '工作目录:'
+            DialogStartMode = '启动方式:'
+            DialogAutoStart = '管理器启动时自动运行'
+            DialogManualStart = '手动执行'
+            DialogBrowseCommand = '选择文件'
+            DialogBrowseDir = '选择目录'
+            DialogBrowseCommandTitle = '选择命令文件'
+            DialogBrowseDirTitle = '选择工作目录'
+            DialogExeFilter = '可执行文件 (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|所有文件 (*.*)|*.*'
+            DialogSave = '保存'
+            DialogSaveRestart = '保存并重启任务'
+            DialogCancel = '取消'
+            CloseTab = '关闭标签页'
+            LogTaskStart = '———————————— 开始新进程 ————————————————'
+            LogTaskEndNormal = '———————————— 正常退出进程 ————————————————'
+            LogTaskEndError = '———————————— 异常结束进程，错误码 {0} ————————————————'
+            LogTaskStopManual = '———————————— 手动结束进程 ————————————————'
         }
         'en-US' = @{
-            FormTitle = "MyBatchTask Batch Task Manager"
-            ColumnStatus = "Status"
-            ColumnPid = "PID"
-            ColumnName = "Task Name"
-            ColumnCommand = "Command"
-            ColumnArguments = "Arguments"
-            ColumnWorkingDir = "Working Directory"
-            TabTaskList = "Task List"
-            TabRunLog = "System Log"
-            TrayShow = "Show Main Window"
-            TrayStartAll = "Start All"
-            TrayStopAll = "Stop All"
-            TrayExit = "Exit"
-            MenuAdd = "Add Task"
-            MenuStart = "Start"
-            MenuStop = "Stop"
-            MenuRestart = "Restart"
-            MenuViewLog = "View Log"
-            MenuMoveUp = "Move Up"
-            MenuMoveDown = "Move Down"
-            MenuEdit = "Edit Task"
-            MenuDelete = "Delete Task"
-            MenuStartAll = "Start All"
-            MenuStopAll = "Stop All"
-            StatusNotStarted = "Not Started"
-            StatusRunning = "Running"
-            StatusStopped = "Manual Stop"
-            StatusExited = "Exited Normally"
-            StatusExitedError = "Abnormal Exit"
-            LogCopy = "Copy Log"
-            LogClear = "Clear Log"
-            LogOpenFile = "Open Log File"
-            ConfirmTitle = "Confirm"
+            FormTitle = 'MyBatchTask Batch Task Manager'
+            ColumnStatus = 'Status'
+            ColumnPid = 'PID'
+            ColumnName = 'Task Name'
+            ColumnCommand = 'Command'
+            ColumnArguments = 'Arguments'
+            ColumnWorkingDir = 'Working Directory'
+            TabTaskList = 'Task List'
+            TabRunLog = 'System Log'
+            TrayShow = 'Show Main Window'
+            TrayStartAll = 'Start All'
+            TrayStopAll = 'Stop All'
+            TrayExit = 'Exit'
+            MenuAdd = 'Add Task'
+            MenuStart = 'Start'
+            MenuStop = 'Stop'
+            MenuRestart = 'Restart'
+            MenuViewLog = 'View Log'
+            MenuMoveUp = 'Move Up'
+            MenuMoveDown = 'Move Down'
+            MenuEdit = 'Edit Task'
+            MenuDelete = 'Delete Task'
+            MenuStartAll = 'Start All'
+            MenuStopAll = 'Stop All'
+            StatusNotStarted = 'Not Started'
+            StatusRunning = 'Running'
+            StatusStopped = 'Manual Stop'
+            StatusExited = 'Exited Normally'
+            StatusExitedError = 'Abnormal Exit'
+            LogCopy = 'Copy Log'
+            LogClear = 'Clear Log View'
+            LogOpenFile = 'Open Full Log File'
+            ConfirmTitle = 'Confirm'
             ConfirmDelete = "Delete task '{0}'?"
-            ConfirmExit = "Exit will stop all running tasks. Continue?"
+            ConfirmExit = 'Exit will stop all running tasks. Continue?'
             ConfirmRestart = "Task '{0}' is running and will be restarted after editing. Continue?"
-            ERROR_CommandEmpty = "Command must not be empty"
-            ERROR_CommandNotFound = "Command file not found: {0}"
-            ERROR_NameEmpty = "Task name must not be empty"
-            ERROR_NameDuplicated = "Task name already exists: {0}"
-            ERROR_NameInvalid = "Task name contains special characters and cannot be used as a Windows file name: {0}"
-            ERROR_FieldMissing = "Task config is missing required field, task skipped: {0}"
-            ERROR_WorkDirNotFound = "Working directory not found: {0}"
-            ERROR_NoSelection = "Please select a task from the list first"
-            ERROR_AlreadyRunning = "The program is already running. Please check the tray icon in the lower right corner."
-            ERROR_TaskStartFailed = "Failed to start task: {0}"
-            ERROR_TaskStopFailed = "Failed to stop task: {0}"
-            ERROR_TaskStopTimeout = "Stopping task timed out: {0}"
-            INFO_Started = "Task started: {0} (PID {1})"
-            INFO_Stopped = "Task stopped: {0}"
-            INFO_Exited = "Task exited: {0} (exit code {1})"
-            INFO_AlreadyRunning = "Task is already running: {0}"
-            INFO_NotStarted = "Task has not started: {0}"
-            INFO_AlreadyStopped = "Task is already stopped: {0}"
-            INFO_Deleted = "Task deleted: {0}"
-            INFO_Saved = "Configuration saved to {0}"
-            INFO_ConfigLoaded = "Loaded {0} task(s)"
-            INFO_ConfigLoadFailed = "Failed to load configuration file: {0}"
-            INFO_ConfigNotFound = "Configuration file not found: {0}"
+            ERROR_CommandEmpty = 'Command must not be empty'
+            ERROR_CommandNotFound = 'Command file not found: {0}'
+            ERROR_NameEmpty = 'Task name must not be empty'
+            ERROR_NameDuplicated = 'Task name already exists: {0}'
+            ERROR_NameInvalid = 'Task name contains special characters and cannot be used as a Windows file name: {0}'
+            ERROR_FieldMissing = 'Task config is missing required field, task skipped: {0}'
+            ERROR_WorkDirNotFound = 'Working directory not found: {0}'
+            ERROR_NoSelection = 'Please select a task from the list first'
+            ERROR_AlreadyRunning = 'The program is already running. Please check the tray icon in the lower right corner.'
+            ERROR_TaskStartFailed = 'Failed to start task: {0}'
+            ERROR_TaskStopFailed = 'Failed to stop task: {0}'
+            ERROR_TaskStopTimeout = 'Stopping task timed out: {0}'
+            INFO_Started = 'Task started: {0} (PID {1})'
+            INFO_Stopped = 'Task stopped: {0}'
+            INFO_Exited = 'Task exited: {0} (exit code {1})'
+            INFO_AlreadyRunning = 'Task is already running: {0}'
+            INFO_NotStarted = 'Task has not started: {0}'
+            INFO_AlreadyStopped = 'Task is already stopped: {0}'
+            INFO_Deleted = 'Task deleted: {0}'
+            INFO_Saved = 'Configuration saved to {0}'
+            INFO_ConfigLoaded = 'Loaded {0} task(s)'
+            INFO_ConfigLoadFailed = 'Failed to load configuration file: {0}'
+            INFO_ConfigNotFound = 'Configuration file not found: {0}'
             INFO_NameRenamed = "Task name '{0}' is duplicated and has been renamed to '{1}'"
-            INFO_StartAllDone = "All tasks started"
-            INFO_StopAllDone = "All tasks stopped"
-            INFO_LogCopied = "Log copied to clipboard"
-            INFO_LogOpened = "Log file opened: {0}"
-            INFO_NoLog = "No log content"
-            INFO_SystemInfo = "Config file: [ {0} ]"
-            DialogAddTitle = "Add Task"
-            DialogEditTitle = "Edit Task"
-            DialogName = "Task Name:"
-            DialogCommand = "Command:"
-            DialogArguments = "Arguments:"
-            DialogWorkingDir = "Working Directory:"
-            DialogStartMode = "Start Mode:"
-            DialogAutoStart = "Auto start when the manager starts"
-            DialogManualStart = "Manual"
-            DialogBrowseCommand = "Browse"
-            DialogBrowseDir = "Browse"
-            DialogBrowseCommandTitle = "Select Command File"
-            DialogBrowseDirTitle = "Select Working Directory"
-            DialogExeFilter = "Executable files (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|All files (*.*)|*.*"
-            DialogSave = "Save"
-            DialogSaveRestart = "Save and Restart Task"
-            DialogCancel = "Cancel"
-            CloseTab = "Close Tab"
-            LogTaskStart = "———————————— Start new process ————————————————"
-            LogTaskEndNormal = "———————————— Process finished normally ————————————————"
-            LogTaskEndError = "———————————— Process exited abnormally, error code {0} ————————————————"
-            LogTaskStopManual = "———————————— Manual stop process ————————————————"
+            INFO_StartAllDone = 'All tasks started'
+            INFO_StopAllDone = 'All tasks stopped'
+            INFO_LogCopied = 'Log copied to clipboard'
+            INFO_LogOpened = 'Log file opened: {0}'
+            INFO_NoLog = 'No log content'
+            INFO_SystemInfo = 'Config file: [ {0} ]'
+            DialogAddTitle = 'Add Task'
+            DialogEditTitle = 'Edit Task'
+            DialogName = 'Task Name:'
+            DialogCommand = 'Command:'
+            DialogArguments = 'Arguments:'
+            DialogWorkingDir = 'Working Directory:'
+            DialogStartMode = 'Start Mode:'
+            DialogAutoStart = 'Auto start when the manager starts'
+            DialogManualStart = 'Manual'
+            DialogBrowseCommand = 'Browse'
+            DialogBrowseDir = 'Browse'
+            DialogBrowseCommandTitle = 'Select Command File'
+            DialogBrowseDirTitle = 'Select Working Directory'
+            DialogExeFilter = 'Executable files (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|All files (*.*)|*.*'
+            DialogSave = 'Save'
+            DialogSaveRestart = 'Save and Restart Task'
+            DialogCancel = 'Cancel'
+            CloseTab = 'Close Tab'
+            LogTaskStart = '———————————— Start new process ————————————————'
+            LogTaskEndNormal = '———————————— Process finished normally ————————————————'
+            LogTaskEndError = '———————————— Process exited abnormally, error code {0} ————————————————'
+            LogTaskStopManual = '———————————— Manual stop process ————————————————'
         }
     }
     $ui = $uiTextResources[$workingLanguage]
@@ -396,19 +396,19 @@ try {
     }
 
     # 日志目录：/MyBatchTask/logs
-    $myBatchTaskLogsDir = [System.IO.Path]::Combine($myBatchTaskDir, "logs")
+    $myBatchTaskLogsDir = [System.IO.Path]::Combine($myBatchTaskDir, 'logs')
     if (-not [System.IO.Directory]::Exists($myBatchTaskLogsDir)) {
         [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
     }
 
     # 系统日志：/MyBatchTask/logs
-    $myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, "system.log")
+    $myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, 'system.log')
     if (-not [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {
-        [System.IO.File]::WriteAllText($myBatchTaskSystemLogFile, "", $workingEncoding)
+        [System.IO.File]::WriteAllText($myBatchTaskSystemLogFile, '', $workingEncoding)
     }
 
     # 配置文件：/MyBatchTask/config.json
-    $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
+    $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, 'config.json')
     $defaultJsonConfig = @{
         'zh-CN' =
 @'
@@ -531,6 +531,27 @@ try {
     # JSON 数组，每个元素的字段：name，command，arguments，workingDirectory，autoStart
     $taskConfigList = @()
 
+    # 检查任务名称是否有效：不能为空，不能包含任何无法作为 Windows 文件名的字符
+    # TODO 整合重复性检查、特殊文件夹名、系统日志重名等等问题
+    function Test-Task-Name {
+        param([string]$TaskName, [ref]$ValidName)
+
+        $name = ''
+        if ($TaskName) {
+            $name = $TaskName.Trim()
+        }
+        if ($ValidName) {
+            $ValidName.Value = $name
+        }
+        if (-not $name) {
+            return $ui.ERROR_NameEmpty
+        }
+        if ($name.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0) {
+            return ($ui.ERROR_NameInvalid -f $name)
+        }
+        return ''
+    }
+
     # 保存任务列表到配置文件
     function Save-Config {
         $objects = [System.Collections.Generic.List[PSCustomObject]]::new()
@@ -545,13 +566,13 @@ try {
         }
         $json = ConvertTo-Json -InputObject @($objects) -Depth 100
         [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $json, $workingEncoding)
-        System-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) "Debug"
+        System-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) 'Debug'
     }
 
     # 从配置文件加载任务列表
     function Load-Config {
         if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
-            System-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) "Warning"
+            System-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) 'Warning'
             return $false
         }
 
@@ -566,24 +587,14 @@ try {
                 $configItemCount += 1
                 $itemOriginalJson = ConvertTo-Json -InputObject $item -Depth 10 -Compress
 
-                # 任务名称：不能为空，不能包含任何无法作为 Windows 文件名的字符，不能重复
                 if ($item.PSObject.Properties.Match('name').Count -eq 0) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'name') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'name') 'Warning'
                     continue
                 }
-                $taskName = [string]$item.name
-                if (-not $taskName) {
-                    System-Log ($ui.ERROR_NameEmpty) "Warning"
-                    continue
-                }
-                $taskName = $taskName.Trim()
-                if (-not $taskName) {
-                    System-Log ($ui.ERROR_NameEmpty) "Warning"
-                    continue
-                }
-                $invalidFileNameChars = [System.IO.Path]::GetInvalidFileNameChars()
-                if ($taskName.IndexOfAny($invalidFileNameChars) -ge 0) {
-                    System-Log ($ui.ERROR_NameInvalid -f $taskName) "Warning"
+                $taskName = ''
+                $taskNameError = Test-Task-Name -TaskName ([string]$item.name) -ValidName ([ref]$taskName)
+                if ($taskNameError) {
+                    System-Log $taskNameError 'Warning'
                     continue
                 }
                 if ($seenNames.Contains($taskName)) {
@@ -594,35 +605,35 @@ try {
                     }
                     $taskName = $baseName + $nameSuffix
                     $item.name = $taskName
-                    System-Log ($ui.INFO_NameRenamed -f $baseName, $taskName) "Warning"
+                    System-Log ($ui.INFO_NameRenamed -f $baseName, $taskName) 'Warning'
                 }
                 $item.name = $taskName
                 $seenNames.Add($taskName) | Out-Null
 
                 # 命令：不能为空
                 if ($item.PSObject.Properties.Match('command').Count -eq 0) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'command') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'command') 'Warning'
                     continue
                 }
                 $commandValue = [string]$item.command
                 if (-not $commandValue) {
-                    System-Log ($ui.ERROR_CommandEmpty) "Warning"
+                    System-Log ($ui.ERROR_CommandEmpty) 'Warning'
                     continue
                 }
                 $commandValue = $commandValue.Trim()
                 if (-not $commandValue) {
-                    System-Log ($ui.ERROR_CommandEmpty) "Warning"
+                    System-Log ($ui.ERROR_CommandEmpty) 'Warning'
                     continue
                 }
                 $item.command = $commandValue
 
                 # 参数：不能为 $null
                 if ($item.PSObject.Properties.Match('arguments').Count -eq 0) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'arguments') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'arguments') 'Warning'
                     continue
                 }
                 if ($null -eq $item.arguments) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'arguments') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'arguments') 'Warning'
                     continue
                 }
                 $argumentsValue = [string]$item.arguments
@@ -631,11 +642,11 @@ try {
 
                 # 工作目录：不能为 $null
                 if ($item.PSObject.Properties.Match('workingDirectory').Count -eq 0) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') 'Warning'
                     continue
                 }
                 if ($null -eq $item.workingDirectory) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') 'Warning'
                     continue
                 }
                 $workingDirectoryValue = [string]$item.workingDirectory
@@ -644,11 +655,11 @@ try {
 
                 # 是否自动启动：不能为 $null
                 if ($item.PSObject.Properties.Match('autoStart').Count -eq 0) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'autoStart') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'autoStart') 'Warning'
                     continue
                 }
                 if ($null -eq $item.autoStart) {
-                    System-Log ($ui.ERROR_FieldMissing -f 'autoStart') "Warning"
+                    System-Log ($ui.ERROR_FieldMissing -f 'autoStart') 'Warning'
                     continue
                 }
                 $autoStartValue = [bool]$item.autoStart
@@ -665,20 +676,33 @@ try {
                 Save-Config
             }
         } catch {
-            System-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) "Error"
+            System-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) 'Error'
             return $false
         }
-        System-Log ($ui.INFO_ConfigLoaded -f $taskConfigList.Count) "Success"
+        System-Log ($ui.INFO_ConfigLoaded -f $taskConfigList.Count) 'Success'
         return $true
     }
 
     # 任务列表展示表格
     $taskGridView = $null
 
-    # 获取任务列表展示表格当前选中的行，对应的序号
+    # 按任务名称查询任务配置的序号，任务名称为空或不存在时返回 -1
+    function Get-Task-Config-Index {
+        param([string]$TaskName)
+
+        if (-not $TaskName) { return -1 }
+        for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
+            if ([string]$taskConfigList[$i].name -eq $TaskName) {
+                return $i
+            }
+        }
+        return -1
+    }
+
+    # 获取任务列表展示表格当前选中的行，按行 Tag 中记录的任务名称反查任务配置的序号
     function Get-Selected-Task-Index {
         if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
-        return $taskGridView.SelectedRows[0].Index
+        return (Get-Task-Config-Index -TaskName ([string]$taskGridView.SelectedRows[0].Tag))
     }
 
     # 任务运行实例列表
@@ -693,7 +717,7 @@ try {
                 process = $null
                 status = $ui.StatusNotStarted
                 logViewContent = [System.Text.StringBuilder]::new()
-                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
+                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + '.log')
                 logFileWriter = $null
                 logViewTextBox = $null
                 StandardOutputReader = $null
@@ -718,7 +742,7 @@ try {
                 $taskName = $task.name
 
                 $statusText = $ui.StatusNotStarted
-                $pidText = ""
+                $pidText = ''
                 $execution = Get-Task-Execution -TaskName ([string]$taskName)
                 if ($execution.status) {
                     $statusText = $execution.status
@@ -727,7 +751,9 @@ try {
                     $pidText = [string]$execution.process.Id
                 }
 
-                $taskGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, [string]$task.workingDirectory) | Out-Null
+                $rowIndex = $taskGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, [string]$task.workingDirectory)
+                # 每行记录对应的任务名称，后续所有操作按 Tag 反查任务名称，不依赖行的显示顺序
+                $taskGridView.Rows[$rowIndex].Tag = [string]$task.name
             }
         }
         finally {
@@ -743,20 +769,21 @@ try {
             return
         }
 
-        $index = -1
-        for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
-            if ([string]$taskConfigList[$i].name -eq $TaskName) {
-                $index = $i
+        # 按行 Tag 中记录的任务名称查找对应的行，不依赖行的显示顺序
+        $rowIndex = -1
+        for ($i = 0; $i -lt $taskGridView.Rows.Count; $i++) {
+            if ([string]$taskGridView.Rows[$i].Tag -eq $TaskName) {
+                $rowIndex = $i
                 break
             }
         }
-        if ($index -lt 0 -or $index -ge $taskGridView.Rows.Count) {
+        if ($rowIndex -lt 0) {
             return
         }
 
         # 直接用入参 $TaskName 查运行时条目（PowerShell 变量名不区分大小写，这里不能再用同名局部变量覆盖入参）
         $statusText = $ui.StatusNotStarted
-        $pidText = ""
+        $pidText = ''
         $execution = Get-Task-Execution -TaskName $TaskName
         if ($execution.status) {
             $statusText = $execution.status
@@ -765,8 +792,8 @@ try {
             $pidText = [string]$execution.process.Id
         }
 
-        $taskGridView.Rows[$index].Cells[0].Value = $statusText
-        $taskGridView.Rows[$index].Cells[1].Value = $pidText
+        $taskGridView.Rows[$rowIndex].Cells[0].Value = $statusText
+        $taskGridView.Rows[$rowIndex].Cells[1].Value = $pidText
     }
 
     # 新增任务日志：刷新内存缓存 + 日志文件 + 日志展示框，按 Level 决定颜色
@@ -775,7 +802,7 @@ try {
 
         if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
 
-        $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
+        $logLine = '[{0}] {1}' -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
 
         $execution = $taskExecutionMap[$TaskName]
         $execution.logViewContent.AppendLine($logLine) | Out-Null
@@ -813,7 +840,7 @@ try {
         }
     }
 
-    # 清空任务日志：清空内存缓存 + 日志展示框
+    # 清空任务日志显示：清空内存缓存 + 日志展示框，不影响磁盘上的完整日志文件
     function Clear-Task-Log-Internal {
         param([string]$TaskName)
 
@@ -857,7 +884,7 @@ try {
         $taskName = [string]$Task.name
         $execution = Get-Task-Execution -TaskName $taskName
         if ($execution.process -and -not $execution.process.HasExited) {
-            System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
+            System-Log ($ui.INFO_AlreadyRunning -f $taskName) 'Warning'
             return
         }
         if ($execution.process) {
@@ -883,10 +910,10 @@ try {
 
         # 根据文件扩展名，选择合适的启动方式，支持 .bat/.cmd/.ps1/.py 后缀
         $commandExtension = [System.IO.Path]::GetExtension($resolvedCommand).ToLower()
-        if ($commandExtension -eq ".bat" -or $commandExtension -eq ".cmd") {
+        if ($commandExtension -eq '.bat' -or $commandExtension -eq '.cmd') {
             $startInfo.FileName = $env:ComSpec
             $startInfo.Arguments = '/s /c ""' + $resolvedCommand + '" ' + $argumentText + '"'
-        } elseif ($commandExtension -eq ".ps1") {
+        } elseif ($commandExtension -eq '.ps1') {
             $powerShellExe = 'powershell.exe'
             $resolvedPowerShell = Get-Command $powerShellExe -ErrorAction SilentlyContinue
             if ($resolvedPowerShell -and $resolvedPowerShell.Source) {
@@ -894,7 +921,7 @@ try {
             }
             $startInfo.FileName = $powerShellExe
             $startInfo.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $resolvedCommand + '" ' + $argumentText
-        } elseif ($commandExtension -eq ".py") {
+        } elseif ($commandExtension -eq '.py') {
             $pythonExe = 'python.exe'
             $resolvedPython = Get-Command $pythonExe -ErrorAction SilentlyContinue
             if ($resolvedPython -and $resolvedPython.Source) {
@@ -909,7 +936,7 @@ try {
             $workingDirText = [System.IO.Path]::GetDirectoryName($resolvedCommand)
         }
         if (-not [System.IO.Directory]::Exists($workingDirText)) {
-            System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) "Error"
+            System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) 'Error'
             return
         }
 
@@ -927,7 +954,7 @@ try {
                 throw ($ui.ERROR_TaskStartFailed -f $taskName)
             }
         } catch {
-            System-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) "Error"
+            System-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) 'Error'
             return
         }
 
@@ -978,7 +1005,7 @@ try {
 
         Append-Task-Log -TaskName $taskName -Message $ui.LogTaskStart
         Update-Task-Grid-Row -TaskName $taskName
-        System-Log ($ui.INFO_Started -f $taskName, $process.Id) "Success"
+        System-Log ($ui.INFO_Started -f $taskName, $process.Id) 'Success'
     }
 
     # 释放任务的运行资源
@@ -1015,17 +1042,17 @@ try {
         $taskName = [string]$Task.name
         $execution = Get-Task-Execution -TaskName $taskName
         if (-not $execution.process) {
-            System-Log ($ui.INFO_NotStarted -f $taskName) "Warning"
+            System-Log ($ui.INFO_NotStarted -f $taskName) 'Warning'
             return
         }
         if ($execution.process.HasExited) {
-            System-Log ($ui.INFO_AlreadyStopped -f $taskName) "Warning"
+            System-Log ($ui.INFO_AlreadyStopped -f $taskName) 'Warning'
             return
         }
 
         try {
             $killInfo = [System.Diagnostics.ProcessStartInfo]::new()
-            $killInfo.FileName = "taskkill.exe"
+            $killInfo.FileName = 'taskkill.exe'
             $killInfo.Arguments = "/pid $($execution.process.Id) /t /f"
             $killInfo.UseShellExecute = $false
             $killInfo.CreateNoWindow = $true
@@ -1033,29 +1060,29 @@ try {
             if ($killProcess.WaitForExit(10000)) {
                 if ($killProcess.ExitCode -ne 0) {
                     if ($execution.process.HasExited) {
-                        System-Log ($ui.INFO_AlreadyStopped -f $taskName) "Warning"
+                        System-Log ($ui.INFO_AlreadyStopped -f $taskName) 'Warning'
                     } else {
-                        System-Log ($ui.ERROR_TaskStopFailed -f $taskName) "Error"
+                        System-Log ($ui.ERROR_TaskStopFailed -f $taskName) 'Error'
                         return
                     }
                 }
             } else {
-                System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) "Warning"
+                System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) 'Warning'
             }
         } catch {
-            System-Log ($ui.ERROR_TaskStopFailed -f $_.Exception.Message) "Error"
+            System-Log ($ui.ERROR_TaskStopFailed -f $_.Exception.Message) 'Error'
         } finally {
             if ($killProcess) { $killProcess.Dispose() }
         }
         if (-not $execution.process.WaitForExit(5000)) {
-            System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) "Warning"
+            System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) 'Warning'
             return
         }
 
         $execution.status = $ui.StatusStopped
         Release-Task-Resources -TaskName $taskName
         Update-Task-Grid-Row -TaskName $taskName
-        System-Log ($ui.INFO_Stopped -f $taskName) "Info"
+        System-Log ($ui.INFO_Stopped -f $taskName) 'Info'
         Append-Task-Log -TaskName $taskName -Message $ui.LogTaskStopManual
     }
 
@@ -1078,7 +1105,7 @@ try {
                     }
                     Release-Task-Resources -TaskName $taskName
                     Update-Task-Grid-Row -TaskName $taskName
-                    System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) "Warning"
+                    System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) 'Warning'
                     Append-Task-Log -TaskName $taskName -Message $taskEndMessage
                 }
             }
@@ -1097,7 +1124,7 @@ try {
         foreach ($task in $taskConfigList) {
             Start-Task -Task $task
         }
-        System-Log $ui.INFO_StartAllDone "Success"
+        System-Log $ui.INFO_StartAllDone 'Success'
     }
 
     # 停止全部任务
@@ -1105,7 +1132,7 @@ try {
         foreach ($task in $taskConfigList) {
             Stop-Task -Task $task
         }
-        System-Log $ui.INFO_StopAllDone "Info"
+        System-Log $ui.INFO_StopAllDone 'Info'
     }
 } catch {
     Handle-Exception $_
@@ -1123,8 +1150,8 @@ try {
     $mainForm.Text = $ui.FormTitle
     $mainForm.Size = [System.Drawing.Size]::new(1650, 950)
     $mainForm.MinimumSize = [System.Drawing.Size]::new(850, 650)
-    $mainForm.StartPosition = "CenterScreen"
-    $mainForm.Font = [System.Drawing.Font]::new("Microsoft YaHei", 10)
+    $mainForm.StartPosition = 'CenterScreen'
+    $mainForm.Font = [System.Drawing.Font]::new('Microsoft YaHei', 10)
     $mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
     $mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
     $mainForm.Opacity = 0
@@ -1188,7 +1215,7 @@ try {
     $trayFormat.Alignment = [System.Drawing.StringAlignment]::Center
     $trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
     $trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
-    $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
+    $trayGraphics.DrawString('M', $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
     try { $trayBrush.Dispose() } catch { }
     try { $trayFont.Dispose() } catch { }
     try { $trayFormat.Dispose() } catch { }
@@ -1235,7 +1262,7 @@ try {
     $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $trayExitItem.Text = $ui.TrayExit
     $trayExitItem.Add_Click({
-        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
+        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, 'YesNo', 'Question')
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         $script:mainFormRealExit = $true
         try { $trayIcon.Visible = $false } catch { }
@@ -1250,7 +1277,7 @@ try {
 
     # 标签页容器
     $tabControl = [System.Windows.Forms.TabControl]::new()
-    $tabControl.Dock = "Fill"
+    $tabControl.Dock = 'Fill'
     $tabControl.Padding = [System.Drawing.Point]::new(20, 10)
     $tabControl.Font = $mainForm.Font
     $mainForm.Controls.Add($tabControl)
@@ -1265,7 +1292,7 @@ try {
     $closeTabMenuItem.Add_Click({
         if (-not $tabControlCurrentTab -or $tabControlCurrentTab.IsDisposed) { return }
         $tabName = $tabControlCurrentTab.Name
-        if ($tabName.StartsWith("LogPage_")) {
+        if ($tabName.StartsWith('LogPage_')) {
             $taskName = $tabName.Substring(8)
             if ($taskExecutionMap.ContainsKey($taskName)) {
                 $script:taskExecutionMap[$taskName].logViewTextBox = $null
@@ -1299,7 +1326,7 @@ try {
     function Show-Task-Log-Viewer {
         param([string]$TaskName)
 
-        $logViewTabPageName = "LogPage_" + $TaskName
+        $logViewTabPageName = 'LogPage_' + $TaskName
         $existingLogViewTabPage = $tabControl.TabPages[$logViewTabPageName]
         if ($existingLogViewTabPage) {
             $tabControl.SelectedTab = $existingLogViewTabPage
@@ -1321,10 +1348,10 @@ try {
         $logViewTextBox.WordWrap = $false
         $logViewTextBox.Font = $mainForm.Font
         $logViewTextBox.DetectUrls = $false
-        $logViewTextBox.Dock = "Fill"
+        $logViewTextBox.Dock = 'Fill'
         $logViewTabPage.Controls.Add($logViewTextBox)
 
-        # 日志文本框右键菜单: 复制日志 / 清空日志 / 打开日志文件
+        # 日志文本框右键菜单: 复制日志 / 清空日志显示 / 打开完整日志文件
         $logViewContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
         $logViewCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
         $logViewCopyItem.Text = $ui.LogCopy
@@ -1333,14 +1360,14 @@ try {
             param($MenuItem, $EventArgs)
             $logViewTextBox = (Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)).logViewTextBox
             if ($null -eq $logViewTextBox -or $logViewTextBox.IsDisposed) {
-                System-Log $ui.INFO_NoLog "Warning"
+                System-Log $ui.INFO_NoLog 'Warning'
                 return
             }
             if ($logViewTextBox.Text.Length -gt 0) {
                 [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
-                System-Log $ui.INFO_LogCopied "Success"
+                System-Log $ui.INFO_LogCopied 'Success'
             } else {
-                System-Log $ui.INFO_NoLog "Warning"
+                System-Log $ui.INFO_NoLog 'Warning'
             }
         })
         $logViewClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -1357,10 +1384,10 @@ try {
             param($MenuItem, $EventArgs)
             $execution = Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)
             if ($execution.logFilePath -and [System.IO.File]::Exists($execution.logFilePath)) {
-                Start-Process "explorer.exe" -ArgumentList ('/select,"' + $execution.logFilePath + '"')
-                System-Log ($ui.INFO_LogOpened -f $execution.logFilePath) "Success"
+                Start-Process 'explorer.exe' -ArgumentList ('/select,"' + $execution.logFilePath + '"')
+                System-Log ($ui.INFO_LogOpened -f $execution.logFilePath) 'Success'
             } else {
-                System-Log $ui.INFO_NoLog "Warning"
+                System-Log $ui.INFO_NoLog 'Warning'
             }
         })
         $logViewContextMenu.Items.Add($logViewCopyItem) | Out-Null
@@ -1386,15 +1413,7 @@ try {
     function Edit-Task-Dialog {
         param([string]$TaskName = '')
 
-        $editIndex = -1
-        if ($TaskName) {
-            for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
-                if ([string]$taskConfigList[$i].name -eq $TaskName) {
-                    $editIndex = $i
-                    break
-                }
-            }
-        }
+        $editIndex = Get-Task-Config-Index -TaskName $TaskName
 
         # 如果修改的任务正在运行，保存后要重启任务
         $willRestart = $false
@@ -1409,8 +1428,8 @@ try {
         $dialogForm = [System.Windows.Forms.Form]::new()
         $dialogForm.Text = if ($editIndex -ge 0) { $ui.DialogEditTitle } else { $ui.DialogAddTitle }
         $dialogForm.Size = [System.Drawing.Size]::new(750, 550)
-        $dialogForm.FormBorderStyle = "FixedDialog"
-        $dialogForm.StartPosition = "CenterParent"
+        $dialogForm.FormBorderStyle = 'FixedDialog'
+        $dialogForm.StartPosition = 'CenterParent'
         $dialogForm.MaximizeBox = $false
         $dialogForm.MinimizeBox = $false
         $dialogForm.ShowInTaskbar = $false
@@ -1445,7 +1464,7 @@ try {
         $browseCommandButton.Text = $ui.DialogBrowseCommand
         $browseCommandButton.Location = [System.Drawing.Point]::new(584, 92)
         $browseCommandButton.Size = [System.Drawing.Size]::new(120, 42)
-        $browseCommandButton.FlatStyle = "Flat"
+        $browseCommandButton.FlatStyle = 'Flat'
         $browseCommandButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseCommandButton.ForeColor = [System.Drawing.Color]::Black
         $browseCommandButton.FlatAppearance.BorderSize = 0
@@ -1474,7 +1493,7 @@ try {
         $browseDirButton.Text = $ui.DialogBrowseDir
         $browseDirButton.Location = [System.Drawing.Point]::new(584, 212)
         $browseDirButton.Size = [System.Drawing.Size]::new(120, 42)
-        $browseDirButton.FlatStyle = "Flat"
+        $browseDirButton.FlatStyle = 'Flat'
         $browseDirButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseDirButton.ForeColor = [System.Drawing.Color]::Black
         $browseDirButton.FlatAppearance.BorderSize = 0
@@ -1504,7 +1523,7 @@ try {
         $dialogForm.Controls.Add($manualStartRadioButton)
 
         # 修改模式时填充原始值
-        $originalName = ""
+        $originalName = ''
         if ($editIndex -ge 0) {
             $task = $taskConfigList[$editIndex]
             $originalName = [string]$task.name
@@ -1521,43 +1540,38 @@ try {
         $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
         $okButton.Location = [System.Drawing.Point]::new(190, 400)
         $okButton.Size = [System.Drawing.Size]::new(180, 46)
-        $okButton.FlatStyle = "Flat"
+        $okButton.FlatStyle = 'Flat'
         $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
         $okButton.ForeColor = [System.Drawing.Color]::White
         $okButton.FlatAppearance.BorderSize = 0
         $okButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(71, 135, 193)
         $okButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
         $okButton.Add_Click({
-            $newName = $nameBox.Text.Trim()
             $newCommand = $commandBox.Text.Trim()
             $newArguments = $argumentsBox.Text.Trim()
             $newWorkingDir = $workingDirBox.Text.Trim()
 
-            # 任务名称：不能为空，不能包含任何无法作为 Windows 文件名的字符，不能重复
-            $invalidFileNameChars = [System.IO.Path]::GetInvalidFileNameChars()
-            if (-not $newName) {
-                [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NameEmpty, $ui.FormTitle, "OK", "Warning") | Out-Null
-                return
-            }
-            if ($newName.IndexOfAny($invalidFileNameChars) -ge 0) {
-                [System.Windows.Forms.MessageBox]::Show(($ui.ERROR_NameInvalid -f $newName), $ui.FormTitle, "OK", "Warning") | Out-Null
+            $newName = ''
+            $newNameError = Test-Task-Name -TaskName $nameBox.Text -ValidName ([ref]$newName)
+            if ($newNameError) {
+                [System.Windows.Forms.MessageBox]::Show($newNameError, $ui.FormTitle, 'OK', 'Warning') | Out-Null
                 return
             }
             if (-not $newCommand) {
-                [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandEmpty, $ui.FormTitle, "OK", "Warning") | Out-Null
+                [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandEmpty, $ui.FormTitle, 'OK', 'Warning') | Out-Null
                 return
             }
             for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
                 if ($i -eq $editIndex) { continue }
                 if ([string]$taskConfigList[$i].name -ieq $newName) {
-                    [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NameDuplicated -f $newName, $ui.FormTitle, "OK", "Warning") | Out-Null
+                    [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NameDuplicated -f $newName, $ui.FormTitle, 'OK', 'Warning') | Out-Null
                     return
                 }
             }
 
             $expandedCommand = [System.Environment]::ExpandEnvironmentVariables($newCommand)
             if ($expandedCommand -and -not [System.IO.File]::Exists($expandedCommand) -and -not (Get-Command $expandedCommand -ErrorAction SilentlyContinue)) {
-                $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandNotFound -f $expandedCommand, $ui.FormTitle, "YesNo", "Warning")
+                $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandNotFound -f $expandedCommand, $ui.FormTitle, 'YesNo', 'Warning')
                 if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) {
                     return
                 }
@@ -1565,7 +1579,7 @@ try {
             if ($newWorkingDir) {
                 $expandedDir = [System.Environment]::ExpandEnvironmentVariables($newWorkingDir)
                 if (-not [System.IO.Directory]::Exists($expandedDir)) {
-                    [System.Windows.Forms.MessageBox]::Show($ui.ERROR_WorkDirNotFound -f $expandedDir, $ui.FormTitle, "OK", "Warning") | Out-Null
+                    [System.Windows.Forms.MessageBox]::Show($ui.ERROR_WorkDirNotFound -f $expandedDir, $ui.FormTitle, 'OK', 'Warning') | Out-Null
                     return
                 }
             }
@@ -1582,7 +1596,7 @@ try {
                 if ($originalName -ine $newName -and $taskExecutionMap.ContainsKey($originalName)) {
                     $oldRuntime = $taskExecutionMap[$originalName]
                     # 移除旧的日志标签页
-                    $oldLogViewTabPageName = "LogPage_" + $originalName
+                    $oldLogViewTabPageName = 'LogPage_' + $originalName
                     $oldLogViewTabPage = $tabControl.TabPages[$oldLogViewTabPageName]
                     if ($oldLogViewTabPage) {
                         $tabControl.TabPages.Remove($oldLogViewTabPage)
@@ -1633,7 +1647,7 @@ try {
         $cancelButton.Text = $ui.DialogCancel
         $cancelButton.Location = [System.Drawing.Point]::new(384, 400)
         $cancelButton.Size = [System.Drawing.Size]::new(180, 46)
-        $cancelButton.FlatStyle = "Flat"
+        $cancelButton.FlatStyle = 'Flat'
         $cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $cancelButton.ForeColor = [System.Drawing.Color]::Black
         $cancelButton.FlatAppearance.BorderSize = 0
@@ -1679,7 +1693,7 @@ try {
     $dataGridView.DefaultCellStyle.Font = $mainForm.Font
     $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
     $dataGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
-    $dataGridView.Dock = "Fill"
+    $dataGridView.Dock = 'Fill'
     $dataGridView.ColumnCount = 6
     $dataGridView.Columns[0].Name = $ui.ColumnStatus
     $dataGridView.Columns[1].Name = $ui.ColumnPid
@@ -1699,6 +1713,10 @@ try {
     $dataGridView.Columns[4].MinimumWidth = $dataGridView.Columns[4].Width / 2
     $dataGridView.Columns[5].Width = 300
     $dataGridView.Columns[5].MinimumWidth = $dataGridView.Columns[5].Width / 2
+    # 禁用点击表头排序，保证行的显示顺序始终与任务配置的顺序一致（上移 / 下移依赖该顺序）
+    for ($i = 0; $i -lt $dataGridView.Columns.Count; $i++) {
+        $dataGridView.Columns[$i].SortMode = [System.Windows.Forms.DataGridViewColumnSortMode]::NotSortable
+    }
     $dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
     $dataGridView.MultiSelect = $false
     $dataGridView.Add_CellMouseDown({
@@ -1712,8 +1730,10 @@ try {
     # 双击行查看任务日志（直接调用，不经过右键菜单，避免菜单项禁用时失效）
     $dataGridView.Add_CellDoubleClick({
         param($EventSender, $EventArgs)
-        if ($EventArgs.RowIndex -lt 0 -or $EventArgs.RowIndex -ge $taskConfigList.Count) { return }
-        Show-Task-Log-Viewer -TaskName ([string]$taskConfigList[$EventArgs.RowIndex].name)
+        if ($EventArgs.RowIndex -lt 0 -or $EventArgs.RowIndex -ge $dataGridView.Rows.Count) { return }
+        $taskName = [string]$dataGridView.Rows[$EventArgs.RowIndex].Tag
+        if (-not $taskName) { return }
+        Show-Task-Log-Viewer -TaskName $taskName
     })
     $taskListTabPage.Controls.Add($dataGridView)
     $taskGridView = $dataGridView
@@ -1725,7 +1745,7 @@ try {
     $menuStartItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         Start-Task -Task $taskConfigList[$index]
@@ -1735,7 +1755,7 @@ try {
     $menuStopItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         Stop-Task -Task $taskConfigList[$index]
@@ -1745,7 +1765,7 @@ try {
     $menuRestartItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         Restart-Task -Task $taskConfigList[$index]
@@ -1755,7 +1775,7 @@ try {
     $menuViewLogItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         Show-Task-Log-Viewer -TaskName ([string]$taskConfigList[$index].name)
@@ -1765,7 +1785,7 @@ try {
     $menuMoveUpItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         if ($index -le 0) { return }
@@ -1782,7 +1802,7 @@ try {
     $menuMoveDownItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         if ($index -ge ($taskConfigList.Count - 1)) { return }
@@ -1810,14 +1830,14 @@ try {
     $menuEditItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         $task = $taskConfigList[$index]
         $taskName = [string]$task.name
         $execution = Get-Task-Execution -TaskName $taskName
         if ($execution.process -and -not $execution.process.HasExited) {
-            $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
+            $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, 'YesNo', 'Question')
             if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         }
         Edit-Task-Dialog -TaskName $taskName | Out-Null
@@ -1827,15 +1847,15 @@ try {
     $menuDeleteItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, "OK", "Information") | Out-Null
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
             return
         }
         $taskName = [string]$taskConfigList[$index].name
-        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmDelete -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
+        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmDelete -f $taskName, $ui.ConfirmTitle, 'YesNo', 'Question')
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         Stop-Task -Task $taskConfigList[$index]
         if ($taskExecutionMap.ContainsKey($taskName)) {
-            $logViewTabPageName = "LogPage_" + $taskName
+            $logViewTabPageName = 'LogPage_' + $taskName
             $logViewTabPage = $tabControl.TabPages[$logViewTabPageName]
             if ($logViewTabPage) {
                 $tabControl.TabPages.Remove($logViewTabPage)
@@ -1850,7 +1870,7 @@ try {
         $script:taskConfigList = $newTasks
         Save-Config
         Update-Task-Grid
-        System-Log ($ui.INFO_Deleted -f $taskName) "Info"
+        System-Log ($ui.INFO_Deleted -f $taskName) 'Info'
     })
     foreach ($item in @(
         $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
@@ -1906,19 +1926,19 @@ try {
     $logTextBox.Font = $mainForm.Font
     $logTextBox.DetectUrls = $false
     $logTextBox.WordWrap = $false
-    $logTextBox.Dock = "Fill"
+    $logTextBox.Dock = 'Fill'
     $logTabPage.Controls.Add($logTextBox)
     $systemLogTextBox = $logTextBox
 
-    # 系统日志的右键菜单：复制日志 / 清空日志
+    # 系统日志的右键菜单：复制日志 / 清空日志显示
     $copyLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $copyLogMenuItem.Text = $ui.LogCopy
     $copyLogMenuItem.Add_Click({
         if ($logTextBox.Text.Length -gt 0) {
             [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
-            System-Log $ui.INFO_LogCopied "Success"
+            System-Log $ui.INFO_LogCopied 'Success'
         } else {
-            System-Log $ui.INFO_NoLog "Warning"
+            System-Log $ui.INFO_NoLog 'Warning'
         }
     })
     $clearLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -1957,7 +1977,7 @@ try {
 
 try {
     # 加载配置文件
-    System-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) "Info"
+    System-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) 'Info'
     Load-Config | Out-Null
 
     # 程序启动
