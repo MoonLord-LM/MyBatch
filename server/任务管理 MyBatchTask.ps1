@@ -669,8 +669,27 @@ try {
     }
 
     # 任务运行实例列表
-    # 任务名 → @{ process; status; logViewContent; logFilePath; logFileWriter; logViewTextBox }
     $taskExecutionMap = @{}
+
+    # 获取任务的运行实例，不存在时自动创建
+    function Get-Task-Execution {
+        param([string]$TaskName)
+
+        if (-not $taskExecutionMap.ContainsKey($TaskName)) {
+            $taskExecutionMap[$TaskName] = @{
+                process = $null
+                status = $ui.StatusNotStarted
+                logViewContent = [System.Text.StringBuilder]::new()
+                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
+                logFileWriter = $null
+                logViewTextBox = $null
+                StandardOutputReader = $null
+                StandardErrorReader = $null
+                RunspacePool = $null
+            }
+        }
+        return $taskExecutionMap[$TaskName]
+    }
 
     # 刷新任务列表展示表格，刷新全部
     function Update-Task-Grid {
@@ -687,14 +706,12 @@ try {
 
                 $statusText = $ui.StatusNotStarted
                 $pidText = ""
-                if ($taskExecutionMap.ContainsKey([string]$taskName)) {
-                    $execution = $taskExecutionMap[[string]$taskName]
-                    if ($execution.status) {
-                        $statusText = $execution.status
-                    }
-                    if ($execution.process -and -not $execution.process.HasExited) {
-                        $pidText = [string]$execution.process.Id
-                    }
+                $execution = Get-Task-Execution -TaskName ([string]$taskName)
+                if ($execution.status) {
+                    $statusText = $execution.status
+                }
+                if ($execution.process -and -not $execution.process.HasExited) {
+                    $pidText = [string]$execution.process.Id
                 }
 
                 $taskGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, [string]$task.workingDirectory) | Out-Null
@@ -723,14 +740,12 @@ try {
         # 直接用入参 $TaskName 查运行时条目（PowerShell 变量名不区分大小写，这里不能再用同名局部变量覆盖入参）
         $statusText = $ui.StatusNotStarted
         $pidText = ""
-        if ($taskExecutionMap.ContainsKey([string]$TaskName)) {
-            $execution = $taskExecutionMap[[string]$TaskName]
-            if ($execution.status) {
-                $statusText = $execution.status
-            }
-            if ($execution.process -and -not $execution.process.HasExited) {
-                $pidText = [string]$execution.process.Id
-            }
+        $execution = Get-Task-Execution -TaskName $TaskName
+        if ($execution.status) {
+            $statusText = $execution.status
+        }
+        if ($execution.process -and -not $execution.process.HasExited) {
+            $pidText = [string]$execution.process.Id
         }
 
         $taskGridView.Rows[$index].Cells[0].Value = $statusText
@@ -778,7 +793,7 @@ try {
     }
 
     # 任务日志的异步队列，字段：{ TaskName; Message; Level }
-    $script:taskLogAppendQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
+    $taskLogAppendQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
 
     # 新增任务日志，投递到异步队列
     function Append-Task-Log {
@@ -800,15 +815,13 @@ try {
 
         if ($null -eq $Task) { return }
         $taskName = [string]$Task.name
-        if ($taskExecutionMap.ContainsKey($taskName)) {
-            $execution = $taskExecutionMap[$taskName]
-            if ($execution.process -and -not $execution.process.HasExited) {
-                System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
-                return
-            }
-            if ($execution.process) {
-                Release-Task-Resources -TaskName $taskName
-            }
+        $execution = Get-Task-Execution -TaskName $taskName
+        if ($execution.process -and -not $execution.process.HasExited) {
+            System-Log ($ui.INFO_AlreadyRunning -f $taskName) "Warning"
+            return
+        }
+        if ($execution.process) {
+            Release-Task-Resources -TaskName $taskName
         }
 
         $commandText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.command)
@@ -878,20 +891,7 @@ try {
             return
         }
 
-        if (-not $taskExecutionMap.ContainsKey($taskName)) {
-            $script:taskExecutionMap[$taskName] = @{
-                process = $null
-                status = $ui.StatusNotStarted
-                logViewContent = [System.Text.StringBuilder]::new()
-                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $taskName + ".log")
-                logFileWriter = $null
-                logViewTextBox = $null
-                StandardOutputReader = $null
-                StandardErrorReader = $null
-                RunspacePool = $null
-            }
-        }
-        $execution = $taskExecutionMap[$taskName]
+        $execution = Get-Task-Execution -TaskName $taskName
         $execution.process = $process
         $execution.status = $ui.StatusRunning
         if ($execution.logFileWriter) {
@@ -1026,8 +1026,7 @@ try {
         for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
             $task = $taskConfigList[$i]
             $taskName = [string]$task.name
-            if (-not $taskExecutionMap.ContainsKey($taskName)) { continue }
-            $execution = $taskExecutionMap[$taskName]
+            $execution = Get-Task-Execution -TaskName $taskName
 
             if (-not $execution.process) { continue }
             if ($execution.status -eq $ui.StatusRunning) {
@@ -1251,36 +1250,18 @@ try {
         }
     })
 
-    ### TODO 以下代码待审核：
-
-    # 任务日志标签页
-    # 打开任务日志标签页（已存在则直接切换）
+    # 打开任务日志标签页，不存在时创建，已存在则直接切换
     function Show-Task-Log-Viewer {
         param([string]$TaskName)
 
-        if ([string]::IsNullOrEmpty($TaskName)) { return }
         $logViewTabPageName = "LogPage_" + $TaskName
-        # 已存在则直接切换
         $existingLogViewTabPage = $tabControl.TabPages[$logViewTabPageName]
         if ($existingLogViewTabPage) {
             $tabControl.SelectedTab = $existingLogViewTabPage
             return
         }
-        # 确保运行时条目存在
-        if (-not $taskExecutionMap.ContainsKey($TaskName)) {
-            $script:taskExecutionMap[$TaskName] = @{
-                process = $null
-                status = $ui.StatusNotStarted
-                logViewContent = [System.Text.StringBuilder]::new()
-                logFileWriter = $null
-                logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + ".log")
-                logViewTextBox = $null
-                StandardOutputReader = $null
-                StandardErrorReader = $null
-                RunspacePool = $null
-            }
-        }
-        $execution = $taskExecutionMap[$TaskName]
+
+        $execution = Get-Task-Execution -TaskName $TaskName
         # 新建日志标签页
         $logViewTabPage = [System.Windows.Forms.TabPage]::new()
         $logViewTabPage.Name = $logViewTabPageName
@@ -1755,10 +1736,8 @@ try {
         $task = $taskConfigList[$index]
         $taskName = [string]$task.name
         $isRunning = $false
-        if ($taskExecutionMap.ContainsKey($taskName)) {
-            $execution = $taskExecutionMap[$taskName]
-            if ($execution.process -and -not $execution.process.HasExited) { $isRunning = $true }
-        }
+        $execution = Get-Task-Execution -TaskName $taskName
+        if ($execution.process -and -not $execution.process.HasExited) { $isRunning = $true }
         $needRestart = $false
         if ($isRunning) {
             $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
