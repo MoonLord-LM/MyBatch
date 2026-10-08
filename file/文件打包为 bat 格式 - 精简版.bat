@@ -8,12 +8,11 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将单个 ps1 bat exe 文件转换为 bat 脚本，双击生成的 bat 脚本，即可运行原来的文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '转换方式：先清理注释、空行和多余的换行，再用 gzip 压缩后转换为 Base64 编码嵌入 bat 文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host 'exe 文件属于二进制文件，不清理内容，直接压缩后嵌入 bat 文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '在源文件所在的文件夹，生成名称带有 .min 的 bat 文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时自动改用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '这种方式的体积最小，但是清理代码的规则比较简单，转换完成后请务必运行测试' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将单个 ps1 / bat / exe 文件，打包转换为 bat 脚本' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并执行' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '处理方式：清理源文件的注释和空行等，将内容压缩后，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '由于清理了源文件的注释和空行等，有可能会影响执行效果' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果输出 bat 文件已存在，则跳过不处理' -ForegroundColor Green"
 echo.
@@ -25,7 +24,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
 
-REM 检查 7-Zip 组件，找不到时自动改用 PowerShell 内置的 GZipStream 压缩
+REM 检查 7-Zip 组件（可选）
 if exist "!script_dir!7za.exe" (
     set "seven_zip=!script_dir!7za.exe"
 ) else if exist "!cd!\7za.exe" (
@@ -120,9 +119,7 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
-    REM 清理注释行、空行、行首尾的空格，并把上一行结尾为 { 或本行开头为 } 的代码合并到上一行，保存到临时文件
-    REM ps1 文件的注释为 # 开头，bat 文件的注释为 REM 或 :: 开头，exe 文件为二进制文件，直接复制不清理
-    REM 统一保存为 UTF-8 编码，ps1 文件为带 BOM 的编码，bat 文件为不带 BOM 的编码
+    REM exe 文件为二进制文件，直接复制；ps1 文件统一保存为带 BOM 的 UTF-8 编码；bat 文件统一保存为不带 BOM 的 UTF-8 编码
     set "temp_payload=%temp%\MyBatch_%random%_%random%_%random%_%random%!payload_ext!" & type nul > "!temp_payload!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
@@ -157,7 +154,7 @@ for %%i in ("!input_file!") do (
         "    };" ^
         "    $enc = New-Object System.Text.UTF8Encoding($true);" ^
         "    [System.IO.File]::WriteAllLines($env:temp_payload, $out, $enc);" ^
-        "} else {" ^
+        "} elseif ($ext -eq '.bat') {" ^
         "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
         "    $out = New-Object System.Collections.Generic.List[string];" ^
         "    foreach ($line in $lines) {" ^
@@ -174,7 +171,7 @@ for %%i in ("!input_file!") do (
         "    [System.IO.File]::WriteAllLines($env:temp_payload, $out, $enc);" ^
         "};"
     if !errorlevel! neq 0 (
-        echo 错误：清理注释和换行失败："!input_file!"
+        echo 错误：获取源文件失败："!input_file!"
         echo.
         if exist "!temp_payload!" ( del /f /q "!temp_payload!" )
         pause
