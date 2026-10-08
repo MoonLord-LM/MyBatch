@@ -895,7 +895,6 @@ try {
             return
         }
 
-        $execution = Get-Task-Execution -TaskName $taskName
         $execution.process = $process
         $execution.status = $ui.StatusRunning
         if ($execution.logFileWriter) {
@@ -1306,7 +1305,7 @@ try {
         $logViewOpenItem.Add_Click({
             System-Log $execution.logFilePath
             if ($execution.logFilePath -and [System.IO.File]::Exists($execution.logFilePath)) {
-                Start-Process "explorer.exe" -ArgumentList ('"' + $execution.logFilePath + '"')
+                Start-Process "explorer.exe" -ArgumentList ('/select,"' + $execution.logFilePath + '"')
                 System-Log ($ui.INFO_LogOpened -f $execution.logFilePath) "Success"
             } else {
                 System-Log $ui.INFO_NoLog "Warning"
