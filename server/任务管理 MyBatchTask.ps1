@@ -307,6 +307,7 @@ try {
             INFO_Stopped = "任务已停止: {0}"
             INFO_Exited = "任务已退出: {0} (退出码 {1})"
             INFO_AlreadyRunning = "任务已在运行中: {0}"
+            INFO_NotStarted = "任务尚未启动: {0}"
             INFO_AlreadyStopped = "任务已处于停止状态: {0}"
             INFO_Deleted = "任务已删除: {0}"
             INFO_Saved = "配置已保存到 {0}"
@@ -333,12 +334,15 @@ try {
             DialogBrowseCommandTitle = "选择命令文件"
             DialogBrowseDirTitle = "选择工作目录"
             DialogExeFilter = "可执行文件 (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|所有文件 (*.*)|*.*"
-            DialogOk = "确定"
+            DialogSave = "保存"
+            DialogSaveRestart = "保存并重启任务"
             DialogCancel = "取消"
             FileFilterLog = "日志文件 (*.log)|*.log|所有文件 (*.*)|*.*"
             CloseTab = "关闭标签页"
             LogTaskStart = "———————————— 开始新进程 ————————————————"
-            LogTaskEnd = "———————————— 结束进程，退出码 {0} ————————————————"
+            LogTaskEndNormal = "———————————— 正常退出进程 ————————————————"
+            LogTaskEndError = "———————————— 异常结束进程，错误码 {0} ————————————————"
+            LogTaskStopManual = "———————————— 手动结束进程 ————————————————"
         }
         'en-US' = @{
             FormTitle = "MyBatchTask Batch Task Manager"
@@ -403,6 +407,7 @@ try {
             INFO_Stopped = "Task stopped: {0}"
             INFO_Exited = "Task exited: {0} (exit code {1})"
             INFO_AlreadyRunning = "Task is already running: {0}"
+            INFO_NotStarted = "Task has not started: {0}"
             INFO_AlreadyStopped = "Task is already stopped: {0}"
             INFO_Deleted = "Task deleted: {0}"
             INFO_Saved = "Configuration saved to {0}"
@@ -429,12 +434,15 @@ try {
             DialogBrowseCommandTitle = "Select Command File"
             DialogBrowseDirTitle = "Select Working Directory"
             DialogExeFilter = "Executable files (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|All files (*.*)|*.*"
-            DialogOk = "OK"
+            DialogSave = "Save"
+            DialogSaveRestart = "Save and Restart Task"
             DialogCancel = "Cancel"
             FileFilterLog = "Log files (*.log)|*.log|All files (*.*)|*.*"
             CloseTab = "Close Tab"
             LogTaskStart = "———————————— Start new process ————————————————"
-            LogTaskEnd = "———————————— End process, exit code {0} ————————————————"
+            LogTaskEndNormal = "———————————— Process finished normally ————————————————"
+            LogTaskEndError = "———————————— Process exited abnormally, error code {0} ————————————————"
+            LogTaskStopManual = "———————————— Manual stop process ————————————————"
         }
     }
     $ui = $uiTextResources[$workingLanguage]
@@ -769,6 +777,8 @@ try {
         try {
             if ($execution.logFileWriter) {
                 $execution.logFileWriter.WriteLine($logLine)
+            } elseif ($execution.logFilePath) {
+                [System.IO.File]::AppendAllText($execution.logFilePath, $logLine + "`r`n", $workingEncoding)
             }
         } catch {
             Handle-Exception $_
@@ -917,10 +927,6 @@ try {
 
         $execution.process = $process
         $execution.status = $ui.StatusRunning
-        if ($execution.logFileWriter) {
-            try { $execution.logFileWriter.Dispose() } catch {}
-            $execution.logFileWriter = $null
-        }
         try {
             $logFileStream = [System.IO.File]::Open($execution.logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
             $execution.logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
@@ -1001,9 +1007,12 @@ try {
 
         if ($null -eq $Task) { return }
         $taskName = [string]$Task.name
-        if (-not $taskExecutionMap.ContainsKey($taskName)) { return }
-        $execution = $taskExecutionMap[$taskName]
-        if (-not $execution.process -or $execution.process.HasExited) {
+        $execution = Get-Task-Execution -TaskName $taskName
+        if (-not $execution.process) {
+            System-Log ($ui.INFO_NotStarted -f $taskName) "Warning"
+            return
+        }
+        if ($execution.process.HasExited) {
             System-Log ($ui.INFO_AlreadyStopped -f $taskName) "Warning"
             return
         }
@@ -1041,7 +1050,7 @@ try {
         Release-Task-Resources -TaskName $taskName
         Update-Task-Grid-Row -TaskName $taskName
         System-Log ($ui.INFO_Stopped -f $taskName) "Info"
-        Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $execution.process.ExitCode)
+        Append-Task-Log -TaskName $taskName -Message $ui.LogTaskStopManual
     }
 
     # 监视任务状态：如果进程退出，更新状态并释放相关资源
@@ -1056,13 +1065,15 @@ try {
                 if ($execution.process.HasExited) {
                     if ($execution.process.ExitCode -eq 0) {
                         $execution.status = $ui.StatusExited
+                        $taskEndMessage = ($ui.LogTaskEndNormal -f $execution.process.ExitCode)
                     } else {
                         $execution.status = $ui.StatusExitedError
+                        $taskEndMessage = ($ui.LogTaskEndError -f $execution.process.ExitCode)
                     }
                     Release-Task-Resources -TaskName $taskName
                     Update-Task-Grid-Row -TaskName $taskName
                     System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) "Warning"
-                    Append-Task-Log -TaskName $taskName -Message ($ui.LogTaskEnd -f $execution.process.ExitCode)
+                    Append-Task-Log -TaskName $taskName -Message $taskEndMessage
                 }
             }
         }
@@ -1365,6 +1376,14 @@ try {
     # 打开新增/修改任务的对话框，返回 DialogResult
     function Open-Task-Dialog {
         param([int]$EditIndex = -1)
+        # 修改的任务正在运行时，保存后会重启，确定按钮据此显示不同的文案
+        $willRestart = $false
+        if ($EditIndex -ge 0 -and $EditIndex -lt $taskConfigList.Count) {
+            $editExecution = Get-Task-Execution -TaskName ([string]$taskConfigList[$EditIndex].name)
+            if ($editExecution.process -and -not $editExecution.process.HasExited) {
+                $willRestart = $true
+            }
+        }
         # 对话框窗体
         $dialogForm = [System.Windows.Forms.Form]::new()
         if ($EditIndex -ge 0) {
@@ -1441,9 +1460,9 @@ try {
         $dialogForm.Controls.Add($autoStartBox)
         # 确定和取消按钮
         $okButton = [System.Windows.Forms.Button]::new()
-        $okButton.Text = $ui.DialogOk
-        $okButton.Location = [System.Drawing.Point]::new(444, 478)
-        $okButton.Size = [System.Drawing.Size]::new(130, 36)
+        $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
+        $okButton.Location = [System.Drawing.Point]::new(414, 478)
+        $okButton.Size = [System.Drawing.Size]::new(160, 36)
         $okButton.FlatStyle = "Flat"
         $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
         $okButton.ForeColor = [System.Drawing.Color]::White
@@ -1761,7 +1780,7 @@ try {
         $dataGridView.Rows[$index + 1].Selected = $true
         $dataGridView.CurrentCell = $dataGridView.Rows[$index + 1].Cells[0]
     })
-    # 右键菜单: 修改任务（运行中则先停止，保存后再启动）
+    # 右键菜单: 修改任务（不保存则什么都不做，保存后如果任务原本在运行就重启）
     $menuEditItem.Add_Click({
         $index = Get-Selected-Task-Index
         if ($index -lt 0) {
@@ -1773,17 +1792,16 @@ try {
         $isRunning = $false
         $execution = Get-Task-Execution -TaskName $taskName
         if ($execution.process -and -not $execution.process.HasExited) { $isRunning = $true }
-        $needRestart = $false
         if ($isRunning) {
             $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
             if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
-            Stop-Task -Task $task
-            $needRestart = $true
         }
         $result = Open-Task-Dialog -EditIndex $index
-        if ($needRestart -and $result -eq [System.Windows.Forms.DialogResult]::OK) {
-            # 任务可能在对话框里被改配置，这里重新取一次修改后的任务配置
-            Start-Task -Task $taskConfigList[$index]
+        # 取消保存时保持原状，任务继续运行
+        if ($result -ne [System.Windows.Forms.DialogResult]::OK) { return }
+        if ($isRunning) {
+            # 任务可能在对话框里被改配置，这里重新取一次修改后的任务配置，再重启让新配置生效
+            Restart-Task -Task $taskConfigList[$index]
         }
     })
     # 右键菜单: 删除任务
@@ -1798,7 +1816,6 @@ try {
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         Stop-Task -Task $taskConfigList[$index]
         if ($taskExecutionMap.ContainsKey($taskName)) {
-            $execution = $taskExecutionMap[$taskName]
             # 移除对应的日志标签页
             $logViewTabPageName = "LogPage_" + $taskName
             $logViewTabPage = $tabControl.TabPages[$logViewTabPageName]
@@ -1806,9 +1823,7 @@ try {
                 $tabControl.TabPages.Remove($logViewTabPage)
                 $logViewTabPage.Dispose()
             }
-            if ($execution.logFileWriter) {
-                try { $execution.logFileWriter.Dispose() } catch {}
-            }
+            # Stop-Task 已经保证运行资源被释放，这里直接移除运行实例
             $taskExecutionMap.Remove($taskName) | Out-Null
         }
         $newTasks = @()
