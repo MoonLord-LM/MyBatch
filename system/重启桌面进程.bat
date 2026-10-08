@@ -14,6 +14,33 @@ echo.
 
 
 
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    cd /d "!script_dir!"
+)
+
+REM 获取系统管理员权限
+net file >nul 2>&1
+if !errorlevel! equ 0 (
+    powershell -NoProfile -Command "Write-Host '已获取系统管理员权限' -ForegroundColor Green"
+    echo.
+) else (
+    powershell -NoProfile -Command "Write-Host '需要系统管理员权限，请确认……' -ForegroundColor Green"
+    echo.
+    setlocal disabledelayedexpansion
+    powershell start -verb "RunAs" "%~f0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9" >nul 2>&1
+    endlocal
+    if !errorlevel! neq 0 (
+        powershell -NoProfile -Command "Write-Host '错误：获取系统管理员权限失败' -ForegroundColor Red"
+        echo.
+        pause
+        exit /b 1
+    )
+    exit /b
+)
+
+
+
 set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
 
 echo 正在记录已打开的文件夹窗口
