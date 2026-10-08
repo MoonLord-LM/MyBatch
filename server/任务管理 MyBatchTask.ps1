@@ -26,8 +26,8 @@
 #     name 任务名称（唯一）
 #     command 命令或脚本路径
 #     arguments 参数
-#     workingDirectory 工作目录（默认为脚本目录）
-#     autoStart 管理器启动时自动运行（默认 true）
+#     workingDirectory 工作目录
+#     autoStart 管理器启动时是否自动运行
 #     command / arguments / workingDirectory 三个字段都支持 %SystemRoot% 这类环境变量，运行时自动展开
 #
 # 运行方式：
@@ -1243,9 +1243,9 @@ try {
         $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         $script:mainFormRealExit = $true
-        $trayIcon.Visible = $false
-        Stop-All-Tasks
-        $mainForm.Close()
+        try { $trayIcon.Visible = $false } catch { }
+        try { $trayIcon.Dispose() } catch { }
+        try { $mainForm.Close() } catch { }
     })
     $trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {
@@ -1968,9 +1968,11 @@ try {
     # 程序启动
     [System.Windows.Forms.Application]::Run($mainForm)
 
-    # 结束后，销毁托盘图标
+    # 结束后清理资源
     try { $trayIcon.Visible = $false } catch { }
     try { $trayIcon.Dispose() } catch { }
+    try { $mainForm.Hide() } catch { }
+    try { $mainForm.Close() } catch { }
 
     # 停止任务，并确保日志处理完成
     Stop-All-Tasks
