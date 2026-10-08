@@ -265,6 +265,7 @@ for %%i in ("!input_file!") do (
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
         "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT_NAME__', $env:payload_ext.TrimStart('.'));" ^
         "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT__', $env:payload_ext);" ^
+        "    $code[$i] = $code[$i].Replace('__PAYLOAD_NAME_EXT__', $env:file_name_ext);" ^
         "    $code[$i] = $code[$i].Replace('__BEGIN_MARKER__', $env:begin_marker);" ^
         "    $code[$i] = $code[$i].Replace('__END_MARKER__', $env:end_marker);" ^
         "};" ^
@@ -321,6 +322,7 @@ exit /b
 chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+set "payload_name_ext=__PAYLOAD_NAME_EXT__"
 setlocal enabledelayedexpansion
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
@@ -341,7 +343,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 set "payload_ext=__PAYLOAD_EXT__"
 set "begin_marker=__BEGIN_MARKER__"
 set "end_marker=__END_MARKER__"
-set "temp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%!payload_ext!"
+set "temp_file=%temp%\!payload_name_ext!"
 
 REM 从自身文件末尾的 __BEGIN_MARKER__ / __END_MARKER__ 之间提取 Base64 编码内容，解码解压还原为 __PAYLOAD_EXT_NAME__ 文件
 powershell -NoProfile -Command ^
