@@ -249,8 +249,9 @@ for %%i in ("!input_file!") do (
 
     REM 从自身文件末尾的 -----BEGIN BATCH CODE----- / -----END BATCH CODE----- 之间提取 bat 代码原样写入，统一保存为不带 BOM 的 UTF-8 编码
     REM 这样生成的 bat 代码里的 ! 和 ^ 和 % 等符号，都不需要转义处理
-    set "begin_marker=REM -----BEGIN PAYLOAD ZIP-----"
-    set "end_marker=REM -----END PAYLOAD ZIP-----"
+    REM 生成的 bat 文件中，Base64 编码内容的开始标记和结束标记
+    set "begin_marker=-----BEGIN BATCH CODE-----"
+    set "end_marker=-----END BATCH CODE-----"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
