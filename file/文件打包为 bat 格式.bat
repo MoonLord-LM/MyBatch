@@ -49,7 +49,7 @@ if not "!seven_zip!"=="" (
 
 set "input_file=!param1_path!"
 
-::input_file
+REM input_file
     if "!input_file!"=="" (
         echo 请输入要转换的 ps1 bat exe 文件的路径
         set /p "input_file="
