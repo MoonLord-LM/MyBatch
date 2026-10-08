@@ -1,4 +1,4 @@
-# MyBatchTask 批处理任务管理器
+﻿# MyBatchTask 批处理任务管理器
 #
 # 开源地址: https://github.com/MoonLord-LM/MyBatch
 #
