@@ -1372,25 +1372,32 @@ try {
         $tabControl.SelectedTab = $logViewTabPage
     }
 
-    # 任务编辑对话框
-    # 打开新增/修改任务的对话框，返回 DialogResult
-    function Open-Task-Dialog {
-        param([int]$EditIndex = -1)
-        # 修改的任务正在运行时，保存后会重启，确定按钮据此显示不同的文案
+    # 新增/修改任务的对话框，指定 $TaskName 参数时修改，不指定参数时新增，返回 DialogResult
+    function Edit-Task-Dialog {
+        param([string]$TaskName = '')
+
+        $editIndex = -1
+        if ($TaskName) {
+            for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
+                if ([string]$taskConfigList[$i].name -eq $TaskName) {
+                    $editIndex = $i
+                    break
+                }
+            }
+        }
+
+        # 如果修改的任务正在运行，保存后要重启任务
         $willRestart = $false
-        if ($EditIndex -ge 0 -and $EditIndex -lt $taskConfigList.Count) {
-            $editExecution = Get-Task-Execution -TaskName ([string]$taskConfigList[$EditIndex].name)
+        if ($editIndex -ge 0) {
+            $editExecution = Get-Task-Execution -TaskName $TaskName
             if ($editExecution.process -and -not $editExecution.process.HasExited) {
                 $willRestart = $true
             }
         }
+
         # 对话框窗体
         $dialogForm = [System.Windows.Forms.Form]::new()
-        if ($EditIndex -ge 0) {
-            $dialogForm.Text = $ui.DialogEditTitle
-        } else {
-            $dialogForm.Text = $ui.DialogAddTitle
-        }
+        $dialogForm.Text = if ($editIndex -ge 0) { $ui.DialogEditTitle } else { $ui.DialogAddTitle }
         $dialogForm.Size = [System.Drawing.Size]::new(750, 550)
         $dialogForm.FormBorderStyle = "FixedDialog"
         $dialogForm.StartPosition = "CenterParent"
@@ -1420,7 +1427,7 @@ try {
         # 任务名称
         New-Dialog-Label $ui.DialogName 36
         $nameBox = New-Dialog-TextBox 36
-        # 命令
+        # 任务命令
         New-Dialog-Label $ui.DialogCommand 96
         $commandBox = New-Dialog-TextBox 96
         $browseCommandButton = [System.Windows.Forms.Button]::new()
@@ -1433,11 +1440,23 @@ try {
         $browseCommandButton.FlatAppearance.BorderSize = 0
         $browseCommandButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
         $browseCommandButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
+        $browseCommandButton.Add_Click({
+            $fileDialog = [System.Windows.Forms.OpenFileDialog]::new()
+            $fileDialog.Filter = $ui.DialogExeFilter
+            $fileDialog.Title = $ui.DialogBrowseCommandTitle
+            $fileDialog.InitialDirectory = $workingDirectory
+            if ($fileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                $commandBox.Text = $fileDialog.FileName
+                if (-not $workingDirBox.Text) {
+                    $workingDirBox.Text = Split-Path -Parent $fileDialog.FileName
+                }
+            }
+        })
         $dialogForm.Controls.Add($browseCommandButton)
-        # 参数
+        # 任务参数
         New-Dialog-Label $ui.DialogArguments 156
         $argumentsBox = New-Dialog-TextBox 156
-        # 工作目录
+        # 任务工作目录
         New-Dialog-Label $ui.DialogWorkingDir 216
         $workingDirBox = New-Dialog-TextBox 216
         $browseDirButton = [System.Windows.Forms.Button]::new()
@@ -1450,15 +1469,23 @@ try {
         $browseDirButton.FlatAppearance.BorderSize = 0
         $browseDirButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
         $browseDirButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
+        $browseDirButton.Add_Click({
+            $folderDialog = [System.Windows.Forms.FolderBrowserDialog]::new()
+            $folderDialog.Description = $ui.DialogBrowseDirTitle
+            $folderDialog.SelectedPath = $workingDirectory
+            if ($folderDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
+                $workingDirBox.Text = $folderDialog.SelectedPath
+            }
+        })
         $dialogForm.Controls.Add($browseDirButton)
-        # 自动启动
+        # 任务是否自动启动
         $autoStartBox = [System.Windows.Forms.CheckBox]::new()
         $autoStartBox.Text = $ui.DialogAutoStart
         $autoStartBox.Location = [System.Drawing.Point]::new(146, 276)
         $autoStartBox.Size = [System.Drawing.Size]::new(400, 28)
         $autoStartBox.Checked = $true
         $dialogForm.Controls.Add($autoStartBox)
-        # 确定和取消按钮
+        # 确定按钮
         $okButton = [System.Windows.Forms.Button]::new()
         $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
         $okButton.Location = [System.Drawing.Point]::new(414, 478)
@@ -1470,6 +1497,7 @@ try {
         $okButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(71, 135, 193)
         $okButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
         $dialogForm.Controls.Add($okButton)
+        # 取消按钮
         $cancelButton = [System.Windows.Forms.Button]::new()
         $cancelButton.Text = $ui.DialogCancel
         $cancelButton.Location = [System.Drawing.Point]::new(584, 478)
@@ -1483,32 +1511,11 @@ try {
         $dialogForm.Controls.Add($cancelButton)
         $dialogForm.AcceptButton = $okButton
         $dialogForm.CancelButton = $cancelButton
-        # 选择命令文件
-        $browseCommandButton.Add_Click({
-            $fileDialog = [System.Windows.Forms.OpenFileDialog]::new()
-            $fileDialog.Filter = $ui.DialogExeFilter
-            $fileDialog.Title = $ui.DialogBrowseCommandTitle
-            $fileDialog.InitialDirectory = $workingDirectory
-            if ($fileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-                $commandBox.Text = $fileDialog.FileName
-                if (-not $workingDirBox.Text) {
-                    $workingDirBox.Text = Split-Path -Parent $fileDialog.FileName
-                }
-            }
-        })
-        # 选择工作目录
-        $browseDirButton.Add_Click({
-            $folderDialog = [System.Windows.Forms.FolderBrowserDialog]::new()
-            $folderDialog.Description = $ui.DialogBrowseDirTitle
-            $folderDialog.SelectedPath = $workingDirectory
-            if ($folderDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
-                $workingDirBox.Text = $folderDialog.SelectedPath
-            }
-        })
+
         # 修改模式时填充原始值
         $originalName = ""
-        if ($EditIndex -ge 0 -and $EditIndex -lt $taskConfigList.Count) {
-            $task = $taskConfigList[$EditIndex]
+        if ($editIndex -ge 0) {
+            $task = $taskConfigList[$editIndex]
             $originalName = [string]$task.name
             $nameBox.Text = $originalName
             $commandBox.Text = [string]$task.command
@@ -1540,7 +1547,7 @@ try {
 
             # 任务名称唯一性检查（修改时允许保持自身名称不变）
             for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
-                if ($i -eq $EditIndex) { continue }
+                if ($i -eq $editIndex) { continue }
                 if ([string]$taskConfigList[$i].name -ieq $newName) {
                     [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NameDuplicated -f $newName, $ui.FormTitle, "OK", "Warning") | Out-Null
                     return
@@ -1569,9 +1576,9 @@ try {
                 workingDirectory = $newWorkingDir
                 autoStart = $autoStartBox.Checked
             }
-            if ($EditIndex -ge 0) {
+            if ($editIndex -ge 0) {
                 # 修改任务: 替换配置
-                $script:taskConfigList[$EditIndex] = $newTask
+                $script:taskConfigList[$editIndex] = $newTask
                 # 名称变更时，迁移运行时数据并移除旧日志标签页
                 if ($originalName -ine $newName -and $taskExecutionMap.ContainsKey($originalName)) {
                     $oldRuntime = $taskExecutionMap[$originalName]
@@ -1711,7 +1718,7 @@ try {
         $menuMoveDownItem.Enabled = ($index -ge 0 -and $index -lt ($count - 1))
     })
     # 右键菜单: 新增任务
-    $menuAddItem.Add_Click({ Open-Task-Dialog -EditIndex -1 })
+    $menuAddItem.Add_Click({ Edit-Task-Dialog -TaskName '' })
     # 右键菜单: 启动任务
     $menuStartItem.Add_Click({
         $index = Get-Selected-Task-Index
@@ -1796,7 +1803,7 @@ try {
             $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, "YesNo", "Question")
             if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         }
-        $result = Open-Task-Dialog -EditIndex $index
+        $result = Edit-Task-Dialog -TaskName $taskName
         # 取消保存时保持原状，任务继续运行
         if ($result -ne [System.Windows.Forms.DialogResult]::OK) { return }
         if ($isRunning) {
