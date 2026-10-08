@@ -6,6 +6,7 @@
 #     集中管理多个命令行后台任务（如 cloudflared、frpc、openlist 等）
 #     以隐藏窗口方式启动，避免每个任务都占用一个黑色控制台窗口
 #     启动后默认最小化到桌面右下角托盘图标
+#     同一时间只允许运行一个实例
 #     通过界面的表格，管理任务的启动、停止、重启、新增、修改、删除，并记录每个任务的输出内容到日志文件中
 #
 # 目录说明：
@@ -300,6 +301,7 @@ try {
             ERROR_FieldMissing = "任务配置缺少必填字段，已跳过该任务: {0}"
             ERROR_WorkDirNotFound = "工作目录不存在: {0}"
             ERROR_NoSelection = "请先在列表中选择一个任务"
+            ERROR_AlreadyRunning = "程序已经在运行中，请查看桌面右下角的托盘图标"
             ERROR_TaskStartFailed = "任务启动失败: {0}"
             ERROR_TaskStopFailed = "任务停止失败: {0}"
             ERROR_TaskStopTimeout = "停止任务超时: {0}"
@@ -402,6 +404,7 @@ try {
             ERROR_FieldMissing = "Task config is missing required field, task skipped: {0}"
             ERROR_WorkDirNotFound = "Working directory not found: {0}"
             ERROR_NoSelection = "Please select a task from the list first"
+            ERROR_AlreadyRunning = "The program is already running. Please check the tray icon in the lower right corner."
             ERROR_TaskStartFailed = "Failed to start task: {0}"
             ERROR_TaskStopFailed = "Failed to stop task: {0}"
             ERROR_TaskStopTimeout = "Stopping task timed out: {0}"
@@ -450,6 +453,16 @@ try {
         }
     }
     $ui = $uiTextResources[$workingLanguage]
+
+    # 单实例保护：已经有实例在运行时，直接提示后退出
+    $appMutexCreatedNew = $false
+    $script:appMutex = [System.Threading.Mutex]::new($false, 'Local\MyBatchTask_SingleInstance', [ref]$appMutexCreatedNew)
+    if (-not $appMutexCreatedNew) {
+        $script:appMutex.Dispose()
+        $script:appMutex = $null
+        [System.Windows.Forms.MessageBox]::Show($ui.ERROR_AlreadyRunning, $ui.FormTitle, 'OK', 'Warning') | Out-Null
+        exit 1
+    }
 } catch {
     Handle-Exception $_
     pause
@@ -1197,7 +1210,11 @@ try {
     $trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
     $trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
     $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
-    $trayGraphics.Dispose()
+    try { $trayBrush.Dispose() } catch { }
+    try { $trayFont.Dispose() } catch { }
+    try { $trayFormat.Dispose() } catch { }
+    try { $trayRect.Dispose() } catch { }
+    try { $trayGraphics.Dispose() } catch { }
 
     # 托盘图标和主窗口图标
     $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
@@ -1981,6 +1998,9 @@ try {
     try { $taskStatusMonitorTimer.Stop() } catch { }
     try { $taskStatusMonitorTimer.Dispose() } catch { }
     Process-Task-Log-Queue
+
+    # 释放单实例互斥量
+    try { if ($script:appMutex) { $script:appMutex.Dispose() } } catch { }
 } catch {
     Handle-Exception $_
     pause
