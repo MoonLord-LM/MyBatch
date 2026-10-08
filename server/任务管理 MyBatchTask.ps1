@@ -429,11 +429,12 @@ try {
     $ui = $uiTextResources[$workingLanguage]
 
     # 单实例保护：已经有实例在运行时，直接提示后退出
-    $appMutexCreatedNew = $false
-    $script:appMutex = [System.Threading.Mutex]::new($false, 'Local\MyBatchTask_SingleInstance', [ref]$appMutexCreatedNew)
-    if (-not $appMutexCreatedNew) {
-        $script:appMutex.Dispose()
-        $script:appMutex = $null
+    $appName = 'MyBatchTask'
+    $appMutexCreateSuccess = $null
+    $appMutex = [System.Threading.Mutex]::new($false, "Local\Mutex_$appName", [ref]$appMutexCreateSuccess)
+    if (-not $appMutexCreateSuccess) {
+        $appMutex.Dispose()
+        $appMutex = $null
         [System.Windows.Forms.MessageBox]::Show($ui.ERROR_AlreadyRunning, $ui.FormTitle, 'OK', 'Warning') | Out-Null
         exit 1
     }
