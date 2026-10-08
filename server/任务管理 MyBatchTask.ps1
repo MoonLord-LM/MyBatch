@@ -328,8 +328,10 @@ try {
             DialogCommand = "命令:"
             DialogArguments = "参数:"
             DialogWorkingDir = "工作目录:"
+            DialogStartMode = "启动方式:"
             DialogAutoStart = "管理器启动时自动运行"
-            DialogBrowseCommand = "选择命令"
+            DialogManualStart = "手动执行"
+            DialogBrowseCommand = "选择文件"
             DialogBrowseDir = "选择目录"
             DialogBrowseCommandTitle = "选择命令文件"
             DialogBrowseDirTitle = "选择工作目录"
@@ -428,7 +430,9 @@ try {
             DialogCommand = "Command:"
             DialogArguments = "Arguments:"
             DialogWorkingDir = "Working Directory:"
+            DialogStartMode = "Start Mode:"
             DialogAutoStart = "Auto start when the manager starts"
+            DialogManualStart = "Manual"
             DialogBrowseCommand = "Browse"
             DialogBrowseDir = "Browse"
             DialogBrowseCommandTitle = "Select Command File"
@@ -1403,6 +1407,7 @@ try {
         $dialogForm.StartPosition = "CenterParent"
         $dialogForm.MaximizeBox = $false
         $dialogForm.MinimizeBox = $false
+        $dialogForm.ShowInTaskbar = $false
         $dialogForm.Font = $mainForm.Font
         $dialogForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
         $dialogForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
@@ -1432,8 +1437,8 @@ try {
         $commandBox = New-Dialog-TextBox 96
         $browseCommandButton = [System.Windows.Forms.Button]::new()
         $browseCommandButton.Text = $ui.DialogBrowseCommand
-        $browseCommandButton.Location = [System.Drawing.Point]::new(584, 95)
-        $browseCommandButton.Size = [System.Drawing.Size]::new(130, 32)
+        $browseCommandButton.Location = [System.Drawing.Point]::new(584, 92)
+        $browseCommandButton.Size = [System.Drawing.Size]::new(120, 42)
         $browseCommandButton.FlatStyle = "Flat"
         $browseCommandButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseCommandButton.ForeColor = [System.Drawing.Color]::Black
@@ -1461,8 +1466,8 @@ try {
         $workingDirBox = New-Dialog-TextBox 216
         $browseDirButton = [System.Windows.Forms.Button]::new()
         $browseDirButton.Text = $ui.DialogBrowseDir
-        $browseDirButton.Location = [System.Drawing.Point]::new(584, 215)
-        $browseDirButton.Size = [System.Drawing.Size]::new(130, 32)
+        $browseDirButton.Location = [System.Drawing.Point]::new(584, 212)
+        $browseDirButton.Size = [System.Drawing.Size]::new(120, 42)
         $browseDirButton.FlatStyle = "Flat"
         $browseDirButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseDirButton.ForeColor = [System.Drawing.Color]::Black
@@ -1478,18 +1483,24 @@ try {
             }
         })
         $dialogForm.Controls.Add($browseDirButton)
-        # 任务是否自动启动
-        $autoStartBox = [System.Windows.Forms.CheckBox]::new()
-        $autoStartBox.Text = $ui.DialogAutoStart
-        $autoStartBox.Location = [System.Drawing.Point]::new(146, 276)
-        $autoStartBox.Size = [System.Drawing.Size]::new(400, 28)
-        $autoStartBox.Checked = $true
-        $dialogForm.Controls.Add($autoStartBox)
+        # 任务启动方式：radio 单选，管理器启动时自动运行 / 手动执行
+        New-Dialog-Label $ui.DialogStartMode 276
+        $autoStartRadioButton = [System.Windows.Forms.RadioButton]::new()
+        $autoStartRadioButton.Text = $ui.DialogAutoStart
+        $autoStartRadioButton.Location = [System.Drawing.Point]::new(146, 280)
+        $autoStartRadioButton.Size = [System.Drawing.Size]::new(240, 28)
+        $autoStartRadioButton.Checked = $true
+        $dialogForm.Controls.Add($autoStartRadioButton)
+        $manualStartRadioButton = [System.Windows.Forms.RadioButton]::new()
+        $manualStartRadioButton.Text = $ui.DialogManualStart
+        $manualStartRadioButton.Location = [System.Drawing.Point]::new(420, 280)
+        $manualStartRadioButton.Size = [System.Drawing.Size]::new(240, 28)
+        $dialogForm.Controls.Add($manualStartRadioButton)
         # 确定按钮
         $okButton = [System.Windows.Forms.Button]::new()
         $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
-        $okButton.Location = [System.Drawing.Point]::new(414, 478)
-        $okButton.Size = [System.Drawing.Size]::new(160, 36)
+        $okButton.Location = [System.Drawing.Point]::new(190, 400)
+        $okButton.Size = [System.Drawing.Size]::new(180, 46)
         $okButton.FlatStyle = "Flat"
         $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
         $okButton.ForeColor = [System.Drawing.Color]::White
@@ -1500,8 +1511,8 @@ try {
         # 取消按钮
         $cancelButton = [System.Windows.Forms.Button]::new()
         $cancelButton.Text = $ui.DialogCancel
-        $cancelButton.Location = [System.Drawing.Point]::new(584, 478)
-        $cancelButton.Size = [System.Drawing.Size]::new(130, 36)
+        $cancelButton.Location = [System.Drawing.Point]::new(384, 400)
+        $cancelButton.Size = [System.Drawing.Size]::new(180, 46)
         $cancelButton.FlatStyle = "Flat"
         $cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $cancelButton.ForeColor = [System.Drawing.Color]::Black
@@ -1521,7 +1532,8 @@ try {
             $commandBox.Text = [string]$task.command
             $argumentsBox.Text = [string]$task.arguments
             $workingDirBox.Text = [string]$task.workingDirectory
-            $autoStartBox.Checked = [bool]$task.autoStart
+            $autoStartRadioButton.Checked = [bool]$task.autoStart
+            $manualStartRadioButton.Checked = -not [bool]$task.autoStart
         }
         # 确定按钮: 校验并写回任务列表
         $okButton.Add_Click({
@@ -1574,7 +1586,7 @@ try {
                 command = $newCommand
                 arguments = $newArguments
                 workingDirectory = $newWorkingDir
-                autoStart = $autoStartBox.Checked
+                autoStart = $autoStartRadioButton.Checked
             }
             if ($editIndex -ge 0) {
                 # 修改任务: 替换配置
