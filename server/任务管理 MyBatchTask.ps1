@@ -193,67 +193,6 @@ try {
 # ———————————————————————————————— 2: 程序全局设置 ————————————————————————————————
 
 try {
-    # 单实例保护：已经有实例在运行时，直接提示后退出
-    $appName = 'MyBatchTask'
-    $appMutexCreateSuccess = $null
-    $appMutex = [System.Threading.Mutex]::new($false, "Local\Mutex_$appName", [ref]$appMutexCreateSuccess)
-    if (-not $appMutexCreateSuccess) {
-        $appMutex.Dispose()
-        $appMutex = $null
-        [System.Windows.Forms.MessageBox]::Show($ui.ERROR_AlreadyRunning, $ui.FormTitle, 'OK', 'Warning') | Out-Null
-        exit 1
-    }
-
-    # 数据目录：/MyBatchTask
-    $myBatchTaskDir = [System.IO.Path]::Combine($workingDirectory, $appName)
-    if (-not [System.IO.Directory]::Exists($myBatchTaskDir)) {
-        [System.IO.Directory]::CreateDirectory($myBatchTaskDir) | Out-Null
-    }
-
-    # 日志目录：/MyBatchTask/logs
-    $myBatchTaskLogsDir = [System.IO.Path]::Combine($myBatchTaskDir, "logs")
-    if (-not [System.IO.Directory]::Exists($myBatchTaskLogsDir)) {
-        [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
-    }
-
-    # 系统日志：/MyBatchTask/logs
-    $myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, "system.log")
-    if (-not [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {
-        [System.IO.File]::WriteAllText($myBatchTaskSystemLogFile, "", $workingEncoding)
-    }
-
-    # 配置文件：/MyBatchTask/config.json
-    $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
-    $defaultJsonConfig = @{
-        'zh-CN' =
-@'
-[
-    {
-        "name": "Ping 测试",
-        "command": "%SystemRoot%\\System32\\cmd.exe",
-        "arguments": "/s /c \"chcp 65001 >nul && ping github.com\"",
-        "workingDirectory": "%SystemRoot%\\System32",
-        "autoStart": true
-    }
-]
-'@
-        'en-US' =
-@'
-[
-    {
-        "name": "Ping Test",
-        "command": "%SystemRoot%\\System32\\cmd.exe",
-        "arguments": "/s /c \"chcp 65001 >nul && ping github.com\"",
-        "workingDirectory": "%SystemRoot%\\System32",
-        "autoStart": true
-    }
-]
-'@
-    }
-    if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
-        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig[$workingLanguage], $workingEncoding)
-    }
-
     # 界面文本，包含中文和英文
     $uiTextResources = @{
         'zh-CN' = @{
@@ -438,6 +377,67 @@ try {
         }
     }
     $ui = $uiTextResources[$workingLanguage]
+
+    # 单实例保护：已经有实例在运行时，直接提示后退出
+    $appName = 'MyBatchTask'
+    $appMutexCreateSuccess = $null
+    $appMutex = [System.Threading.Mutex]::new($false, "Local\Mutex_$appName", [ref]$appMutexCreateSuccess)
+    if (-not $appMutexCreateSuccess) {
+        $appMutex.Dispose()
+        $appMutex = $null
+        [System.Windows.Forms.MessageBox]::Show($ui.ERROR_AlreadyRunning, $ui.FormTitle, 'OK', 'Warning') | Out-Null
+        exit 1
+    }
+
+    # 数据目录：/MyBatchTask
+    $myBatchTaskDir = [System.IO.Path]::Combine($workingDirectory, $appName)
+    if (-not [System.IO.Directory]::Exists($myBatchTaskDir)) {
+        [System.IO.Directory]::CreateDirectory($myBatchTaskDir) | Out-Null
+    }
+
+    # 日志目录：/MyBatchTask/logs
+    $myBatchTaskLogsDir = [System.IO.Path]::Combine($myBatchTaskDir, "logs")
+    if (-not [System.IO.Directory]::Exists($myBatchTaskLogsDir)) {
+        [System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null
+    }
+
+    # 系统日志：/MyBatchTask/logs
+    $myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, "system.log")
+    if (-not [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {
+        [System.IO.File]::WriteAllText($myBatchTaskSystemLogFile, "", $workingEncoding)
+    }
+
+    # 配置文件：/MyBatchTask/config.json
+    $myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, "config.json")
+    $defaultJsonConfig = @{
+        'zh-CN' =
+@'
+[
+    {
+        "name": "Ping 测试",
+        "command": "%SystemRoot%\\System32\\cmd.exe",
+        "arguments": "/s /c \"chcp 65001 >nul && ping github.com\"",
+        "workingDirectory": "%SystemRoot%\\System32",
+        "autoStart": true
+    }
+]
+'@
+        'en-US' =
+@'
+[
+    {
+        "name": "Ping Test",
+        "command": "%SystemRoot%\\System32\\cmd.exe",
+        "arguments": "/s /c \"chcp 65001 >nul && ping github.com\"",
+        "workingDirectory": "%SystemRoot%\\System32",
+        "autoStart": true
+    }
+]
+'@
+    }
+    if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {
+        [System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig[$workingLanguage], $workingEncoding)
+    }
 } catch {
     Handle-Exception $_
     pause
