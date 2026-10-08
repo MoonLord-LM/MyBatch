@@ -1210,10 +1210,10 @@ try {
     }
     $trayIcon.ContextMenuStrip = $trayMenu
 
-    # 标签页容器（充满整个窗口，浏览器式布局）
+    # 标签页容器
     $tabControl = [System.Windows.Forms.TabControl]::new()
     $tabControl.Dock = "Fill"
-    $tabControl.Padding = [System.Drawing.Point]::new(20, 3)
+    $tabControl.Padding = [System.Drawing.Point]::new(20, 10)
     $tabControl.Font = $mainForm.Font
     $mainForm.Controls.Add($tabControl)
     # 标签页右键菜单（关闭标签页）
