@@ -226,111 +226,35 @@ if !errorlevel! neq 0 (
 
 if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
 
-REM 生成 bat 文件时，切换到 disabledelayedexpansion 环境，保证 ! 和 ^ 等符号可以按原样写入
-setlocal disabledelayedexpansion
+REM 生成 bat 文件时，从自身文件末尾的 -----BEGIN BATCH CODE----- / -----END BATCH CODE----- 之间提取 bat 代码原样写入
+REM 这样生成的 bat 代码里的 ! 和 ^ 和 % 等符号都不需要转义处理，统一保存为不带 BOM 的 UTF-8 编码
+powershell -NoProfile -Command ^
+    "$lines = [System.IO.File]::ReadAllLines($env:script_path, [System.Text.Encoding]::UTF8);" ^
+    "$begin = [array]::IndexOf($lines, '-----BEGIN BATCH CODE-----');" ^
+    "$end = [array]::IndexOf($lines, '-----END BATCH CODE-----');" ^
+    "if ($begin -lt 0 -or $end -le $begin) {" ^
+    "    Write-Host '错误：未找到内嵌的 bat 代码块' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "}" ^
+    "$code = $lines[($begin + 1)..($end - 1)];" ^
+    "for ($i = 0; $i -lt $code.Count; $i++) {" ^
+    "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT_NAME__', $env:payload_ext.TrimStart('.')).Replace('__PAYLOAD_EXT__', $env:payload_ext).Replace('__BEGIN_MARKER__', $env:BEGIN_MARKER).Replace('__END_MARKER__', $env:END_MARKER);" ^
+    "}" ^
+    "$enc = New-Object System.Text.UTF8Encoding($false);" ^
+    "[System.IO.File]::WriteAllLines($env:output_path, $code, $enc);"
+if !errorlevel! neq 0 (
+    echo 错误：生成 bat 文件失败："!output_path!"
+    echo.
+    if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
+    pause
+    exit /b 1
+)
+
+REM 把 Base64 编码内容，追加到生成文件的开始标记之后，并补上结束标记
 (
-    echo @echo off
-    echo chcp 65001 ^>nul
-    echo setlocal disabledelayedexpansion
-    echo set "script=%%~0" ^& set "script_path=%%~f0" ^& set "script_dir=%%~dp0" ^& set "script_name=%%~n0" ^& set "script_ext=%%~x0" ^& set "script_name_ext=%%~nx0"
-    echo setlocal enabledelayedexpansion
-    echo powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" ^&^& echo.
-    echo.
-    echo.
-    echo.
-    echo REM 本文件由 %payload_ext:~1% 文件自动打包生成
-    echo REM 开源地址: https://github.com/MoonLord-LM/MyBatch
-    echo powershell -NoProfile -Command "Write-Host '把内嵌的 Base64 编码内容解码解压还原为 %payload_ext:~1% 文件，然后自动运行' -ForegroundColor Green"
-    echo echo.
-    echo.
-    echo.
-    echo.
-    echo if /i "!cd!"=="!SystemRoot!\System32" ^(
-    echo     echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 ^& echo.
-    echo     cd /d "!script_dir!"
-    echo ^)
-    echo.
-    echo.
-    echo.
-    echo set "payload_ext=%payload_ext%"
-    echo set "temp_file=%%temp%%\MyBatch_%%random%%_%%random%%_%%random%%_%%random%%!payload_ext!"
-    echo set "self_path=%%~f0"
-    echo set "begin_marker=%BEGIN_MARKER%"
-    echo set "end_marker=%END_MARKER%"
-    echo.
-    echo powershell -NoProfile -Command ^^
-    echo     "Add-Type -AssemblyName System.IO.Compression;" ^^
-    echo     "$lines = [System.IO.File]::ReadAllLines($env:self_path, [System.Text.Encoding]::UTF8);" ^^
-    echo     "$begin = -1;" ^^
-    echo     "$end = -1;" ^^
-    echo     "for ($i = 0; $i -lt $lines.Count; $i++) {" ^^
-    echo     "    if ($lines[$i] -eq $env:begin_marker) {" ^^
-    echo     "        $begin = $i;" ^^
-    echo     "        break;" ^^
-    echo     "    }" ^^
-    echo     "}" ^^
-    echo     "if ($begin -lt 0) {" ^^
-    echo     "    Write-Host '错误：找不到压缩内容的开始标记' -ForegroundColor Red;" ^^
-    echo     "    exit 1;" ^^
-    echo     "}" ^^
-    echo     "for ($i = $begin + 1; $i -lt $lines.Count; $i++) {" ^^
-    echo     "    if ($lines[$i] -eq $env:end_marker) {" ^^
-    echo     "        $end = $i;" ^^
-    echo     "        break;" ^^
-    echo     "    }" ^^
-    echo     "}" ^^
-    echo     "if ($end -lt 0) {" ^^
-    echo     "    Write-Host '错误：找不到压缩内容的结束标记' -ForegroundColor Red;" ^^
-    echo     "    exit 1;" ^^
-    echo     "}" ^^
-    echo     "if ($end - $begin -le 1) {" ^^
-    echo     "    Write-Host '错误：压缩内容为空' -ForegroundColor Red;" ^^
-    echo     "    exit 1;" ^^
-    echo     "}" ^^
-    echo     "$base64 = ($lines[($begin + 1)..($end - 1)] -join '') -replace '\s', '';" ^^
-    echo     "$bytes = [Convert]::FromBase64String($base64);" ^^
-    echo     "$ms = New-Object System.IO.MemoryStream (,$bytes);" ^^
-    echo     "$gzip = New-Object System.IO.Compression.GzipStream($ms, [System.IO.Compression.CompressionMode]::Decompress);" ^^
-    echo     "$outMs = New-Object System.IO.MemoryStream;" ^^
-    echo     "$gzip.CopyTo($outMs);" ^^
-    echo     "$gzip.Close();" ^^
-    echo     "$ms.Close();" ^^
-    echo     "$rawBytes = $outMs.ToArray();" ^^
-    echo     "$outMs.Close();" ^^
-    echo     "[System.IO.File]::WriteAllBytes($env:temp_file, $rawBytes);"
-    echo.
-    echo if !errorlevel! neq 0 goto fail_extract
-    echo.
-    echo if /i "!payload_ext!" == ".ps1" ^(
-    echo     powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!"
-    echo ^) else if /i "!payload_ext!" == ".bat" ^(
-    echo     call "!temp_file!"
-    echo ^) else ^(
-    echo     "!temp_file!"
-    echo ^)
-    echo set "exitcode=!errorlevel!"
-    echo if exist "!temp_file!" ^( del /f /q "!temp_file!" ^)
-    echo.
-    echo.
-    echo.
-    echo echo.
-    echo pause
-    echo endlocal ^& endlocal ^& exit /b %%exitcode%%
-    echo.
-    echo :fail_extract
-    echo echo 错误：还原文件内容失败
-    echo echo.
-    echo if exist "!temp_file!" ^( del /f /q "!temp_file!" ^)
-    echo pause
-    echo endlocal ^& endlocal ^& exit /b 1
-    echo.
-    echo.
-    echo.
-    echo %BEGIN_MARKER%
-    type "%temp_base64%"
-    echo %END_MARKER%
-) > "%output_path%"
-endlocal
+    type "!temp_base64!"
+    echo !END_MARKER!
+) >> "!output_path!"
 
 if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
@@ -349,3 +273,105 @@ echo 生成成功："!output_path!"
 echo.
 pause
 endlocal & endlocal & exit /b
+
+
+-----BEGIN BATCH CODE-----
+@echo off
+chcp 65001 >nul
+setlocal disabledelayedexpansion
+set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+setlocal enabledelayedexpansion
+powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
+echo.
+echo.
+echo.
+REM 本文件由 __PAYLOAD_EXT_NAME__ 文件自动打包生成
+REM 开源地址: https://github.com/MoonLord-LM/MyBatch
+powershell -NoProfile -Command "Write-Host '把内嵌的 Base64 编码内容解码解压还原为 __PAYLOAD_EXT_NAME__ 文件，然后自动运行' -ForegroundColor Green"
+echo.
+echo.
+echo.
+echo.
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    cd /d "!script_dir!"
+)
+echo.
+echo.
+echo.
+set "payload_ext=__PAYLOAD_EXT__"
+set "temp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%!payload_ext!"
+set "self_path=%~f0"
+set "begin_marker=__BEGIN_MARKER__"
+set "end_marker=__END_MARKER__"
+echo.
+powershell -NoProfile -Command ^
+    "Add-Type -AssemblyName System.IO.Compression;" ^
+    "$lines = [System.IO.File]::ReadAllLines($env:self_path, [System.Text.Encoding]::UTF8);" ^
+    "$begin = -1;" ^
+    "$end = -1;" ^
+    "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+    "    if ($lines[$i] -eq $env:begin_marker) {" ^
+    "        $begin = $i;" ^
+    "        break;" ^
+    "    }" ^
+    "}" ^
+    "if ($begin -lt 0) {" ^
+    "    Write-Host '错误：找不到压缩内容的开始标记' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "}" ^
+    "for ($i = $begin + 1; $i -lt $lines.Count; $i++) {" ^
+    "    if ($lines[$i] -eq $env:end_marker) {" ^
+    "        $end = $i;" ^
+    "        break;" ^
+    "    }" ^
+    "}" ^
+    "if ($end -lt 0) {" ^
+    "    Write-Host '错误：找不到压缩内容的结束标记' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "}" ^
+    "if ($end - $begin -le 1) {" ^
+    "    Write-Host '错误：压缩内容为空' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "}" ^
+    "$base64 = ($lines[($begin + 1)..($end - 1)] -join '') -replace '\s', '';" ^
+    "$bytes = [Convert]::FromBase64String($base64);" ^
+    "$ms = New-Object System.IO.MemoryStream (,$bytes);" ^
+    "$gzip = New-Object System.IO.Compression.GzipStream($ms, [System.IO.Compression.CompressionMode]::Decompress);" ^
+    "$outMs = New-Object System.IO.MemoryStream;" ^
+    "$gzip.CopyTo($outMs);" ^
+    "$gzip.Close();" ^
+    "$ms.Close();" ^
+    "$rawBytes = $outMs.ToArray();" ^
+    "$outMs.Close();" ^
+    "[System.IO.File]::WriteAllBytes($env:temp_file, $rawBytes);"
+echo.
+if !errorlevel! neq 0 goto fail_extract
+echo.
+if /i "!payload_ext!" == ".ps1" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!"
+) else if /i "!payload_ext!" == ".bat" (
+    call "!temp_file!"
+) else (
+    "!temp_file!"
+)
+set "exitcode=!errorlevel!"
+if exist "!temp_file!" ( del /f /q "!temp_file!" )
+echo.
+echo.
+echo.
+echo.
+pause
+endlocal & endlocal & exit /b %exitcode%
+echo.
+:fail_extract
+echo 错误：还原文件内容失败
+echo.
+if exist "!temp_file!" ( del /f /q "!temp_file!" )
+pause
+endlocal & endlocal & exit /b 1
+echo.
+echo.
+echo.
+__BEGIN_MARKER__
+-----END BATCH CODE-----
