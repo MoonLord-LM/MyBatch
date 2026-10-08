@@ -436,10 +436,6 @@ try {
         }
     }
     $ui = $uiTextResources[$workingLanguage]
-    if (-not $ui) { $ui = $uiTextResources['zh-CN'] }
-
-    # 标签栏右键点击的标签页
-    $script:rightClickedTab = $null
 } catch {
     Handle-Exception $_
     pause
@@ -1216,42 +1212,46 @@ try {
     $tabControl.Padding = [System.Drawing.Point]::new(20, 10)
     $tabControl.Font = $mainForm.Font
     $mainForm.Controls.Add($tabControl)
-    # 标签页右键菜单（关闭标签页）
+
+    # 当前的标签页
+    $tabControlCurrentTab = $null
+
+    # 标签页右键菜单：关闭标签页
     $tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $closeTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $closeTabMenuItem.Text = $ui.CloseTab
-    $tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
-    $tabControl.ContextMenuStrip = $tabContextMenu
-    # 右键按下时记录点击的标签页
-    $tabControl.Add_MouseDown({
-        param($EventSender, $EventArgs)
-        if ($EventArgs.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
-        # 查找点击的标签页
-        for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
-            $tabRect = $tabControl.GetTabRect($i)
-            if ($tabRect.Contains($EventArgs.Location)) {
-                $script:rightClickedTab = $tabControl.TabPages[$i]
-                # 前两个固定标签页不可关闭
-                $closeTabMenuItem.Enabled = ($i -ge 2)
-                break
-            }
-        }
-    })
-    # 关闭标签页
     $closeTabMenuItem.Add_Click({
-        if (-not $script:rightClickedTab -or $script:rightClickedTab.IsDisposed) { return }
-        $tabName = $script:rightClickedTab.Name
-        # 如果是任务日志页，清理运行时引用
+        if (-not $script:tabControlCurrentTab -or $script:tabControlCurrentTab.IsDisposed) { return }
+        $tabName = $script:tabControlCurrentTab.Name
         if ($tabName.StartsWith("LogPage_")) {
             $taskName = $tabName.Substring(8)
             if ($script:taskExecutionMap.ContainsKey($taskName)) {
                 $script:taskExecutionMap[$taskName].logViewTextBox = $null
             }
         }
-        $tabControl.TabPages.Remove($script:rightClickedTab)
-        $script:rightClickedTab.Dispose()
-        $script:rightClickedTab = $null
+        $tabControl.TabPages.Remove($script:tabControlCurrentTab)
+        $script:tabControlCurrentTab.Dispose()
+        $script:tabControlCurrentTab = $null
     })
+    $tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
+    $tabControl.ContextMenuStrip = $tabContextMenu
+
+    # 标签页右键点击后，根据点击位置，查找并记录当前的标签页
+    $tabControl.Add_MouseDown({
+        param($EventSender, $EventArgs)
+        if ($EventArgs.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
+        for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
+            $tabRect = $tabControl.GetTabRect($i)
+            if ($tabRect.Contains($EventArgs.Location)) {
+                $script:tabControlCurrentTab = $tabControl.TabPages[$i]
+                # 前两个固定标签页不可关闭
+                $closeTabMenuItem.Enabled = ($i -ge 2)
+                break
+            }
+        }
+    })
+
+    ### TODO 以下代码待审核：
 
     # 任务日志标签页
     # 打开任务日志标签页（已存在则直接切换）

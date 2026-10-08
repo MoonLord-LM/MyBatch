@@ -243,3 +243,7 @@ if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 变量名，使用 $xxxYyyZzz 的形式，例如 $configFilePath，小写字母开头，无分隔  
 函数名，使用 XXX-XXX-XXX 的形式，例如 Save-Config-File，大写字母开头，横线分隔  
 函数入参，使用 $XxxYyyZzz 的形式，例如 $ConfigFilePath，大写字母开头，无分隔  
+
+函数内部的变量名，应该尽可能简单化，并且避免和外部全局变量名冲突  
+如果在函数内读取外部变量名，直接用 $xxx 的形式，例如 `$path = $configFilePath`  
+如果在函数内修改外部变量名，必须用 $script:xxx 的形式，例如 `$script:configFilePath = '...'`  
