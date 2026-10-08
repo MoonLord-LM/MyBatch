@@ -14,7 +14,6 @@ powershell -NoProfile -Command "Write-Host '处理方式：把源文件内容压
 powershell -NoProfile -Command "Write-Host '不修改源文件内容，完整保留注释和空行等' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '如果输出 bat 文件已存在，则跳过不处理' -ForegroundColor Green"
 echo.
 
 
@@ -107,33 +106,29 @@ for %%i in ("!input_file!") do (
     set "file_name_ext=%%~nxi"
     setlocal enabledelayedexpansion
 
+    REM 如果输出文件已存在，则继续追加 .bat 后缀，直到文件名不重复
     set "output_file=!file_dir!!base_name!.bat"
+    for /l %%n in (1,1,8) do (
+        if exist "!output_file!" set "output_file=!output_file!.bat"
+    )
     echo 输出文件："!output_file!"
     echo.
 
-    if exist "!output_file!" (
-        echo 输出文件已存在："!output_file!"，跳过不处理 & REM
-        echo 如果需要重新转换，请先移走旧文件 & REM
-        echo.
-        pause
-        exit /b 1
-    )
-
-    REM exe 文件为二进制文件，直接复制；ps1 文件统一保存为带 BOM 的 UTF-8 编码；bat 文件统一保存为不带 BOM 的 UTF-8 编码
+    REM ps1 文件统一保存为带 BOM 的 UTF-8 编码；bat 文件统一保存为不带 BOM 的 UTF-8 编码；exe 文件为二进制文件，直接复制
     set "temp_payload=%temp%\MyBatch_%random%_%random%_%random%_%random%!payload_ext!" & type nul > "!temp_payload!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$ext = $env:payload_ext.ToLower();" ^
-        "if ($ext -eq '.exe') {" ^
-        "    [System.IO.File]::Copy($env:input_file, $env:temp_payload, $true);" ^
-        "} else {" ^
+        "if ($ext -eq '.ps1') {" ^
         "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
-        "    if ($ext -eq '.ps1') {" ^
-        "        $enc = New-Object System.Text.UTF8Encoding($true);" ^
-        "    } else {" ^
-        "        $enc = New-Object System.Text.UTF8Encoding($false);" ^
-        "    };" ^
+        "    $enc = New-Object System.Text.UTF8Encoding($true);" ^
         "    [System.IO.File]::WriteAllLines($env:temp_payload, $lines, $enc);" ^
+        "} elseif ($ext -eq '.bat') {" ^
+        "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
+        "    $enc = New-Object System.Text.UTF8Encoding($false);" ^
+        "    [System.IO.File]::WriteAllLines($env:temp_payload, $lines, $enc);" ^
+        "} else {" ^
+        "    [System.IO.File]::Copy($env:input_file, $env:temp_payload, $true);" ^
         "};"
     if !errorlevel! neq 0 (
         echo 错误：获取源文件失败："!input_file!"
