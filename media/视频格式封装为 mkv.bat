@@ -120,7 +120,7 @@ if "!param1!" == "" (
                         echo 封装成功，音频已转换
                     )
                 ) else (
-                    "!ffmpeg_path!" -i "!param1!" -c copy "!output_file!"
+                    "!ffmpeg_path!" -i "!param1!" -c copy -map_metadata 0 "!output_file!"
                     if !errorlevel! neq 0 (
                         if exist "!output_file!" ( del /f /q "!output_file!" )
                         echo 封装失败
@@ -183,7 +183,7 @@ if not "!working_dir!" == "" (
                     echo 封装成功，音频已转换
                 )
             ) else (
-                "!ffmpeg_path!" -i "!video_file!" -c copy "!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -c copy -map_metadata 0 "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "mux_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
