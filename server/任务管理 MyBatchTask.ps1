@@ -15,7 +15,7 @@
 #         {
 #             "name": "Ping Test",
 #             "command": "%SystemRoot%\\System32\\cmd.exe",
-#             "arguments": "/c \"chcp 65001 >nul && ping github.com\"",
+#             "arguments": "/s /c \"chcp 65001 >nul && ping github.com\"",
 #             "workingDirectory": "%SystemRoot%\\System32",
 #             "autoStart": true
 #         }
