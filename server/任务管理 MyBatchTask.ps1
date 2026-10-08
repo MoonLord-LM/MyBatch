@@ -762,6 +762,7 @@ try {
         if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
 
         $logLine = "[{0}] {1}" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
+
         $execution = $taskExecutionMap[$TaskName]
         $execution.logViewContent.AppendLine($logLine) | Out-Null
 
@@ -791,6 +792,25 @@ try {
             finally {
                 $execution.logViewTextBox.ResumeLayout()
             }
+        } catch {
+            Handle-Exception $_
+        }
+    }
+
+    # 清空任务日志：清空内存缓存 + 日志展示框
+    function Clear-Task-Log-Internal {
+        param([string]$TaskName)
+
+        if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
+
+        $execution = $taskExecutionMap[$TaskName]
+        $execution.logViewContent.Clear() | Out-Null
+
+        try {
+            if ($null -eq $execution.logViewTextBox -or $execution.logViewTextBox.IsDisposed) {
+                return
+            }
+            $execution.logViewTextBox.Clear()
         } catch {
             Handle-Exception $_
         }
@@ -1306,11 +1326,7 @@ try {
         $logViewClearItem.Tag = @{ taskName = $TaskName }
         $logViewClearItem.Add_Click({
             param($MenuItem, $EventArgs)
-            $execution = Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)
-            if ($execution.logViewTextBox) {
-                $execution.logViewTextBox.Clear()
-            }
-            $execution.logViewContent.Clear() | Out-Null
+            Clear-Task-Log-Internal -TaskName ([string]$MenuItem.Tag.taskName)
         })
         $logViewOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
         $logViewOpenItem.Text = $ui.LogOpenFile
