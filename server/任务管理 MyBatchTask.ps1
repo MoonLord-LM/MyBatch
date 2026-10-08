@@ -1098,7 +1098,7 @@ try {
     # 启用双缓冲减少闪烁
     Enable-Double-Buffered $mainForm | Out-Null
 
-    # 窗体首次显示: 隐藏到托盘 + 自动启动任务
+    # 主窗口首次显示: 隐藏到托盘 + 自动启动任务
     $mainForm.Add_Shown({
         param($EventSender, $EventArgs)
         $EventSender.Hide()
@@ -1130,7 +1130,7 @@ try {
     # 是否真正退出程序，默认 $false，只隐藏主窗口
     $mainFormRealExit = $false
 
-    # 窗体关闭事件
+    # 主窗口关闭事件
     $mainForm.Add_FormClosing({
         param($EventSender, $EventArgs)
         if (-not $mainFormRealExit) {
@@ -1141,8 +1141,7 @@ try {
         }
     })
 
-    # 托盘图标与托盘菜单
-    # 绘制托盘图标（蓝色圆形 + 白色 M 字样）
+    # 绘制图标 Bitmap，使用蓝色圆形 + 白色 M 字样
     $trayBitmap = [System.Drawing.Bitmap]::new(32, 32)
     $trayGraphics = [System.Drawing.Graphics]::FromImage($trayBitmap)
     $trayGraphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
@@ -1156,28 +1155,16 @@ try {
     $trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
     $trayGraphics.DrawString("M", $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
     $trayGraphics.Dispose()
-    $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
-    # 蓝色圆形 + 白色 M 图标同时用于托盘和主窗口
+
+    # 托盘图标和主窗口图标
     $appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
+    $trayIcon = [System.Windows.Forms.NotifyIcon]::new()
     $trayIcon.Icon = $appWindowIcon
-    $mainForm.Icon = $appWindowIcon.Clone()
     $trayIcon.Text = $ui.FormTitle
     $trayIcon.Visible = $true
-    # 托盘图标的右键菜单
-    $trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
-    $trayShowItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayShowItem.Text = $ui.TrayShow
-    $trayStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayStartAllItem.Text = $ui.TrayStartAll
-    $trayStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayStopAllItem.Text = $ui.TrayStopAll
-    $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $trayExitItem.Text = $ui.TrayExit
-    foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {
-        $trayMenu.Items.Add($item) | Out-Null
-    }
-    $trayIcon.ContextMenuStrip = $trayMenu
-    # 托盘图标: 单击切换显示/隐藏，双击显示
+    $mainForm.Icon = $appWindowIcon.Clone()
+
+    # 托盘图标：单击切换主窗口的显示/隐藏
     $trayIcon.Add_MouseClick({
         param($EventSender, $EventArgs)
         if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
@@ -1188,26 +1175,40 @@ try {
             }
         }
     })
+
+    # 托盘图标：双击显示主窗口
     $trayIcon.Add_MouseDoubleClick({
         param($EventSender, $EventArgs)
         if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
             Show-Main-Window
         }
     })
-    # 托盘菜单: 显示主界面 / 全部启动 / 全部停止 / 退出
-    $trayShowItem.Add_Click({
-        Show-Main-Window
-    })
+
+    # 托盘图标右键菜单：显示主界面 / 全部启动 / 全部停止 / 退出
+    $trayShowItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayShowItem.Text = $ui.TrayShow
+    $trayShowItem.Add_Click({ Show-Main-Window })
+    $trayStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayStartAllItem.Text = $ui.TrayStartAll
     $trayStartAllItem.Add_Click({ Start-All-Tasks })
+    $trayStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayStopAllItem.Text = $ui.TrayStopAll
     $trayStopAllItem.Add_Click({ Stop-All-Tasks })
+    $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $trayExitItem.Text = $ui.TrayExit
     $trayExitItem.Add_Click({
         $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, "YesNo", "Question")
         if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
         $script:mainFormRealExit = $true
-        Stop-All-Tasks
         $trayIcon.Visible = $false
+        Stop-All-Tasks
         $mainForm.Close()
     })
+    $trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+    foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {
+        $trayMenu.Items.Add($item) | Out-Null
+    }
+    $trayIcon.ContextMenuStrip = $trayMenu
 
     # 标签页容器（充满整个窗口，浏览器式布局）
     $tabControl = [System.Windows.Forms.TabControl]::new()
