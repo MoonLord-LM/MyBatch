@@ -38,7 +38,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://github.com/fatedier/frp/releases"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -61,7 +61,7 @@ if not exist "!config_path!" (
     echo customDomains = ["服务器映射域名"] & REM
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 echo 配置文件：!config_path!
@@ -72,7 +72,7 @@ if !errorlevel! neq 0 (
     echo 错误：配置文件 frpc.toml 格式有误
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -82,4 +82,4 @@ echo.
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

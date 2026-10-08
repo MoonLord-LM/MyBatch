@@ -243,4 +243,4 @@ echo.>> "!log_file!"
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

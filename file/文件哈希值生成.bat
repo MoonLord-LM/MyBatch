@@ -31,7 +31,7 @@ set "input_file=!param1_path!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     )
@@ -74,7 +74,7 @@ if !errorlevel! neq 0 (
     echo 错误：生成 MD5 失败："!input_file!"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -83,7 +83,7 @@ if !errorlevel! neq 0 (
     echo 错误：生成 SHA1 失败："!input_file!"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -92,7 +92,7 @@ if !errorlevel! neq 0 (
     echo 错误：生成 SHA256 失败："!input_file!"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -101,7 +101,7 @@ if !errorlevel! neq 0 (
     echo 错误：生成 SHA384 失败："!input_file!"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -110,11 +110,11 @@ if !errorlevel! neq 0 (
     echo 错误：生成 SHA512 失败："!input_file!"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

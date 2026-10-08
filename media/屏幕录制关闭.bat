@@ -103,4 +103,4 @@ if !errorlevel! equ 0 (
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

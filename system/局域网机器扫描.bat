@@ -19,7 +19,7 @@ if "!local_ip!"=="" (
     echo 获取本机局域网 IP 失败 & REM
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 echo 本机局域网 IP：!local_ip!
@@ -83,4 +83,4 @@ echo 扫描完成
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

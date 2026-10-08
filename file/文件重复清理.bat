@@ -35,7 +35,7 @@ set "path2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     ) else (
@@ -74,7 +74,7 @@ set "path2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     ) else (
@@ -185,4 +185,4 @@ echo 共计：!total! 个文件，重复：!duplicate! 个，删除成功：!del
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

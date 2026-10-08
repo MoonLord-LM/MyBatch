@@ -43,7 +43,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -60,7 +60,7 @@ set "screenshot_time=!param2!"
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
                 echo.
-                endlocal & endlocal & exit /b 1
+                exit /b 1
             )
             echo.
         ) else (
@@ -99,7 +99,7 @@ set "screenshot_time=!param2!"
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
                 echo.
-                endlocal & endlocal & exit /b 1
+                exit /b 1
             )
             echo.
         ) else (
@@ -135,7 +135,7 @@ set "screenshot_time=!param2!"
                 echo ts 转 mp4 失败，程序退出
                 echo.
                 pause
-                endlocal & endlocal & exit /b 1
+                exit /b 1
             )
             echo ts 转 mp4 完成
         )
@@ -166,4 +166,4 @@ goto loop
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

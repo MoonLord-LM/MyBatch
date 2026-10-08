@@ -39,7 +39,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://github.com/cloudflare/cloudflared/releases"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -69,7 +69,7 @@ if not exist "!config_path!" (
     echo } & REM
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -99,7 +99,7 @@ if !tunnel_count! equ 0 (
     echo 错误：配置文件中没有可用的隧道配置
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo 隧道数量：!tunnel_count!
 echo.
@@ -113,7 +113,7 @@ echo.
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     )
@@ -174,4 +174,4 @@ taskkill /f /im cloudflared.exe
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

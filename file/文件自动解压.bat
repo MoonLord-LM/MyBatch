@@ -47,7 +47,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://www.7-zip.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 REM 检查 WinRAR 组件
@@ -73,7 +73,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://www.rarlab.com/download.htm"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -97,7 +97,7 @@ if "!param1!" == "" (
         echo 错误：路径不存在："!param1!"
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
     if exist "!param1!\" (
         echo 开始处理文件夹："!param1!"
@@ -196,7 +196,7 @@ if "!param1!" == "" (
             echo 错误：不支持的文件后缀 "!file_ext!"，请拖入压缩文件
             echo.
             pause
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
     )
 )
@@ -318,4 +318,4 @@ echo 其中，无密码解压成功 !succeeded! 个，密码解压成功 !passwo
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

@@ -24,4 +24,4 @@ powershell -NoProfile -WindowStyle Hidden -Command ^
 
 echo.
 timeout /t 3 /nobreak
-endlocal & endlocal & exit /b
+exit /b

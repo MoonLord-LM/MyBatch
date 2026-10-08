@@ -51,7 +51,7 @@ if !errorlevel! neq 0 (
         echo 错误：系统级策略删除失败，请检查报错信息
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
     echo 已删除系统级策略注册表项
 )
@@ -67,7 +67,7 @@ if !errorlevel! neq 0 (
         echo 错误：用户级策略删除失败，请检查报错信息
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
     echo 已删除用户级策略注册表项
 )
@@ -78,4 +78,4 @@ echo 清理完成，请重启浏览器后，查看 chrome://policy/ 页面，确
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

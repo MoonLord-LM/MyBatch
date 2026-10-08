@@ -34,7 +34,7 @@ if "!param1!" == "" (
         echo 错误：路径不存在："!param1!"
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
     if exist "!param1!\" (
         echo 开始处理文件夹："!param1!"
@@ -44,7 +44,7 @@ if "!param1!" == "" (
         echo 错误：不支持拖入单个文件，请拖入文件夹或双击运行
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 )
 
@@ -88,4 +88,4 @@ if not "!working_dir!" == "" (
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

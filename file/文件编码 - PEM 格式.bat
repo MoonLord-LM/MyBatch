@@ -33,7 +33,7 @@ set "input_file=!param1_path!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     )
@@ -76,7 +76,7 @@ if exist "!output_file!" (
     echo 如果需要重新编码，请先移走旧文件 & REM
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 set "certutil_path=!SystemRoot!\System32\certutil.exe"
@@ -100,4 +100,4 @@ if !errorlevel! neq 0 (
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

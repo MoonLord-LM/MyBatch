@@ -43,7 +43,7 @@ if "!libcrypto!" == "" (
     "explorer.exe" "https://slproweb.com/products/Win32OpenSSL.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -57,7 +57,7 @@ set "input_file=!param1_path!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     )
@@ -100,7 +100,7 @@ if exist "!output_file!" (
     echo 如果需要重新加密，请先移走旧文件 & REM
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
@@ -155,7 +155,7 @@ if !errorlevel! neq 0 (
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b
 
 
 

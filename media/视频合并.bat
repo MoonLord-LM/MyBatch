@@ -43,7 +43,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 REM 检查 ffprobe 组件
@@ -65,7 +65,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 REM 检查 MediaInfo 组件
@@ -87,7 +87,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -102,7 +102,7 @@ if "!param1!" == "" (
         echo 错误：路径不存在："!param1!"
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
     if exist "!param1!\" (
         echo 开始处理文件夹："!param1!"
@@ -112,7 +112,7 @@ if "!param1!" == "" (
         echo 错误：不支持拖入单个文件，请拖入文件夹或双击运行
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 )
 
@@ -224,7 +224,7 @@ if not "!working_dir!" == "" (
             echo 错误：序号 %%i 存在多个命名方式相同的文件：!name_list!，请只保留其中一个文件
             echo.
             pause
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         if !name_count! gtr 0 (
             if "!min_i!"=="0" set "min_i=%%i"
@@ -252,7 +252,7 @@ if not "!working_dir!" == "" (
         echo 错误：视频序号不连续，缺少以下序号：!missing_list!，请补齐缺失的视频文件
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 
     echo 正在检查视频内容
@@ -282,7 +282,7 @@ if not "!working_dir!" == "" (
                 "!ffmpeg_path!" -v error -i "!working_dir!\!file_name!" -map 0 -f null -
                 echo.
                 pause
-                endlocal & endlocal & exit /b 1
+                exit /b 1
             )
         )
     )
@@ -315,7 +315,7 @@ if not "!working_dir!" == "" (
                             if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
                             echo.
                             pause
-                            endlocal & endlocal & exit /b 1
+                            exit /b 1
                         )
                     )
                     set "file_to_delete=!working_dir!\!file_name!"
@@ -327,7 +327,7 @@ if not "!working_dir!" == "" (
                         if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
                         echo.
                         pause
-                        endlocal & endlocal & exit /b 1
+                        exit /b 1
                     )
                 )
             )
@@ -465,7 +465,7 @@ if not "!working_dir!" == "" (
         if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 
     set "target_video_encoder=libx264"
@@ -889,7 +889,7 @@ if not "!working_dir!" == "" (
         if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 
     if exist "!tmp_merged_video!" (
@@ -987,7 +987,7 @@ if not "!working_dir!" == "" (
                         if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
                         echo.
                         pause
-                        endlocal & endlocal & exit /b 1
+                        exit /b 1
                     )
                     set "cover_file=!cover_file!.png"
                 )
@@ -1002,7 +1002,7 @@ if not "!working_dir!" == "" (
                 if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
                 echo.
                 pause
-                endlocal & endlocal & exit /b 1
+                exit /b 1
             )
         ) else (
             echo 封面文件，例如 0.png、00.png、000.png、cover.png、封面.png、海报.png 等，都不存在，不添加封面
@@ -1015,7 +1015,7 @@ if not "!working_dir!" == "" (
         if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 
     if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
@@ -1026,4 +1026,4 @@ if not "!working_dir!" == "" (
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

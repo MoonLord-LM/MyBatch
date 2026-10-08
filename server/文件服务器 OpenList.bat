@@ -42,7 +42,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://slproweb.com/products/Win32OpenSSL.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 REM 检查 OpenList 组件
@@ -63,7 +63,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://github.com/OpenListTeam/OpenList/releases"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -78,7 +78,7 @@ if not exist "OpenListData\" (
         echo 错误：创建数据存储文件夹 OpenListData 失败
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 )
 
@@ -101,4 +101,4 @@ powershell -NoProfile -Command ^
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

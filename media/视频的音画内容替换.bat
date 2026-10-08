@@ -42,7 +42,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 REM 检查 ffprobe 组件
@@ -64,7 +64,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -79,7 +79,7 @@ set "video2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     ) else (
@@ -118,7 +118,7 @@ set "video2=!param2!"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     ) else (
@@ -180,7 +180,7 @@ for %%i in ("!video1!") do (
         echo 如果需要重新替换，请先移走旧文件 & REM
         echo.
         pause
-        endlocal & endlocal & endlocal & endlocal & exit /b 1
+        exit /b 1
     )
 
     REM 小写 v 匹配所有视频流，大写 V 只匹配除封面之外的纯视频流
@@ -205,4 +205,4 @@ for %%i in ("!video1!") do (
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

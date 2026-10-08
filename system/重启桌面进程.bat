@@ -92,7 +92,7 @@ if !errorlevel! neq 0 (
     echo 错误：记录文件夹窗口失败，未重启桌面进程
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -160,7 +160,7 @@ if !errorlevel! neq 0 (
     echo 错误：桌面进程重启失败，请检查报错信息
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -199,4 +199,4 @@ echo 已完成重启
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

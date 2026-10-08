@@ -46,7 +46,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://www.7-zip.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -61,7 +61,7 @@ if "!param1!" == "" (
         echo 错误：路径不存在："!param1!"
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     )
     if exist "!param1!\" (
         echo 开始处理文件夹："!param1!"
@@ -115,4 +115,4 @@ for %%i in ("!input_path!") do (
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

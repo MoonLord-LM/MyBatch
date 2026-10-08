@@ -33,7 +33,7 @@ set "dir_suffix=.{ED7BA470-8E54-465E-825C-99712043E01C}"
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            endlocal & endlocal & exit /b 1
+            exit /b 1
         )
         echo.
     ) else (
@@ -81,7 +81,7 @@ if !errorlevel! neq 0 (
     echo 错误：重命名文件夹失败："!file_path!"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -91,7 +91,7 @@ if !errorlevel! neq 0 (
     echo 错误：设置文件夹 系统+隐藏 属性失败："!clsid_path!"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 echo.
 
@@ -102,4 +102,4 @@ echo 已隐藏，当前文件夹："!clsid_path!"
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b

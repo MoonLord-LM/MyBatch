@@ -40,7 +40,7 @@ if !errorlevel! neq 0 (
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 )
 
 
@@ -54,7 +54,7 @@ if exist "!pid_file!" (
         echo 检测到已有录制正在进行，请先运行 “屏幕录制关闭.bat” 结束当前录制
         echo.
         pause
-        endlocal & endlocal & exit /b 1
+        exit /b 1
     ) else (
         echo 检测到残留的录制记录，对应进程已不存在，执行清理
         set "file_to_delete=!pid_file!"
@@ -102,7 +102,7 @@ if !errorlevel! neq 0 (
     echo 录制进程启动失败
     echo.
     pause
-    endlocal & endlocal & exit /b 1
+    exit /b 1
 ) else (
     echo.
     echo 录制已开始，将在 3 秒后自动关闭本窗口
@@ -112,7 +112,7 @@ if !errorlevel! neq 0 (
 
 echo.
 timeout /t 3 /nobreak
-endlocal & endlocal & exit /b
+exit /b
 
 
 
