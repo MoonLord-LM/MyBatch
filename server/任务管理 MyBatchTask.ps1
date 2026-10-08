@@ -764,6 +764,10 @@ try {
     function Update-Task-Grid-Row {
         param([string]$TaskName)
 
+        if ($null -eq $taskGridView -or $taskGridView.IsDisposed) {
+            return
+        }
+
         $index = -1
         for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
             if ([string]$taskConfigList[$i].name -eq $TaskName) {
