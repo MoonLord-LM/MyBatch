@@ -317,6 +317,7 @@ try {
             INFO_StartAllDone = "已启动全部任务"
             INFO_StopAllDone = "已停止全部任务"
             INFO_LogCopied = "日志已复制到剪贴板"
+            INFO_LogOpened = "已打开日志文件: {0}"
             INFO_NoLog = "当前没有日志内容"
             INFO_TrayHint = "程序已最小化到托盘图标，双击托盘图标可重新打开界面"
             INFO_SystemInfo = "配置文件: [ {0} ]"
@@ -412,6 +413,7 @@ try {
             INFO_StartAllDone = "All tasks started"
             INFO_StopAllDone = "All tasks stopped"
             INFO_LogCopied = "Log copied to clipboard"
+            INFO_LogOpened = "Log file opened: {0}"
             INFO_NoLog = "No log content"
             INFO_TrayHint = "The program is minimized to the tray icon. Double-click the tray icon to reopen the window."
             INFO_SystemInfo = "Config file: [ {0} ]"
@@ -473,6 +475,7 @@ try {
                 $TextBox.SelectionFont = $TextBox.Font
                 $TextBox.SelectionColor = $Color
                 $TextBox.AppendText($Text)
+                $TextBox.SelectionStart = $TextBox.TextLength
                 $TextBox.ScrollToCaret()
             }
             finally {
@@ -782,6 +785,7 @@ try {
                 $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } else { [System.Drawing.Color]::Red }
                 $execution.logViewTextBox.SelectionColor = $lineColor
                 $execution.logViewTextBox.AppendText($logLine + "`r`n")
+                $execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
                 $execution.logViewTextBox.ScrollToCaret()
             }
             finally {
@@ -1262,11 +1266,11 @@ try {
         }
 
         $execution = Get-Task-Execution -TaskName $TaskName
-        # 新建日志标签页
         $logViewTabPage = [System.Windows.Forms.TabPage]::new()
         $logViewTabPage.Name = $logViewTabPageName
         $logViewTabPage.Text = $TaskName
         $logViewTabPage.BackColor = [System.Drawing.Color]::White
+
         # 日志文本框
         $logViewTextBox = [System.Windows.Forms.RichTextBox]::new()
         $logViewTextBox.ReadOnly = $true
@@ -1275,31 +1279,14 @@ try {
         $logViewTextBox.BackColor = [System.Drawing.Color]::White
         $logViewTextBox.WordWrap = $false
         $logViewTextBox.Font = $mainForm.Font
-        # 关闭 URL 自动检测，防止日志中的链接被渲染成蓝色下划线导致颜色/字体不一致
         $logViewTextBox.DetectUrls = $false
         $logViewTextBox.Dock = "Fill"
         $logViewTabPage.Controls.Add($logViewTextBox)
+
         # 日志文本框右键菜单: 复制日志 / 清空日志 / 打开日志文件
         $logViewContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
         $logViewCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
         $logViewCopyItem.Text = $ui.LogCopy
-        $logViewClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-        $logViewClearItem.Text = $ui.LogClear
-        $logViewOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-        $logViewOpenItem.Text = $ui.LogOpenFile
-        $logViewContextMenu.Items.Add($logViewCopyItem) | Out-Null
-        $logViewContextMenu.Items.Add($logViewClearItem) | Out-Null
-        $logViewContextMenu.Items.Add($logViewOpenItem) | Out-Null
-        $logViewTextBox.ContextMenuStrip = $logViewContextMenu
-        # 载入历史日志（与追加行统一字体和颜色：微软雅黑 10 / 黑色，防止历史段落继承默认字体导致样式不一致）
-        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
-        $logViewTextBox.SelectionLength = 0
-        $logViewTextBox.SelectionFont = $logViewTextBox.Font
-        $logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
-        $logViewTextBox.AppendText($execution.logViewContent.ToString())
-        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
-        $logViewTextBox.ScrollToCaret()
-        # 右键菜单事件绑定
         $logViewCopyItem.Add_Click({
             if ($logViewTextBox.Text.Length -gt 0) {
                 [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
@@ -1308,20 +1295,38 @@ try {
                 System-Log $ui.INFO_NoLog "Warning"
             }
         })
+        $logViewClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $logViewClearItem.Text = $ui.LogClear
         $logViewClearItem.Add_Click({
             $logViewTextBox.Clear()
             $execution.logViewContent.Clear() | Out-Null
         })
+        $logViewOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $logViewOpenItem.Text = $ui.LogOpenFile
         $logViewOpenItem.Add_Click({
+            System-Log $execution.logFilePath
             if ($execution.logFilePath -and [System.IO.File]::Exists($execution.logFilePath)) {
-                Start-Process "notepad.exe" -ArgumentList ('"' + $execution.logFilePath + '"')
+                Start-Process "explorer.exe" -ArgumentList ('"' + $execution.logFilePath + '"')
+                System-Log ($ui.INFO_LogOpened -f $execution.logFilePath) "Success"
             } else {
                 System-Log $ui.INFO_NoLog "Warning"
             }
         })
-        # 保存引用
+        $logViewContextMenu.Items.Add($logViewCopyItem) | Out-Null
+        $logViewContextMenu.Items.Add($logViewClearItem) | Out-Null
+        $logViewContextMenu.Items.Add($logViewOpenItem) | Out-Null
+        $logViewTextBox.ContextMenuStrip = $logViewContextMenu
+
+        # 载入历史日志
+        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+        $logViewTextBox.SelectionLength = 0
+        $logViewTextBox.SelectionFont = $logViewTextBox.Font
+        $logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
+        $logViewTextBox.AppendText($execution.logViewContent.ToString())
+        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+        $logViewTextBox.ScrollToCaret()
+
         $execution.logViewTextBox = $logViewTextBox
-        # 添加到标签栏并选中
         $tabControl.TabPages.Add($logViewTabPage)
         $tabControl.SelectedTab = $logViewTabPage
     }

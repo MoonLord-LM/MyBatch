@@ -272,7 +272,8 @@ if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 
 函数内部的变量名，应该尽可能简单化，并且避免和外部全局变量名冲突  
 如果在函数内仅读取外部变量，直接用 $xxx 的形式，例如 `$path = $configFilePath`  
-如果在函数内有修改外部变量，必须用 $script:xxx 的形式，例如 `$script:configFilePath = '...'`  
+如果在函数内仅修改外部变量的对象属性，直接用 $xxx 的形式，例如 `$configMap['yyy'] = 'zzz'`  
+如果在函数内有对外部变量重新赋值，必须用 $script:xxx 的形式，例如 `$script:configFilePath = '...'`  
 
 ## Powershell 引号使用
 
