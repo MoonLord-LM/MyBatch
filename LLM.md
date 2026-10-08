@@ -117,6 +117,32 @@ if !errorlevel! neq 0 (
 )
 ```
 
+## 获取管理员权限
+
+代码示例如下：  
+
+```batch
+REM 获取系统管理员权限
+net file >nul 2>&1
+if !errorlevel! equ 0 (
+    powershell -NoProfile -Command "Write-Host '已获取系统管理员权限' -ForegroundColor Green"
+    echo.
+) else (
+    powershell -NoProfile -Command "Write-Host '需要系统管理员权限，请确认……' -ForegroundColor Green"
+    echo.
+    setlocal disabledelayedexpansion
+    powershell start -verb "RunAs" "%~f0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9" >nul 2>&1
+    endlocal
+    if !errorlevel! neq 0 (
+        powershell -NoProfile -Command "Write-Host '错误：获取系统管理员权限失败' -ForegroundColor Red"
+        echo.
+        pause
+        exit /b 1
+    )
+    exit /b
+)
+```
+
 ## 调用 PowerShell 命令
 
 代码示例如下：  
