@@ -322,7 +322,7 @@ if !errorlevel! neq 0 (
 if /i "!origin_file_name:~-4!"==".ps1" (
     powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!"
 ) else if /i "!origin_file_name:~-4!"==".bat" (
-    cmd /s /c "!temp_file!"
+    cmd /s /c ""!temp_file!""
 ) else (
     "!temp_file!"
 )
