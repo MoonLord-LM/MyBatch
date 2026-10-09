@@ -134,9 +134,13 @@ for %%i in ("!input_file!") do (
         "};" ^
         "if ($ext -eq '.ps1') {" ^
         "    $out = New-Object System.Collections.Generic.List[string];" ^
+        "    $prev = '';" ^
         "    $inHereString = $false;" ^
         "    $hereStringEnd = '';" ^
         "    foreach ($line in $lines) {" ^
+        "        if ($out.Count -gt 0) {" ^
+        "            $prev = $out[$out.Count - 1];" ^
+        "        };" ^
         "        if ($inHereString) {" ^
         "            $out.Add($line);" ^
         "            if ($line.StartsWith($hereStringEnd)) {" ^
@@ -167,17 +171,18 @@ for %%i in ("!input_file!") do (
         "            $out.Add($line);" ^
         "            continue;" ^
         "        };" ^
-        "        if ($out.Count -gt 0) {" ^
-        "            $prev = $out[$out.Count - 1];" ^
-        "            if ($prev.Contains('#') -eq $false) {" ^
-        "                if ($prev.EndsWith('{')) {" ^
-        "                    $out[$out.Count - 1] = $prev + $line;" ^
-        "                    continue;" ^
-        "                };" ^
-        "                if ($line.StartsWith('}')) {" ^
-        "                    $out[$out.Count - 1] = $prev + $line;" ^
-        "                    continue;" ^
-        "                };" ^
+        "        if ($prev.Contains('#') -eq $false) {" ^
+        "            if ($prev.EndsWith('{')) {" ^
+        "                $prev = $out[$out.Count - 1] + $line + ';';" ^
+        "                $out[$out.Count - 1] = $prev;" ^
+        "                continue;" ^
+        "            };" ^
+        "        };" ^
+        "        if ($prev.Contains('#') -eq $false) {" ^
+        "            if ($line.StartsWith('}')) {" ^
+        "                $prev = $out[$out.Count - 1] + $line + ';';" ^
+        "                $out[$out.Count - 1] = $prev;" ^
+        "                continue;" ^
         "            };" ^
         "        };" ^
         "        $out.Add($line);" ^
@@ -186,20 +191,30 @@ for %%i in ("!input_file!") do (
         "    [System.IO.File]::WriteAllLines($env:temp_file, $out, $utf8Bom);" ^
         "} elseif ($ext -eq '.bat') {" ^
         "    $out = New-Object System.Collections.Generic.List[string];" ^
+        "    $prev = '';" ^
         "    for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+        "        if ($out.Count -gt 0) {" ^
+        "            $prev = $out[$out.Count - 1];" ^
+        "        };" ^
         "        $line = $lines[$i].TrimEnd();" ^
+        "        if ($prev.EndsWith('^')) {" ^
+        "            $out.Add($line);" ^
+        "            continue;" ^
+        "        };" ^
+        "        $line = $lines[$i].TrimStart();" ^
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
         "        if ($line -match '^\s*REM\s+') {" ^
-        "            $next = $i + 1;" ^
-        "            while ($next -lt $lines.Count -and $lines[$next].Trim() -eq '') {" ^
-        "                $next++;" ^
-        "            };" ^
-        "            if ($next -lt $lines.Count -and $lines[$next].TrimStart().StartsWith(')')) {" ^
-        "                $out.Add('REM');" ^
-        "            };" ^
         "            continue;" ^
+        "        };" ^
+        "        if ($prev.EndsWith('(')) {" ^
+        "            if ($line.StartsWith(')')) {" ^
+        "                $prev = $out[$out.Count - 1] + ' REM';" ^
+        "                $out[$out.Count - 1] = $prev;" ^
+        "                $out.Add($line);" ^
+        "                continue;" ^
+        "            };" ^
         "        };" ^
         "        $out.Add($line);" ^
         "    };" ^
