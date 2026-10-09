@@ -173,14 +173,14 @@ for %%i in ("!input_file!") do (
         "        };" ^
         "        if ($prev.Contains('#') -eq $false) {" ^
         "            if ($prev.EndsWith('{')) {" ^
-        "                $prev = $out[$out.Count - 1] + $line + ';';" ^
+        "                $prev = $out[$out.Count - 1] + $line;" ^
         "                $out[$out.Count - 1] = $prev;" ^
         "                continue;" ^
         "            };" ^
         "        };" ^
         "        if ($prev.Contains('#') -eq $false) {" ^
         "            if ($line.StartsWith('}')) {" ^
-        "                $prev = $out[$out.Count - 1] + $line + ';';" ^
+        "                $prev = $out[$out.Count - 1] + $line;" ^
         "                $out[$out.Count - 1] = $prev;" ^
         "                continue;" ^
         "            };" ^
