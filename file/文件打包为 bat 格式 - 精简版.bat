@@ -148,24 +148,23 @@ for %%i in ("!input_file!") do (
         "            };" ^
         "            continue;" ^
         "        };" ^
-        "        $line = $line.TrimEnd();" ^
+        "        $line = $line.Trim();" ^
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
-        "        $trimLine = $line.TrimStart();" ^
-        "        if ($trimLine -eq '#' -or $trimLine.StartsWith('# ')) {" ^
+        "        if ($line -eq '#' -or $line.StartsWith('# ')) {" ^
         "            continue;" ^
         "        };" ^
-        "        if ($trimLine.StartsWith('<#') -and $trimLine.EndsWith('#>') -and $trimLine.Length -ge 4) {" ^
+        "        if ($line.StartsWith('<#') -and $line.EndsWith('#>') -and $line.Length -ge 4) {" ^
         "            continue;" ^
         "        };" ^
-        "        if ($inHereString -eq $false -and $trimLine.EndsWith('@' + [string][char]34)) {" ^
+        "        if ($inHereString -eq $false -and $line.EndsWith('@' + [string][char]34)) {" ^
         "            $inHereString = $true;" ^
         "            $hereStringEnd = [string][char]34 + '@';" ^
         "            $out.Add($line);" ^
         "            continue;" ^
         "        };" ^
-        "        if ($inHereString -eq $false -and $trimLine.EndsWith('@' + [string][char]39)) {" ^
+        "        if ($inHereString -eq $false -and $line.EndsWith('@' + [string][char]39)) {" ^
         "            $inHereString = $true;" ^
         "            $hereStringEnd = [string][char]39 + '@';" ^
         "            $out.Add($line);" ^
