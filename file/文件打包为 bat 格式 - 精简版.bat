@@ -170,6 +170,10 @@ for %%i in ("!input_file!") do (
         "            $out.Add($line);" ^
         "            continue;" ^
         "        };" ^
+        "        if ($prev -eq '') {" ^
+        "            $out.Add($line);" ^
+        "            continue;" ^
+        "        };" ^
         "        if ($prev.Contains('#') -eq $false) {" ^
         "            if ($prev.EndsWith('{')) {" ^
         "                $prev = $out[$out.Count - 1] + $line;" ^
@@ -205,6 +209,10 @@ for %%i in ("!input_file!") do (
         "            continue;" ^
         "        };" ^
         "        if ($line -match '^\s*REM\s+') {" ^
+        "            continue;" ^
+        "        };" ^
+        "        if ($prev -eq '') {" ^
+        "            $out.Add($line);" ^
         "            continue;" ^
         "        };" ^
         "        if ($prev.EndsWith('(')) {" ^
