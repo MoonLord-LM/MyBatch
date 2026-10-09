@@ -10,10 +10,10 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '将单个 ps1 / bat / exe 文件，打包转换为 bat 脚本' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并执行' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '处理方式：清理源文件的注释和空行等，将内容压缩后，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '处理方式：清理 ps1 / bat 源文件的注释和空行等，将内容压缩后，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '由于清理了源文件的注释和空行等，有可能会影响执行效果' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
 
 

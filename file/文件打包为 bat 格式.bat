@@ -13,7 +13,7 @@ powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动�
 powershell -NoProfile -Command "Write-Host '处理方式：把源文件内容压缩后，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '不修改源文件内容，完整保留注释和空行等' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
 
 
