@@ -123,7 +123,7 @@ for %%i in ("!input_file!") do (
         "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
         "    $out = New-Object System.Collections.Generic.List[string];" ^
         "    foreach ($line in $lines) {" ^
-        "        $line = $line.Trim();" ^
+        "        $line = $line.TrimEnd();" ^
         "        if ($line.StartsWith('#')) {" ^
         "            continue;" ^
         "        };" ^
@@ -151,7 +151,7 @@ for %%i in ("!input_file!") do (
         "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
         "    $out = New-Object System.Collections.Generic.List[string];" ^
         "    foreach ($line in $lines) {" ^
-        "        $line = $line.Trim();" ^
+        "        $line = $line.TrimEnd();" ^
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
@@ -353,9 +353,9 @@ if !errorlevel! neq 0 (
     if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
     exit /b 1
 )
-if /i "!origin_name:~-4!"==".ps1" (
+if /i "!origin_file_name:~-4!"==".ps1" (
     powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!"
-) else if /i "!origin_name:~-4!"==".bat" (
+) else if /i "!origin_file_name:~-4!"==".bat" (
     cmd /s /c "!temp_file!"
 ) else (
     "!temp_file!"
