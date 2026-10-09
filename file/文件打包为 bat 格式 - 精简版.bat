@@ -101,10 +101,14 @@ echo.
 
 for %%i in ("!input_file!") do (
     setlocal disabledelayedexpansion
+    set "file_size=%%~zi"
     set "file_dir=%%~dpi"
     set "base_name=%%~ni"
     set "file_name_ext=%%~nxi"
     setlocal enabledelayedexpansion
+
+    echo 原始大小：%%~zi 字节
+    echo.
 
     REM 如果输出文件已存在，则继续追加 .bat 后缀，直到文件名不重复
     set "output_file=!file_dir!!base_name!.min.bat"
@@ -333,7 +337,7 @@ for %%i in ("!input_file!") do (
             set "file_size=%%~zj"
             setlocal enabledelayedexpansion
 
-            echo 转换成功，大小：!file_size! 字节
+            echo 转换成功：!file_size! 字节
 
             endlocal
             endlocal
