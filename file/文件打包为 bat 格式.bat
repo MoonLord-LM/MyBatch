@@ -8,9 +8,9 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将单个 ps1 / bat / py / exe 文件，打包转换为 bat 脚本' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并执行' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '处理方式：把源文件内容压缩为 gzip 格式，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将单个文件，打包转换为 bat 脚本' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并打开原文件，如果是 ps1 / bat / py / exe 则自动执行' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '处理方式：把原文件内容压缩为 gzip 格式，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
@@ -49,7 +49,7 @@ set "input_file=!param1_path!"
 
 :input_file
     if "!input_file!"=="" (
-        echo 请输入要打包转换的 ps1 / bat / py / exe 文件的路径
+        echo 请输入要打包转换的文件的路径
         set /p "input_file="
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
@@ -78,17 +78,6 @@ set "input_file=!param1_path!"
     )
     if exist "!input_file!\" (
         echo 错误：不支持文件夹，请输入单个文件
-        echo.
-        set "input_file="
-        goto input_file
-    )
-    set "input_file_ext="
-    if /i "!input_file:~-4!"==".ps1" set "input_file_ext=.ps1"
-    if /i "!input_file:~-4!"==".bat" set "input_file_ext=.bat"
-    if /i "!input_file:~-3!"==".py" set "input_file_ext=.py"
-    if /i "!input_file:~-4!"==".exe" set "input_file_ext=.exe"
-    if "!input_file_ext!"=="" (
-        echo 错误：只支持 ps1 / bat / py / exe 后缀的文件："!input_file!"，请重新输入
         echo.
         set "input_file="
         goto input_file
@@ -194,14 +183,14 @@ for %%i in ("!input_file!") do (
     if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
 
     REM 提取内嵌代码
-    set "begin_marker=-----BEGIN BATCH CODE-----"
-    set "end_marker=-----END BATCH CODE-----"
+    set "inner_begin_marker=-----BEGIN BATCH CODE-----"
+    set "inner_end_marker=-----END BATCH CODE-----"
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
-        "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
-        "$end = [array]::IndexOf($lines, $env:end_marker);" ^
+        "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
+        "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
         "if ($begin -lt 1 -or $end -lt $begin) {" ^
         "    Write-Host '错误：未找到内嵌的 bat 代码块' -ForegroundColor Red;" ^
         "    exit 1;" ^
@@ -228,10 +217,12 @@ for %%i in ("!input_file!") do (
     )
 
     REM 合并最终文件
+    set "output_begin_marker=-----BEGIN GZIP FILE-----"
+    set "output_end_marker=-----END GZIP FILE-----"
     (
-        echo !begin_marker!
+        echo !output_begin_marker!
         type "!temp_base64!"
-        echo !end_marker!
+        echo !output_end_marker!
     ) >> "!output_file!"
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
@@ -271,8 +262,8 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 set "temp_dir=%temp%\MyBatch_%random%_%random%_%random%_%random%"
 set "temp_file=!temp_dir!\!origin_file_name!"
 mkdir "!temp_dir!"
-set "begin_marker=-----BEGIN BATCH CODE-----"
-set "end_marker=-----END BATCH CODE-----"
+set "begin_marker=-----BEGIN GZIP FILE-----"
+set "end_marker=-----END GZIP FILE-----"
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
     "Add-Type -AssemblyName System.IO.Compression;" ^
@@ -310,11 +301,5 @@ if /i "!origin_file_name:~-4!"==".ps1" (
 ) else (
     explorer "!temp_file!"
 )
-if !errorlevel! neq 0 (
-    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
-    exit /b 1
-) else (
-    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
-    exit /b
-)
+exit /b !errorlevel!
 -----END BATCH CODE-----
