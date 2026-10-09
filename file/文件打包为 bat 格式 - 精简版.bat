@@ -132,10 +132,10 @@ for %%i in ("!input_file!") do (
         "    $out = New-Object System.Collections.Generic.List[string];" ^
         "    foreach ($line in $lines) {" ^
         "        $line = $line.TrimEnd();" ^
-        "        if ($line.StartsWith('#')) {" ^
+        "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
-        "        if ($line -eq '') {" ^
+        "        if ($line.StartsWith('#')) {" ^
         "            continue;" ^
         "        };" ^
         "        if ($out.Count -gt 0) {" ^
@@ -162,7 +162,10 @@ for %%i in ("!input_file!") do (
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
-        "        if ($line -match '^@?(rem(\s|$)|:{2,})') {" ^
+        "        if ($line -match '^\s*rem\s+') {" ^
+        "            continue;" ^
+        "        };" ^
+        "        if ($line -match '^\s*::\s+') {" ^
         "            continue;" ^
         "        };" ^
         "        $out.Add($line);" ^
