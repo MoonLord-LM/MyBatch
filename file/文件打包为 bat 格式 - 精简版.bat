@@ -135,7 +135,8 @@ for %%i in ("!input_file!") do (
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
-        "        if ($line.StartsWith('#')) {" ^
+        "        $trimLine = $line.TrimStart();" ^
+        "        if ($trimLine.StartsWith('#') -and $trimLine.StartsWith('#>') -eq $false) {" ^
         "            continue;" ^
         "        };" ^
         "        if ($out.Count -gt 0) {" ^
