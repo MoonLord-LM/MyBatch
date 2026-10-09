@@ -11,7 +11,6 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '将单个 ps1 / bat / exe 文件，打包转换为 bat 脚本' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并执行' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '处理方式：把源文件内容压缩后，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '不修改源文件内容，完整保留注释和空行等' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
@@ -118,37 +117,6 @@ for %%i in ("!input_file!") do (
     echo 输出文件："!output_file!"
     echo.
 
-    REM ps1 文件统一保存为带 BOM 的 UTF-8 编码；bat 文件统一保存为不带 BOM 的 UTF-8 编码；exe 文件为二进制文件，直接复制
-    set "temp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_file!"
-    powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$ext = $env:input_file_ext.ToLower();" ^
-        "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
-        "if ($ext -eq '.ps1' -or $ext -eq '.bat') {" ^
-        "    try {" ^
-        "        $lines = [System.IO.File]::ReadAllLines($env:input_file, $utf8Strict);" ^
-        "    } catch [System.Text.DecoderFallbackException] {" ^
-        "        Write-Host '错误：源文件不是 UTF-8 编码' -ForegroundColor Red;" ^
-        "        exit 1;" ^
-        "    };" ^
-        "};" ^
-        "if ($ext -eq '.ps1') {" ^
-        "    $utf8Bom = New-Object System.Text.UTF8Encoding($true);" ^
-        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $utf8Bom);" ^
-        "} elseif ($ext -eq '.bat') {" ^
-        "    $utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
-        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $utf8NoBom);" ^
-        "} else {" ^
-        "    [System.IO.File]::Copy($env:input_file, $env:temp_file, $true);" ^
-        "};"
-    if !errorlevel! neq 0 (
-        echo 错误：获取源文件失败："!input_file!"
-        echo.
-        if exist "!temp_file!" ( del /f /q "!temp_file!" )
-        pause
-        exit /b 1
-    )
-
     if "!seven_zip!"=="" (
         echo 压缩方式：PowerShell 内置的 GZipStream 压缩
     ) else (
@@ -156,13 +124,13 @@ for %%i in ("!input_file!") do (
     )
     echo.
 
-    set "temp_gzip=%temp%\MyBatch_%random%_%random%_%random%_%random%.gz"
-    if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+    REM 压缩
+    set "temp_zip=%temp%\MyBatch_%random%_%random%_%random%_%random%.zip"
     if "!seven_zip!"=="" (
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "Add-Type -AssemblyName System.IO.Compression;" ^
-            "$rawBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+            "$rawBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
             "$memStream = New-Object System.IO.MemoryStream;" ^
             "$mode = [System.IO.Compression.CompressionMode]::Compress;" ^
             "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
@@ -170,40 +138,36 @@ for %%i in ("!input_file!") do (
             "$gzipStream.Close();" ^
             "$bytes = $memStream.ToArray();" ^
             "$memStream.Close();" ^
-            "[System.IO.File]::WriteAllBytes($env:temp_gzip, $bytes);"
+            "[System.IO.File]::WriteAllBytes($env:temp_zip, $bytes);"
         if !errorlevel! neq 0 (
-            echo 错误：压缩源文件失败："!input_file!"
+            echo 错误：压缩失败："!input_file!"
             echo.
-            if exist "!temp_file!" ( del /f /q "!temp_file!" )
-            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
             pause
             exit /b 1
         )
     ) else (
-        "!seven_zip!" a -tgzip -mx=9 -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!temp_file!" >nul
+        "!seven_zip!" a -tgzip -mx=9 -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_zip!" < "!input_file!" >nul
         if !errorlevel! neq 0 (
-            echo 错误：压缩源文件失败："!input_file!"
+            echo 错误：压缩失败："!input_file!"
             echo.
-            if exist "!temp_file!" ( del /f /q "!temp_file!" )
-            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
             pause
             exit /b 1
         )
     )
-    if not exist "!temp_gzip!" (
-        echo 错误：压缩源文件失败："!input_file!"
+    if not exist "!temp_zip!" (
+        echo 错误：压缩文件生成失败："!temp_zip!"
         echo.
-        if exist "!temp_file!" ( del /f /q "!temp_file!" )
         pause
         exit /b 1
     )
-    if exist "!temp_file!" ( del /f /q "!temp_file!" )
 
-    REM 把压缩后的内容转换为 Base64 编码，每 64 个字符一行，保存到临时文件
+    REM 转换 Base64 编码
     set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.txt" & type nul > "!temp_base64!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$bytes = [System.IO.File]::ReadAllBytes($env:temp_gzip);" ^
+        "$bytes = [System.IO.File]::ReadAllBytes($env:temp_zip);" ^
         "$base64 = [Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
         "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
@@ -213,20 +177,25 @@ for %%i in ("!input_file!") do (
         "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $utf8NoBom);"
     if !errorlevel! neq 0 (
-        echo 错误：Base64 编码失败："!input_file!"
+        echo 错误：转换 Base64 编码失败："!input_file!"
         echo.
-        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
         pause
         exit /b 1
     )
-    if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+    if not exist "!temp_base64!" (
+        echo 错误：转换 Base64 编码文件生成失败："!temp_base64!"
+        echo.
+        pause
+        exit /b 1
+    )
+    if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
 
-    REM 生成的 bat 文件中，Base64 编码内容的开始标记和结束标记
+    REM 提取内嵌代码
     set "begin_marker=-----BEGIN BATCH CODE-----"
     set "end_marker=-----END BATCH CODE-----"
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
-
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -244,14 +213,20 @@ for %%i in ("!input_file!") do (
         "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $utf8NoBom);"
     if !errorlevel! neq 0 (
-        echo 错误：生成 bat 文件失败："!output_file!"
+        echo 错误：提取内嵌代码失败："!output_file!"
         echo.
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
         pause
         exit /b 1
     )
+    if not exist "!output_file!" (
+        echo 错误：提取内嵌代码文件生成失败："!output_file!"
+        echo.
+        pause
+        exit /b 1
+    )
 
-    REM 把 Base64 编码内容，追加到生成的文件里
+    REM 合并最终文件
     (
         echo !begin_marker!
         type "!temp_base64!"
@@ -259,22 +234,15 @@ for %%i in ("!input_file!") do (
     ) >> "!output_file!"
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
-    if not exist "!output_file!" (
-        echo 转换失败："!input_file!"
-        echo.
-        pause
-        exit /b 1
-    ) else (
-        for %%j in ("!output_file!") do (
-            setlocal disabledelayedexpansion
-            set "file_size=%%~zj"
-            setlocal enabledelayedexpansion
+    for %%j in ("!output_file!") do (
+        setlocal disabledelayedexpansion
+        set "file_size=%%~zj"
+        setlocal enabledelayedexpansion
 
-            echo 转换成功：!file_size! 字节
+        echo 转换成功：!file_size! 字节
 
-            endlocal
-            endlocal
-        )
+        endlocal
+        endlocal
     )
 
     endlocal
