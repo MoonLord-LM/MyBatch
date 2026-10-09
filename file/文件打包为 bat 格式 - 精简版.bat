@@ -37,11 +37,11 @@ if exist "!script_dir!7za.exe" (
 ) else if exist "!ProgramFiles(x86)!\7-Zip\7z.exe" (
     set "seven_zip=!ProgramFiles(x86)!\7-Zip\7z.exe"
 ) else (
-    set "seven_zip="
+    set "seven_zip=7z"
 )
-if not "!seven_zip!"=="" (
-    "!seven_zip!" i >nul 2>&1
-    if !errorlevel! neq 0 ( set "seven_zip=" )
+"!seven_zip!" i >nul 2>&1
+if !errorlevel! neq 0 (
+    set "seven_zip="
 )
 
 
@@ -88,7 +88,7 @@ set "input_file=!param1_path!"
         if /i "!input_file:~-4!"=="%%e" set "payload_ext=%%e"
     )
     if "!payload_ext!"=="" (
-        echo 错误：只支持 ps1 bat exe 后缀的文件："!input_file!"，请重新输入
+        echo 错误：只支持 ps1 / bat / exe 后缀的文件："!input_file!"，请重新输入
         echo.
         set "input_file="
         goto input_file
@@ -173,7 +173,6 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
-    REM 用 gzip 压缩源文件内容，保存到临时文件
     if "!seven_zip!"=="" (
         echo 压缩方式：PowerShell 内置的 GZipStream 压缩
     ) else (
@@ -247,11 +246,10 @@ for %%i in ("!input_file!") do (
     )
     if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
 
-    REM 从自身文件末尾的 -----BEGIN BATCH CODE----- / -----END BATCH CODE----- 之间提取 bat 代码原样写入，统一保存为不带 BOM 的 UTF-8 编码
-    REM 这样生成的 bat 代码里的 ! 和 ^ 和 % 等符号，都不需要转义处理
     REM 生成的 bat 文件中，Base64 编码内容的开始标记和结束标记
     set "begin_marker=-----BEGIN BATCH CODE-----"
     set "end_marker=-----END BATCH CODE-----"
+
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -279,8 +277,9 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
-    REM 把 Base64 编码内容，追加到生成文件的开始标记之后，并补上结束标记
+    REM 把 Base64 编码内容，追加到生成的文件里
     (
+        echo !begin_marker!
         type "!temp_base64!"
         echo !end_marker!
     ) >> "!output_file!"
@@ -343,7 +342,11 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 set "payload_ext=__PAYLOAD_EXT__"
 set "begin_marker=__BEGIN_MARKER__"
 set "end_marker=__END_MARKER__"
-set "temp_file=%temp%\!payload_name_ext!"
+set "temp_dir=%temp%\MyBatch_%random%_%random%_%random%_%random%"
+set "temp_file=!temp_dir!\!payload_name_ext!"
+
+REM 创建临时文件夹，用于存放还原出来的文件
+mkdir "!temp_dir!"
 
 REM 从自身文件末尾的 __BEGIN_MARKER__ / __END_MARKER__ 之间提取 Base64 编码内容，解码解压还原为 __PAYLOAD_EXT_NAME__ 文件
 powershell -NoProfile -Command ^
@@ -372,7 +375,7 @@ powershell -NoProfile -Command ^
 if !errorlevel! neq 0 (
     echo 错误：还原内嵌的 __PAYLOAD_EXT_NAME__ 文件失败
     echo.
-    if exist "!temp_file!" ( del /f /q "!temp_file!" )
+    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
     pause
     exit /b 1
 )
@@ -387,13 +390,13 @@ if /i "!payload_ext!"==".ps1" (
 if !errorlevel! neq 0 (
     echo 运行失败
     echo.
-    if exist "!temp_file!" ( del /f /q "!temp_file!" )
+    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
     pause
     exit /b 1
 ) else (
     echo 运行成功
 )
-if exist "!temp_file!" ( del /f /q "!temp_file!" )
+if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
 
 
 
@@ -401,6 +404,6 @@ echo.
 pause
 exit /b
 
-__BEGIN_MARKER__
+
 
 -----END BATCH CODE-----
