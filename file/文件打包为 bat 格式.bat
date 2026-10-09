@@ -8,7 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将单个 ps1 / bat / exe 文件，打包转换为 bat 脚本' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将单个 ps1 / bat / py / exe 文件，打包转换为 bat 脚本' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并执行' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '处理方式：把源文件内容压缩为 gzip 格式，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
@@ -49,7 +49,7 @@ set "input_file=!param1_path!"
 
 :input_file
     if "!input_file!"=="" (
-        echo 请输入要转换的 ps1 bat exe 文件的路径
+        echo 请输入要打包转换的 ps1 / bat / py / exe 文件的路径
         set /p "input_file="
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
@@ -83,11 +83,12 @@ set "input_file=!param1_path!"
         goto input_file
     )
     set "input_file_ext="
-    for %%e in (.ps1 .bat .exe) do (
-        if /i "!input_file:~-4!"=="%%e" set "input_file_ext=%%e"
-    )
+    if /i "!input_file:~-4!"==".ps1" set "input_file_ext=.ps1"
+    if /i "!input_file:~-4!"==".bat" set "input_file_ext=.bat"
+    if /i "!input_file:~-3!"==".py" set "input_file_ext=.py"
+    if /i "!input_file:~-4!"==".exe" set "input_file_ext=.exe"
     if "!input_file_ext!"=="" (
-        echo 错误：只支持 ps1 / bat / exe 后缀的文件："!input_file!"，请重新输入
+        echo 错误：只支持 ps1 / bat / py / exe 后缀的文件："!input_file!"，请重新输入
         echo.
         set "input_file="
         goto input_file
@@ -239,7 +240,7 @@ for %%i in ("!input_file!") do (
         set "file_size=%%~zj"
         setlocal enabledelayedexpansion
 
-        echo 转换成功：!file_size! 字节
+        echo 打包成功：!file_size! 字节
 
         endlocal
         endlocal
@@ -302,8 +303,12 @@ if /i "!origin_file_name:~-4!"==".ps1" (
     powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!"
 ) else if /i "!origin_file_name:~-4!"==".bat" (
     cmd /s /c ""!temp_file!""
-) else (
+) else if /i "!origin_file_name:~-3!"==".py" (
+    python "!temp_file!"
+) else if /i "!origin_file_name:~-4!"==".exe" (
     "!temp_file!"
+) else (
+    explorer "!temp_file!"
 )
 if !errorlevel! neq 0 (
     if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
