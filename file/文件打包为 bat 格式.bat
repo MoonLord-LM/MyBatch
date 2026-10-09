@@ -226,8 +226,9 @@ for %%i in ("!input_file!") do (
         "    exit 1;" ^
         "};" ^
         "$code = $lines[$begin..($end - 1)];" ^
+        "$safe_file_name_ext = $env:file_name_ext.Replace('%%', '%%%%');" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $env:file_name_ext);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
         "};" ^
         "$enc = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $enc);"
