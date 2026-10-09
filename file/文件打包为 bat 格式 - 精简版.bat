@@ -251,6 +251,7 @@ for %%i in ("!input_file!") do (
     set "end_marker=-----END BATCH CODE-----"
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
 
+    REM 文件名里的百分号需要双写后再写入，否则生成的 bat 在 set 行会被 cmd 展开或吞掉
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -261,8 +262,9 @@ for %%i in ("!input_file!") do (
         "    exit 1;" ^
         "};" ^
         "$code = $lines[$begin..($end - 1)];" ^
+        "$name = $env:file_name_ext.Replace('%%', '%%%%');" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $env:file_name_ext);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $name);" ^
         "};" ^
         "$enc = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $enc);"

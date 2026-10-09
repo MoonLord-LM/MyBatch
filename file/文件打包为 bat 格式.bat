@@ -83,11 +83,11 @@ set "input_file=!param1_path!"
         set "input_file="
         goto input_file
     )
-    set "payload_ext="
+    set "input_file_ext="
     for %%e in (.ps1 .bat .exe) do (
-        if /i "!input_file:~-4!"=="%%e" set "payload_ext=%%e"
+        if /i "!input_file:~-4!"=="%%e" set "input_file_ext=%%e"
     )
-    if "!payload_ext!"=="" (
+    if "!input_file_ext!"=="" (
         echo 错误：只支持 ps1 / bat / exe 后缀的文件："!input_file!"，请重新输入
         echo.
         set "input_file="
@@ -115,25 +115,25 @@ for %%i in ("!input_file!") do (
     echo.
 
     REM ps1 文件统一保存为带 BOM 的 UTF-8 编码；bat 文件统一保存为不带 BOM 的 UTF-8 编码；exe 文件为二进制文件，直接复制
-    set "temp_payload=%temp%\MyBatch_%random%_%random%_%random%_%random%!payload_ext!" & type nul > "!temp_payload!"
+    set "temp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_file!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$ext = $env:payload_ext.ToLower();" ^
+        "$ext = $env:input_file_ext.ToLower();" ^
         "if ($ext -eq '.ps1') {" ^
         "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
         "    $enc = New-Object System.Text.UTF8Encoding($true);" ^
-        "    [System.IO.File]::WriteAllLines($env:temp_payload, $lines, $enc);" ^
+        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $enc);" ^
         "} elseif ($ext -eq '.bat') {" ^
         "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
         "    $enc = New-Object System.Text.UTF8Encoding($false);" ^
-        "    [System.IO.File]::WriteAllLines($env:temp_payload, $lines, $enc);" ^
+        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $enc);" ^
         "} else {" ^
-        "    [System.IO.File]::Copy($env:input_file, $env:temp_payload, $true);" ^
+        "    [System.IO.File]::Copy($env:input_file, $env:temp_file, $true);" ^
         "};"
     if !errorlevel! neq 0 (
         echo 错误：获取源文件失败："!input_file!"
         echo.
-        if exist "!temp_payload!" ( del /f /q "!temp_payload!" )
+        if exist "!temp_file!" ( del /f /q "!temp_file!" )
         pause
         exit /b 1
     )
@@ -151,7 +151,7 @@ for %%i in ("!input_file!") do (
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "Add-Type -AssemblyName System.IO.Compression;" ^
-            "$rawBytes = [System.IO.File]::ReadAllBytes($env:temp_payload);" ^
+            "$rawBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
             "$memStream = New-Object System.IO.MemoryStream;" ^
             "$mode = [System.IO.Compression.CompressionMode]::Compress;" ^
             "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
@@ -163,17 +163,17 @@ for %%i in ("!input_file!") do (
         if !errorlevel! neq 0 (
             echo 错误：压缩源文件失败："!input_file!"
             echo.
-            if exist "!temp_payload!" ( del /f /q "!temp_payload!" )
+            if exist "!temp_file!" ( del /f /q "!temp_file!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             pause
             exit /b 1
         )
     ) else (
-        "!seven_zip!" a -tgzip -mx=9 -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!temp_payload!" >nul
+        "!seven_zip!" a -tgzip -mx=9 -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!temp_file!" >nul
         if !errorlevel! neq 0 (
             echo 错误：压缩源文件失败："!input_file!"
             echo.
-            if exist "!temp_payload!" ( del /f /q "!temp_payload!" )
+            if exist "!temp_file!" ( del /f /q "!temp_file!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             pause
             exit /b 1
@@ -182,11 +182,11 @@ for %%i in ("!input_file!") do (
     if not exist "!temp_gzip!" (
         echo 错误：压缩源文件失败："!input_file!"
         echo.
-        if exist "!temp_payload!" ( del /f /q "!temp_payload!" )
+        if exist "!temp_file!" ( del /f /q "!temp_file!" )
         pause
         exit /b 1
     )
-    if exist "!temp_payload!" ( del /f /q "!temp_payload!" )
+    if exist "!temp_file!" ( del /f /q "!temp_file!" )
 
     REM 把压缩后的内容转换为 Base64 编码，每 64 个字符一行，保存到临时文件
     set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.txt" & type nul > "!temp_base64!"
@@ -214,23 +214,20 @@ for %%i in ("!input_file!") do (
     REM 生成的 bat 文件中，Base64 编码内容的开始标记和结束标记
     set "begin_marker=-----BEGIN BATCH CODE-----"
     set "end_marker=-----END BATCH CODE-----"
+    set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
 
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
-        "$begin = [array]::IndexOf($lines, '-----BEGIN BATCH CODE-----') + 1;" ^
-        "$end = [array]::IndexOf($lines, '-----END BATCH CODE-----');" ^
+        "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
+        "$end = [array]::IndexOf($lines, $env:end_marker);" ^
         "if ($begin -lt 1 -or $end -lt $begin) {" ^
         "    Write-Host '错误：未找到内嵌的 bat 代码块' -ForegroundColor Red;" ^
         "    exit 1;" ^
         "};" ^
         "$code = $lines[$begin..($end - 1)];" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
-        "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT_NAME__', $env:payload_ext.TrimStart('.'));" ^
-        "    $code[$i] = $code[$i].Replace('__PAYLOAD_EXT__', $env:payload_ext);" ^
-        "    $code[$i] = $code[$i].Replace('__PAYLOAD_NAME_EXT__', $env:file_name_ext);" ^
-        "    $code[$i] = $code[$i].Replace('__BEGIN_MARKER__', $env:begin_marker);" ^
-        "    $code[$i] = $code[$i].Replace('__END_MARKER__', $env:end_marker);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $env:file_name_ext);" ^
         "};" ^
         "$enc = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $enc);"
@@ -281,39 +278,20 @@ exit /b
 
 
 -----BEGIN BATCH CODE-----
-
 @echo off
 chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
-set "payload_name_ext=__PAYLOAD_NAME_EXT__"
+set "origin_file_name=-----ORIGIN FILE NAME-----"
 setlocal enabledelayedexpansion
-powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
-
-
-
-powershell -NoProfile -Command "Write-Host '把内嵌的 Base64 编码内容解码解压还原为 __PAYLOAD_EXT_NAME__ 文件，然后自动运行' -ForegroundColor Green"
-echo.
-
-
-
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
     cd /d "!script_dir!"
 )
-
-
-
-set "payload_ext=__PAYLOAD_EXT__"
-set "begin_marker=__BEGIN_MARKER__"
-set "end_marker=__END_MARKER__"
 set "temp_dir=%temp%\MyBatch_%random%_%random%_%random%_%random%"
-set "temp_file=!temp_dir!\!payload_name_ext!"
-
-REM 创建临时文件夹，用于存放还原出来的文件
+set "temp_file=!temp_dir!\!origin_file_name!"
 mkdir "!temp_dir!"
-
-REM 从自身文件末尾的 __BEGIN_MARKER__ / __END_MARKER__ 之间提取 Base64 编码内容，解码解压还原为 __PAYLOAD_EXT_NAME__ 文件
+set "begin_marker=-----BEGIN BATCH CODE-----"
+set "end_marker=-----END BATCH CODE-----"
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
     "Add-Type -AssemblyName System.IO.Compression;" ^
@@ -321,7 +299,6 @@ powershell -NoProfile -Command ^
     "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
     "$end = [array]::IndexOf($lines, $env:end_marker);" ^
     "if ($begin -lt 1 -or $end -lt $begin) {" ^
-    "    Write-Host '错误：未找到内嵌的压缩内容' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
     "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
@@ -338,37 +315,21 @@ powershell -NoProfile -Command ^
     "$outStream.Close();" ^
     "[System.IO.File]::WriteAllBytes($env:temp_file, $rawBytes);"
 if !errorlevel! neq 0 (
-    echo 错误：还原内嵌的 __PAYLOAD_EXT_NAME__ 文件失败
-    echo.
     if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
-    pause
     exit /b 1
 )
-
-if /i "!payload_ext!"==".ps1" (
+if /i "!origin_file_name:~-4!"==".ps1" (
     powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!"
-) else if /i "!payload_ext!"==".bat" (
-    call "!temp_file!"
+) else if /i "!origin_file_name:~-4!"==".bat" (
+    cmd /s /c "!temp_file!"
 ) else (
     "!temp_file!"
 )
 if !errorlevel! neq 0 (
-    echo 运行失败
-    echo.
     if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
-    pause
     exit /b 1
 ) else (
-    echo 运行成功
+    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+    exit /b
 )
-if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
-
-
-
-echo.
-pause
-exit /b
-
-
-
 -----END BATCH CODE-----
