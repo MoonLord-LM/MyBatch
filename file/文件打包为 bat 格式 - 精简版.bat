@@ -139,6 +139,9 @@ for %%i in ("!input_file!") do (
         "        if ($trimLine.StartsWith('#') -and $trimLine.StartsWith('#>') -eq $false) {" ^
         "            continue;" ^
         "        };" ^
+        "        if ($trimLine.StartsWith('<#') -and $trimLine.EndsWith('#>') -and $trimLine.Length -ge 4) {" ^
+        "            continue;" ^
+        "        };" ^
         "        if ($out.Count -gt 0) {" ^
         "            $prev = $out[$out.Count - 1];" ^
         "            if ($prev.Contains('#') -eq $false) {" ^
