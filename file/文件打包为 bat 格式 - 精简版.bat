@@ -191,7 +191,7 @@ for %%i in ("!input_file!") do (
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
-        "        if ($line -match '^\s*REM\s+' -or $line -match '^\s*::\s+') {" ^
+        "        if ($line -match '^\s*REM\s+') {" ^
         "            $next = $i + 1;" ^
         "            while ($next -lt $lines.Count -and $lines[$next].Trim() -eq '') {" ^
         "                $next++;" ^
