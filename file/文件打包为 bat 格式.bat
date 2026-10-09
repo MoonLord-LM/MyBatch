@@ -119,14 +119,21 @@ for %%i in ("!input_file!") do (
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$ext = $env:input_file_ext.ToLower();" ^
+        "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
+        "if ($ext -eq '.ps1' -or $ext -eq '.bat') {" ^
+        "    try {" ^
+        "        $lines = [System.IO.File]::ReadAllLines($env:input_file, $utf8Strict);" ^
+        "    } catch [System.Text.DecoderFallbackException] {" ^
+        "        Write-Host '错误：源文件不是 UTF-8 编码' -ForegroundColor Red;" ^
+        "        exit 1;" ^
+        "    };" ^
+        "};" ^
         "if ($ext -eq '.ps1') {" ^
-        "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
-        "    $enc = New-Object System.Text.UTF8Encoding($true);" ^
-        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $enc);" ^
+        "    $utf8Bom = New-Object System.Text.UTF8Encoding($true);" ^
+        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $utf8Bom);" ^
         "} elseif ($ext -eq '.bat') {" ^
-        "    $lines = [System.IO.File]::ReadAllLines($env:input_file, [System.Text.Encoding]::UTF8);" ^
-        "    $enc = New-Object System.Text.UTF8Encoding($false);" ^
-        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $enc);" ^
+        "    $utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
+        "    [System.IO.File]::WriteAllLines($env:temp_file, $lines, $utf8NoBom);" ^
         "} else {" ^
         "    [System.IO.File]::Copy($env:input_file, $env:temp_file, $true);" ^
         "};"
@@ -199,8 +206,8 @@ for %%i in ("!input_file!") do (
         "    $length = [Math]::Min(64, $base64.Length - $i);" ^
         "    $list.Add($base64.Substring($i, $length));" ^
         "};" ^
-        "$enc = New-Object System.Text.UTF8Encoding($false);" ^
-        "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $enc);"
+        "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
+        "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $utf8NoBom);"
     if !errorlevel! neq 0 (
         echo 错误：Base64 编码失败："!input_file!"
         echo.
@@ -230,8 +237,8 @@ for %%i in ("!input_file!") do (
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
         "};" ^
-        "$enc = New-Object System.Text.UTF8Encoding($false);" ^
-        "[System.IO.File]::WriteAllLines($env:output_file, $code, $enc);"
+        "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
+        "[System.IO.File]::WriteAllLines($env:output_file, $code, $utf8NoBom);"
     if !errorlevel! neq 0 (
         echo 错误：生成 bat 文件失败："!output_file!"
         echo.

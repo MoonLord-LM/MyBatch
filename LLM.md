@@ -87,18 +87,31 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 ## 输出中文乱码问题
 
-首先，脚本需要保存为 UTF-8 without BOM 格式  
+首先，bat 脚本需要保存为 UTF-8 without BOM 格式，ps1 脚本需要保存为 UTF-8 with BOM 格式  
 然后，中文系统的默认代码页为 936（GBK），需要使用 chcp 65001 将当前的代码页设置为 65001（UTF-8）  
 
 有时候，连续多行代码都使用 echo 命令输出中文内容时，会出现输出乱码或者代码解析错误的问题，报错 XXX is not recognized  
 可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM 这种无意义代码，进行规避  
 
-调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定 UTF-8 编码  
+调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定以 UTF-8 编码输出  
 如果只有简单的 Write-Host 命令，可以不加这段代码  
 
-调用 PowerShell 的 Get-Content、Set-Content、Out-File 读写文件时，添加 `-Encoding UTF8` 参数，指定 UTF-8 编码  
+调用 PowerShell 的 Get-Content、Set-Content、Out-File 等，读写文件时，必须指定 UTF-8 编码  
+代码示例如下：  
 
-如果需要更加严格的无 BOM 的 UTF-8 编码，使用 `New-Object System.Text.UTF8Encoding($false)` 的方式来指定  
+```powershell
+# 读取时，使用 UTF-8 编码，等效于 -Encoding UTF8
+$utf8 = [System.Text.Encoding]::GetEncoding(65001)
+
+# 读取时，严格校验编码必须是 UTF-8
+$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);
+
+# 写入时，使用 UTF-8 编码，带 BOM 头，等效于 -Encoding UTF8
+$utf8BOM = New-Object System.Text.UTF8Encoding($true);
+
+# 写入时，使用 UTF-8 编码，不带 BOM 头
+$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);
+```
 
 ## 判断上一个命令是否执行成功
 
