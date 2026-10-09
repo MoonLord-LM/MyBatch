@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '将单个 ps1 / bat / exe 文件，打包转换为 bat 脚本' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并执行' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '处理方式：清理 ps1 / bat 源文件的注释和空行等，将内容压缩后，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '由于清理了源文件的注释和空行等，有可能会影响执行效果' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '由于清理了源文件的注释和空行等，极少数场景下，会影响执行效果' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
@@ -108,7 +108,7 @@ for %%i in ("!input_file!") do (
 
     REM 如果输出文件已存在，则继续追加 .bat 后缀，直到文件名不重复
     set "output_file=!file_dir!!base_name!.min.bat"
-    for /l %%n in (1,1,8) do (
+    for /l %%n in (1,1,16) do (
         if exist "!output_file!" set "output_file=!output_file!.bat"
     )
     echo 输出文件："!output_file!"
@@ -130,13 +130,30 @@ for %%i in ("!input_file!") do (
         "};" ^
         "if ($ext -eq '.ps1') {" ^
         "    $out = New-Object System.Collections.Generic.List[string];" ^
+        "    $inHereString = $false;" ^
+        "    $hereStringEnd = '';" ^
         "    foreach ($line in $lines) {" ^
+        "        if ($inHereString) {" ^
+        "            $out.Add($line);" ^
+        "            if ($line.StartsWith($hereStringEnd)) {" ^
+        "                $inHereString = $false;" ^
+        "            };" ^
+        "            continue;" ^
+        "        };" ^
         "        $line = $line.TrimEnd();" ^
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
         "        $trimLine = $line.TrimStart();" ^
-        "        if ($trimLine.StartsWith('#') -and $trimLine.StartsWith('#>') -eq $false) {" ^
+        "        if ($trimLine.EndsWith('@' + [string][char]34)) {" ^
+        "            $inHereString = $true;" ^
+        "            $hereStringEnd = [string][char]34 + '@';" ^
+        "        };" ^
+        "        if ($trimLine.EndsWith('@' + [string][char]39)) {" ^
+        "            $inHereString = $true;" ^
+        "            $hereStringEnd = [string][char]39 + '@';" ^
+        "        };" ^
+        "        if ($trimLine -eq '#' -or $trimLine.StartsWith('# ')) {" ^
         "            continue;" ^
         "        };" ^
         "        if ($trimLine.StartsWith('<#') -and $trimLine.EndsWith('#>') -and $trimLine.Length -ge 4) {" ^
@@ -161,15 +178,19 @@ for %%i in ("!input_file!") do (
         "    [System.IO.File]::WriteAllLines($env:temp_file, $out, $utf8Bom);" ^
         "} elseif ($ext -eq '.bat') {" ^
         "    $out = New-Object System.Collections.Generic.List[string];" ^
-        "    foreach ($line in $lines) {" ^
-        "        $line = $line.TrimEnd();" ^
+        "    for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+        "        $line = $lines[$i].TrimEnd();" ^
         "        if ($line -eq '') {" ^
         "            continue;" ^
         "        };" ^
-        "        if ($line -match '^\s*rem\s+') {" ^
-        "            continue;" ^
-        "        };" ^
-        "        if ($line -match '^\s*::\s+') {" ^
+        "        if ($line -match '^\s*REM\s+' -or $line -match '^\s*::\s+') {" ^
+        "            $next = $i + 1;" ^
+        "            while ($next -lt $lines.Count -and $lines[$next].Trim() -eq '') {" ^
+        "                $next++;" ^
+        "            };" ^
+        "            if ($next -lt $lines.Count -and $lines[$next].TrimStart().StartsWith(')')) {" ^
+        "                $out.Add('REM');" ^
+        "            };" ^
         "            continue;" ^
         "        };" ^
         "        $out.Add($line);" ^

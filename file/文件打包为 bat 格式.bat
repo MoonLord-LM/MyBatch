@@ -108,7 +108,7 @@ for %%i in ("!input_file!") do (
 
     REM 如果输出文件已存在，则继续追加 .bat 后缀，直到文件名不重复
     set "output_file=!file_dir!!base_name!.bat"
-    for /l %%n in (1,1,8) do (
+    for /l %%n in (1,1,16) do (
         if exist "!output_file!" set "output_file=!output_file!.bat"
     )
     echo 输出文件："!output_file!"
