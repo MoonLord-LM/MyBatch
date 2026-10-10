@@ -178,7 +178,7 @@ for %%i in ("!input_file!") do (
         )
     ) else (
         echo 压缩方式：使用 7-Zip 压缩 gzip 格式
-        "!seven_zip!" a -tgzip -mx=9 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_zip!" < "!input_file!" >nul
+        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_zip!" < "!input_file!" >nul
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
