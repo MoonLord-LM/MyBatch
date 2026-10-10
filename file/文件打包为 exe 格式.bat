@@ -263,21 +263,39 @@ for %%i in ("!input_file!") do (
     set "method="
     set "smallest_size="
     set "resource_file="
-    for %%j in ("!temp_gzip!") do (
-        set "method=gzip" & set "smallest_size=%%~zj" & set "resource_file=!temp_gzip!"
+
+    for %%j in ("!temp_gzip!") do set "gzip_size=%%~zj"
+    echo gzip 压缩包大小：!gzip_size! 字节
+    set "method=gzip" & set "smallest_size=!gzip_size!" & set "resource_file=!temp_gzip!"
+
+    for %%j in ("!temp_cab!") do set "cab_size=%%~zj"
+    echo cab 压缩包大小：!cab_size! 字节
+    set "size_smaller=0"
+    for /f "delims=" %%c in ('powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"'
+    ) do (
+        set "size_smaller=%%c"
     )
-    for %%j in ("!temp_cab!") do (
-        if %%~zj lss !smallest_size! (
-            set "method=cab" & set "smallest_size=%%~zj" & set "resource_file=!temp_cab!"
-        )
+    if "!size_smaller!"=="1" (
+        set "method=cab" & set "smallest_size=!cab_size!" & set "resource_file=!temp_cab!"
     )
+
     if "!use_7z_exe!"=="1" (
-        for %%j in ("!temp_7z_exe!") do (
-            if %%~zj lss !smallest_size! (
-                set "method=7z" & set "smallest_size=%%~zj" & set "resource_file=!temp_7z_exe!"
-            )
+        for %%j in ("!temp_7z_exe!") do set "seven_zip_size=%%~zj"
+        echo 7z 压缩包大小：!seven_zip_size! 字节
+        set "size_smaller=0"
+        for /f "delims=" %%c in ('powershell -NoProfile -Command ^
+            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"'
+        ) do (
+            set "size_smaller=%%c"
+        )
+        if "!size_smaller!"=="1" (
+            set "method=7z" & set "smallest_size=!seven_zip_size!" & set "resource_file=!temp_7z_exe!"
         )
     )
+
     echo 内嵌压缩方式：!method!，压缩后大小：!smallest_size! 字节
     echo.
 
@@ -414,6 +432,10 @@ using System.Windows.Forms;
 
 public static class Program
 {
+    private static string originFileName = "-----ORIGIN FILE NAME-----";
+    private static long originFileSize = long.Parse("-----ORIGIN FILE SIZE-----");
+    private static string originFileSha512 = "-----ORIGIN FILE SHA512-----";
+
     private static void ShowError(string msg)
     {
         try { MessageBox.Show(msg, originFileName, MessageBoxButtons.OK, MessageBoxIcon.Error); } catch { }
@@ -421,10 +443,6 @@ public static class Program
 
     private static int Main(string[] args)
     {
-        string originFileName = "-----ORIGIN FILE NAME-----";
-        long originFileSize = long.Parse("-----ORIGIN FILE SIZE-----");
-        string originFileSha512 = "-----ORIGIN FILE SHA512-----";
-
         string tempRoot = Path.Combine(Path.GetTempPath(), "MyBatch", "cache", originFileSize.ToString(), originFileSha512);
         try { if (!Directory.Exists(tempRoot)) Directory.CreateDirectory(tempRoot); } catch { }
         string extracted = Path.Combine(tempRoot, originFileName);
