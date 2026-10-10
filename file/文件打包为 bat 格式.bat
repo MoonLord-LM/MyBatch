@@ -284,7 +284,7 @@ for %%i in ("!input_file!") do (
     echo 压缩方式：使用 makecab 压缩 cab 格式
     set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
     if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
-    makecab /D CompressionType=LZX /D CompressionLevel=7 /D CompressionMemory=21 "!input_file!" "!temp_cab!" >nul
+    makecab /D CompressionType=LZX /D CompressionMemory=21 "!input_file!" "!temp_cab!" >nul
     if !errorlevel! neq 0 (
         echo 错误：压缩失败："!input_file!"
         echo.
