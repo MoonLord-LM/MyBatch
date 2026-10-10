@@ -99,29 +99,16 @@ for %%i in ("!input_file!") do (
     echo 原始大小：%%~zi 字节
     echo.
 
-    REM 计算文件名的 SHA256 哈希值和文件内容的 SHA256 哈希值
+    REM 计算文件内容的 SHA512 哈希值
     for /f "delims=" %%a in ('powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$sha256 = [System.Security.Cryptography.SHA256]::Create();" ^
-        "$nameBytes = [System.Text.Encoding]::UTF8.GetBytes($env:file_name_ext);" ^
-        "Write-Output ([System.BitConverter]::ToString($sha256.ComputeHash($nameBytes)).Replace('-', '').ToLowerInvariant());"') do (
-        set "file_name_sha256=%%a"
-    )
-    for /f "delims=" %%b in ('powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$sha256 = [System.Security.Cryptography.SHA256]::Create();" ^
+        "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
         "$contentBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
-        "Write-Output ([System.BitConverter]::ToString($sha256.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"') do (
-        set "file_content_sha256=%%b"
+        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"') do (
+        set "file_content_sha512=%%a"
     )
-    if "!file_name_sha256!"=="" (
-        echo 错误：计算文件名的 SHA256 哈希值失败：“!input_file!”
-        echo.
-        pause
-        exit /b 1
-    )
-    if "!file_content_sha256!"=="" (
-        echo 错误：计算文件内容的 SHA256 哈希值失败：“!input_file!”
+    if "!file_content_sha512!"=="" (
+        echo 错误：计算文件内容的 SHA512 哈希值失败：“!input_file!”
         echo.
         pause
         exit /b 1
@@ -214,9 +201,8 @@ for %%i in ("!input_file!") do (
     set "inner_begin_marker=-----BEGIN BATCH CODE-----"
     set "inner_end_marker=-----END BATCH CODE-----"
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
-    set "origin_file_name_sha256_marker=-----ORIGIN FILE NAME SHA256-----"
     set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
-    set "origin_file_content_sha256_marker=-----ORIGIN FILE CONTENT SHA256-----"
+    set "origin_file_content_sha512_marker=-----ORIGIN FILE CONTENT SHA512-----"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -230,9 +216,8 @@ for %%i in ("!input_file!") do (
         "$safe_file_name_ext = $env:file_name_ext.Replace('%%', '%%%%');" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_name_sha256_marker, $env:file_name_sha256);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_content_sha256_marker, $env:file_content_sha256);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_content_sha512_marker, $env:file_content_sha512);" ^
         "};" ^
         "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $utf8NoBom);"
@@ -289,15 +274,14 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "origin_file_name=-----ORIGIN FILE NAME-----"
-set "origin_file_name_sha256=-----ORIGIN FILE NAME SHA256-----"
 set "origin_file_size=-----ORIGIN FILE SIZE-----"
-set "origin_file_content_sha256=-----ORIGIN FILE CONTENT SHA256-----"
+set "origin_file_content_sha512=-----ORIGIN FILE CONTENT SHA512-----"
 set "all_args=%*"
 setlocal enabledelayedexpansion
 if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
-set "temp_dir=%temp%\MyBatch\static\!origin_file_name_sha256!\!origin_file_size!\!origin_file_content_sha256!"
+set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_content_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
 set "already_extracted=0"
@@ -309,11 +293,11 @@ if exist "!temp_file!" (
     if "!size_matched!"=="1" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-            "$sha256 = [System.Security.Cryptography.SHA256]::Create();" ^
+            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
             "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
-            "Write-Output ([System.BitConverter]::ToString($sha256.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
         ) do (
-            if "!origin_file_content_sha256!"=="%%j" set "already_extracted=1"
+            if "!origin_file_content_sha512!"=="%%j" set "already_extracted=1"
         )
     )
 )
