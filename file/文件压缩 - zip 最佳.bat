@@ -89,7 +89,7 @@ for %%i in ("!input_path!") do (
     if exist "!output_path!" (
         echo 输出压缩包已存在："!output_path!"，跳过不处理
     ) else (
-        "!seven_zip!" a %zip_params% -y "!output_path!" "!input_path!" <nul
+        "!seven_zip!" a %zip_params% -y "!output_path!" "!input_path!" >nul
         if !errorlevel! equ 0 (
             for %%j in ("!output_path!") do (
                 setlocal disabledelayedexpansion
