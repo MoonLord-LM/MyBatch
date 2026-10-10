@@ -8,8 +8,9 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '使用 7-Zip 对文件或文件夹进行仅存储加密压缩，输出 7z 格式压缩包' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '压缩等级设为 0 - 仅存储' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '使用 7-Zip 对文件或文件夹进行极限加密压缩，输出 7z 格式压缩包' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '压缩等级设为 9 - 极限压缩' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '压缩算法使用 LZMA，字典大小使用 2048MB，单词大小使用 256' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '参数使用 -mtc=on -mta=on -mtm=on，保存文件的创建、修改和访问时间' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '加密算法使用 AES-256，并使用 -mhe=on 同时加密文件名' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，压缩当前文件夹为同名 7z 文件，并保存到上一级的文件夹' -ForegroundColor Green"
@@ -75,7 +76,7 @@ if "!param1!" == "" (
     )
 )
 
-set "zip_params=-t7z -mx=0 -mhe=on -mmt=on -mtc=on -mta=on -mtm=on -sccUTF-8 -scsUTF-8"
+set "zip_params=-t7z -mx=9 -mm=LZMA -md=2048m -mfb=256 -mhe=on -mmt=on -mtc=on -mta=on -mtm=on -sccUTF-8 -scsUTF-8"
 
 for %%i in ("!input_path!") do (
     setlocal disabledelayedexpansion
@@ -91,7 +92,7 @@ for %%i in ("!input_path!") do (
         echo 输出压缩包已存在："!output_path!"，跳过不处理
     ) else (
         echo 输入加密密码：
-        "!seven_zip!" a %zip_params% -y -p "!output_path!" "!input_path!" >nul
+        "!seven_zip!" a %zip_params% -y -p "!output_path!" "!input_path!"
         if !errorlevel! equ 0 (
             for %%j in ("!output_path!") do (
                 setlocal disabledelayedexpansion

@@ -116,7 +116,7 @@ for %%i in ("!input_path!") do (
     if exist "!output_path!" (
         echo 输出自解压文件已存在："!output_path!"，跳过不处理
     ) else (
-        "!seven_zip!" a %zip_params% -sfx"!sfx_module!" -y "!output_path!" "!input_path!" >nul
+        "!seven_zip!" a %zip_params% -sfx"!sfx_module!" -y "!output_path!" "!input_path!"
         if !errorlevel! equ 0 (
             for %%j in ("!output_path!") do (
                 setlocal disabledelayedexpansion
