@@ -431,7 +431,6 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Windows.Forms;
-using System.Threading;
 
 public static class Program
 {
@@ -516,7 +515,6 @@ public static class Program
                     var cabPsi = new ProcessStartInfo("expand.exe", "\"" + cabPath + "\" \"" + extracted + "\"");
                     cabPsi.UseShellExecute = false;
                     cabPsi.CreateNoWindow = true;
-                    cabPsi.WindowStyle = ProcessWindowStyle.Hidden;
                     using (var p = Process.Start(cabPsi)) { if (p != null) p.WaitForExit(); }
                     try { if (File.Exists(cabPath)) File.Delete(cabPath); } catch { }
                     if (!File.Exists(extracted)) { ShowError("错误：cab 解压失败"); return 1; }
@@ -531,7 +529,6 @@ public static class Program
                     var sfxPsi = new ProcessStartInfo(sfxPath, "-o\"" + tempRoot + "\" -y");
                     sfxPsi.UseShellExecute = false;
                     sfxPsi.CreateNoWindow = true;
-                    sfxPsi.WindowStyle = ProcessWindowStyle.Hidden;
                     using (var p = Process.Start(sfxPsi)) { if (p != null) p.WaitForExit(); }
                     try { if (File.Exists(sfxPath)) File.Delete(sfxPath); } catch { }
                     if (!File.Exists(extracted)) { ShowError("错误：7z 解压失败"); return 1; }
@@ -554,8 +551,7 @@ public static class Program
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.WorkingDirectory = tempRoot;
             psi.UseShellExecute = false;
-            psi.CreateNoWindow = true;
-            psi.WindowStyle = ProcessWindowStyle.Hidden;
+            psi.CreateNoWindow = false;
             string lower = originFileName.ToLowerInvariant();
             string argStr = "";
             for (int i = 0; i < args.Length; i++)
@@ -589,66 +585,18 @@ public static class Program
                 psi.FileName = extracted;
                 psi.Arguments = argStr.TrimStart();
                 psi.UseShellExecute = true;
+                psi.WindowStyle = ProcessWindowStyle.Hidden
             }
-
-            if (psi.UseShellExecute == false)
+            using (Process p = Process.Start(psi))
             {
-                psi.RedirectStandardInput = true;
-                psi.RedirectStandardOutput = true;
-                psi.RedirectStandardError = true;
-
-                using (Process p = Process.Start(psi))
+                if (p != null)
                 {
-                    if (p == null)
-                    {
-                        ShowError("错误：无法启动解压出的文件");
-                        return 1;
-                    }
-
-                    p.OutputDataReceived += (s, e) =>
-                    {
-                        if (e.Data != null) Console.WriteLine(e.Data);
-                    };
-                    p.ErrorDataReceived += (s, e) =>
-                    {
-                        if (e.Data != null) Console.Error.WriteLine(e.Data);
-                    };
-                    p.BeginOutputReadLine();
-                    p.BeginErrorReadLine();
-
-                    Thread stdinThread = new Thread(() =>
-                    {
-                        byte[] buf = new byte[4096];
-                        Stream childStdIn = p.StandardInput.BaseStream;
-                        Stream parentStdIn = Console.OpenStandardInput();
-                        while (!p.HasExited)
-                        {
-                            int read = parentStdIn.Read(buf, 0, buf.Length);
-                            if (read <= 0) break;
-                            childStdIn.Write(buf, 0, read);
-                            childStdIn.Flush();
-                        }
-                    });
-                    stdinThread.IsBackground = true;
-                    stdinThread.Start();
-
                     p.WaitForExit();
                     return p.ExitCode;
                 }
             }
-            else
-            {
-                using (Process p = Process.Start(psi))
-                {
-                    if (p != null)
-                    {
-                        p.WaitForExit();
-                        return p.ExitCode;
-                    }
-                }
-                ShowError("错误：无法启动解压出的文件");
-                return 1;
-            }
+            ShowError("错误：无法启动解压出的文件");
+            return 1;
         }
         catch (Exception ex)
         {

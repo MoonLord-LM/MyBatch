@@ -802,7 +802,7 @@ if /i "!origin_file_name:~-4!"==".ps1" (
 ) else if /i "!origin_file_name:~-4!"==".exe" (
     "!temp_file!" !all_args!
 ) else (
-    start "" /wait "!temp_file!" !all_args!
+    start "" "!temp_file!" !all_args!
 )
 exit /b !errorlevel!
 -----END BATCH CODE 3-----
