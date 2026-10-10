@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '使用 7-Zip 对文件或文件夹进行极限压缩，输出 exe 格式自解压文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '压缩等级设为 9 - 极限压缩' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '压缩算法使用 LZMA，字典大小使用 2048MB，单词大小使用 256' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '压缩算法使用 LZMA2，字典大小使用 2048MB，单词大小使用 256' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '参数使用 -mtc=on -mta=on -mtm=on，保存文件的创建、修改和访问时间' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '自解压模块使用 7-Zip 的 7z.sfx，双击 exe 后，可选择解压位置' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，压缩当前文件夹为同名 exe 文件，并保存到上一级的文件夹' -ForegroundColor Green"
