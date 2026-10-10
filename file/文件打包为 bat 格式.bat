@@ -120,8 +120,8 @@ for %%i in ("!input_file!") do (
     for /f "delims=" %%a in ('powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-        "$contentBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
-        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"') do (
+        "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
+        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"') do (
         set "file_sha512=%%a"
     )
     if "!file_sha512!"=="" (
@@ -154,7 +154,7 @@ for %%i in ("!input_file!") do (
 
 
     REM 方式一：压缩为 gzip 格式，转换为 Base64 编码
-    set "temp_zip=%temp%\MyBatch_%random%_%random%_%random%_%random%.zip"
+    set "temp_gzip=%temp%\MyBatch_%random%_%random%_%random%_%random%.gz"
     if "!seven_zip!"=="" (
         echo 压缩方式：使用 PowerShell 内置的 GZipStream 压缩
         powershell -NoProfile -Command ^
@@ -168,34 +168,34 @@ for %%i in ("!input_file!") do (
             "$gzipStream.Close();" ^
             "$bytes = $memStream.ToArray();" ^
             "$memStream.Close();" ^
-            "[System.IO.File]::WriteAllBytes($env:temp_zip, $bytes);"
+            "[System.IO.File]::WriteAllBytes($env:temp_gzip, $bytes);"
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
-            if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             pause
             exit /b 1
         )
     ) else (
         echo 压缩方式：使用 7-Zip 压缩 gzip 格式
-        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_zip!" < "!input_file!" >nul
+        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!input_file!" >nul
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
-            if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             pause
             exit /b 1
         )
     )
-    if not exist "!temp_zip!" (
-        echo 错误：压缩文件生成失败："!temp_zip!"
+    if not exist "!temp_gzip!" (
+        echo 错误：压缩文件生成失败："!temp_gzip!"
         echo.
         pause
         exit /b 1
     )
 
     REM 转换 Base64 编码
-    set "temp_source=!temp_zip!"
+    set "temp_source=!temp_gzip!"
     set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.txt" & type nul > "!temp_base64!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
@@ -211,7 +211,7 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：转换 Base64 编码失败："!input_file!"
         echo.
-        if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
         pause
         exit /b 1
@@ -222,7 +222,7 @@ for %%i in ("!input_file!") do (
         pause
         exit /b 1
     )
-    if exist "!temp_zip!" ( del /f /q "!temp_zip!" )
+    if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
 
     REM 提取内嵌代码，使用第 1 段模板
     set "inner_begin_marker=-----BEGIN BATCH CODE 1-----"
@@ -592,8 +592,8 @@ if exist "!temp_file!" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-            "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
-            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
+            "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
         ) do (
             if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
@@ -672,8 +672,8 @@ if exist "!temp_file!" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-            "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
-            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
+            "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
         ) do (
             if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
@@ -754,8 +754,8 @@ if exist "!temp_file!" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-            "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
-            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
+            "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
         ) do (
             if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )

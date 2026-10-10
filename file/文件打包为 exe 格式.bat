@@ -143,11 +143,11 @@ for %%i in ("!input_file!") do (
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
 
     REM ===== 方式一：gzip =====
-    set "gzip_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.gpk"
-    if exist "!gzip_file!" ( del /f /q "!gzip_file!" )
+    set "temp_gzip=%temp%\MyBatch_%random%_%random%_%random%_%random%.gz"
+    if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
     if not "!seven_zip!"=="" (
         echo 压缩方式一：使用 7-Zip 压缩 gzip 格式
-        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!gzip_file!" < "!input_file!" >nul
+        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!input_file!" >nul
     ) else (
         echo 压缩方式一：使用 PowerShell 内置的 GZipStream 压缩
         powershell -NoProfile -Command ^
@@ -161,18 +161,18 @@ for %%i in ("!input_file!") do (
             "$gzipStream.Close();" ^
             "$bytes = $memStream.ToArray();" ^
             "$memStream.Close();" ^
-            "[System.IO.File]::WriteAllBytes($env:gzip_file, $bytes);"
+            "[System.IO.File]::WriteAllBytes($env:temp_gzip, $bytes);"
     )
     if !errorlevel! neq 0 (
         echo 错误：gzip 压缩失败："!input_file!"
         echo.
-        if exist "!gzip_file!" ( del /f /q "!gzip_file!" )
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
         pause
         exit /b 1
     )
-    if not exist "!gzip_file!" (
-        echo 错误：gzip 压缩文件生成失败："!gzip_file!"
+    if not exist "!temp_gzip!" (
+        echo 错误：gzip 压缩文件生成失败："!temp_gzip!"
         echo.
         pause
         exit /b 1
@@ -186,7 +186,7 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：cab 压缩失败："!input_file!"
         echo.
-        if exist "!gzip_file!" ( del /f /q "!gzip_file!" )
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!cab_file!" ( del /f /q "!cab_file!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
         pause
@@ -232,10 +232,10 @@ for %%i in ("!input_file!") do (
     echo.
 
     REM ===== 选择体积最小的作为内嵌资源 =====
-    set "archive_file=!gzip_file!"
+    set "archive_file=!temp_gzip!"
     set "method=gzip"
     set "smallest_size="
-    for %%j in ("!gzip_file!") do set "smallest_size=%%~zj"
+    for %%j in ("!temp_gzip!") do set "smallest_size=%%~zj"
     for %%j in ("!cab_file!") do (
         if %%~zj lss !smallest_size! ( set "archive_file=!cab_file!" & set "method=cab" & set "smallest_size=%%~zj" )
     )
@@ -405,7 +405,7 @@ public static class Program
             foreach (string n in asm.GetManifestResourceNames())
             {
                 string ln = n.ToLowerInvariant();
-                if (ln.EndsWith(".gpk") || ln.EndsWith(".cab") || ln.EndsWith(".7z")) { resName = n; break; }
+                if (ln.EndsWith(".gz") || ln.EndsWith(".cab") || ln.EndsWith(".7z")) { resName = n; break; }
             }
             if (resName == null)
             {
