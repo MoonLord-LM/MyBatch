@@ -62,12 +62,13 @@ if not "!working_dir!" == "" (
         set "self_script=!script_path!"
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
             "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
             "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
             "$items = @($files | Sort-Object Name | ForEach-Object { $modified_timestamp = [DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeMilliseconds(); '    {{\"name\":\"{0}\",\"size\":{1},\"modifiedTime\":\"{2:yyyy-MM-dd HH:mm:ss}\",\"modifiedTimestamp\":{3}}}' -f $_.Name, $_.Length, $_.LastWriteTime, $modified_timestamp });" ^
             "$newline = [Environment]::NewLine;" ^
             "$json = '[' + $newline + ($items -join (',' + $newline)) + $newline + ']' + $newline;" ^
-            "[System.IO.File]::WriteAllText($env:output_file, $json, (New-Object System.Text.UTF8Encoding($false)));" ^
+            "[System.IO.File]::WriteAllText($env:output_file, $json, $utf8NoBOM);" ^
             "Write-Host ('处理完成，共计 ' + $files.Count + ' 个文件');"
         if !errorlevel! neq 0 (
             echo.

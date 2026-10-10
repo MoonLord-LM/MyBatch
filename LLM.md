@@ -62,7 +62,7 @@ REM 这里是代码主体功能部分，与首尾部分的代码用 3 个空行�
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b
 
 ```
 

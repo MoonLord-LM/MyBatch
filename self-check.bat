@@ -48,11 +48,10 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
         "$bytes = [System.IO.File]::ReadAllBytes($env:bat_file);" ^
-        "$utf8Decoder = [System.Text.Encoding]::UTF8.GetDecoder();" ^
-        "$utf8Decoder.Fallback = [System.Text.DecoderExceptionFallback]::new();" ^
+        "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
         "try {" ^
-            "$chars = New-Object Char[] ($utf8Decoder.GetCharCount($bytes, 0, $bytes.Length));" ^
-            "$utf8Decoder.GetChars($bytes, 0, $bytes.Length, $chars, 0) | Out-Null;" ^
+            "$chars = New-Object Char[] ($utf8Strict.GetDecoder().GetCharCount($bytes, 0, $bytes.Length));" ^
+            "$utf8Strict.GetDecoder().GetChars($bytes, 0, $bytes.Length, $chars, 0) | Out-Null;" ^
             "$content = -join $chars;" ^
         "} catch [System.Text.DecoderFallbackException] {" ^
             "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
@@ -188,4 +187,4 @@ echo 处理完成
 
 echo.
 pause
-endlocal & endlocal & exit /b
+exit /b
