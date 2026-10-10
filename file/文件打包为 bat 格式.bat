@@ -139,7 +139,7 @@ for %%i in ("!input_file!") do (
         )
     )
     if "!use_7z_exe!"=="0" (
-        echo 缺少 7-Zip 组件，只使用 gzip / cab 方式打包
+        echo 缺少 7-Zip 组件或自解压模块，只使用 gzip / cab 方式打包
         echo.
     )
 
