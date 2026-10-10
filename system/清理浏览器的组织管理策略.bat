@@ -46,7 +46,7 @@ reg query "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome" >nul 2>&1
 if !errorlevel! neq 0 (
     echo 未发现系统级策略，无需清理
 ) else (
-    reg delete /f "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome" >nul 2>&1
+    reg delete "HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Google\Chrome" /f
     if !errorlevel! neq 0 (
         echo 错误：系统级策略删除失败，请检查报错信息
         echo.
@@ -62,7 +62,7 @@ reg query "HKEY_CURRENT_USER\SOFTWARE\Policies\Google\Chrome" >nul 2>&1
 if !errorlevel! neq 0 (
     echo 未发现用户级策略，无需清理
 ) else (
-    reg delete /f "HKEY_CURRENT_USER\SOFTWARE\Policies\Google\Chrome" >nul 2>&1
+    reg delete "HKEY_CURRENT_USER\SOFTWARE\Policies\Google\Chrome" /f
     if !errorlevel! neq 0 (
         echo 错误：用户级策略删除失败，请检查报错信息
         echo.
