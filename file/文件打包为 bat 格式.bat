@@ -10,8 +10,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '将单个文件，打包转换为 bat 脚本' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并打开原文件，如果是 ps1 / bat / py / exe 则自动执行' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '处理方式：把原文件内容压缩为 gzip 格式，转换为 Base64 编码，嵌入 bat 文件末尾' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '优先使用 7-Zip 组件压缩，找不到时使用 PowerShell 内置的 GZipStream 压缩，尽可能压缩到最小' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '处理方式：把原文件内容，执行压缩，转换为 Base64 编码，嵌入自解压的 bat 文件末尾' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '尝试使用 7-Zip / PowerShell 内置的 GZipStream / makecab.exe 压缩，尽可能压缩到最小' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
 
