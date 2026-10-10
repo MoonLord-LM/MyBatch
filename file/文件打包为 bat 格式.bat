@@ -43,7 +43,7 @@ if !errorlevel! neq 0 (
     set "seven_zip="
 )
 
-REM 检查 7zCon.sfx 自解压模块（可选）
+REM 检查 7-Zip 自解压模块（可选）
 if exist "!script_dir!7zCon.sfx" (
     set "seven_zip_sfx=!script_dir!7zCon.sfx"
 ) else if exist "!cd!\7zCon.sfx" (

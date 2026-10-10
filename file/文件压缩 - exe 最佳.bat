@@ -53,21 +53,21 @@ if !errorlevel! neq 0 (
 
 REM 检查 7-Zip 自解压模块
 if exist "!script_dir!7z.sfx" (
-    set "sfx_module=!script_dir!7z.sfx"
+    set "seven_zip_sfx=!script_dir!7z.sfx"
 ) else if exist "!cd!\7z.sfx" (
-    set "sfx_module=!cd!\7z.sfx"
+    set "seven_zip_sfx=!cd!\7z.sfx"
 ) else if exist "!script_dir!..\7z.sfx" (
-    set "sfx_module=!script_dir!..\7z.sfx"
+    set "seven_zip_sfx=!script_dir!..\7z.sfx"
 ) else if exist "..\7z.sfx" (
-    set "sfx_module=..\7z.sfx"
+    set "seven_zip_sfx=..\7z.sfx"
 ) else if exist "!ProgramFiles!\7-Zip\7z.sfx" (
-    set "sfx_module=!ProgramFiles!\7-Zip\7z.sfx"
+    set "seven_zip_sfx=!ProgramFiles!\7-Zip\7z.sfx"
 ) else if exist "!ProgramFiles(x86)!\7-Zip\7z.sfx" (
-    set "sfx_module=!ProgramFiles(x86)!\7-Zip\7z.sfx"
+    set "seven_zip_sfx=!ProgramFiles(x86)!\7-Zip\7z.sfx"
 ) else (
-    set "sfx_module="
+    set "seven_zip_sfx="
 )
-if "!sfx_module!" == "" (
+if "!seven_zip_sfx!" == "" (
     echo 错误：缺少 7-Zip 自解压模块
     echo 请从 https://www.7-zip.org/download.html 下载，然后放到脚本所在文件夹
     "explorer.exe" "https://www.7-zip.org/download.html"
@@ -116,7 +116,7 @@ for %%i in ("!input_path!") do (
     if exist "!output_path!" (
         echo 输出自解压文件已存在："!output_path!"，跳过不处理
     ) else (
-        "!seven_zip!" a %zip_params% -sfx"!sfx_module!" -y "!output_path!" "!input_path!"
+        "!seven_zip!" a %zip_params% -sfx"!seven_zip_sfx!" -y "!output_path!" "!input_path!"
         if !errorlevel! equ 0 (
             for %%j in ("!output_path!") do (
                 setlocal disabledelayedexpansion
