@@ -177,7 +177,7 @@ for %%i in ("!input_file!") do (
         )
     )
     if not exist "!temp_gzip!" (
-        echo 错误：gzip 压缩文件生成失败："!temp_gzip!"
+        echo 错误：压缩文件生成失败："!temp_gzip!"
         echo.
         pause
         exit /b 1
@@ -199,6 +199,7 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
     if not exist "!temp_cab!" (
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         echo 错误：压缩文件生成失败："!temp_cab!"
         echo.
         pause
@@ -237,7 +238,6 @@ for %%i in ("!input_file!") do (
             echo.
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
-            if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
             pause
             exit /b 1
         )
