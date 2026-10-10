@@ -357,7 +357,7 @@ for %%i in ("!input_file!") do (
         "$params = New-Object System.CodeDom.Compiler.CompilerParameters;" ^
         "$params.OutputAssembly = $env:output_file;" ^
         "$params.GenerateExecutable = $true;" ^
-        "$params.CompilerOptions = '/target:exe /optimize';" ^
+        "$params.CompilerOptions = '/target:winexe /optimize';" ^
         "[void]$params.ReferencedAssemblies.Add('System.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.Core.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.IO.Compression.dll');" ^
@@ -431,6 +431,7 @@ using System.Reflection;
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Windows.Forms;
+using System.Runtime.InteropServices;
 
 public static class Program
 {
@@ -443,6 +444,7 @@ public static class Program
         try { MessageBox.Show(msg, originFileName, MessageBoxButtons.OK, MessageBoxIcon.Error); } catch { }
     }
 
+    [STAThread]
     private static int Main(string[] args)
     {
         string tempRoot = Path.Combine(Path.GetTempPath(), "MyBatch", "cache", originFileSize.ToString(), originFileSha512);
@@ -551,7 +553,7 @@ public static class Program
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.WorkingDirectory = tempRoot;
             psi.UseShellExecute = false;
-            psi.CreateNoWindow = false;
+            psi.CreateNoWindow = true;
             string lower = originFileName.ToLowerInvariant();
             string argStr = "";
             for (int i = 0; i < args.Length; i++)
@@ -585,7 +587,8 @@ public static class Program
                 psi.FileName = extracted;
                 psi.Arguments = argStr.TrimStart();
                 psi.UseShellExecute = true;
-                psi.WindowStyle = ProcessWindowStyle.Hidden
+                Process.Start(psi);
+                return 0;
             }
             using (Process p = Process.Start(psi))
             {
