@@ -282,8 +282,8 @@ for %%i in ("!input_file!") do (
 
     REM 方式二：压缩为 cab 格式，转换为 Base64 编码
     echo 压缩方式：使用 makecab 压缩 cab 格式
-
     set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
+    if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
     makecab /D CompressionType=LZX /D CompressionLevel=7 /D CompressionMemory=21 "!input_file!" "!temp_cab!" >nul
     if !errorlevel! neq 0 (
         echo 错误：压缩失败："!input_file!"
@@ -393,6 +393,8 @@ for %%i in ("!input_file!") do (
         set "smallest_format=cab 格式"
     )
     if exist "!temp_output!" ( del /f /q "!temp_output!" )
+
+
 
     REM 方式三：压缩为 7z 格式的自解压 exe，转换为 Base64 编码
     if "!use_7z_exe!"=="1" (
@@ -521,6 +523,8 @@ for %%i in ("!input_file!") do (
         )
         if exist "!temp_output!" ( del /f /q "!temp_output!" )
     )
+
+
 
     echo 打包完成，保留较小的 !smallest_format! 的文件
     echo.
