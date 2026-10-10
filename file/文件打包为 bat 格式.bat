@@ -207,6 +207,7 @@ for %%i in ("!input_file!") do (
     if not exist "!temp_base64!" (
         echo 错误：转换 Base64 编码文件生成失败："!temp_base64!"
         echo.
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         pause
         exit /b 1
     )
@@ -240,12 +241,14 @@ for %%i in ("!input_file!") do (
         echo 错误：提取内嵌代码失败："!output_file!"
         echo.
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
+        if exist "!output_file!" ( del /f /q "!output_file!" )
         pause
         exit /b 1
     )
     if not exist "!output_file!" (
         echo 错误：提取内嵌代码文件生成失败："!output_file!"
         echo.
+        if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
         pause
         exit /b 1
     )
@@ -310,6 +313,7 @@ for %%i in ("!input_file!") do (
     if not exist "!temp_base64!" (
         echo 错误：转换 Base64 编码文件生成失败："!temp_base64!"
         echo.
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         pause
         exit /b 1
     )
@@ -348,6 +352,7 @@ for %%i in ("!input_file!") do (
     if not exist "!temp_output!" (
         echo 错误：提取内嵌代码文件生成失败："!temp_output!"
         echo.
+        if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
         pause
         exit /b 1
     )
@@ -455,6 +460,7 @@ for %%i in ("!input_file!") do (
         if not exist "!temp_base64!" (
             echo 错误：转换 Base64 编码文件生成失败："!temp_base64!"
             echo.
+            if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
             pause
             exit /b 1
         )
