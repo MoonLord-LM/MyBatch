@@ -298,7 +298,7 @@ for %%i in ("!input_file!") do (
     )
 
     echo.
-    echo 内嵌压缩方式选择：!method!，压缩包大小：!smallest_size! 字节
+    echo 选择压缩方式：!method!，压缩包大小：!smallest_size! 字节
     echo.
 
     REM 提取内嵌的 C# 代码
