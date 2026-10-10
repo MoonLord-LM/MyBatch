@@ -184,11 +184,10 @@ for %%i in ("!input_file!") do (
     )
 
     REM 转换 Base64 编码
-    set "temp_source=!temp_gzip!"
     set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.txt" & type nul > "!temp_base64!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$bytes = [System.IO.File]::ReadAllBytes($env:temp_source);" ^
+        "$bytes = [System.IO.File]::ReadAllBytes($env:temp_gzip);" ^
         "$base64 = [Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
         "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
@@ -289,11 +288,10 @@ for %%i in ("!input_file!") do (
     )
 
     REM 转换 Base64 编码
-    set "temp_source=!temp_cab!"
     set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab.txt" & type nul > "!temp_base64!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$bytes = [System.IO.File]::ReadAllBytes($env:temp_source);" ^
+        "$bytes = [System.IO.File]::ReadAllBytes($env:temp_cab);" ^
         "$base64 = [Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
         "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
@@ -422,24 +420,23 @@ for %%i in ("!input_file!") do (
             exit /b 1
         )
 
-        set "temp_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
-        copy /b /y "!seven_zip_sfx!" + "!temp_7z!" "!temp_exe!" >nul
+        set "temp_7z_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
+        copy /b /y "!seven_zip_sfx!" + "!temp_7z!" "!temp_7z_exe!" >nul
         if !errorlevel! neq 0 (
-            echo 错误：制作自解压 exe 失败："!temp_exe!"
+            echo 错误：制作自解压 exe 失败："!temp_7z_exe!"
             echo.
             if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
-            if exist "!temp_exe!" ( del /f /q "!temp_exe!" )
+            if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
             pause
             exit /b 1
         )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
 
         REM 转换 Base64 编码
-        set "temp_source=!temp_exe!"
         set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z.txt" & type nul > "!temp_base64!"
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-            "$bytes = [System.IO.File]::ReadAllBytes($env:temp_source);" ^
+            "$bytes = [System.IO.File]::ReadAllBytes($env:temp_7z_exe);" ^
             "$base64 = [Convert]::ToBase64String($bytes);" ^
             "$list = New-Object System.Collections.Generic.List[string];" ^
             "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
@@ -451,7 +448,7 @@ for %%i in ("!input_file!") do (
         if !errorlevel! neq 0 (
             echo 错误：转换 Base64 编码失败："!input_file!"
             echo.
-            if exist "!temp_exe!" ( del /f /q "!temp_exe!" )
+            if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
             if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
             pause
             exit /b 1
@@ -462,7 +459,7 @@ for %%i in ("!input_file!") do (
             pause
             exit /b 1
         )
-        if exist "!temp_exe!" ( del /f /q "!temp_exe!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
 
         REM 提取内嵌代码，使用第 3 段模板
         set "inner_begin_marker=-----BEGIN BATCH CODE 3-----"
@@ -742,7 +739,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
-set "temp_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
+set "temp_7z_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
 set "already_extracted=0"
 if exist "!temp_file!" (
     set "size_matched=0"
@@ -774,18 +771,18 @@ if "!already_extracted!"=="0" (
         "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
         "$base64 = $base64 -replace '\s', '';" ^
         "$bytes = [Convert]::FromBase64String($base64);" ^
-        "[System.IO.File]::WriteAllBytes($env:temp_exe, $bytes);"
+        "[System.IO.File]::WriteAllBytes($env:temp_7z_exe, $bytes);"
     if !errorlevel! neq 0 (
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
         exit /b 1
     )
-    "!temp_exe!" -o"!temp_dir!" -y >nul
+    "!temp_7z_exe!" -o"!temp_dir!" -y >nul
     if !errorlevel! neq 0 (
-        if exist "!temp_exe!" ( del /f /q "!temp_exe!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
         exit /b 1
     )
-    if exist "!temp_exe!" ( del /f /q "!temp_exe!" )
+    if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
     if not exist "!temp_file!" (
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
         exit /b 1

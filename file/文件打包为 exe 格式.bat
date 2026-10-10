@@ -220,12 +220,10 @@ for %%i in ("!input_file!") do (
     )
     if "!use_7z_exe!"=="1" (
         echo 压缩方式：7z 自解压 exe 格式
-
         set "temp_7z=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
         "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
-        set "seven_rc=!errorlevel!"
-        if !seven_rc! neq 0 (
+        if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
@@ -244,7 +242,7 @@ for %%i in ("!input_file!") do (
             exit /b 1
         )
 
-        set "temp_7z_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
+        set "temp_7z_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
         copy /b /y "!seven_zip_sfx!" + "!temp_7z!" "!temp_7z_exe!" >nul
         if !errorlevel! neq 0 (
             echo 错误：制作自解压 exe 失败："!temp_7z_exe!"
@@ -283,7 +281,7 @@ for %%i in ("!input_file!") do (
     echo 内嵌压缩方式：!method!，压缩后大小：!smallest_size! 字节
     echo.
 
-    REM 提取内嵌的 C# 引擎代码
+    REM 提取内嵌的 C# 代码
     set "temp_cs=%temp%\MyBatch_%random%_%random%_%random%_%random%.cs"
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
     set "inner_begin_marker=-----BEGIN CSHARP CODE-----"
@@ -297,7 +295,7 @@ for %%i in ("!input_file!") do (
         "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
         "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
         "if ($begin -lt 1 -or $end -lt $begin) {" ^
-        "    Write-Host '错误：未找到内嵌的 C# 引擎代码块' -ForegroundColor Red;" ^
+        "    Write-Host '错误：未找到内嵌的 C# 代码块' -ForegroundColor Red;" ^
         "    exit 1;" ^
         "};" ^
         "$code = $lines[$begin..($end - 1)];" ^
@@ -311,14 +309,21 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：提取内嵌代码失败
         echo.
-        if exist "!resource_file!" ( del /f /q "!resource_file!" )
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
         pause
         exit /b 1
     )
     if not exist "!temp_cs!" (
-        echo 错误：引擎代码文件生成失败："!temp_cs!"
+        echo 错误：提取内嵌代码文件生成失败："!temp_cs!"
         echo.
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
         pause
         exit /b 1
     )
@@ -348,19 +353,31 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：生成 exe 失败："!output_file!"
         echo.
-        if exist "!resource_file!" ( del /f /q "!resource_file!" )
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
+        if exist "!output_file!" ( del /f /q "!output_file!" )
         pause
         exit /b 1
     )
     if not exist "!output_file!" (
         echo 错误：生成 exe 文件不存在："!output_file!"
         echo.
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
+        if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
         pause
         exit /b 1
     )
 
-    if exist "!resource_file!" ( del /f /q "!resource_file!" )
+    if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+    if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+    if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+    if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
 
     for %%j in ("!output_file!") do (
@@ -440,17 +457,22 @@ public static class Program
             foreach (string n in asm.GetManifestResourceNames())
             {
                 string ln = n.ToLowerInvariant();
-                if (ln.EndsWith(".gz") || ln.EndsWith(".cab") || ln.EndsWith(".7z")) { resName = n; break; }
+                if (ln.EndsWith(".gz") || ln.EndsWith(".cab") || ln.EndsWith(".exe")) { resName = n; break; }
             }
             if (resName == null)
             {
                 ShowError("错误：未找到内嵌的压缩资源");
                 return 1;
             }
-            string lowerMethod;
+            string lowerMethod = null;
             if (resName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)) lowerMethod = "gzip";
             else if (resName.EndsWith(".cab", StringComparison.OrdinalIgnoreCase)) lowerMethod = "cab";
-            else lowerMethod = "7z";
+            else if (resName.EndsWith(".exe", StringComparison.OrdinalIgnoreCase)) lowerMethod = "7z";
+            if (lowerMethod == null)
+            {
+                ShowError("错误：未知的内嵌压缩资源格式：" + resName);
+                return 1;
+            }
             try
             {
                 if (lowerMethod == "gzip")
@@ -461,10 +483,13 @@ public static class Program
                     {
                         gzip.CopyTo(outp);
                     }
+                    if (!File.Exists(extracted)) { ShowError("错误：gzip 解压失败"); return 1; }
                 }
                 else if (lowerMethod == "cab")
                 {
-                    string cabPath = Path.Combine(tempRoot, "__res.cab");
+                    var rnd = new Random();
+                    string tempFilePrefix = "MyBatch_" + rnd.Next(0, 32768) + "_" + rnd.Next(0, 32768) + "_" + rnd.Next(0, 32768) + "_" + rnd.Next(0, 32768);
+                    string cabPath = Path.Combine(Path.GetTempPath(), tempFilePrefix + ".cab");
                     using (var stream = asm.GetManifestResourceStream(resName))
                     using (var outp = File.Create(cabPath)) { stream.CopyTo(outp); }
                     var cabPsi = new ProcessStartInfo("expand.exe", "\"" + cabPath + "\" \"" + extracted + "\"");
@@ -477,7 +502,9 @@ public static class Program
                 }
                 else if (lowerMethod == "7z")
                 {
-                    string sfxPath = Path.Combine(tempRoot, "__sfx.exe");
+                    var rnd = new Random();
+                    string tempFilePrefix = "MyBatch_" + rnd.Next(0, 32768) + "_" + rnd.Next(0, 32768) + "_" + rnd.Next(0, 32768) + "_" + rnd.Next(0, 32768);
+                    string sfxPath = Path.Combine(Path.GetTempPath(), tempFilePrefix + ".exe");
                     using (var stream = asm.GetManifestResourceStream(resName))
                     using (var outp = File.Create(sfxPath)) { stream.CopyTo(outp); }
                     var sfxPsi = new ProcessStartInfo(sfxPath, "-o\"" + tempRoot + "\" -y");
@@ -497,25 +524,6 @@ public static class Program
             catch (Exception ex)
             {
                 ShowError("错误：解压失败：" + ex.Message);
-                return 1;
-            }
-            try
-            {
-                using (var sha = SHA512.Create())
-                using (var fs = File.OpenRead(extracted))
-                {
-                    byte[] h = sha.ComputeHash(fs);
-                    string hex = BitConverter.ToString(h).Replace("-", "").ToLowerInvariant();
-                    if (!string.Equals(hex, originFileSha512, StringComparison.OrdinalIgnoreCase))
-                    {
-                        ShowError("错误：解压出的文件校验失败");
-                        return 1;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                ShowError("错误：校验失败：" + ex.Message);
                 return 1;
             }
         }
