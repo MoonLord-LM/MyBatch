@@ -131,18 +131,6 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
-    REM 判断 7z 自解压方式是否可用，需要同时具备 7-Zip 组件和 7zCon.sfx
-    set "use_7z_exe=0"
-    if not "!seven_zip!"=="" (
-        if not "!seven_zip_sfx!"=="" (
-            set "use_7z_exe=1"
-        )
-    )
-    if "!use_7z_exe!"=="0" (
-        echo 缺少 7-Zip 组件或自解压模块，只使用 gzip / cab 方式打包
-        echo.
-    )
-
     REM 如果输出文件已存在，则继续追加 .bat 后缀，直到文件名不重复
     set "output_file=!file_dir!!base_name!.bat"
     for /l %%n in (1,1,16) do (
@@ -404,6 +392,16 @@ for %%i in ("!input_file!") do (
 
 
     REM 方式三：压缩为 7z 格式的自解压 exe，转换为 Base64 编码
+    set "use_7z_exe=0"
+    if not "!seven_zip!"=="" (
+        if not "!seven_zip_sfx!"=="" (
+            set "use_7z_exe=1"
+        )
+    )
+    if "!use_7z_exe!"=="0" (
+        echo 缺少 7-Zip 组件或自解压模块，只使用 gzip / cab 方式压缩
+        echo.
+    )
     if "!use_7z_exe!"=="1" (
         echo 压缩方式：7z 自解压 exe 格式
 
