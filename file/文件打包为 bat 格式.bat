@@ -139,7 +139,7 @@ for %%i in ("!input_file!") do (
         )
     )
     if "!use_7z_exe!"=="0" (
-        echo 缺少 7-Zip 组件或 7zCon.sfx，只使用 gzip 方式打包
+        echo 缺少 7-Zip 组件，只使用 gzip / cab 方式打包
         echo.
     )
 
@@ -150,6 +150,8 @@ for %%i in ("!input_file!") do (
     )
     echo 目标文件："!output_file!"
     echo.
+
+
 
     REM 方式一：压缩为 gzip 格式，转换为 Base64 编码
     set "temp_zip=%temp%\MyBatch_%random%_%random%_%random%_%random%.zip"
@@ -271,11 +273,128 @@ for %%i in ("!input_file!") do (
     ) >> "!output_target!"
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
-    for %%j in ("!output_file!") do set "gzip_size=%%~zj"
-    echo 文件大小：!gzip_size! 字节
+    for %%j in ("!output_file!") do set "smallest_size=%%~zj"
+    set "smallest_format=gzip 格式"
+    echo 文件大小：!smallest_size! 字节
     echo.
 
-    REM 方式二：压缩为 7z 格式的自解压 exe，转换为 Base64 编码
+
+
+    REM 方式二：压缩为 cab 格式，转换为 Base64 编码
+    echo 压缩方式：使用 makecab 压缩 cab 格式
+
+    set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
+    makecab /D CompressionType=LZX /D CompressionLevel=7 /D CompressionMemory=21 "!input_file!" "!temp_cab!" >nul
+    if !errorlevel! neq 0 (
+        echo 错误：压缩失败："!input_file!"
+        echo.
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        pause
+        exit /b 1
+    )
+    if not exist "!temp_cab!" (
+        echo 错误：压缩文件生成失败："!temp_cab!"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM 转换 Base64 编码
+    set "temp_source=!temp_cab!"
+    set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab.txt" & type nul > "!temp_base64!"
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$bytes = [System.IO.File]::ReadAllBytes($env:temp_source);" ^
+        "$base64 = [Convert]::ToBase64String($bytes);" ^
+        "$list = New-Object System.Collections.Generic.List[string];" ^
+        "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
+        "    $length = [Math]::Min(64, $base64.Length - $i);" ^
+        "    $list.Add($base64.Substring($i, $length));" ^
+        "};" ^
+        "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
+        "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $utf8NoBom);"
+    if !errorlevel! neq 0 (
+        echo 错误：转换 Base64 编码失败："!input_file!"
+        echo.
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
+        pause
+        exit /b 1
+    )
+    if not exist "!temp_base64!" (
+        echo 错误：转换 Base64 编码文件生成失败："!temp_base64!"
+        echo.
+        pause
+        exit /b 1
+    )
+    if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+
+    REM 提取内嵌代码，使用第 2 段模板
+    set "inner_begin_marker=-----BEGIN BATCH CODE 2-----"
+    set "inner_end_marker=-----END BATCH CODE 2-----"
+    set "temp_output=%temp%\MyBatch_%random%_%random%_%random%_%random%.bat"
+    set "output_target=!temp_output!"
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+        "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
+        "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    Write-Host '错误：未找到内嵌的 bat 代码块' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$code = $lines[$begin..($end - 1)];" ^
+        "$safe_file_name_ext = $env:file_name_ext.Replace('%%', '%%%%');" ^
+        "for ($i = 0; $i -lt $code.Count; $i++) {" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_content_sha512_marker, $env:file_content_sha512);" ^
+        "};" ^
+        "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
+        "[System.IO.File]::WriteAllLines($env:output_target, $code, $utf8NoBom);"
+    if !errorlevel! neq 0 (
+        echo 错误：提取内嵌代码失败："!output_target!"
+        echo.
+        if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
+        pause
+        exit /b 1
+    )
+    if not exist "!output_target!" (
+        echo 错误：提取内嵌代码文件生成失败："!output_target!"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM 合并最终文件
+    set "output_begin_marker=-----BEGIN CAB FILE-----"
+    set "output_end_marker=-----END CAB FILE-----"
+    (
+        echo !output_begin_marker!
+        type "!temp_base64!"
+        echo !output_end_marker!
+    ) >> "!output_target!"
+    if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
+
+    for %%j in ("!temp_output!") do set "cab_size=%%~zj"
+    echo 文件大小：!cab_size! 字节
+    echo.
+
+    if !cab_size! LSS !smallest_size! (
+        copy /b /y "!temp_output!" "!output_file!" >nul
+        if !errorlevel! neq 0 (
+            echo 错误：保留体积更小的 bat 脚本失败："!output_file!"
+            echo.
+            if exist "!temp_output!" ( del /f /q "!temp_output!" )
+            pause
+            exit /b 1
+        )
+        set "smallest_size=!cab_size!"
+        set "smallest_format=cab 格式"
+    )
+    if exist "!temp_output!" ( del /f /q "!temp_output!" )
+
+    REM 方式三：压缩为 7z 格式的自解压 exe，转换为 Base64 编码
     if "!use_7z_exe!"=="1" (
         echo 压缩方式：使用 7-Zip 压缩 7z 格式，再拼接 7zCon.sfx
 
@@ -337,9 +456,9 @@ for %%i in ("!input_file!") do (
         )
         if exist "!temp_exe!" ( del /f /q "!temp_exe!" )
 
-        REM 提取内嵌代码，使用第 2 段模板
-        set "inner_begin_marker=-----BEGIN BATCH CODE 2-----"
-        set "inner_end_marker=-----END BATCH CODE 2-----"
+        REM 提取内嵌代码，使用第 3 段模板
+        set "inner_begin_marker=-----BEGIN BATCH CODE 3-----"
+        set "inner_end_marker=-----END BATCH CODE 3-----"
         set "temp_output=%temp%\MyBatch_%random%_%random%_%random%_%random%.bat"
         set "output_target=!temp_output!"
         powershell -NoProfile -Command ^
@@ -388,7 +507,7 @@ for %%i in ("!input_file!") do (
         echo 文件大小：!seven_zip_size! 字节
         echo.
 
-        if !seven_zip_size! LSS !gzip_size! (
+        if !seven_zip_size! LSS !smallest_size! (
             copy /b /y "!temp_output!" "!output_file!" >nul
             if !errorlevel! neq 0 (
                 echo 错误：保留体积更小的 bat 脚本失败："!output_file!"
@@ -397,12 +516,14 @@ for %%i in ("!input_file!") do (
                 pause
                 exit /b 1
             )
-            echo 打包完成，保留较小的 7z 自解压 exe 格式的文件
-        ) else (
-            echo 打包完成，保留较小的 gzip 格式的文件
+            set "smallest_size=!seven_zip_size!"
+            set "smallest_format=7z 自解压 exe 格式"
         )
         if exist "!temp_output!" ( del /f /q "!temp_output!" )
     )
+
+    echo 打包完成，保留较小的 !smallest_format! 的文件
+    echo.
 
     for %%j in ("!output_file!") do (
         setlocal disabledelayedexpansion
@@ -522,6 +643,88 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_content_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
+set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
+set "already_extracted=0"
+if exist "!temp_file!" (
+    set "size_matched=0"
+    for %%i in ("!temp_file!") do (
+        if "!origin_file_size!"=="%%~zi" set "size_matched=1"
+    )
+    if "!size_matched!"=="1" (
+        for /f "delims=" %%j in ('powershell -NoProfile -Command ^
+            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+            "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
+        ) do (
+            if "!origin_file_content_sha512!"=="%%j" set "already_extracted=1"
+        )
+    )
+)
+if "!already_extracted!"=="0" (
+    set "begin_marker=-----BEGIN CAB FILE-----"
+    set "end_marker=-----END CAB FILE-----"
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+        "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
+        "$end = [array]::IndexOf($lines, $env:end_marker);" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    exit 1;" ^
+        "};" ^
+        "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
+        "$base64 = $base64 -replace '\s', '';" ^
+        "$bytes = [Convert]::FromBase64String($base64);" ^
+        "[System.IO.File]::WriteAllBytes($env:temp_cab, $bytes);"
+    if !errorlevel! neq 0 (
+        if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        exit /b 1
+    )
+    if exist "!temp_file!" ( del /f /q "!temp_file!" )
+    expand "!temp_cab!" "!temp_file!" >nul
+    if !errorlevel! neq 0 (
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        exit /b 1
+    )
+    if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+    if not exist "!temp_file!" (
+        if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        exit /b 1
+    )
+)
+if /i "!origin_file_name:~-4!"==".ps1" (
+    powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!" !all_args!
+) else if /i "!origin_file_name:~-4!"==".bat" (
+    cmd /s /c ""!temp_file!" !all_args!"
+) else if /i "!origin_file_name:~-3!"==".py" (
+    python "!temp_file!" !all_args!
+) else if /i "!origin_file_name:~-4!"==".exe" (
+    "!temp_file!" !all_args!
+) else (
+    explorer "!temp_file!"
+)
+exit /b !errorlevel!
+-----END BATCH CODE 2-----
+
+
+
+-----BEGIN BATCH CODE 3-----
+@echo off
+chcp 65001 >nul
+setlocal disabledelayedexpansion
+set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+set "origin_file_name=-----ORIGIN FILE NAME-----"
+set "origin_file_size=-----ORIGIN FILE SIZE-----"
+set "origin_file_content_sha512=-----ORIGIN FILE CONTENT SHA512-----"
+set "all_args=%*"
+setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" (
+    cd /d "!script_dir!"
+)
+set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_content_sha512!"
+if not exist "!temp_dir!" mkdir "!temp_dir!"
+set "temp_file=!temp_dir!\!origin_file_name!"
 set "temp_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
 set "already_extracted=0"
 if exist "!temp_file!" (
@@ -583,4 +786,4 @@ if /i "!origin_file_name:~-4!"==".ps1" (
     explorer "!temp_file!"
 )
 exit /b !errorlevel!
------END BATCH CODE 2-----
+-----END BATCH CODE 3-----
