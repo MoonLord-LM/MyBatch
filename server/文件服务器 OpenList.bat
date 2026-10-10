@@ -88,7 +88,7 @@ if not exist "OpenListData\" (
     -subj "/CN=!ssl_subject_name!"
 echo.
 
-explorer "https://localhost:15244/"
+"explorer.exe" "https://localhost:15244/"
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
     "$env:OPENLIST_HTTP_PORT='-1';" ^
