@@ -357,7 +357,7 @@ for %%i in ("!input_file!") do (
         "$params = New-Object System.CodeDom.Compiler.CompilerParameters;" ^
         "$params.OutputAssembly = $env:output_file;" ^
         "$params.GenerateExecutable = $true;" ^
-        "$params.CompilerOptions = '/target:winexe /optimize';" ^
+        "$params.CompilerOptions = '/target:exe /optimize';" ^
         "[void]$params.ReferencedAssemblies.Add('System.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.Core.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.IO.Compression.dll');" ^
@@ -552,6 +552,7 @@ public static class Program
         {
             ProcessStartInfo psi = new ProcessStartInfo();
             psi.WorkingDirectory = tempRoot;
+            psi.UseShellExecute = false;
             psi.CreateNoWindow = true;
             string lower = originFileName.ToLowerInvariant();
             string argStr = "";
