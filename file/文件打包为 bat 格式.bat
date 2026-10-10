@@ -148,14 +148,13 @@ for %%i in ("!input_file!") do (
     for /l %%n in (1,1,16) do (
         if exist "!output_file!" set "output_file=!output_file!.bat"
     )
-    echo 输出文件："!output_file!"
+    echo 目标文件："!output_file!"
     echo.
 
     REM 方式一：压缩为 gzip 格式，转换为 Base64 编码
     set "temp_zip=%temp%\MyBatch_%random%_%random%_%random%_%random%.zip"
     if "!seven_zip!"=="" (
         echo 压缩方式：使用 PowerShell 内置的 GZipStream 压缩
-        echo.
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "Add-Type -AssemblyName System.IO.Compression;" ^
@@ -177,7 +176,6 @@ for %%i in ("!input_file!") do (
         )
     ) else (
         echo 压缩方式：使用 7-Zip 压缩 gzip 格式
-        echo.
         "!seven_zip!" a -tgzip -mx=9 -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_zip!" < "!input_file!" >nul
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
@@ -274,13 +272,12 @@ for %%i in ("!input_file!") do (
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
     for %%j in ("!output_file!") do set "gzip_size=%%~zj"
-    echo 打包方式：使用 gzip 压缩格式，!gzip_size! 字节
+    echo 文件大小：!gzip_size! 字节
     echo.
 
     REM 方式二：压缩为 7z 格式的自解压 exe，转换为 Base64 编码
     if "!use_7z_exe!"=="1" (
         echo 压缩方式：使用 7-Zip 压缩 7z 格式，再拼接 7zCon.sfx
-        echo.
 
         set "temp_7z=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
         "!seven_zip!" a -t7z -mx=9 -mm=LZMA -md=2048m -mfb=256 -mmt=on -mtc=on -mta=on -mtm=on -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
@@ -388,7 +385,7 @@ for %%i in ("!input_file!") do (
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
         for %%j in ("!temp_output!") do set "seven_zip_size=%%~zj"
-        echo 打包方式：使用 7z 自解压 exe 格式，!seven_zip_size! 字节
+        echo 文件大小：!seven_zip_size! 字节
         echo.
 
         if !seven_zip_size! LSS !gzip_size! (
@@ -400,11 +397,9 @@ for %%i in ("!input_file!") do (
                 pause
                 exit /b 1
             )
-            echo 使用 7z 自解压 exe 格式的体积更小，保留该 bat 脚本
-            echo.
+            echo 打包完成，保留较小的 7z 自解压 exe 格式的文件
         ) else (
-            echo 使用 gzip 压缩格式的体积更小，保留该 bat 脚本
-            echo.
+            echo 打包完成，保留较小的 gzip 格式的文件
         )
         if exist "!temp_output!" ( del /f /q "!temp_output!" )
     )
@@ -414,7 +409,7 @@ for %%i in ("!input_file!") do (
         set "file_size=%%~zj"
         setlocal enabledelayedexpansion
 
-        echo 打包成功：!file_size! 字节
+        echo 最终大小：!file_size! 字节
 
         endlocal
         endlocal
