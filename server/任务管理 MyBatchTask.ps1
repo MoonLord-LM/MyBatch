@@ -78,10 +78,16 @@ try {
         return $windowsVersion
     }
     $powerShellVersion = "$($PSVersionTable.PSVersion.ToString()) $($PSVersionTable.PSEdition)"
+    $dotnetClrVersion = [System.Environment]::Version.ToString()
     $machineName = [System.Net.Dns]::GetHostName()
     $userName = [Environment]::UserName
     "[ Debug ] windowsVersion = $windowsVersion"
     "[ Debug ] powerShellVersion = $powerShellVersion"
+    "[ Debug ] dotnetClrVersion = $dotnetClrVersion"
+    try {
+        $dotnetFrameworkDescription = [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
+        "[ Debug ] dotnetFrameworkDescription = $dotnetFrameworkDescription"
+    } catch { }
     "[ Debug ] machineName = $machineName"
     "[ Debug ] userName = $userName"
 
@@ -119,6 +125,12 @@ try {
     Add-Type -AssemblyName System.Drawing
     [System.Windows.Forms.Application]::EnableVisualStyles()
     [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
+
+    # 查看加载的 WinForms 程序集信息
+    $winFormsAssembly = [System.Reflection.Assembly]::GetAssembly([System.Windows.Forms.Form])
+    "[ Debug ] winFormsAssemblyRuntime = $($winFormsAssembly.ImageRuntimeVersion)"
+    "[ Debug ] winFormsAssembly = $($winFormsAssembly.FullName)"
+    "[ Debug ] winFormsAssemblyLocation = $($winFormsAssembly.Location)"
 
     # 对指定的控件启用双缓冲，减少界面闪烁
     function Enable-Double-Buffered {
