@@ -89,7 +89,7 @@ powershell -NoProfile -Command ^
     "Write-Host ('已记录 ' + $paths.Count + ' 个文件夹窗口，跳过 ' + $skip + ' 个非文件夹窗口');"
 if !errorlevel! neq 0 (
     if exist "!temp_list!" ( del /f /q "!temp_list!" )
-    echo 错误：记录文件夹窗口失败，未重启桌面进程
+    echo 错误：记录文件夹窗口失败，请检查报错信息
     echo.
     pause
     exit /b 1
