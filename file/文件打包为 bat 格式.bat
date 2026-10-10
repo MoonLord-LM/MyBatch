@@ -99,6 +99,34 @@ for %%i in ("!input_file!") do (
     echo 原始大小：%%~zi 字节
     echo.
 
+    REM 计算文件名的 SHA512 哈希值和文件内容的 SHA512 哈希值
+    for /f "delims=" %%a in ('powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+        "$nameBytes = [System.Text.Encoding]::UTF8.GetBytes($env:file_name_ext);" ^
+        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($nameBytes)).Replace('-', '').ToLowerInvariant());"') do (
+        set "file_name_sha512=%%a"
+    )
+    for /f "delims=" %%b in ('powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+        "$contentBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
+        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"') do (
+        set "file_content_sha512=%%b"
+    )
+    if "!file_name_sha512!"=="" (
+        echo 错误：计算文件名的 SHA512 哈希值失败：“!input_file!”
+        echo.
+        pause
+        exit /b 1
+    )
+    if "!file_content_sha512!"=="" (
+        echo 错误：计算文件内容的 SHA512 哈希值失败：“!input_file!”
+        echo.
+        pause
+        exit /b 1
+    )
+
     REM 如果输出文件已存在，则继续追加 .bat 后缀，直到文件名不重复
     set "output_file=!file_dir!!base_name!.bat"
     for /l %%n in (1,1,16) do (
@@ -186,6 +214,9 @@ for %%i in ("!input_file!") do (
     set "inner_begin_marker=-----BEGIN BATCH CODE-----"
     set "inner_end_marker=-----END BATCH CODE-----"
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
+    set "origin_file_name_sha512_marker=-----ORIGIN FILE NAME SHA512-----"
+    set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
+    set "origin_file_content_sha512_marker=-----ORIGIN FILE CONTENT SHA512-----"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -199,6 +230,9 @@ for %%i in ("!input_file!") do (
         "$safe_file_name_ext = $env:file_name_ext.Replace('%%', '%%%%');" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_name_sha512_marker, $env:file_name_sha512);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_content_sha512_marker, $env:file_content_sha512);" ^
         "};" ^
         "$utf8NoBom = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $utf8NoBom);"
@@ -255,40 +289,62 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "origin_file_name=-----ORIGIN FILE NAME-----"
+set "origin_file_name_sha512=-----ORIGIN FILE NAME SHA512-----"
+set "origin_file_size=-----ORIGIN FILE SIZE-----"
+set "origin_file_content_sha512=-----ORIGIN FILE CONTENT SHA512-----"
 setlocal enabledelayedexpansion
 if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
-set "temp_dir=%temp%\MyBatch_%random%_%random%_%random%_%random%"
+set "temp_dir=%temp%\MyBatch\static\!origin_file_name_sha512!\!origin_file_size!\!origin_file_content_sha512!"
+if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
-mkdir "!temp_dir!"
-set "begin_marker=-----BEGIN GZIP FILE-----"
-set "end_marker=-----END GZIP FILE-----"
-powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "Add-Type -AssemblyName System.IO.Compression;" ^
-    "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
-    "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
-    "$end = [array]::IndexOf($lines, $env:end_marker);" ^
-    "if ($begin -lt 1 -or $end -lt $begin) {" ^
-    "    exit 1;" ^
-    "};" ^
-    "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
-    "$base64 = $base64 -replace '\s', '';" ^
-    "$bytes = [Convert]::FromBase64String($base64);" ^
-    "$memStream = New-Object System.IO.MemoryStream (,$bytes);" ^
-    "$mode = [System.IO.Compression.CompressionMode]::Decompress;" ^
-    "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
-    "$outStream = New-Object System.IO.MemoryStream;" ^
-    "$gzipStream.CopyTo($outStream);" ^
-    "$gzipStream.Close();" ^
-    "$memStream.Close();" ^
-    "$rawBytes = $outStream.ToArray();" ^
-    "$outStream.Close();" ^
-    "[System.IO.File]::WriteAllBytes($env:temp_file, $rawBytes);"
-if !errorlevel! neq 0 (
-    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
-    exit /b 1
+set "already_extracted=0"
+if exist "!temp_file!" (
+    set "size_matched=0"
+    for %%i in ("!temp_file!") do (
+        if "!origin_file_size!"=="%%~zi" set "size_matched=1"
+    )
+    if "!size_matched!"=="1" (
+        for /f "delims=" %%j in ('powershell -NoProfile -Command ^
+            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+            "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
+        ) do (
+            if "!origin_file_content_sha512!"=="%%j" set "already_extracted=1"
+        )
+    )
+)
+if "!already_extracted!"=="0" (
+    set "begin_marker=-----BEGIN GZIP FILE-----"
+    set "end_marker=-----END GZIP FILE-----"
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "Add-Type -AssemblyName System.IO.Compression;" ^
+        "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+        "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
+        "$end = [array]::IndexOf($lines, $env:end_marker);" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    exit 1;" ^
+        "};" ^
+        "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
+        "$base64 = $base64 -replace '\s', '';" ^
+        "$bytes = [Convert]::FromBase64String($base64);" ^
+        "$memStream = New-Object System.IO.MemoryStream (,$bytes);" ^
+        "$mode = [System.IO.Compression.CompressionMode]::Decompress;" ^
+        "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
+        "$outStream = New-Object System.IO.MemoryStream;" ^
+        "$gzipStream.CopyTo($outStream);" ^
+        "$gzipStream.Close();" ^
+        "$memStream.Close();" ^
+        "$rawBytes = $outStream.ToArray();" ^
+        "$outStream.Close();" ^
+        "[System.IO.File]::WriteAllBytes($env:temp_file, $rawBytes);"
+    if !errorlevel! neq 0 (
+        if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        exit /b 1
+    )
 )
 if /i "!origin_file_name:~-4!"==".ps1" (
     powershell -NoProfile -ExecutionPolicy Bypass -File "!temp_file!"
