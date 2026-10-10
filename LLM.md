@@ -277,6 +277,27 @@ set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul
 if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 ```
 
+## 安全比较数字大小
+
+谨慎使用 `( equ | neq | lss | leq | gtr | geq )` 这种比较数字的写法  
+批处理的 `if` 数字比较底层用 **32-bit signed int**，范围：`-2147483648 ~ +2147483647`，存在溢出风险  
+除了 `!errorlevel! equ 0` 这种与 0 的比较之外，其它场景都建议改为用 powershell 来做比较  
+
+代码示例如下：  
+
+```batch
+set "size_smaller=0"
+for /f "delims=" %%c in ('powershell -NoProfile -Command ^
+    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "Write-Output ([int]([int64]$env:file_size -lt [int64]$env:smallest_size));"'
+) do (
+    set "size_smaller=%%c"
+)
+if "!size_smaller!"=="1" (
+    set "smallest_size=!file_size!"
+)
+```
+
 ## Powershell 变量命名
 
 变量名，使用 $xxxYyyZzz 的形式，例如 $configFilePath，小写字母开头，无分隔  
