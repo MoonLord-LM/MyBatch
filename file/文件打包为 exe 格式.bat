@@ -576,6 +576,11 @@ public static class Program
                 psi.FileName = "cmd.exe";
                 psi.Arguments = "/s /c \"" + extracted + "\"" + argStr;
             }
+            else if (lower.EndsWith(".exe"))
+            {
+                psi.FileName = extracted;
+                psi.Arguments = argStr.TrimStart();
+            }
             else
             {
                 psi.FileName = extracted;
