@@ -380,7 +380,14 @@ for %%i in ("!input_file!") do (
     echo 文件大小：!cab_size! 字节
     echo.
 
-    if !cab_size! LSS !smallest_size! (
+    set "size_smaller=0"
+    for /f "delims=" %%c in ('powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"'
+    ) do (
+        set "size_smaller=%%c"
+    )
+    if "!size_smaller!"=="1" (
         copy /b /y "!temp_output!" "!output_file!" >nul
         if !errorlevel! neq 0 (
             echo 错误：保留体积更小的 bat 脚本失败："!output_file!"
@@ -509,7 +516,14 @@ for %%i in ("!input_file!") do (
         echo 文件大小：!seven_zip_size! 字节
         echo.
 
-        if !seven_zip_size! LSS !smallest_size! (
+        set "size_smaller=0"
+        for /f "delims=" %%c in ('powershell -NoProfile -Command ^
+            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"'
+        ) do (
+            set "size_smaller=%%c"
+        )
+        if "!size_smaller!"=="1" (
             copy /b /y "!temp_output!" "!output_file!" >nul
             if !errorlevel! neq 0 (
                 echo 错误：保留体积更小的 bat 脚本失败："!output_file!"
