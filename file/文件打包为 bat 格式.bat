@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '将单个文件，打包转换为 bat 脚本' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并打开原文件，如果是 ps1 / bat / py / exe 则自动执行' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '处理方式：把原文件内容，执行压缩，转换为 Base64 编码，嵌入自解压的 bat 文件末尾' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '处理方式：把原文件内容，执行压缩，转换为 Base64 编码，嵌入到自解压的 bat 文件末尾' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '尝试使用 PowerShell 内置的 GZipStream / makecab.exe / 7-Zip 压缩，尽可能压缩到最小' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 echo.
@@ -122,9 +122,9 @@ for %%i in ("!input_file!") do (
         "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
         "$contentBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
         "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"') do (
-        set "file_content_sha512=%%a"
+        set "file_sha512=%%a"
     )
-    if "!file_content_sha512!"=="" (
+    if "!file_sha512!"=="" (
         echo 错误：计算文件内容的 SHA512 哈希值失败："!input_file!"
         echo.
         pause
@@ -229,7 +229,7 @@ for %%i in ("!input_file!") do (
     set "inner_end_marker=-----END BATCH CODE 1-----"
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
     set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
-    set "origin_file_content_sha512_marker=-----ORIGIN FILE CONTENT SHA512-----"
+    set "origin_file_sha512_marker=-----ORIGIN FILE SHA512-----"
     set "output_target=!output_file!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
@@ -245,7 +245,7 @@ for %%i in ("!input_file!") do (
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_content_sha512_marker, $env:file_content_sha512);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_target, $code, $utf8NoBOM);"
@@ -348,7 +348,7 @@ for %%i in ("!input_file!") do (
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_content_sha512_marker, $env:file_content_sha512);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_target, $code, $utf8NoBOM);"
@@ -484,7 +484,7 @@ for %%i in ("!input_file!") do (
             "for ($i = 0; $i -lt $code.Count; $i++) {" ^
             "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
             "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
-            "    $code[$i] = $code[$i].Replace($env:origin_file_content_sha512_marker, $env:file_content_sha512);" ^
+            "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
             "};" ^
             "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
             "[System.IO.File]::WriteAllLines($env:output_target, $code, $utf8NoBOM);"
@@ -573,13 +573,13 @@ setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "origin_file_name=-----ORIGIN FILE NAME-----"
 set "origin_file_size=-----ORIGIN FILE SIZE-----"
-set "origin_file_content_sha512=-----ORIGIN FILE CONTENT SHA512-----"
+set "origin_file_sha512=-----ORIGIN FILE SHA512-----"
 set "all_args=%*"
 setlocal enabledelayedexpansion
 if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
-set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_content_sha512!"
+set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
 set "already_extracted=0"
@@ -595,7 +595,7 @@ if exist "!temp_file!" (
             "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
             "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
         ) do (
-            if "!origin_file_content_sha512!"=="%%j" set "already_extracted=1"
+            if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
     )
 )
@@ -652,13 +652,13 @@ setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "origin_file_name=-----ORIGIN FILE NAME-----"
 set "origin_file_size=-----ORIGIN FILE SIZE-----"
-set "origin_file_content_sha512=-----ORIGIN FILE CONTENT SHA512-----"
+set "origin_file_sha512=-----ORIGIN FILE SHA512-----"
 set "all_args=%*"
 setlocal enabledelayedexpansion
 if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
-set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_content_sha512!"
+set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
 set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
@@ -675,7 +675,7 @@ if exist "!temp_file!" (
             "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
             "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
         ) do (
-            if "!origin_file_content_sha512!"=="%%j" set "already_extracted=1"
+            if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
     )
 )
@@ -734,13 +734,13 @@ setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "origin_file_name=-----ORIGIN FILE NAME-----"
 set "origin_file_size=-----ORIGIN FILE SIZE-----"
-set "origin_file_content_sha512=-----ORIGIN FILE CONTENT SHA512-----"
+set "origin_file_sha512=-----ORIGIN FILE SHA512-----"
 set "all_args=%*"
 setlocal enabledelayedexpansion
 if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
-set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_content_sha512!"
+set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
 set "temp_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
@@ -757,7 +757,7 @@ if exist "!temp_file!" (
             "$contentBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
             "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($contentBytes)).Replace('-', '').ToLowerInvariant());"'
         ) do (
-            if "!origin_file_content_sha512!"=="%%j" set "already_extracted=1"
+            if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
     )
 )
