@@ -408,7 +408,7 @@ for %%i in ("!input_file!") do (
         echo 压缩方式：使用 7-Zip 压缩 7z 格式，再拼接 7zCon.sfx
 
         set "temp_7z=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
-        "!seven_zip!" a -t7z -mx=9 -mm=LZMA -md=2048m -mfb=256 -mmt=on -mtc=on -mta=on -mtm=on -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
+        "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=on -mta=on -mtm=on -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
