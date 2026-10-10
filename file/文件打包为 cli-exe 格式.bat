@@ -551,8 +551,10 @@ public static class Program
 
         try
         {
+            string exeLocation = Assembly.GetExecutingAssembly().Location;
+            string exeDirectory = Path.GetDirectoryName(exeLocation);
             ProcessStartInfo psi = new ProcessStartInfo();
-            psi.WorkingDirectory = tempRoot;
+            psi.WorkingDirectory = exeDirectory;
             psi.UseShellExecute = false;
             psi.CreateNoWindow = false;
             string lower = originFileName.ToLowerInvariant();
