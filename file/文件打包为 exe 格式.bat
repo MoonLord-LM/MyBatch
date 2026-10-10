@@ -139,17 +139,13 @@ for %%i in ("!input_file!") do (
     echo 目标文件："!output_file!"
     echo.
 
-    set "temp_cs=%temp%\MyBatch_%random%_%random%_%random%_%random%.cs"
-    if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
 
-    REM ===== 方式一：gzip =====
+
+    REM 方式一：压缩为 gzip 格式
     set "temp_gzip=%temp%\MyBatch_%random%_%random%_%random%_%random%.gz"
     if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
-    if not "!seven_zip!"=="" (
-        echo 压缩方式一：使用 7-Zip 压缩 gzip 格式
-        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!input_file!" >nul
-    ) else (
-        echo 压缩方式一：使用 PowerShell 内置的 GZipStream 压缩
+    if "!seven_zip!"=="" (
+        echo 压缩方式：使用 PowerShell 内置的 GZipStream 压缩
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "Add-Type -AssemblyName System.IO.Compression;" ^
@@ -162,14 +158,23 @@ for %%i in ("!input_file!") do (
             "$bytes = $memStream.ToArray();" ^
             "$memStream.Close();" ^
             "[System.IO.File]::WriteAllBytes($env:temp_gzip, $bytes);"
-    )
-    if !errorlevel! neq 0 (
-        echo 错误：gzip 压缩失败："!input_file!"
-        echo.
-        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
-        if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
-        pause
-        exit /b 1
+        if !errorlevel! neq 0 (
+            echo 错误：压缩失败："!input_file!"
+            echo.
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            pause
+            exit /b 1
+        )
+    ) else (
+        echo 压缩方式：使用 7-Zip 压缩 gzip 格式
+        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!input_file!" >nul
+        if !errorlevel! neq 0 (
+            echo 错误：压缩失败："!input_file!"
+            echo.
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            pause
+            exit /b 1
+        )
     )
     if not exist "!temp_gzip!" (
         echo 错误：gzip 压缩文件生成失败："!temp_gzip!"
@@ -178,82 +183,114 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
-    REM ===== 方式二：cab =====
-    echo 压缩方式二：使用 makecab 压缩 cab 格式
-    set "cab_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
-    if exist "!cab_file!" ( del /f /q "!cab_file!" )
-    makecab /D CompressionType=LZX /D CompressionMemory=21 "!input_file!" "!cab_file!" >nul
+
+
+    REM 方式二：压缩为 cab 格式
+    echo 压缩方式：使用 makecab 压缩 cab 格式
+    set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
+    if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+    makecab /D CompressionType=LZX /D CompressionMemory=21 "!input_file!" "!temp_cab!" >nul
     if !errorlevel! neq 0 (
-        echo 错误：cab 压缩失败："!input_file!"
+        echo 错误：压缩失败："!input_file!"
         echo.
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
-        if exist "!cab_file!" ( del /f /q "!cab_file!" )
-        if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         pause
         exit /b 1
     )
-    if not exist "!cab_file!" (
-        echo 错误：cab 压缩文件生成失败："!cab_file!"
+    if not exist "!temp_cab!" (
+        echo 错误：压缩文件生成失败："!temp_cab!"
         echo.
         pause
         exit /b 1
     )
 
-    REM ===== 方式三：7z 自解压 exe（需要 7-Zip 与 7zCon.sfx）=====
-    set "seven_file="
+
+
+    REM 方式三：压缩为 7z 格式的自解压 exe
+    set "use_7z_exe=0"
     if not "!seven_zip!"=="" (
         if not "!seven_zip_sfx!"=="" (
-            echo 压缩方式三：7z 自解压 exe 格式
-            set "seven_7z=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
-            if exist "!seven_7z!" ( del /f /q "!seven_7z!" )
-            pushd "!file_dir!"
-            "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -sccUTF-8 -scsUTF-8 -y "!seven_7z!" "!file_name_ext!" >nul
-            set "seven_rc=!errorlevel!"
-            popd
-            if not "!seven_rc!"=="0" (
-                echo 警告：7z 压缩失败，跳过此方式
-                if exist "!seven_7z!" ( del /f /q "!seven_7z!" )
-            ) else (
-                set "seven_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
-                if exist "!seven_file!" ( del /f /q "!seven_file!" )
-                copy /b /y "!seven_zip_sfx!" + "!seven_7z!" "!seven_file!" >nul
-                if !errorlevel! neq 0 (
-                    echo 警告：制作 7z 自解压 exe 失败，跳过此方式
-                    if exist "!seven_file!" ( del /f /q "!seven_file!" )
-                    set "seven_file="
-                )
-                if exist "!seven_7z!" ( del /f /q "!seven_7z!" )
+            set "use_7z_exe=1"
+        )
+    )
+    if "!use_7z_exe!"=="0" (
+        echo 缺少 7-Zip 组件或自解压模块，只使用 gzip / cab 方式压缩
+        echo.
+    )
+    if "!use_7z_exe!"=="1" (
+        echo 压缩方式：7z 自解压 exe 格式
+
+        set "temp_7z=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
+        set "seven_rc=!errorlevel!"
+        if !seven_rc! neq 0 (
+            echo 错误：压缩失败："!input_file!"
+            echo.
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+            if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+            pause
+            exit /b 1
+        )
+        if not exist "!temp_7z!" (
+            echo 错误：压缩文件生成失败："!temp_7z!"
+            echo.
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+            if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+            pause
+            exit /b 1
+        )
+
+        set "temp_7z_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
+        copy /b /y "!seven_zip_sfx!" + "!temp_7z!" "!temp_7z_exe!" >nul
+        if !errorlevel! neq 0 (
+            echo 错误：制作自解压 exe 失败："!temp_7z_exe!"
+            echo.
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+            if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+            if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
+            pause
+            exit /b 1
+        )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+    )
+
+
+
+    REM 选择体积最小的压缩包作为内嵌资源
+    set "method="
+    set "smallest_size="
+    set "resource_file="
+    for %%j in ("!temp_gzip!") do (
+        set "method=gzip" & set "smallest_size=%%~zj" & set "resource_file=!temp_gzip!"
+    )
+    for %%j in ("!temp_cab!") do (
+        if %%~zj lss !smallest_size! (
+            set "method=cab" & set "smallest_size=%%~zj" & set "resource_file=!temp_cab!"
+        )
+    )
+    if "!use_7z_exe!"=="1" (
+        for %%j in ("!temp_7z_exe!") do (
+            if %%~zj lss !smallest_size! (
+                set "method=7z" & set "smallest_size=%%~zj" & set "resource_file=!temp_7z_exe!"
             )
         )
     )
-    if "!seven_file!"=="" (
-        echo 未使用 7z 方式（缺少 7-Zip 组件或 7zCon.sfx）
-    )
-    echo.
-
-    REM ===== 选择体积最小的作为内嵌资源 =====
-    set "archive_file=!temp_gzip!"
-    set "method=gzip"
-    set "smallest_size="
-    for %%j in ("!temp_gzip!") do set "smallest_size=%%~zj"
-    for %%j in ("!cab_file!") do (
-        if %%~zj lss !smallest_size! ( set "archive_file=!cab_file!" & set "method=cab" & set "smallest_size=%%~zj" )
-    )
-    if not "!seven_file!"=="" (
-        for %%j in ("!seven_file!") do (
-            if %%~zj lss !smallest_size! ( set "archive_file=!seven_file!" & set "method=7z" & set "smallest_size=%%~zj" )
-        )
-    )
-    echo 内嵌压缩方式：!method!（压缩后大小：!smallest_size! 字节）
+    echo 内嵌压缩方式：!method!，压缩后大小：!smallest_size! 字节
     echo.
 
     REM 提取内嵌的 C# 引擎代码
+    set "temp_cs=%temp%\MyBatch_%random%_%random%_%random%_%random%.cs"
+    if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
     set "inner_begin_marker=-----BEGIN CSHARP CODE-----"
     set "inner_end_marker=-----END CSHARP CODE-----"
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
     set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
     set "origin_file_sha512_marker=-----ORIGIN FILE SHA512-----"
-    set "origin_file_method_marker=-----COMPRESSION METHOD-----"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -268,14 +305,13 @@ for %%i in ("!input_file!") do (
         "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $env:file_name_ext);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_method_marker, $env:method);" ^
         "};" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_cs, $code, $utf8NoBOM);"
     if !errorlevel! neq 0 (
         echo 错误：提取内嵌代码失败
         echo.
-        if exist "!archive_file!" ( del /f /q "!archive_file!" )
+        if exist "!resource_file!" ( del /f /q "!resource_file!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
         pause
         exit /b 1
@@ -301,7 +337,7 @@ for %%i in ("!input_file!") do (
         "[void]$params.ReferencedAssemblies.Add('System.Core.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.IO.Compression.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.Windows.Forms.dll');" ^
-        "[void]$params.EmbeddedResources.Add($env:archive_file);" ^
+        "[void]$params.EmbeddedResources.Add($env:resource_file);" ^
         "$result = $provider.CompileAssemblyFromFile($params, $env:temp_cs);" ^
         "if ($result.Errors.Count -gt 0) {" ^
         "    Write-Host '错误：编译 C# 代码失败：' -ForegroundColor Red;" ^
@@ -312,7 +348,7 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：生成 exe 失败："!output_file!"
         echo.
-        if exist "!archive_file!" ( del /f /q "!archive_file!" )
+        if exist "!resource_file!" ( del /f /q "!resource_file!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
         pause
         exit /b 1
@@ -324,7 +360,7 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
-    if exist "!archive_file!" ( del /f /q "!archive_file!" )
+    if exist "!resource_file!" ( del /f /q "!resource_file!" )
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
 
     for %%j in ("!output_file!") do (
@@ -363,7 +399,7 @@ public static class Program
 {
     private static void ShowError(string msg)
     {
-        try { MessageBox.Show(msg, "文件打包为 exe", MessageBoxButtons.OK, MessageBoxIcon.Error); } catch { }
+        try { MessageBox.Show(msg, originFileName, MessageBoxButtons.OK, MessageBoxIcon.Error); } catch { }
     }
 
     private static int Main(string[] args)
@@ -371,7 +407,6 @@ public static class Program
         string originFileName = "-----ORIGIN FILE NAME-----";
         long originFileSize = long.Parse("-----ORIGIN FILE SIZE-----");
         string originFileSha512 = "-----ORIGIN FILE SHA512-----";
-        string method = "-----COMPRESSION METHOD-----";
 
         string tempRoot = Path.Combine(Path.GetTempPath(), "MyBatch", "cache", originFileSize.ToString(), originFileSha512);
         try { if (!Directory.Exists(tempRoot)) Directory.CreateDirectory(tempRoot); } catch { }
@@ -412,7 +447,10 @@ public static class Program
                 ShowError("错误：未找到内嵌的压缩资源");
                 return 1;
             }
-            string lowerMethod = method.ToLowerInvariant();
+            string lowerMethod;
+            if (resName.EndsWith(".gz", StringComparison.OrdinalIgnoreCase)) lowerMethod = "gzip";
+            else if (resName.EndsWith(".cab", StringComparison.OrdinalIgnoreCase)) lowerMethod = "cab";
+            else lowerMethod = "7z";
             try
             {
                 if (lowerMethod == "gzip")
@@ -452,7 +490,7 @@ public static class Program
                 }
                 else
                 {
-                    ShowError("错误：未知的内嵌压缩方式：" + method);
+                    ShowError("错误：未知的内嵌压缩方式：" + lowerMethod);
                     return 1;
                 }
             }
