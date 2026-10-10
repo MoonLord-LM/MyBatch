@@ -263,6 +263,7 @@ for %%i in ("!input_file!") do (
     set "method="
     set "smallest_size="
     set "resource_file="
+    echo.
 
     for %%j in ("!temp_gzip!") do set "gzip_size=%%~zj"
     echo gzip 压缩包大小：!gzip_size! 字节
@@ -296,7 +297,8 @@ for %%i in ("!input_file!") do (
         )
     )
 
-    echo 内嵌压缩方式：!method!，压缩后大小：!smallest_size! 字节
+    echo.
+    echo 内嵌压缩方式选择：!method!，压缩包大小：!smallest_size! 字节
     echo.
 
     REM 提取内嵌的 C# 代码
