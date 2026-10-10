@@ -125,7 +125,7 @@ for %%i in ("!input_file!") do (
     REM 压缩
     set "temp_zip=%temp%\MyBatch_%random%_%random%_%random%_%random%.zip"
     if "!seven_zip!"=="" (
-        echo 压缩方式：PowerShell 内置的 GZipStream 压缩
+        echo 压缩方式：使用 PowerShell 内置的 GZipStream 压缩
         echo.
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
@@ -147,7 +147,7 @@ for %%i in ("!input_file!") do (
             exit /b 1
         )
     ) else (
-        echo 压缩方式：7-Zip 压缩
+        echo 压缩方式：使用 7-Zip 压缩
         echo.
         "!seven_zip!" a -tgzip -mx=9 -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_zip!" < "!input_file!" >nul
         if !errorlevel! neq 0 (
