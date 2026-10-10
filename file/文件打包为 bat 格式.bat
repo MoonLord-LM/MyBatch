@@ -218,7 +218,6 @@ for %%i in ("!input_file!") do (
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
     set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
     set "origin_file_sha512_marker=-----ORIGIN FILE SHA512-----"
-    set "output_target=!output_file!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -236,16 +235,16 @@ for %%i in ("!input_file!") do (
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
-        "[System.IO.File]::WriteAllLines($env:output_target, $code, $utf8NoBOM);"
+        "[System.IO.File]::WriteAllLines($env:output_file, $code, $utf8NoBOM);"
     if !errorlevel! neq 0 (
-        echo 错误：提取内嵌代码失败："!output_target!"
+        echo 错误：提取内嵌代码失败："!output_file!"
         echo.
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
         pause
         exit /b 1
     )
-    if not exist "!output_target!" (
-        echo 错误：提取内嵌代码文件生成失败："!output_target!"
+    if not exist "!output_file!" (
+        echo 错误：提取内嵌代码文件生成失败："!output_file!"
         echo.
         pause
         exit /b 1
@@ -258,7 +257,7 @@ for %%i in ("!input_file!") do (
         echo !output_begin_marker!
         type "!temp_base64!"
         echo !output_end_marker!
-    ) >> "!output_target!"
+    ) >> "!output_file!"
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
     for %%j in ("!output_file!") do set "smallest_size=%%~zj"
@@ -320,7 +319,6 @@ for %%i in ("!input_file!") do (
     set "inner_begin_marker=-----BEGIN BATCH CODE 2-----"
     set "inner_end_marker=-----END BATCH CODE 2-----"
     set "temp_output=%temp%\MyBatch_%random%_%random%_%random%_%random%.bat"
-    set "output_target=!temp_output!"
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -338,16 +336,17 @@ for %%i in ("!input_file!") do (
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
         "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
-        "[System.IO.File]::WriteAllLines($env:output_target, $code, $utf8NoBOM);"
+        "[System.IO.File]::WriteAllLines($env:temp_output, $code, $utf8NoBOM);"
     if !errorlevel! neq 0 (
-        echo 错误：提取内嵌代码失败："!output_target!"
+        echo 错误：提取内嵌代码失败："!temp_output!"
         echo.
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
+        if exist "!temp_output!" ( del /f /q "!temp_output!" )
         pause
         exit /b 1
     )
-    if not exist "!output_target!" (
-        echo 错误：提取内嵌代码文件生成失败："!output_target!"
+    if not exist "!temp_output!" (
+        echo 错误：提取内嵌代码文件生成失败："!temp_output!"
         echo.
         pause
         exit /b 1
@@ -360,7 +359,7 @@ for %%i in ("!input_file!") do (
         echo !output_begin_marker!
         type "!temp_base64!"
         echo !output_end_marker!
-    ) >> "!output_target!"
+    ) >> "!temp_output!"
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
     for %%j in ("!temp_output!") do set "cab_size=%%~zj"
@@ -465,7 +464,6 @@ for %%i in ("!input_file!") do (
         set "inner_begin_marker=-----BEGIN BATCH CODE 3-----"
         set "inner_end_marker=-----END BATCH CODE 3-----"
         set "temp_output=%temp%\MyBatch_%random%_%random%_%random%_%random%.bat"
-        set "output_target=!temp_output!"
         powershell -NoProfile -Command ^
             "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
             "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -483,16 +481,17 @@ for %%i in ("!input_file!") do (
             "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
             "};" ^
             "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
-            "[System.IO.File]::WriteAllLines($env:output_target, $code, $utf8NoBOM);"
+            "[System.IO.File]::WriteAllLines($env:temp_output, $code, $utf8NoBOM);"
         if !errorlevel! neq 0 (
-            echo 错误：提取内嵌代码失败："!output_target!"
+            echo 错误：提取内嵌代码失败："!temp_output!"
             echo.
             if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
+            if exist "!temp_output!" ( del /f /q "!temp_output!" )
             pause
             exit /b 1
         )
-        if not exist "!output_target!" (
-            echo 错误：提取内嵌代码文件生成失败："!output_target!"
+        if not exist "!temp_output!" (
+            echo 错误：提取内嵌代码文件生成失败："!temp_output!"
             echo.
             pause
             exit /b 1
@@ -505,7 +504,7 @@ for %%i in ("!input_file!") do (
             echo !output_begin_marker!
             type "!temp_base64!"
             echo !output_end_marker!
-        ) >> "!output_target!"
+        ) >> "!temp_output!"
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
         for %%j in ("!temp_output!") do set "seven_zip_size=%%~zj"

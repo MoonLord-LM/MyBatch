@@ -551,7 +551,7 @@ public static class Program
                 psi.FileName = "python.exe";
                 psi.Arguments = "\"" + extracted + "\"" + argStr;
             }
-            else if (lower.EndsWith(".bat") || lower.EndsWith(".cmd"))
+            else if (lower.EndsWith(".bat"))
             {
                 psi.FileName = "cmd.exe";
                 psi.Arguments = "/s /c \"" + extracted + "\"" + argStr;
