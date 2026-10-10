@@ -8,7 +8,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将单个文件，打包转换为 exe 程序' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将单个文件，打包转换为 exe 控制台程序' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '适用于对需要控制台交互的程序打包，可以保证输入输出流的正常展示，但是会强制显示 cmd 黑窗口' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 bat 脚本，自动解码解压并打开原文件，如果是 ps1 / bat / py / exe 则自动执行' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '处理方式：把原文件内容，执行压缩，嵌入到自解压的 C# 程序中作为资源，编译出 exe 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '尝试使用 PowerShell 内置的 GZipStream / makecab.exe / 7-Zip 压缩，尽可能压缩到最小' -ForegroundColor Green"
