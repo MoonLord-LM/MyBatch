@@ -405,7 +405,7 @@ for %%i in ("!input_file!") do (
 
     REM 方式三：压缩为 7z 格式的自解压 exe，转换为 Base64 编码
     if "!use_7z_exe!"=="1" (
-        echo 压缩方式：使用 7-Zip 压缩 7z 格式，再拼接 7zCon.sfx
+        echo 压缩方式：7z 自解压 exe 格式
 
         set "temp_7z=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
         "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
