@@ -1211,8 +1211,6 @@ try {
 
     # 从托盘图标点击，显示主窗口
     function Show-Main-Window {
-        # 先把表格数据刷到最新（表格已启用双缓冲，会一次性绘制，不会逐行刷出）
-        Update-Task-Grid
         $mainForm.Opacity = 1
         $mainForm.ShowInTaskbar = $true
         $mainForm.Show()
