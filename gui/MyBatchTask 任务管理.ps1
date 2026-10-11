@@ -297,7 +297,8 @@ try {
             DialogSave = '保存'
             DialogSaveRestart = '保存并重启任务'
             DialogCancel = '取消'
-            CloseTab = '关闭标签页'
+            CloseTab = '关闭当前任务日志'
+            CloseAllTabs = '关闭所有任务日志'
             LogTaskStart = '———————————— 开始新进程 ————————————————'
             LogTaskEndNormal = '———————————— 正常退出进程 ————————————————'
             LogTaskEndError = '———————————— 异常结束进程，错误码 {0} ————————————————'
@@ -392,7 +393,8 @@ try {
             DialogSave = 'Save'
             DialogSaveRestart = 'Save and Restart Task'
             DialogCancel = 'Cancel'
-            CloseTab = 'Close Tab'
+            CloseTab = 'Close Current Task Log'
+            CloseAllTabs = 'Close All Task Logs'
             LogTaskStart = '———————————— Start new process ————————————————'
             LogTaskEndNormal = '———————————— Process finished normally ————————————————'
             LogTaskEndError = '———————————— Process exited abnormally, error code {0} ————————————————'
@@ -1316,7 +1318,7 @@ try {
     # 当前的标签页
     $tabControlCurrentTab = $null
 
-    # 标签页右键菜单：关闭标签页
+    # 标签页右键菜单：关闭当前任务日志 / 关闭所有任务日志
     $tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $closeTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $closeTabMenuItem.Text = $ui.CloseTab
@@ -1332,9 +1334,39 @@ try {
         $tabControl.TabPages.Remove($tabControlCurrentTab)
         $tabControlCurrentTab.Dispose()
         $script:tabControlCurrentTab = $null
+        Update-Tab-Context-Menu-State
     })
     $tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
+
+    $closeAllTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $closeAllTabMenuItem.Text = $ui.CloseAllTabs
+    $closeAllTabMenuItem.Add_Click({
+        $logTabPages = @()
+        foreach ($tabPage in $tabControl.TabPages) {
+            if ($tabPage.Name.StartsWith('LogPage_')) { $logTabPages += $tabPage }
+        }
+        foreach ($tabPage in $logTabPages) {
+            $taskName = $tabPage.Name.Substring(8)
+            if ($taskExecutionMap.ContainsKey($taskName)) {
+                $script:taskExecutionMap[$taskName].logViewTextBox = $null
+            }
+            $tabControl.TabPages.Remove($tabPage)
+            $tabPage.Dispose()
+        }
+        $script:tabControlCurrentTab = $null
+        Update-Tab-Context-Menu-State
+    })
+    $tabContextMenu.Items.Add($closeAllTabMenuItem) | Out-Null
     $tabControl.ContextMenuStrip = $tabContextMenu
+
+    # 刷新标签页右键菜单的可用状态：仅当存在任务日志标签页时，“关闭所有任务日志”可用
+    function Update-Tab-Context-Menu-State {
+        $hasLogTab = $false
+        foreach ($tabPage in $tabControl.TabPages) {
+            if ($tabPage.Name.StartsWith('LogPage_')) { $hasLogTab = $true; break }
+        }
+        $closeAllTabMenuItem.Enabled = $hasLogTab
+    }
 
     # 标签页右键点击后，根据点击位置，查找并记录当前的标签页
     $tabControl.Add_MouseDown({
@@ -1347,10 +1379,12 @@ try {
                 $script:tabControlCurrentTab = $tabControl.TabPages[$i]
                 # 前两个固定标签页不可关闭
                 $closeTabMenuItem.Enabled = ($i -ge 2)
+                Update-Tab-Context-Menu-State
                 return
             }
         }
         $closeTabMenuItem.Enabled = $false
+        Update-Tab-Context-Menu-State
     })
 
     # 打开任务日志标签页，不存在时创建，已存在则直接切换
@@ -1478,18 +1512,10 @@ try {
         $logViewCopyItem.Add_Click({
             param($MenuItem, $EventArgs)
             $logViewTextBox = (Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)).logViewTextBox
-            if ($null -eq $logViewTextBox -or $logViewTextBox.IsDisposed) {
-                System-Log $ui.INFO_NoLog 'Warning'
+            if ($null -eq $logViewTextBox -or $logViewTextBox.IsDisposed -or $logViewTextBox.SelectedText.Length -eq 0) {
                 return
             }
-            if ($logViewTextBox.SelectedText.Length -gt 0) {
-                [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.SelectedText)
-            } elseif ($logViewTextBox.Text.Length -gt 0) {
-                [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
-            } else {
-                System-Log $ui.INFO_NoLog 'Warning'
-                return
-            }
+            [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.SelectedText)
             System-Log $ui.INFO_LogCopied 'Debug'
         })
         $logViewCopyAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -1533,7 +1559,18 @@ try {
         $logViewContextMenu.Items.Add($logViewCopyAllItem) | Out-Null
         $logViewContextMenu.Items.Add($logViewClearItem) | Out-Null
         $logViewContextMenu.Items.Add($logViewOpenItem) | Out-Null
+        $logViewContextMenu.Tag = @{ copyItem = $logViewCopyItem }
         $logViewTextBox.ContextMenuStrip = $logViewContextMenu
+
+        # 没有选中文字时，复制菜单项置灰
+        $logViewContextMenu.Add_Opening({
+            param($Sender, $EventArgs)
+            $sourceTextBox = $Sender.SourceControl
+            $copyItem = $Sender.Tag.copyItem
+            if ($null -ne $copyItem) {
+                $copyItem.Enabled = ($null -ne $sourceTextBox -and -not $sourceTextBox.IsDisposed -and $sourceTextBox.SelectedText.Length -gt 0)
+            }
+        })
 
         $execution.logViewTextBox = $logViewTextBox
         $tabControl.TabPages.Add($logViewTabPage)
@@ -2087,14 +2124,10 @@ try {
     $systemLogCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $systemLogCopyItem.Text = $ui.LogCopy
     $systemLogCopyItem.Add_Click({
-        if ($logTextBox.SelectedText.Length -gt 0) {
-            [System.Windows.Forms.Clipboard]::SetText($logTextBox.SelectedText)
-        } elseif ($logTextBox.Text.Length -gt 0) {
-            [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
-        } else {
-            System-Log $ui.INFO_NoLog 'Warning'
+        if ($null -eq $logTextBox -or $logTextBox.IsDisposed -or $logTextBox.SelectedText.Length -eq 0) {
             return
         }
+        [System.Windows.Forms.Clipboard]::SetText($logTextBox.SelectedText)
         System-Log $ui.INFO_LogCopied 'Debug'
     })
     $systemLogCopyAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -2126,7 +2159,18 @@ try {
     $systemLogContextMenu.Items.Add($systemLogCopyAllItem) | Out-Null
     $systemLogContextMenu.Items.Add($systemLogClearItem) | Out-Null
     $systemLogContextMenu.Items.Add($systemLogOpenItem) | Out-Null
+    $systemLogContextMenu.Tag = @{ copyItem = $systemLogCopyItem }
     $logTextBox.ContextMenuStrip = $systemLogContextMenu
+
+    # 没有选中文字时，复制菜单项置灰
+    $systemLogContextMenu.Add_Opening({
+        param($Sender, $EventArgs)
+        $sourceTextBox = $Sender.SourceControl
+        $copyItem = $Sender.Tag.copyItem
+        if ($null -ne $copyItem) {
+            $copyItem.Enabled = ($null -ne $sourceTextBox -and -not $sourceTextBox.IsDisposed -and $sourceTextBox.SelectedText.Length -gt 0)
+        }
+    })
 
     # 日志队列处理定时器
     $taskLogQueueProcessTimer = [System.Windows.Forms.Timer]::new()
