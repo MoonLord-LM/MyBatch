@@ -96,7 +96,7 @@ if "!param1!" == "" (
             )
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
-            for /f "delims=" %%n in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
+            for /f "delims=" %%n in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; if($n -like 'mmexport_????????_??????') {Write-Output 'ok'}" 2^>nul') do (
                 set "name_already_ok=%%n"
             )
 
@@ -105,7 +105,7 @@ if "!param1!" == "" (
             ) else (
                 REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
                 set "formatted_time="
-                for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
                     set "formatted_time=%%t"
                 )
 
@@ -187,7 +187,7 @@ if not "!working_dir!" == "" (
             )
             REM 检查文件名是否已是目标格式（mmexport_YYYYMMDD_HHMMSS）
             set "name_already_ok="
-            for /f "delims=" %%n in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; if($n -like 'mmexport_????????_??????'){Write-Output 'ok'}" 2^>nul') do (
+            for /f "delims=" %%n in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; if($n -like 'mmexport_????????_??????') {Write-Output 'ok'}" 2^>nul') do (
                 set "name_already_ok=%%n"
             )
 
@@ -197,7 +197,7 @@ if not "!working_dir!" == "" (
             ) else (
                 REM 从原文件名中识别微信保存时间（mmexport + 13 位毫秒时间戳，UTC），识别不到则跳过
                 set "formatted_time="
-                for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success){ try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
+                for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd_HHmmss') } catch {} }" 2^>nul') do (
                     set "formatted_time=%%t"
                 )
 
