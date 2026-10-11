@@ -1395,25 +1395,45 @@ try {
         $logViewTextBox.Dock = 'Fill'
         $logLayoutPanel.Controls.Add($logViewTextBox, 0, 0)
 
-        # 底部输入区域：多行文本框 + 发送按钮
+        # 底部输入区域：输入框 + 发送按钮
         $logInputPanel = [System.Windows.Forms.Panel]::new()
         $logInputPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
         $logInputPanel.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
-        $logInputPanel.Padding = [System.Windows.Forms.Padding]::new(8)
         $logLayoutPanel.Controls.Add($logInputPanel, 0, 1)
 
+        $logInputBar = [System.Windows.Forms.TableLayoutPanel]::new()
+        $logInputBar.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $logInputBar.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+        $logInputBar.ColumnCount = 2
+        $logInputBar.RowCount = 1
+        $logInputBar.ColumnStyles.Add([System.Windows.Forms.ColumnStyle]::new([System.Windows.Forms.SizeType]::Percent, 100))
+        $logInputBar.ColumnStyles.Add([System.Windows.Forms.ColumnStyle]::new([System.Windows.Forms.SizeType]::Absolute, 168))
+        $logInputBar.RowStyles.Add([System.Windows.Forms.RowStyle]::new([System.Windows.Forms.SizeType]::Percent, 100))
+        $logInputPanel.Controls.Add($logInputBar)
+
+        # 输入框
         $logInputTextBox = [System.Windows.Forms.TextBox]::new()
-        $logInputTextBox.Dock = [System.Windows.Forms.DockStyle]::Fill
         $logInputTextBox.Multiline = $false
         $logInputTextBox.Font = $mainForm.Font
-        $logInputTextBox.Height = 80
-        $logInputPanel.Controls.Add($logInputTextBox)
+        $boxHeight = $logInputTextBox.PreferredHeight
+        $vSpacing = [int](([int]$logLayoutPanel.RowStyles[1].Height - $boxHeight) / 2)
+
+        $logInputTextBox.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $logInputTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+        $logInputTextBox.Margin = [System.Windows.Forms.Padding]::new(8, $vSpacing, 8, $vSpacing)
+        $logInputBar.Controls.Add($logInputTextBox, 0, 0)
+
+        # 发送按钮
+        $logInputButtonBand = [System.Windows.Forms.Panel]::new()
+        $logInputButtonBand.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $logInputButtonBand.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+        $buttonVSpacing = [int](([int]$logLayoutPanel.RowStyles[1].Height - 60) / 2)
+        $logInputButtonBand.Padding = [System.Windows.Forms.Padding]::new(4, $buttonVSpacing, 4, $buttonVSpacing)
+        $logInputBar.Controls.Add($logInputButtonBand, 1, 0)
 
         $logInputSendButton = [System.Windows.Forms.Button]::new()
         $logInputSendButton.Text = $ui.InputSend
-        $logInputSendButton.Dock = [System.Windows.Forms.DockStyle]::Right
-        $logInputSendButton.Height = 80
-        $logInputSendButton.Width = 160
+        $logInputSendButton.Dock = [System.Windows.Forms.DockStyle]::Fill
         $logInputSendButton.FlatStyle = 'Flat'
         $logInputSendButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $logInputSendButton.ForeColor = [System.Drawing.Color]::Black
@@ -1450,7 +1470,8 @@ try {
             $inputBox.Clear()
             $inputBox.Focus() | Out-Null
         })
-        $logInputPanel.Controls.Add($logInputSendButton)
+        # 按钮与输入框分属两栏，天然不重叠，无需再处理 z-order
+        $logInputButtonBand.Controls.Add($logInputSendButton)
 
         # 日志文本框右键菜单: 复制 / 复制全部 / 清空日志显示 / 打开完整日志文件
         $logViewContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
@@ -1533,6 +1554,10 @@ try {
         try {
             $logViewTabPage.PerformLayout()
             $logLayoutPanel.PerformLayout()
+            # 布局完成后校准发送按钮：右缘贴内容区右边界（留 padding.right 间距），垂直居中于面板
+            $logInputSendButton.Location = [System.Drawing.Point]::new(
+                [int]($logInputPanel.ClientSize.Width - $logInputSendButton.Width - $logInputPanel.Padding.Right),
+                [int](($logInputPanel.ClientSize.Height - $logInputSendButton.Height) / 2))
             $logViewTextBox.Invalidate()
             $logViewTextBox.Update()
         } catch {
