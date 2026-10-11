@@ -138,10 +138,20 @@ try {
     function Enable-Double-Buffered {
         param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
 
-        $doubleBufferedBindingFlags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
-        $doubleBufferedProperty = [System.Windows.Forms.Control].GetProperty('DoubleBuffered', $doubleBufferedBindingFlags)
+        $flags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
+        $doubleBufferedProperty = [System.Windows.Forms.Control].GetProperty('DoubleBuffered', $flags)
         $doubleBufferedProperty.SetValue($Control, $true)
         return $doubleBufferedProperty.GetValue($Control)
+    }
+
+    # 对指定的控件启用用户绘制，减少界面闪烁
+    function Enable-User-Paint {
+        param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
+
+        $flags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
+        $SetStyleMethod = [System.Windows.Forms.Control].GetMethod('SetStyle', $flags)
+        $SetStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::UserPaint, $true))
+        $SetStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::AllPaintingInWmPaint, $true))
     }
 
     # 分析合适的显示语言
@@ -1193,8 +1203,9 @@ try {
     $mainForm.Opacity = 0
     $mainForm.ShowInTaskbar = $false
 
-    # 启用双缓冲减少闪烁
-    Enable-Double-Buffered $mainForm | Out-Null
+    # 减少闪烁
+    Enable-Double-Buffered $mainForm | Out-null
+    Enable-User-Paint $mainForm | Out-null
 
     # 主窗口首次显示: 隐藏到托盘 + 自动启动任务
     $mainForm.Add_Shown({
@@ -1214,7 +1225,6 @@ try {
         $mainForm.Opacity = 1
         $mainForm.ShowInTaskbar = $true
         $mainForm.Show()
-        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
         $mainForm.Activate()
     }
 
@@ -1269,7 +1279,7 @@ try {
     $trayIcon.Add_MouseClick({
         param($EventSender, $EventArgs)
         if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
-            if ($mainForm.Visible) {
+            if ($mainForm.Opacity -eq 1) {
                 Hide-Main-Window
             } else {
                 Show-Main-Window
@@ -1619,12 +1629,10 @@ try {
             }
         })
 
-        $execution.logViewTextBox = $logViewTextBox
         $tabControl.TabPages.Add($logViewTabPage)
         $tabControl.SelectedTab = $logViewTabPage
 
         # 载入历史日志
-        $logViewTextBox.CreateControl()
         $logViewTextBox.SuspendLayout()
         try {
             $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
@@ -1636,17 +1644,10 @@ try {
             $logViewTextBox.ScrollToCaret()
         }
         finally {
-            $logViewTextBox.ResumeLayout($true)
+            $logViewTextBox.ResumeLayout()
         }
 
-        try {
-            $logViewTabPage.PerformLayout()
-            $logLayoutPanel.PerformLayout()
-            $logViewTextBox.Invalidate()
-            $logViewTextBox.Update()
-        } catch {
-            Handle-Exception $_
-        }
+        $execution.logViewTextBox = $logViewTextBox
     }
 
     # 新增/修改任务的对话框，指定 $TaskName 参数时修改，不指定参数时新增，返回 DialogResult
@@ -1976,9 +1977,9 @@ try {
         if (-not $taskName) { return }
         Show-Task-Log-Viewer -TaskName $taskName
     })
+
     $taskListTabPage.Controls.Add($dataGridView)
     $taskGridView = $dataGridView
-    # 启用双缓冲，避免表格在显示时逐行刷出
     Enable-Double-Buffered $taskGridView | Out-Null
 
     # 任务列表的右键菜单: 启动任务 / 停止任务 / 重启任务 / 查看日志 / 启动所有 / 停止所有 / 新增 / 编辑 / 删除 / 上移 / 下移
