@@ -194,7 +194,7 @@ for %%i in ("!input_file!") do (
         "    $length = [Math]::Min(64, $base64.Length - $i);" ^
         "    $list.Add($base64.Substring($i, $length));" ^
         "};" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $utf8NoBOM);"
     if !errorlevel! neq 0 (
         echo 错误：转换 Base64 编码失败："!input_file!"
@@ -235,7 +235,7 @@ for %%i in ("!input_file!") do (
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "[System.IO.File]::WriteAllLines($env:output_file, $code, $utf8NoBOM);"
     if !errorlevel! neq 0 (
         echo 错误：提取内嵌代码失败："!output_file!"
@@ -300,7 +300,7 @@ for %%i in ("!input_file!") do (
         "    $length = [Math]::Min(64, $base64.Length - $i);" ^
         "    $list.Add($base64.Substring($i, $length));" ^
         "};" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $utf8NoBOM);"
     if !errorlevel! neq 0 (
         echo 错误：转换 Base64 编码失败："!input_file!"
@@ -339,7 +339,7 @@ for %%i in ("!input_file!") do (
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_output, $code, $utf8NoBOM);"
     if !errorlevel! neq 0 (
         echo 错误：提取内嵌代码失败："!temp_output!"
@@ -447,7 +447,7 @@ for %%i in ("!input_file!") do (
             "    $length = [Math]::Min(64, $base64.Length - $i);" ^
             "    $list.Add($base64.Substring($i, $length));" ^
             "};" ^
-            "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+            "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
             "[System.IO.File]::WriteAllLines($env:temp_base64, $list, $utf8NoBOM);"
         if !errorlevel! neq 0 (
             echo 错误：转换 Base64 编码失败："!input_file!"
@@ -486,7 +486,7 @@ for %%i in ("!input_file!") do (
             "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
             "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
             "};" ^
-            "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+            "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
             "[System.IO.File]::WriteAllLines($env:temp_output, $code, $utf8NoBOM);"
         if !errorlevel! neq 0 (
             echo 错误：提取内嵌代码失败："!temp_output!"

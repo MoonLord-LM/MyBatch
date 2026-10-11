@@ -46,7 +46,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     REM 统一编码为 UTF-8 without BOM，统一换行符为 CRLF
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "$bytes = [System.IO.File]::ReadAllBytes($env:bat_file);" ^
         "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
         "try {" ^
@@ -71,7 +71,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     REM 替换制表符为 4 个空格
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
         "$tab = [string][char]9;" ^
         "$changed = 0;" ^
@@ -95,7 +95,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     REM 删除行末尾的空格
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
         "$changed = 0;" ^
         "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
@@ -118,7 +118,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     REM 注释统一使用 REM 注释
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
         "$changed = 0;" ^
         "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
@@ -141,7 +141,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     REM 检查每个文件都必须包含 `@echo ` 代码，否则自动在第 1 行的位置添加 `@echo off`
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
         "if (-not (($lines -join '`r`n').ToLowerInvariant().Contains('@echo '))) {" ^
             "$lines = @('@echo off') + $lines;" ^
@@ -158,7 +158,7 @@ for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncod
     REM 检查每个文件都必须包含 `chcp ` 代码，否则自动在第 2 行的位置添加 `chcp 65001 >nul`
     powershell -NoProfile -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "$lines = [System.IO.File]::ReadAllLines($env:bat_file, [System.Text.Encoding]::UTF8);" ^
         "if (-not (($lines -join '`r`n').ToLowerInvariant().Contains('chcp '))) {" ^
             "$newLines = New-Object System.Collections.Generic.List[string];" ^

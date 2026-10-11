@@ -325,7 +325,7 @@ for %%i in ("!input_file!") do (
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
-        "$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);" ^
+        "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_cs, $code, $utf8NoBOM);"
     if !errorlevel! neq 0 (
         echo 错误：提取内嵌代码失败

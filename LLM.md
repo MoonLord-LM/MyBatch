@@ -118,10 +118,12 @@ $utf8 = [System.Text.Encoding]::GetEncoding(65001)
 $utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);
 
 # 写入时，使用 UTF-8 编码，带 BOM 头，等效于 -Encoding UTF8
-$utf8BOM = New-Object System.Text.UTF8Encoding($true);
+$utf8BOM = [System.Text.UTF8Encoding]::new($true);
+$utf8BOM = New-Object System.Text.UTF8Encoding($true)
 
 # 写入时，使用 UTF-8 编码，不带 BOM 头
-$utf8NoBOM = New-Object System.Text.UTF8Encoding($false);
+$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);
+$utf8NoBOM = New-Object System.Text.UTF8Encoding($false)
 ```
 
 ## 判断上一个命令是否执行成功

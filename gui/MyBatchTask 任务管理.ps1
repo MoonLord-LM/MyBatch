@@ -46,6 +46,7 @@
 
 # ———————————————————————————————— 1: 通用基础设置 ————————————————————————————————
 
+Get-UICulture
 # 异常处理
 function Handle-Exception {
     param([Parameter(Mandatory=$true)][System.Management.Automation.ErrorRecord]$ErrorRecord)
@@ -61,11 +62,17 @@ function Handle-Exception {
 }
 
 try {
+    # 设置更现代的窗口样式
+    Add-Type -AssemblyName System.Windows.Forms
+    Add-Type -AssemblyName System.Drawing
+    [System.Windows.Forms.Application]::EnableVisualStyles()
+    [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
+
     # 设置字符编码 UTF-8
     $defaultOutputEncoding = [System.Console]::OutputEncoding.EncodingName
     [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     $currentOutputEncoding = [System.Console]::OutputEncoding.EncodingName
-    $workingEncoding = New-Object System.Text.UTF8Encoding($false)
+    $workingEncoding= [System.Text.UTF8Encoding]::new($false)
     "[ Debug ] defaultOutputEncoding = $defaultOutputEncoding"
     "[ Debug ] currentOutputEncoding = $currentOutputEncoding"
     "[ Debug ] workingEncoding = $workingEncoding"
@@ -119,12 +126,6 @@ try {
     if(-not $dpiResult){
         $dpiResult = [DpiHelper]::SetProcessDPIAware()
     }
-
-    # 设置更现代的窗口样式
-    Add-Type -AssemblyName System.Windows.Forms
-    Add-Type -AssemblyName System.Drawing
-    [System.Windows.Forms.Application]::EnableVisualStyles()
-    [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
 
     # 查看加载的 WinForms 程序集信息
     $winFormsAssembly = [System.Reflection.Assembly]::GetAssembly([System.Windows.Forms.Form])
