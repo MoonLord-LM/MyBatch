@@ -105,7 +105,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM 这种无意义代码，进行规避  
 
 调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定以 UTF-8 编码输出  
-如果只有简单的 Write-Host 命令，可以不加这段代码  
+如果只是简单的一行命令，可以不加这段代码  
 
 调用 PowerShell 的 Get-Content、Set-Content、Out-File 等，读写文件时，必须指定 UTF-8 编码  
 代码示例如下：  
