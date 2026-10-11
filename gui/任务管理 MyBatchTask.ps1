@@ -238,9 +238,14 @@ try {
             StatusStopped = '手动结束'
             StatusExited = '正常结束'
             StatusExitedError = '异常结束'
-            LogCopy = '复制日志'
+            LogCopy = '复制'
+            LogCopyAll = '复制全部'
             LogClear = '清空日志显示'
             LogOpenFile = '打开完整日志文件'
+            InputSend = '发送输入内容'
+            InputSent = '» 已发送输入: {0}'
+            ERROR_SendInputFailed = '发送输入失败: {0}'
+            INFO_NoRunningProcess = '任务未运行，无法发送输入'
             ConfirmTitle = '确认'
             ConfirmDelete = '确定删除任务「{0}」吗？'
             ConfirmExit = '退出将停止所有运行中的任务，是否继续？'
@@ -329,9 +334,14 @@ try {
             StatusStopped = 'Manual Stop'
             StatusExited = 'Exited Normally'
             StatusExitedError = 'Abnormal Exit'
-            LogCopy = 'Copy Log'
+            LogCopy = 'Copy'
+            LogCopyAll = 'Copy All'
             LogClear = 'Clear Log View'
             LogOpenFile = 'Open Full Log File'
+            InputSend = 'Send Input'
+            InputSent = '» Sent input: {0}'
+            ERROR_SendInputFailed = 'Failed to send input: {0}'
+            INFO_NoRunningProcess = 'Task is not running, cannot send input'
             ConfirmTitle = 'Confirm'
             ConfirmDelete = "Delete task '{0}'?"
             ConfirmExit = 'Exit will stop all running tasks. Continue?'
@@ -844,7 +854,7 @@ try {
                 $execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
                 $execution.logViewTextBox.SelectionLength = 0
                 $execution.logViewTextBox.SelectionFont = $execution.logViewTextBox.Font
-                $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } else { [System.Drawing.Color]::Red }
+                $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } elseif ($Level -eq 'Input') { [System.Drawing.Color]::Blue } else { [System.Drawing.Color]::Red }
                 $execution.logViewTextBox.SelectionColor = $lineColor
                 $execution.logViewTextBox.AppendText($logLine + "`r`n")
                 $execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
@@ -963,6 +973,7 @@ try {
         $startInfo.CreateNoWindow = $true
         $startInfo.RedirectStandardOutput = $true
         $startInfo.RedirectStandardError = $true
+        $startInfo.RedirectStandardInput = $true
         $startInfo.StandardOutputEncoding = $workingEncoding
         $startInfo.StandardErrorEncoding = $workingEncoding
         try {
@@ -1036,6 +1047,9 @@ try {
 
         if ($execution.logFileWriter) {
             try { $execution.logFileWriter.Dispose() } catch {}
+        }
+        if ($execution.process) {
+            try { $execution.process.StandardInput.Dispose() } catch {}
         }
         foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
             if ($null -eq $taskReader) { continue }
@@ -1358,19 +1372,87 @@ try {
         $logViewTabPage.Text = $TaskName
         $logViewTabPage.BackColor = [System.Drawing.Color]::White
 
+        # 主体布局容器
+        $logLayoutPanel = [System.Windows.Forms.TableLayoutPanel]::new()
+        $logLayoutPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $logLayoutPanel.ColumnCount = 1
+        $logLayoutPanel.RowCount = 2
+        $logLayoutPanel.RowStyles.Add([System.Windows.Forms.RowStyle]::new([System.Windows.Forms.SizeType]::Percent, 100)) | Out-Null
+        $logLayoutPanel.RowStyles.Add([System.Windows.Forms.RowStyle]::new([System.Windows.Forms.SizeType]::Absolute, 88)) | Out-Null
+        $logLayoutPanel.Padding = [System.Windows.Forms.Padding]::new(0)
+        $logViewTabPage.Controls.Add($logLayoutPanel)
+
         # 日志文本框
         $logViewTextBox = [System.Windows.Forms.RichTextBox]::new()
         $logViewTextBox.ReadOnly = $true
-        $logViewTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
+        $logViewTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Both
         $logViewTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
         $logViewTextBox.BackColor = [System.Drawing.Color]::White
         $logViewTextBox.WordWrap = $false
         $logViewTextBox.Font = $mainForm.Font
         $logViewTextBox.DetectUrls = $false
+        $logViewTextBox.ShortcutsEnabled = $true
         $logViewTextBox.Dock = 'Fill'
-        $logViewTabPage.Controls.Add($logViewTextBox)
+        $logLayoutPanel.Controls.Add($logViewTextBox, 0, 0)
 
-        # 日志文本框右键菜单: 复制日志 / 清空日志显示 / 打开完整日志文件
+        # 底部输入区域：多行文本框 + 发送按钮
+        $logInputPanel = [System.Windows.Forms.Panel]::new()
+        $logInputPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $logInputPanel.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+        $logInputPanel.Padding = [System.Windows.Forms.Padding]::new(8)
+        $logLayoutPanel.Controls.Add($logInputPanel, 0, 1)
+
+        $logInputTextBox = [System.Windows.Forms.TextBox]::new()
+        $logInputTextBox.Dock = [System.Windows.Forms.DockStyle]::Fill
+        $logInputTextBox.Multiline = $false
+        $logInputTextBox.Font = $mainForm.Font
+        $logInputTextBox.Height = 80
+        $logInputPanel.Controls.Add($logInputTextBox)
+
+        $logInputSendButton = [System.Windows.Forms.Button]::new()
+        $logInputSendButton.Text = $ui.InputSend
+        $logInputSendButton.Dock = [System.Windows.Forms.DockStyle]::Right
+        $logInputSendButton.Height = 80
+        $logInputSendButton.Width = 160
+        $logInputSendButton.FlatStyle = 'Flat'
+        $logInputSendButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+        $logInputSendButton.ForeColor = [System.Drawing.Color]::Black
+        $logInputSendButton.FlatAppearance.BorderSize = 0
+        $logInputSendButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+        $logInputSendButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
+        $logInputSendButton.Tag = @{ taskName = $TaskName; inputTextBox = $logInputTextBox }
+        $logInputSendButton.Add_Click({
+            param($EventSender, $EventArgs)
+            $taskName = [string]$EventSender.Tag.taskName
+            $inputBox = $EventSender.Tag.inputTextBox
+            if ($null -eq $inputBox -or $inputBox.IsDisposed) { return }
+            $execution = Get-Task-Execution -TaskName $taskName
+            $inputText = $inputBox.Text
+            if ($inputText.Length -eq 0) { return }
+            if ($execution.process -and -not $execution.process.HasExited -and $execution.process.StartInfo.RedirectStandardInput) {
+                try {
+                    $stdInStream = $execution.process.StandardInput.BaseStream
+                    if ($stdInStream) {
+                        $bytes = $workingEncoding.GetBytes($inputText + "`r`n")
+                        $stdInStream.Write($bytes, 0, $bytes.Length)
+                        $stdInStream.Flush()
+                    } else {
+                        $execution.process.StandardInput.WriteLine($inputText)
+                    }
+                    Append-Task-Log -TaskName $taskName -Message ($ui.InputSent -f $inputText) -Level 'Input'
+                    System-Log ($ui.InputSent -f ('[' + $taskName + '] ' + $inputText)) 'Info'
+                } catch {
+                    System-Log ($ui.ERROR_SendInputFailed -f $_.Exception.Message) 'Error'
+                }
+            } else {
+                System-Log $ui.INFO_NoRunningProcess 'Warning'
+            }
+            $inputBox.Clear()
+            $inputBox.Focus() | Out-Null
+        })
+        $logInputPanel.Controls.Add($logInputSendButton)
+
+        # 日志文本框右键菜单: 复制 / 复制全部 / 清空日志显示 / 打开完整日志文件
         $logViewContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
         $logViewCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
         $logViewCopyItem.Text = $ui.LogCopy
@@ -1382,9 +1464,29 @@ try {
                 System-Log $ui.INFO_NoLog 'Warning'
                 return
             }
+            if ($logViewTextBox.SelectedText.Length -gt 0) {
+                [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.SelectedText)
+            } elseif ($logViewTextBox.Text.Length -gt 0) {
+                [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
+            } else {
+                System-Log $ui.INFO_NoLog 'Warning'
+                return
+            }
+            System-Log $ui.INFO_LogCopied 'Debug'
+        })
+        $logViewCopyAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+        $logViewCopyAllItem.Text = $ui.LogCopyAll
+        $logViewCopyAllItem.Tag = @{ taskName = $TaskName }
+        $logViewCopyAllItem.Add_Click({
+            param($MenuItem, $EventArgs)
+            $logViewTextBox = (Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)).logViewTextBox
+            if ($null -eq $logViewTextBox -or $logViewTextBox.IsDisposed) {
+                System-Log $ui.INFO_NoLog 'Warning'
+                return
+            }
             if ($logViewTextBox.Text.Length -gt 0) {
                 [System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
-                System-Log $ui.INFO_LogCopied 'Success'
+                System-Log $ui.INFO_LogCopied 'Debug'
             } else {
                 System-Log $ui.INFO_NoLog 'Warning'
             }
@@ -1410,6 +1512,7 @@ try {
             }
         })
         $logViewContextMenu.Items.Add($logViewCopyItem) | Out-Null
+        $logViewContextMenu.Items.Add($logViewCopyAllItem) | Out-Null
         $logViewContextMenu.Items.Add($logViewClearItem) | Out-Null
         $logViewContextMenu.Items.Add($logViewOpenItem) | Out-Null
         $logViewTextBox.ContextMenuStrip = $logViewContextMenu
@@ -1426,6 +1529,15 @@ try {
         $execution.logViewTextBox = $logViewTextBox
         $tabControl.TabPages.Add($logViewTabPage)
         $tabControl.SelectedTab = $logViewTabPage
+
+        try {
+            $logViewTabPage.PerformLayout()
+            $logLayoutPanel.PerformLayout()
+            $logViewTextBox.Invalidate()
+            $logViewTextBox.Update()
+        } catch {
+            Handle-Exception $_
+        }
     }
 
     # 新增/修改任务的对话框，指定 $TaskName 参数时修改，不指定参数时新增，返回 DialogResult
@@ -1955,7 +2067,7 @@ try {
     $copyLogMenuItem.Add_Click({
         if ($logTextBox.Text.Length -gt 0) {
             [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
-            System-Log $ui.INFO_LogCopied 'Success'
+            System-Log $ui.INFO_LogCopied 'Debug'
         } else {
             System-Log $ui.INFO_NoLog 'Warning'
         }
