@@ -309,7 +309,8 @@ $osInfo = powershell -NoProfile -Command 'Get-CimInstance Win32_OperatingSystem'
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$content = powershell -NoProfile -Command 'Get-Content -LiteralPath "$PSCommandPath" -Raw'
+$scriptPath = $PSCommandPath
+$content = powershell -NoProfile -Command 'Get-Content -LiteralPath "$scriptPath" -Raw'
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
 
