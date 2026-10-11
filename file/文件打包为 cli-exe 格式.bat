@@ -349,6 +349,64 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
+    REM 自动生成图标：以源文件名的首字，绘制蓝色圆形 + 白色首字的 ico 文件
+    set "icon_char=!base_name:~0,1!"
+    set "temp_ico=%temp%\MyBatch_%random%_%random%_%random%_%random%.ico"
+    if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
+    powershell -NoProfile -Command ^
+        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "Add-Type -AssemblyName System.Drawing;" ^
+        "$ch = $env:icon_char;" ^
+        "if ([string]::IsNullOrEmpty($ch) -or ($ch.Length -gt 0 -and [char]::IsWhiteSpace($ch[0]))) { $ch = 'M' }" ^
+        "$sizeList = New-Object System.Collections.ArrayList;" ^
+        "$streams = New-Object System.Collections.ArrayList;" ^
+        "foreach ($s in @(16,32,48,256)) {" ^
+        "    $bmp = New-Object System.Drawing.Bitmap($s,$s);" ^
+        "    $g = [System.Drawing.Graphics]::FromImage($bmp);" ^
+        "    $g.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias;" ^
+        "    $g.Clear([System.Drawing.Color]::Transparent);" ^
+        "    $brush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(91,155,213));" ^
+        "    $m = [int]($s*0.06);" ^
+        "    $g.FillEllipse($brush, $m, $m, $s - 2*$m, $s - 2*$m);" ^
+        "    $fs = [int]($s*0.55);" ^
+        "    $font = New-Object System.Drawing.Font('Microsoft YaHei', $fs, [System.Drawing.FontStyle]::Bold);" ^
+        "    $fmt = New-Object System.Drawing.StringFormat;" ^
+        "    $fmt.Alignment = [System.Drawing.StringAlignment]::Center;" ^
+        "    $fmt.LineAlignment = [System.Drawing.StringAlignment]::Center;" ^
+        "    $rect = New-Object System.Drawing.RectangleF(0, [int]($s*0.04), $s, [int]($s*0.92));" ^
+        "    $g.DrawString($ch, $font, [System.Drawing.Brushes]::White, $rect, $fmt);" ^
+        "    $pms = New-Object System.IO.MemoryStream;" ^
+        "    $bmp.Save($pms, [System.Drawing.Imaging.ImageFormat]::Png);" ^
+        "    [void]$sizeList.Add($s); [void]$streams.Add($pms);" ^
+        "    $g.Dispose(); $brush.Dispose(); $font.Dispose(); $fmt.Dispose(); $bmp.Dispose();" ^
+        "};" ^
+        "$ms = New-Object System.IO.MemoryStream;" ^
+        "$bw = New-Object System.IO.BinaryWriter($ms);" ^
+        "$bw.Write([uint16]0); $bw.Write([uint16]1); $bw.Write([uint16]$streams.Count);" ^
+        "$offset = 6 + 16 * $streams.Count;" ^
+        "for ($i = 0; $i -lt $streams.Count; $i++) {" ^
+        "    $s = $sizeList[$i]; $w = $(if ($s -eq 256) {0} else {$s});" ^
+        "    $bw.Write([byte]$w); $bw.Write([byte]$w); $bw.Write([byte]0); $bw.Write([byte]0);" ^
+        "    $bw.Write([uint16]1); $bw.Write([uint16]32);" ^
+        "    $bw.Write([uint32]$streams[$i].Length); $bw.Write([uint32]$offset);" ^
+        "    $offset = $offset + $streams[$i].Length;" ^
+        "};" ^
+        "foreach ($pms in $streams) { $bw.Write($pms.ToArray()); $pms.Dispose() }" ^
+        "$bw.Flush();" ^
+        "[System.IO.File]::WriteAllBytes($env:temp_ico, $ms.ToArray());" ^
+        "$bw.Dispose(); $ms.Dispose();"
+    if not exist "!temp_ico!" (
+        echo 错误：自动生成图标失败："!temp_ico!"
+        echo.
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
+        if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
+        pause
+        exit /b 1
+    )
+
     echo 正在编译代码，并嵌入压缩包资源
     echo.
     powershell -NoProfile -Command ^
@@ -358,7 +416,7 @@ for %%i in ("!input_file!") do (
         "$params = New-Object System.CodeDom.Compiler.CompilerParameters;" ^
         "$params.OutputAssembly = $env:output_file;" ^
         "$params.GenerateExecutable = $true;" ^
-        "$params.CompilerOptions = '/target:exe /optimize';" ^
+        "$params.CompilerOptions = '/target:exe /optimize /win32icon:\"' + $env:temp_ico + '\"';" ^
         "[void]$params.ReferencedAssemblies.Add('System.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.Core.dll');" ^
         "[void]$params.ReferencedAssemblies.Add('System.IO.Compression.dll');" ^
@@ -379,6 +437,7 @@ for %%i in ("!input_file!") do (
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
         if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
+        if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
         if exist "!output_file!" ( del /f /q "!output_file!" )
         pause
         exit /b 1
@@ -391,6 +450,7 @@ for %%i in ("!input_file!") do (
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
         if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
         if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
+        if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
         pause
         exit /b 1
     )
@@ -400,6 +460,7 @@ for %%i in ("!input_file!") do (
     if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
     if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
+    if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
 
     for %%j in ("!output_file!") do (
         setlocal disabledelayedexpansion
