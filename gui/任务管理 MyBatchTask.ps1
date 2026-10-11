@@ -249,7 +249,6 @@ try {
             ConfirmTitle = '确认'
             ConfirmDelete = '确定删除任务「{0}」吗？'
             ConfirmExit = '退出将停止所有运行中的任务，是否继续？'
-            ConfirmRestart = '任务「{0}」正在运行，修改后将自动重启，是否继续？'
             ERROR_CommandEmpty = '命令不能为空'
             ERROR_CommandNotFound = '命令文件不存在: {0}'
             ERROR_NameEmpty = '任务名称不能为空'
@@ -345,7 +344,6 @@ try {
             ConfirmTitle = 'Confirm'
             ConfirmDelete = "Delete task '{0}'?"
             ConfirmExit = 'Exit will stop all running tasks. Continue?'
-            ConfirmRestart = "Task '{0}' is running and will be restarted after editing. Continue?"
             ERROR_CommandEmpty = 'Command must not be empty'
             ERROR_CommandNotFound = 'Command file not found: {0}'
             ERROR_NameEmpty = 'Task name must not be empty'
@@ -1437,7 +1435,7 @@ try {
         $logInputSendButton.FlatStyle = 'Flat'
         $logInputSendButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $logInputSendButton.ForeColor = [System.Drawing.Color]::Black
-        $logInputSendButton.FlatAppearance.BorderSize = 0
+        $logInputSendButton.FlatAppearance.BorderSize = 1
         $logInputSendButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
         $logInputSendButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
         $logInputSendButton.Tag = @{ taskName = $TaskName; inputTextBox = $logInputTextBox }
@@ -1623,7 +1621,7 @@ try {
         $browseCommandButton.FlatStyle = 'Flat'
         $browseCommandButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseCommandButton.ForeColor = [System.Drawing.Color]::Black
-        $browseCommandButton.FlatAppearance.BorderSize = 0
+        $browseCommandButton.FlatAppearance.BorderSize = 1
         $browseCommandButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
         $browseCommandButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
         $browseCommandButton.Add_Click({
@@ -1652,7 +1650,7 @@ try {
         $browseDirButton.FlatStyle = 'Flat'
         $browseDirButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $browseDirButton.ForeColor = [System.Drawing.Color]::Black
-        $browseDirButton.FlatAppearance.BorderSize = 0
+        $browseDirButton.FlatAppearance.BorderSize = 1
         $browseDirButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
         $browseDirButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
         $browseDirButton.Add_Click({
@@ -1699,7 +1697,8 @@ try {
         $okButton.FlatStyle = 'Flat'
         $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
         $okButton.ForeColor = [System.Drawing.Color]::White
-        $okButton.FlatAppearance.BorderSize = 0
+        $okButton.FlatAppearance.BorderSize = 1
+        $okButton.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
         $okButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(71, 135, 193)
         $okButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
         $okButton.Add_Click({
@@ -1806,7 +1805,7 @@ try {
         $cancelButton.FlatStyle = 'Flat'
         $cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
         $cancelButton.ForeColor = [System.Drawing.Color]::Black
-        $cancelButton.FlatAppearance.BorderSize = 0
+        $cancelButton.FlatAppearance.BorderSize = 1
         $cancelButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
         $cancelButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
         $cancelButton.Add_Click({
@@ -1991,11 +1990,6 @@ try {
         }
         $task = $taskConfigList[$index]
         $taskName = [string]$task.name
-        $execution = Get-Task-Execution -TaskName $taskName
-        if ($execution.process -and -not $execution.process.HasExited) {
-            $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmRestart -f $taskName, $ui.ConfirmTitle, 'YesNo', 'Question')
-            if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
-        }
         Edit-Task-Dialog -TaskName $taskName | Out-Null
     })
     $menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
