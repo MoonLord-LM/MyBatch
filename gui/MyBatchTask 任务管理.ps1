@@ -1,4 +1,4 @@
-﻿# MyBatchTask 批处理任务管理器
+﻿# MyBatchTask 任务管理
 #
 # 开源地址: https://github.com/MoonLord-LM/MyBatch
 #
@@ -209,7 +209,7 @@ try {
     # 界面文本，包含中文和英文
     $uiTextResources = @{
         'zh-CN' = @{
-            FormTitle = 'MyBatchTask 批处理任务管理器'
+            FormTitle = 'MyBatchTask 任务管理'
             ColumnStatus = '状态'
             ColumnPid = 'PID'
             ColumnName = '任务名称'
@@ -1468,7 +1468,6 @@ try {
             $inputBox.Clear()
             $inputBox.Focus() | Out-Null
         })
-        # 按钮与输入框分属两栏，天然不重叠，无需再处理 z-order
         $logInputButtonBand.Controls.Add($logInputSendButton)
 
         # 日志文本框右键菜单: 复制 / 复制全部 / 清空日志显示 / 打开完整日志文件
@@ -1552,10 +1551,6 @@ try {
         try {
             $logViewTabPage.PerformLayout()
             $logLayoutPanel.PerformLayout()
-            # 布局完成后校准发送按钮：右缘贴内容区右边界（留 padding.right 间距），垂直居中于面板
-            $logInputSendButton.Location = [System.Drawing.Point]::new(
-                [int]($logInputPanel.ClientSize.Width - $logInputSendButton.Width - $logInputPanel.Padding.Right),
-                [int](($logInputPanel.ClientSize.Height - $logInputSendButton.Height) / 2))
             $logViewTextBox.Invalidate()
             $logViewTextBox.Update()
         } catch {
@@ -1692,7 +1687,7 @@ try {
         # 确定按钮
         $okButton = [System.Windows.Forms.Button]::new()
         $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
-        $okButton.Location = [System.Drawing.Point]::new(190, 400)
+        $okButton.Location = [System.Drawing.Point]::new(180, 400)
         $okButton.Size = [System.Drawing.Size]::new(180, 46)
         $okButton.FlatStyle = 'Flat'
         $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
@@ -2080,10 +2075,24 @@ try {
     $logTabPage.Controls.Add($logTextBox)
     $systemLogTextBox = $logTextBox
 
-    # 系统日志的右键菜单：复制日志 / 清空日志显示
-    $copyLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $copyLogMenuItem.Text = $ui.LogCopy
-    $copyLogMenuItem.Add_Click({
+    # 系统日志的右键菜单：复制 / 复制全部 / 清空日志显示 / 打开完整日志文件
+    $systemLogContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+    $systemLogCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $systemLogCopyItem.Text = $ui.LogCopy
+    $systemLogCopyItem.Add_Click({
+        if ($logTextBox.SelectedText.Length -gt 0) {
+            [System.Windows.Forms.Clipboard]::SetText($logTextBox.SelectedText)
+        } elseif ($logTextBox.Text.Length -gt 0) {
+            [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
+        } else {
+            System-Log $ui.INFO_NoLog 'Warning'
+            return
+        }
+        System-Log $ui.INFO_LogCopied 'Debug'
+    })
+    $systemLogCopyAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $systemLogCopyAllItem.Text = $ui.LogCopyAll
+    $systemLogCopyAllItem.Add_Click({
         if ($logTextBox.Text.Length -gt 0) {
             [System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
             System-Log $ui.INFO_LogCopied 'Debug'
@@ -2091,14 +2100,26 @@ try {
             System-Log $ui.INFO_NoLog 'Warning'
         }
     })
-    $clearLogMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $clearLogMenuItem.Text = $ui.LogClear
-    $clearLogMenuItem.Add_Click({
+    $systemLogClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $systemLogClearItem.Text = $ui.LogClear
+    $systemLogClearItem.Add_Click({
         $logTextBox.Clear()
     })
-    $logTextBox.ContextMenuStrip = [System.Windows.Forms.ContextMenuStrip]::new()
-    $logTextBox.ContextMenuStrip.Items.Add($copyLogMenuItem) | Out-Null
-    $logTextBox.ContextMenuStrip.Items.Add($clearLogMenuItem) | Out-Null
+    $systemLogOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $systemLogOpenItem.Text = $ui.LogOpenFile
+    $systemLogOpenItem.Add_Click({
+        if ($myBatchTaskSystemLogFile -and [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {
+            Start-Process 'explorer.exe' -ArgumentList ('/select,"' + $myBatchTaskSystemLogFile + '"')
+            System-Log ($ui.INFO_LogOpened -f $myBatchTaskSystemLogFile) 'Success'
+        } else {
+            System-Log $ui.INFO_NoLog 'Warning'
+        }
+    })
+    $systemLogContextMenu.Items.Add($systemLogCopyItem) | Out-Null
+    $systemLogContextMenu.Items.Add($systemLogCopyAllItem) | Out-Null
+    $systemLogContextMenu.Items.Add($systemLogClearItem) | Out-Null
+    $systemLogContextMenu.Items.Add($systemLogOpenItem) | Out-Null
+    $logTextBox.ContextMenuStrip = $systemLogContextMenu
 
     # 日志队列处理定时器
     $taskLogQueueProcessTimer = [System.Windows.Forms.Timer]::new()
