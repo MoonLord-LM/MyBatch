@@ -1211,10 +1211,14 @@ try {
 
     # 从托盘图标点击，显示主窗口
     function Show-Main-Window {
+        Update-Task-Grid
+        $mainForm.PerformLayout()
+        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
+        if (-not $mainForm.Visible) {
+            $mainForm.Show()
+        }
         $mainForm.Opacity = 1
         $mainForm.ShowInTaskbar = $true
-        $mainForm.Show()
-        $mainForm.WindowState = [System.Windows.Forms.FormWindowState]::Normal
         $mainForm.Activate()
     }
 
@@ -1298,8 +1302,18 @@ try {
     $trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $trayExitItem.Text = $ui.TrayExit
     $trayExitItem.Add_Click({
-        $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, 'YesNo', 'Question')
-        if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+        $hasRunningTask = $false
+        foreach ($task in $taskConfigList) {
+            $execution = Get-Task-Execution -TaskName ([string]$task.name)
+            if ($execution.process -and -not $execution.process.HasExited) {
+                $hasRunningTask = $true
+                break
+            }
+        }
+        if ($hasRunningTask) {
+            $confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, 'YesNo', 'Question')
+            if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+        }
         $script:mainFormRealExit = $true
         try { $trayIcon.Visible = $false } catch { }
         try { $trayIcon.Dispose() } catch { }
@@ -1968,6 +1982,8 @@ try {
     })
     $taskListTabPage.Controls.Add($dataGridView)
     $taskGridView = $dataGridView
+    # 启用双缓冲，避免表格在显示时逐行刷出
+    Enable-Double-Buffered $taskGridView | Out-Null
 
     # 任务列表的右键菜单: 启动任务 / 停止任务 / 重启任务 / 查看日志 / 启动所有 / 停止所有 / 新增 / 编辑 / 删除 / 上移 / 下移
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
