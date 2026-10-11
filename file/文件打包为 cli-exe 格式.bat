@@ -639,7 +639,7 @@ public static class Program
             else if (lower.EndsWith(".bat"))
             {
                 psi.FileName = "cmd.exe";
-                psi.Arguments = "/s /c \"" + extracted + "\"" + argStr;
+                psi.Arguments = "/s /c \"\"" + extracted + "\" " + argStr.TrimStart() + "\"";
             }
             else if (lower.EndsWith(".exe"))
             {
