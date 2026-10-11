@@ -1535,18 +1535,25 @@ try {
         $logViewContextMenu.Items.Add($logViewOpenItem) | Out-Null
         $logViewTextBox.ContextMenuStrip = $logViewContextMenu
 
-        # 载入历史日志
-        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
-        $logViewTextBox.SelectionLength = 0
-        $logViewTextBox.SelectionFont = $logViewTextBox.Font
-        $logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
-        $logViewTextBox.AppendText($execution.logViewContent.ToString())
-        $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
-        $logViewTextBox.ScrollToCaret()
-
         $execution.logViewTextBox = $logViewTextBox
         $tabControl.TabPages.Add($logViewTabPage)
         $tabControl.SelectedTab = $logViewTabPage
+
+        # 载入历史日志
+        $logViewTextBox.CreateControl()
+        $logViewTextBox.SuspendLayout()
+        try {
+            $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+            $logViewTextBox.SelectionLength = 0
+            $logViewTextBox.SelectionFont = $logViewTextBox.Font
+            $logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
+            $logViewTextBox.AppendText($execution.logViewContent.ToString())
+            $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+            $logViewTextBox.ScrollToCaret()
+        }
+        finally {
+            $logViewTextBox.ResumeLayout($true)
+        }
 
         try {
             $logViewTabPage.PerformLayout()
