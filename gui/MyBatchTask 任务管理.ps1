@@ -1368,23 +1368,37 @@ try {
         $closeAllTabMenuItem.Enabled = $hasLogTab
     }
 
-    # 标签页右键点击后，根据点击位置，查找并记录当前的标签页
+    # 标签页点击处理
     $tabControl.Add_MouseDown({
         param($EventSender, $EventArgs)
-        if ($EventArgs.Button -ne [System.Windows.Forms.MouseButtons]::Right) { return }
-        $script:tabControlCurrentTab = $null
         for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {
             $tabRect = $tabControl.GetTabRect($i)
-            if ($tabRect.Contains($EventArgs.Location)) {
-                $script:tabControlCurrentTab = $tabControl.TabPages[$i]
-                # 前两个固定标签页不可关闭
+            if (-not $tabRect.Contains($EventArgs.Location)) { continue }
+            $tabPage = $tabControl.TabPages[$i]
+            # 前两个固定标签页不可关闭
+            if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Right) {
+                $script:tabControlCurrentTab = $tabPage
                 $closeTabMenuItem.Enabled = ($i -ge 2)
                 Update-Tab-Context-Menu-State
                 return
             }
+            # 点击标签页右侧的 ✕ 关闭
+            if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left -and $tabPage.Name.StartsWith('LogPage_')) {
+                $closeMarkWidth = [System.Windows.Forms.TextRenderer]::MeasureText(' ✕', $tabControl.Font).Width + 4
+                if ($EventArgs.X -ge ($tabRect.Right - $closeMarkWidth)) {
+                    $script:tabControlCurrentTab = $tabPage
+                    $tabControl.BeginInvoke([System.Windows.Forms.MethodInvoker]{
+                        $closeTabMenuItem.PerformClick()
+                    }) | Out-Null
+                }
+            }
+            return
         }
-        $closeTabMenuItem.Enabled = $false
-        Update-Tab-Context-Menu-State
+        if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Right) {
+            $script:tabControlCurrentTab = $null
+            $closeTabMenuItem.Enabled = $false
+            Update-Tab-Context-Menu-State
+        }
     })
 
     # 打开任务日志标签页，不存在时创建，已存在则直接切换
@@ -1401,7 +1415,7 @@ try {
         $execution = Get-Task-Execution -TaskName $TaskName
         $logViewTabPage = [System.Windows.Forms.TabPage]::new()
         $logViewTabPage.Name = $logViewTabPageName
-        $logViewTabPage.Text = $TaskName
+        $logViewTabPage.Text = $TaskName + '  ✕'
         $logViewTabPage.BackColor = [System.Drawing.Color]::White
 
         # 主体布局容器
@@ -1422,9 +1436,16 @@ try {
         $logViewTextBox.BackColor = [System.Drawing.Color]::White
         $logViewTextBox.WordWrap = $false
         $logViewTextBox.Font = $mainForm.Font
-        $logViewTextBox.DetectUrls = $false
+        $logViewTextBox.DetectUrls = $true
         $logViewTextBox.ShortcutsEnabled = $true
         $logViewTextBox.Dock = 'Fill'
+        $logViewTextBox.Margin = [System.Windows.Forms.Padding]::Empty
+        $logViewTextBox.Add_LinkClicked({
+            param($EventSender, $EventArgs)
+            if ($EventArgs.LinkText) {
+                Start-Process $EventArgs.LinkText
+            }
+        })
         $logLayoutPanel.Controls.Add($logViewTextBox, 0, 0)
 
         # 底部输入区域：输入框 + 发送按钮
@@ -1490,8 +1511,9 @@ try {
                     } else {
                         $execution.process.StandardInput.WriteLine($inputText)
                     }
-                    Append-Task-Log -TaskName $taskName -Message ($ui.InputSent -f $inputText) -Level 'Input'
-                    System-Log ($ui.InputSent -f ('[' + $taskName + '] ' + $inputText)) 'Info'
+                    $cleanInputText = $inputText.TrimEnd([char[]]@("`r", "`n"))
+                    Append-Task-Log -TaskName $taskName -Message ($ui.InputSent -f $cleanInputText) -Level 'Input'
+                    System-Log ($ui.InputSent -f ('[' + $taskName + '] ' + $cleanInputText)) 'Info'
                 } catch {
                     System-Log ($ui.ERROR_SendInputFailed -f $_.Exception.Message) 'Error'
                 }
@@ -1894,7 +1916,7 @@ try {
     $dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
     $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($mainForm.Font, [System.Drawing.FontStyle]::Bold)
     $dataGridView.ColumnHeadersHeight = 40
-    $dataGridView.RowTemplate.Height = 40
+    $dataGridView.RowTemplate.Height = 36
     $dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
     $dataGridView.DefaultCellStyle.Font = $mainForm.Font
     $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
@@ -1911,11 +1933,11 @@ try {
     $dataGridView.Columns[0].MinimumWidth = $dataGridView.Columns[0].Width / 2
     $dataGridView.Columns[1].Width = 125
     $dataGridView.Columns[1].MinimumWidth = $dataGridView.Columns[1].Width / 2
-    $dataGridView.Columns[2].Width = 200
+    $dataGridView.Columns[2].Width = 300
     $dataGridView.Columns[2].MinimumWidth = $dataGridView.Columns[2].Width / 2
     $dataGridView.Columns[3].Width = 400
     $dataGridView.Columns[3].MinimumWidth = $dataGridView.Columns[3].Width / 2
-    $dataGridView.Columns[4].Width = 400
+    $dataGridView.Columns[4].Width = 300
     $dataGridView.Columns[4].MinimumWidth = $dataGridView.Columns[4].Width / 2
     $dataGridView.Columns[5].Width = 300
     $dataGridView.Columns[5].MinimumWidth = $dataGridView.Columns[5].Width / 2
@@ -2126,9 +2148,16 @@ try {
     $logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
     $logTextBox.BackColor = [System.Drawing.Color]::White
     $logTextBox.Font = $mainForm.Font
-    $logTextBox.DetectUrls = $false
+    $logTextBox.DetectUrls = $true
     $logTextBox.WordWrap = $false
     $logTextBox.Dock = 'Fill'
+    $logTextBox.Margin = [System.Windows.Forms.Padding]::Empty
+    $logTextBox.Add_LinkClicked({
+        param($EventSender, $EventArgs)
+        if ($EventArgs.LinkText) {
+            Start-Process $EventArgs.LinkText
+        }
+    })
     $logTabPage.Controls.Add($logTextBox)
     $systemLogTextBox = $logTextBox
 
