@@ -11,6 +11,15 @@ Powershell 通过 WinForms 调用系统公共对话框，错误显示英文界�
 影响范围：  
 文件选择框 OpenFileDialog、文件夹选择框 FolderBrowserDialog、文件保存框 SaveFileDialog、颜色选择框 ColorDialog 等  
 
+## 解决方案
+
+检查项 1：  
+确保在修改输出编码前，至少调用一次 `Get-Culture` 或 `Get-UICulture` 方法  
+
+检查项 2：  
+确保对以下特殊方法，使用 powershell 子进程隔离，避免污染主进程的语言信息：  
+`Get-ChildItem`、`Get-CimInstance`、`Get-Content`、`Get-ItemProperty`、`Get-Location`  
+
 ## 测试环境
 
 系统版本：Windows 11  
