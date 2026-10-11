@@ -1480,7 +1480,6 @@ try {
             if ($null -eq $inputBox -or $inputBox.IsDisposed) { return }
             $execution = Get-Task-Execution -TaskName $taskName
             $inputText = $inputBox.Text
-            if ($inputText.Length -eq 0) { return }
             if ($execution.process -and -not $execution.process.HasExited -and $execution.process.StartInfo.RedirectStandardInput) {
                 try {
                     $stdInStream = $execution.process.StandardInput.BaseStream
@@ -1501,6 +1500,19 @@ try {
             }
             $inputBox.Clear()
             $inputBox.Focus() | Out-Null
+        })
+
+        # 输入框按 Enter，效果等于点发送
+        $logInputTextBox.Tag = @{ sendButton = $logInputSendButton }
+        $logInputTextBox.Add_KeyDown({
+            param($EventSender, $EventArgs)
+            if ($EventArgs.KeyCode -eq [System.Windows.Forms.Keys]::Enter) {
+                $EventArgs.SuppressKeyPress = $true
+                $sendButton = $EventSender.Tag.sendButton
+                if ($null -ne $sendButton -and -not $sendButton.IsDisposed) {
+                    $sendButton.PerformClick()
+                }
+            }
         })
         $logInputButtonBand.Controls.Add($logInputSendButton)
 
@@ -1932,7 +1944,7 @@ try {
     $taskListTabPage.Controls.Add($dataGridView)
     $taskGridView = $dataGridView
 
-    # 任务列表的右键菜单: 启动任务 / 停止任务 / 重启任务 / 查看日志 / 上移 / 下移 / 启动所有 / 停止所有 / 新增 / 编辑 / 删除
+    # 任务列表的右键菜单: 启动任务 / 停止任务 / 重启任务 / 查看日志 / 启动所有 / 停止所有 / 新增 / 编辑 / 删除 / 上移 / 下移
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStartItem.Text = $ui.MenuStart
@@ -1973,40 +1985,6 @@ try {
             return
         }
         Show-Task-Log-Viewer -TaskName ([string]$taskConfigList[$index].name)
-    })
-    $menuMoveUpItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuMoveUpItem.Text = $ui.MenuMoveUp
-    $menuMoveUpItem.Add_Click({
-        $index = Get-Selected-Task-Index
-        if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
-            return
-        }
-        if ($index -le 0) { return }
-        $upper = $taskConfigList[$index - 1]
-        $script:taskConfigList[$index - 1] = $script:taskConfigList[$index]
-        $script:taskConfigList[$index] = $upper
-        Save-Config
-        Update-Task-Grid
-        $dataGridView.Rows[$index - 1].Selected = $true
-        $dataGridView.CurrentCell = $dataGridView.Rows[$index - 1].Cells[0]
-    })
-    $menuMoveDownItem = [System.Windows.Forms.ToolStripMenuItem]::new()
-    $menuMoveDownItem.Text = $ui.MenuMoveDown
-    $menuMoveDownItem.Add_Click({
-        $index = Get-Selected-Task-Index
-        if ($index -lt 0) {
-            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
-            return
-        }
-        if ($index -ge ($taskConfigList.Count - 1)) { return }
-        $lower = $taskConfigList[$index + 1]
-        $script:taskConfigList[$index + 1] = $script:taskConfigList[$index]
-        $script:taskConfigList[$index] = $lower
-        Save-Config
-        Update-Task-Grid
-        $dataGridView.Rows[$index + 1].Selected = $true
-        $dataGridView.CurrentCell = $dataGridView.Rows[$index + 1].Cells[0]
     })
     $menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
     $menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
@@ -2061,11 +2039,46 @@ try {
         Update-Task-Grid
         System-Log ($ui.INFO_Deleted -f $taskName) 'Info'
     })
+    $menuSep3 = [System.Windows.Forms.ToolStripSeparator]::new()
+    $menuMoveUpItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuMoveUpItem.Text = $ui.MenuMoveUp
+    $menuMoveUpItem.Add_Click({
+        $index = Get-Selected-Task-Index
+        if ($index -lt 0) {
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+            return
+        }
+        if ($index -le 0) { return }
+        $upper = $taskConfigList[$index - 1]
+        $script:taskConfigList[$index - 1] = $script:taskConfigList[$index]
+        $script:taskConfigList[$index] = $upper
+        Save-Config
+        Update-Task-Grid
+        $dataGridView.Rows[$index - 1].Selected = $true
+        $dataGridView.CurrentCell = $dataGridView.Rows[$index - 1].Cells[0]
+    })
+    $menuMoveDownItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuMoveDownItem.Text = $ui.MenuMoveDown
+    $menuMoveDownItem.Add_Click({
+        $index = Get-Selected-Task-Index
+        if ($index -lt 0) {
+            [System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+            return
+        }
+        if ($index -ge ($taskConfigList.Count - 1)) { return }
+        $lower = $taskConfigList[$index + 1]
+        $script:taskConfigList[$index + 1] = $script:taskConfigList[$index]
+        $script:taskConfigList[$index] = $lower
+        Save-Config
+        Update-Task-Grid
+        $dataGridView.Rows[$index + 1].Selected = $true
+        $dataGridView.CurrentCell = $dataGridView.Rows[$index + 1].Cells[0]
+    })
     foreach ($item in @(
         $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
-        $menuMoveUpItem, $menuMoveDownItem,
         $menuSep1, $menuStartAllItem, $menuStopAllItem,
-        $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem
+        $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem,
+        $menuSep3, $menuMoveUpItem, $menuMoveDownItem
     )) {
         $taskContextMenu.Items.Add($item) | Out-Null
     }
