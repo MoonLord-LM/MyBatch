@@ -1894,7 +1894,7 @@ try {
     $dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
     $dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($mainForm.Font, [System.Drawing.FontStyle]::Bold)
     $dataGridView.ColumnHeadersHeight = 40
-    $dataGridView.RowTemplate.Height = 32
+    $dataGridView.RowTemplate.Height = 40
     $dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
     $dataGridView.DefaultCellStyle.Font = $mainForm.Font
     $dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
