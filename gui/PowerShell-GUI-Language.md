@@ -310,7 +310,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $scriptPath = $PSCommandPath
-$content = powershell -NoProfile -Command 'Get-Content -LiteralPath "$scriptPath" -Raw'
+$content = powershell -NoProfile -Command "Get-Content -LiteralPath `"$scriptPath`" -Raw"
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
 

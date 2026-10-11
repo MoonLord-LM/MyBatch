@@ -46,7 +46,6 @@
 
 # ———————————————————————————————— 1: 通用基础设置 ————————————————————————————————
 
-Get-UICulture
 # 异常处理
 function Handle-Exception {
     param([Parameter(Mandatory=$true)][System.Management.Automation.ErrorRecord]$ErrorRecord)
@@ -69,6 +68,8 @@ try {
     [System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
 
     # 设置字符编码 UTF-8
+    Get-Culture > $null
+    Get-UICulture > $null
     $defaultOutputEncoding = [System.Console]::OutputEncoding.EncodingName
     [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     $currentOutputEncoding = [System.Console]::OutputEncoding.EncodingName
@@ -171,7 +172,7 @@ try {
 
     # 分析合适的工作目录
     $currentDirectory = [System.IO.Directory]::GetCurrentDirectory()
-    $callDirectory = (Get-Location).Path
+    $callDirectory = powershell -NoProfile -Command '(Get-Location).Path'
     $scriptDirectory = $PSScriptRoot
     $systemDirectory = [System.Environment]::SystemDirectory
     $userDirectory = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::UserProfile)
@@ -606,7 +607,8 @@ try {
         }
 
         try {
-            $config = Get-Content -Path $myBatchTaskConfigFile -Raw -Encoding UTF8 | ConvertFrom-Json
+            $configText = powershell -NoProfile -Command "Get-Content -Path `"$myBatchTaskConfigFile`" -Raw -Encoding UTF8"
+            $config = $configText | ConvertFrom-Json
             $seenNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
             $newTaskConfigList = @()
             $configItemCount = 0
