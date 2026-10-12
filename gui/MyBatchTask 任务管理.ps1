@@ -2375,7 +2375,7 @@ try {
     Process-Task-Log-Queue
 
     # 释放单实例互斥量
-    try { if ($script:appMutex) { $script:appMutex.Dispose() } } catch { } finally { }
+    try { if ($script:appMutex) { $script:appMutex.Dispose() } } catch { }
 } catch {
     Handle-Exception $_
     pause
