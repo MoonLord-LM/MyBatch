@@ -76,7 +76,12 @@ if !errorlevel! neq 0 (
 )
 echo.
 
-taskkill /f /t /im "frpc.exe" 2>nul
+tasklist /fi "imagename eq frpc.exe" | find /i "frpc.exe" >nul
+if !errorlevel! equ 0 (
+    taskkill /f /t /im "frpc.exe"
+    echo.
+)
+
 "!frpc_path!" -c "!config_path!"
 
 

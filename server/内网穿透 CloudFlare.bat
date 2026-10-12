@@ -166,7 +166,12 @@ if /i "!target_protocol!"=="https" (
 )
 echo.
 
-taskkill /f /t /im "cloudflared.exe" 2>nul
+tasklist /fi "imagename eq cloudflared.exe" | find /i "cloudflared.exe" >nul
+if !errorlevel! equ 0 (
+    taskkill /f /t /im "cloudflared.exe"
+    echo.
+)
+
 "!cloudflared_path!" tunnel --logfile "cloudflared.log" run --token "!target_token!"
 
 
