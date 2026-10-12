@@ -124,7 +124,7 @@ if exist "!output_file!" (
 REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
 powershell -NoProfile -Command ^
     "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-    "$lines = Get-Content -LiteralPath $env:script_path -Encoding utf8;" ^
+    "$lines = Get-Content -LiteralPath $env:script_path -Encoding UTF8;" ^
     "$begin = [array]::IndexOf($lines, '-----BEGIN CSHARP CODE-----') + 1;" ^
     "$end = [array]::IndexOf($lines, '-----END CSHARP CODE-----');" ^
     "if ($begin -lt 1 -or $end -lt $begin) {" ^

@@ -73,10 +73,13 @@ echo.
 
 for %%i in ("!input_file!") do (
     setlocal disabledelayedexpansion
+    set "input_size=%%~zi"
     set "base_name=%%~ni"
     set "file_dir=%%~dpi"
     setlocal enabledelayedexpansion
 
+    echo 原始大小：!input_size! 字节
+    echo.
     set "output_file=!file_dir!!base_name!.min.ps1"
     echo 输出精简版："!output_file!"
     echo.
@@ -124,13 +127,20 @@ for %%i in ("!input_file!") do (
         "};" ^
         "$txt=$newSource.ToString();" ^
         "if($txt.Length -eq 0) {Write-Host '警告：精简后内容为空'};" ^
-        "$txt|Out-File $env:output_file -Encoding utf8;" ^
-        "$size=(Get-Item $env:output_file).Length;" ^
-        "Write-Host ('已生成精简代码，大小: ' + $size + ' 字节')"
+        "$txt|Out-File $env:output_file -Encoding UTF8;"
     if !errorlevel! neq 0 (
         echo 精简失败
     ) else (
-        echo 精简成功
+        for %%j in ("!output_file!") do (
+            setlocal disabledelayedexpansion
+            set "output_size=%%~zj"
+            setlocal enabledelayedexpansion
+
+            echo 精简成功，最终大小：!output_size! 字节
+
+            endlocal
+            endlocal
+        )
     )
 
     endlocal
