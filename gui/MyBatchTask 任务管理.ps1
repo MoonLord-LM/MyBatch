@@ -88,7 +88,7 @@ try {
     $powerShellVersion = "$($PSVersionTable.PSVersion.ToString()) $($PSVersionTable.PSEdition)"
     $dotnetClrVersion = [System.Environment]::Version.ToString()
     $machineName = [System.Net.Dns]::GetHostName()
-    $userName = [Environment]::UserName
+    $userName = [System.Environment]::UserName
     "[ Debug ] windowsVersion = $windowsVersion"
     "[ Debug ] powerShellVersion = $powerShellVersion"
     "[ Debug ] dotnetClrVersion = $dotnetClrVersion"
@@ -1231,7 +1231,7 @@ try {
                 if ($execution.process.HasExited) {
                     if ($execution.process.ExitCode -eq 0) {
                         $execution.status = $ui.StatusExited
-                        $taskEndMessage = ($ui.LogTaskEndNormal -f $execution.process.ExitCode)
+                        $taskEndMessage = $ui.LogTaskEndNormal
                     } else {
                         $execution.status = $ui.StatusExitedError
                         $taskEndMessage = ($ui.LogTaskEndError -f $execution.process.ExitCode)
