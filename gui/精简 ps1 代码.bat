@@ -97,32 +97,46 @@ for %%i in ("!input_file!") do (
         "$prev=$null;" ^
         "for($i=0;$i -lt $tokens.Count;$i++) {" ^
         "    $token=$tokens[$i];" ^
-        "    $next=if($i + 1 -lt $tokens.Count) {$tokens[$i + 1]}else{$null};" ^
-        "    if($token.Kind -eq 'Comment') {continue};" ^
-        "    if($prev -and $prev.Kind -eq 'LCurly' -and $token.Kind -eq 'NewLine') {continue};" ^
-        "    if($next -and $next.Kind -eq 'RCurly' -and $token.Kind -eq 'NewLine') {continue};" ^
-        "    if(-not $prev -and $token.Kind -eq 'NewLine') {continue};" ^
-        "    if($prev -and $prev.Kind -eq 'NewLine' -and $token.Kind -eq 'NewLine') {continue};" ^
+        "    $next=if($i + 1 -lt $tokens.Count) { $tokens[$i + 1] } else { $null };" ^
+        "" ^
+        "    if($token.Kind -eq 'Comment') {" ^
+        "        continue;" ^
+        "    };" ^
+        "" ^
+        "    if($prev -and $prev.Kind -eq 'LCurly' -and $token.Kind -eq 'NewLine') {" ^
+        "        continue;" ^
+        "    };" ^
+        "    if($next -and $next.Kind -eq 'RCurly' -and $token.Kind -eq 'NewLine') {" ^
+        "        continue;" ^
+        "    };" ^
+        "    if(-not $prev -and $token.Kind -eq 'NewLine') {" ^
+        "        continue;" ^
+        "    };" ^
+        "    if($prev -and $prev.Kind -eq 'NewLine' -and $token.Kind -eq 'NewLine') {" ^
+        "        continue;" ^
+        "    };" ^
         "    if($token.Kind -eq 'NewLine') {" ^
         "        $newSource.Append($token.Text)|Out-Null;" ^
         "        $prev=$token;" ^
-        "        continue" ^
+        "        continue;" ^
         "    };" ^
+        "" ^
         "    if($null -eq $next) {" ^
         "        $newSource.Append($token.Text)|Out-Null;" ^
         "        $prev=$token;" ^
-        "        continue" ^
+        "        continue;" ^
         "    };" ^
+        "" ^
         "    $padding=$next.Extent.StartOffset - $token.Extent.EndOffset;" ^
         "    if($padding -eq 0) {" ^
         "        $newSource.Append($token.Text)|Out-Null;" ^
         "        $prev=$token;" ^
-        "        continue" ^
+        "        continue;" ^
         "    }" ^
-        "    else{" ^
+        "    else {" ^
         "        $newSource.Append($token.Text + ' ')|Out-Null;" ^
         "        $prev=@{Kind=$token.Kind;Text=$token.Text + ' '};" ^
-        "        continue" ^
+        "        continue;" ^
         "    }" ^
         "};" ^
         "$txt=$newSource.ToString();" ^
