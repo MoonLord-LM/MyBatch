@@ -102,7 +102,9 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 调用 PowerShell 时，在开头添加 `[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;` 代码，指定以 UTF-8 编码输出  
 如果只是简单的一行命令，可以不加这段代码  
 
-调用 PowerShell 的 Get-Content、Set-Content、Out-File 等，读写文件时，必须指定 UTF-8 编码  
+调用 PowerShell 的 Get-Content、Set-Content、Add‑Content、Out-File 等，读写文件时，必须指定 UTF-8 编码  
+优先考虑用 `[System.IO.File]` 的 `ReadAllText`、`WriteAllText`、`AppendAllText` 等方法替代  
+
 代码示例如下：  
 
 ```powershell

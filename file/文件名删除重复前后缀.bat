@@ -71,9 +71,9 @@ if not "!working_dir!" == "" (
         "Write-Host ('一共 ' + $files.Count + ' 个文件');" ^
         "foreach ($g in ($files | Group-Object Extension)) {" ^
         "    if ($g.Count -eq 1) {" ^
-        "        Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
+        "        Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a skipped+=1';" ^
         "        Write-Host ('跳过，单文件，无公共前后缀：\"' + $g.Group[0].Name + '\"');" ^
-        "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
+        "        Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a total+=1';" ^
         "        continue;" ^
         "    }" ^
         "    $names = @($g.Group | ForEach-Object { $_.BaseName });" ^
@@ -93,8 +93,8 @@ if not "!working_dir!" == "" (
         "    }" ^
         "    if ($prefix.Length -eq 0 -and $suffix.Length -eq 0) {" ^
         "        Write-Host ('跳过，无公共前后缀：\"' + $g.Name + '\"，共 ' + $g.Count + ' 个文件');" ^
-        "        Add-Content -LiteralPath $env:temp_set -Value ('set /a skipped+=' + $g.Count);" ^
-        "        Add-Content -LiteralPath $env:temp_set -Value ('set /a total+=' + $g.Count);" ^
+        "        Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value ('set /a skipped+=' + $g.Count);" ^
+        "        Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value ('set /a total+=' + $g.Count);" ^
         "        continue;" ^
         "    }" ^
         "    Write-Host ('\"' + $g.Name + '\"：公共前缀 \"' + $prefix + '\"，公共后缀 \"' + $suffix + '\"');" ^
@@ -167,24 +167,24 @@ if not "!working_dir!" == "" (
         "        if ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') }" ^
         "        $newName = $core + $f.Extension;" ^
         "        if ($newName -eq $f.Name) {" ^
-        "            Add-Content -LiteralPath $env:temp_set -Value 'set /a skipped+=1';" ^
+        "            Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a skipped+=1';" ^
         "            Write-Host ('跳过，无需更改：\"' + $f.Name + '\"');" ^
         "        } else {" ^
         "            if (Test-Path -LiteralPath (Join-Path $f.DirectoryName $newName)) {" ^
-        "                Add-Content -LiteralPath $env:temp_set -Value 'set /a name_conflict+=1';" ^
+        "                Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a name_conflict+=1';" ^
         "                Write-Host ('跳过，目标已存在：\"' + $f.Name + '\" -> \"' + $newName + '\"');" ^
         "            } else {" ^
         "                try {" ^
         "                    Rename-Item -LiteralPath $f.FullName -NewName $newName;" ^
-        "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a succeeded+=1';" ^
+        "                    Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a succeeded+=1';" ^
         "                    Write-Host ('重命名成功：\"' + $f.Name + '\" -> \"' + $newName + '\"');" ^
         "                } catch {" ^
-        "                    Add-Content -LiteralPath $env:temp_set -Value 'set /a rename_failed+=1';" ^
+        "                    Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a rename_failed+=1';" ^
         "                    Write-Host ('重命名失败：\"' + $f.Name + '\" -> \"' + $newName + '\"，报错信息：' + $_.Exception.Message);" ^
         "                }" ^
         "            }" ^
         "        }" ^
-        "        Add-Content -LiteralPath $env:temp_set -Value 'set /a total+=1';" ^
+        "        Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a total+=1';" ^
         "    }" ^
         "}"
     echo.

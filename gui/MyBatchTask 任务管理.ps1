@@ -617,7 +617,7 @@ try {
         }
 
         try {
-            $configText = powershell -NoProfile -Command "Get-Content -Path `"$myBatchTaskConfigFile`" -Raw -Encoding UTF8"
+            $configText = [System.IO.File]::ReadAllText($myBatchTaskConfigFile, $workingEncoding)
             $config = $configText | ConvertFrom-Json
             $seenNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
             $newTaskConfigList = @()
