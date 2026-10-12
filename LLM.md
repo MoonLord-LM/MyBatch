@@ -289,6 +289,16 @@ set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul
 if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 ```
 
+## 获取文件大小
+
+避免使用 `%%~zf` 的写法，受 32 位有符号整数的返回值限制，无法处理超过 2GB 的文件，存在溢出风险  
+
+代码示例如下：  
+
+```batch
+for /f %%s in ('powershell -NoProfile -Command "try { [System.IO.FileInfo]($env:file_path).Length } catch { -1 }"') do set "file_size=%%s"
+```
+
 ## 安全比较数字大小
 
 谨慎使用 `( equ | neq | lss | leq | gtr | geq )` 这种比较数字的写法  
