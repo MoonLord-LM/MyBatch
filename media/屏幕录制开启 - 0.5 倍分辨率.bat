@@ -91,7 +91,7 @@ powershell -NoProfile -Command ^
     "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
     "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
     "if ($begin -lt 1 -or $end -lt $begin) {" ^
-    "    Write-Host '错误：未找到内嵌的 Powershell 代码块' -ForegroundColor Red;" ^
+    "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
     "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
