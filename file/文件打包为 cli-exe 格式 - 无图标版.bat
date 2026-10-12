@@ -266,13 +266,11 @@ for %%i in ("!input_file!") do (
     set "resource_file="
     echo.
 
-    set "file_path=!temp_gzip!"
-    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "gzip_size=%%s"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_gzip)).Length } catch { -1 }"') do set "gzip_size=%%s"
     echo gzip 压缩包大小：!gzip_size! 字节
     set "method=gzip" & set "smallest_size=!gzip_size!" & set "resource_file=!temp_gzip!"
 
-    set "file_path=!temp_cab!"
-    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "cab_size=%%s"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_cab)).Length } catch { -1 }"') do set "cab_size=%%s"
     echo cab 压缩包大小：!cab_size! 字节
     set "size_smaller=0"
     for /f "delims=" %%c in ('powershell -NoProfile -Command ^
@@ -286,8 +284,7 @@ for %%i in ("!input_file!") do (
     )
 
     if "!use_7z_exe!"=="1" (
-        set "file_path=!temp_7z_exe!"
-        for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "seven_zip_size=%%s"
+        for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_7z_exe)).Length } catch { -1 }"') do set "seven_zip_size=%%s"
         echo 7z 压缩包大小：!seven_zip_size! 字节
         set "size_smaller=0"
         for /f "delims=" %%c in ('powershell -NoProfile -Command ^
