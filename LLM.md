@@ -107,17 +107,19 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 
 ```powershell
 # 读取时，使用 UTF-8 编码，等效于 -Encoding UTF8
+$utf8 = [System.Text.Encoding]::UTF8
 $utf8 = [System.Text.Encoding]::GetEncoding(65001)
 
 # 读取时，严格校验编码必须是 UTF-8
-$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);
+$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback)
 
 # 写入时，使用 UTF-8 编码，带 BOM 头，等效于 -Encoding UTF8
-$utf8BOM = [System.Text.UTF8Encoding]::new($true);
+$utf8BOM = [System.Text.Encoding]::UTF8
+$utf8BOM = [System.Text.UTF8Encoding]::new($true)
 $utf8BOM = New-Object System.Text.UTF8Encoding($true)
 
 # 写入时，使用 UTF-8 编码，不带 BOM 头
-$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);
+$utf8NoBOM = [System.Text.UTF8Encoding]::new($false)
 $utf8NoBOM = New-Object System.Text.UTF8Encoding($false)
 ```
 
