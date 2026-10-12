@@ -88,6 +88,7 @@ if not exist "OpenListData\" (
     -subj "/CN=!ssl_subject_name!"
 echo.
 
+taskkill /f /t /im "openlist.exe" 2>nul
 "explorer.exe" "https://localhost:15244/"
 powershell -NoProfile -Command ^
     "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
@@ -96,6 +97,7 @@ powershell -NoProfile -Command ^
     "$env:OPENLIST_KEY_FILE='!ssl_key!';" ^
     "$env:OPENLIST_CERT_FILE='!ssl_cert!';" ^
     "& $env:openlist_path server --data 'OpenListData'"
+echo.
 
 
 

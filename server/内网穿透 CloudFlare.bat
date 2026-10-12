@@ -166,9 +166,8 @@ if /i "!target_protocol!"=="https" (
 )
 echo.
 
+taskkill /f /t /im "cloudflared.exe" 2>nul
 "!cloudflared_path!" tunnel --logfile "cloudflared.log" run --token "!target_token!"
-echo.
-taskkill /f /im cloudflared.exe
 
 
 

@@ -76,6 +76,7 @@ if !errorlevel! neq 0 (
 )
 echo.
 
+taskkill /f /t /im "frpc.exe" 2>nul
 "!frpc_path!" -c "!config_path!"
 
 
