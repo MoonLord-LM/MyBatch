@@ -15,7 +15,9 @@ MyBatch/
 │   ├── 文件编码 - PEM 格式.bat
 │   ├── 文件打包为 bat 格式.bat
 │   ├── 文件打包为 cli-exe 格式.bat
+│   ├── 文件打包为 cli-exe 格式 - 无图标版.bat
 │   ├── 文件打包为 gui-exe 格式.bat
+│   ├── 文件打包为 gui-exe 格式 - 无图标版.bat
 │   ├── 文件哈希值生成 - RHash 版.bat
 │   ├── 文件哈希值生成.bat
 │   ├── 文件加解密 - 加密.bat
