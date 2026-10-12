@@ -43,7 +43,8 @@ MyBatch/
 │   ├── 文件重复清理.bat
 │   └── 文件自动解压.bat
 ├── gui/
-│   └── MyBatchTask 任务管理.ps1
+│   ├── MyBatchTask 任务管理.ps1
+│   └── 精简 ps1 代码.bat
 ├── media/
 │   ├── 屏幕录制关闭.bat
 │   ├── 屏幕录制开启 - 0.5 倍分辨率.bat
