@@ -47,7 +47,7 @@ set "input_file=!param1_path!"
     )
     if "!input_file:~-1!"=="\" set "input_file=!input_file:~0,-1!"
     if not exist "!input_file!" (
-        echo 错误：路径不存在：“!input_file!”，请重新输入
+        echo 错误：路径不存在："!input_file!"，请重新输入
         echo.
         set "input_file="
         goto input_file
@@ -68,7 +68,7 @@ set "input_file=!param1_path!"
 
 
 
-echo 开始处理：“!input_file!”
+echo 开始处理："!input_file!"
 echo.
 
 for %%i in ("!input_file!") do (
@@ -78,40 +78,59 @@ for %%i in ("!input_file!") do (
     setlocal enabledelayedexpansion
 
     set "output_file=!file_dir!!base_name!.min.ps1"
-    set "inputFile=!input_file!"
-    set "outputFile=!output_file!"
+    echo 输出精简版："!output_file!"
+    echo.
 
     powershell -NoProfile -ExecutionPolicy Bypass -Command ^
         "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
         "$tokens=$null;" ^
         "$errors=$null;" ^
-        "$ast=[System.Management.Automation.Language.Parser]::ParseFile($env:inputFile,[ref]$tokens,[ref]$errors);" ^
-        "if($errors){$errors|ForEach-Object{Write-Host ('解析错误: '+$_) -ForegroundColor Red};exit 1};" ^
+        "$ast=[System.Management.Automation.Language.Parser]::ParseFile($env:input_file,[ref]$tokens,[ref]$errors);" ^
+        "if($errors) {" ^
+        "    $errors|ForEach-Object{Write-Host ('解析错误: ' + $_)};" ^
+        "    exit 1" ^
+        "};" ^
         "$newSource=[System.Text.StringBuilder]::new();" ^
         "$prev=$null;" ^
-        "for($i=0;$i -lt $tokens.Count;$i++){" ^
-        "$token=$tokens[$i];" ^
-        "$next=if($i+1 -lt $tokens.Count){$tokens[$i+1]}else{$null};" ^
-        "if($token.Kind -eq 'Comment'){continue};" ^
-        "if($prev -and $prev.Kind -eq 'LCurly' -and $token.Kind -eq 'NewLine'){continue};" ^
-        "if($next -and $next.Kind -eq 'RCurly' -and $token.Kind -eq 'NewLine'){continue};" ^
-        "if(-not $prev -and $token.Kind -eq 'NewLine'){continue};" ^
-        "if($prev -and $prev.Kind -eq 'NewLine' -and $token.Kind -eq 'NewLine'){continue};" ^
-        "if($token.Kind -eq 'NewLine'){$newSource.Append($token.Text)|Out-Null;$prev=$token;continue};" ^
-        "if($null -eq $next){$newSource.Append($token.Text)|Out-Null;$prev=$token;continue};" ^
-        "$padding=$next.Extent.StartOffset - $token.Extent.EndOffset;" ^
-        "if($padding -eq 0){$newSource.Append($token.Text)|Out-Null;$prev=$token;continue}" ^
-        "else{$newSource.Append($token.Text+' ')|Out-Null;$prev=@{Kind=$token.Kind;Text=$token.Text+' '};continue}" ^
+        "for($i=0;$i -lt $tokens.Count;$i++) {" ^
+        "    $token=$tokens[$i];" ^
+        "    $next=if($i + 1 -lt $tokens.Count) {$tokens[$i + 1]}else{$null};" ^
+        "    if($token.Kind -eq 'Comment') {continue};" ^
+        "    if($prev -and $prev.Kind -eq 'LCurly' -and $token.Kind -eq 'NewLine') {continue};" ^
+        "    if($next -and $next.Kind -eq 'RCurly' -and $token.Kind -eq 'NewLine') {continue};" ^
+        "    if(-not $prev -and $token.Kind -eq 'NewLine') {continue};" ^
+        "    if($prev -and $prev.Kind -eq 'NewLine' -and $token.Kind -eq 'NewLine') {continue};" ^
+        "    if($token.Kind -eq 'NewLine') {" ^
+        "        $newSource.Append($token.Text)|Out-Null;" ^
+        "        $prev=$token;" ^
+        "        continue" ^
+        "    };" ^
+        "    if($null -eq $next) {" ^
+        "        $newSource.Append($token.Text)|Out-Null;" ^
+        "        $prev=$token;" ^
+        "        continue" ^
+        "    };" ^
+        "    $padding=$next.Extent.StartOffset - $token.Extent.EndOffset;" ^
+        "    if($padding -eq 0) {" ^
+        "        $newSource.Append($token.Text)|Out-Null;" ^
+        "        $prev=$token;" ^
+        "        continue" ^
+        "    }" ^
+        "    else{" ^
+        "        $newSource.Append($token.Text + ' ')|Out-Null;" ^
+        "        $prev=@{Kind=$token.Kind;Text=$token.Text + ' '};" ^
+        "        continue" ^
+        "    }" ^
         "};" ^
         "$txt=$newSource.ToString();" ^
-        "if($txt.Length -eq 0){Write-Host '警告：精简后内容为空' -ForegroundColor Yellow};" ^
-        "$txt|Out-File $env:outputFile -Encoding utf8;" ^
-        "$size=(Get-Item $env:outputFile).Length;" ^
-        "Write-Host ('已生成精简代码: '+$env:outputFile+'  大小: '+$size+' 字节') -ForegroundColor Green"
+        "if($txt.Length -eq 0) {Write-Host '警告：精简后内容为空'};" ^
+        "$txt|Out-File $env:output_file -Encoding utf8;" ^
+        "$size=(Get-Item $env:output_file).Length;" ^
+        "Write-Host ('已生成精简代码，大小: ' + $size + ' 字节')"
     if !errorlevel! neq 0 (
-        echo 精简失败：“!input_file!”
+        echo 精简失败
     ) else (
-        echo 精简成功：“!output_file!”
+        echo 精简成功
     )
 
     endlocal
