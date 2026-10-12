@@ -47,7 +47,7 @@ if !errorlevel! equ 0 (
         set /p "rec_pid="< "!pid_file!"
         for /f "delims=" %%o in ('
             powershell -NoProfile -Command ^
-                "[Console]::OutputEncoding = [Text.Encoding]::UTF8;" ^
+                "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;" ^
                 "$deadline = (Get-Date).AddSeconds(600);" ^
                 "$proc = Get-Process -Id $env:rec_pid -ErrorAction SilentlyContinue;" ^
                 "while ($proc -and (Get-Date) -lt $deadline) {" ^
@@ -70,7 +70,7 @@ if !errorlevel! equ 0 (
         )
         if exist "!pid_file!" (
             set "file_to_delete=!pid_file!"
-            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+            powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
             echo 录制状态记录已清除
         )
     ) else (
@@ -80,7 +80,7 @@ if !errorlevel! equ 0 (
     echo 发送停止信号失败
     echo.
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding = [Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding = [System.Text.Encoding]::UTF8;" ^
         "$all = Get-CimInstance Win32_Process;" ^
         "$targets = $all | Where-Object { $_.ProcessId -ne $PID -and ($_.Name -like 'ffmpeg*' -or ($_.Name -eq 'powershell.exe' -and $_.CommandLine -match 'MyBatchFFmpegScreenRecorder')) };" ^
         "if (-not $targets) {" ^
@@ -95,7 +95,7 @@ if !errorlevel! equ 0 (
         "}"
     if exist "!pid_file!" (
         set "file_to_delete=!pid_file!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
     )
 )
 

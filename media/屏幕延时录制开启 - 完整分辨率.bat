@@ -58,7 +58,7 @@ if exist "!pid_file!" (
     ) else (
         echo 检测到残留的录制记录，对应进程已不存在，执行清理
         set "file_to_delete=!pid_file!"
-        powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+        powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
         echo.
     )
 )
@@ -66,7 +66,7 @@ if exist "!pid_file!" (
 REM 获取屏幕分辨率
 for /f "delims=" %%r in ('
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$source = 'using System.Runtime.InteropServices;' +" ^
         "    'public static class ScreenMetrics {' +" ^
         "    '[DllImport(\"user32.dll\")] public static extern bool SetProcessDPIAware();' +" ^
@@ -78,7 +78,7 @@ for /f "delims=" %%r in ('
 ') do set "%%r"
 echo 屏幕分辨率：!screen_size!
 
-for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"') do set "time_stamp=%%t"
+for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"') do set "time_stamp=%%t"
 set "output_file=!script_dir!延时录屏_!time_stamp!.mp4"
 echo 输出文件："!output_file!"
 
@@ -86,7 +86,7 @@ echo 输出文件："!output_file!"
 
 REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码，并以隐藏窗口运行
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
     "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
     "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
@@ -95,7 +95,7 @@ powershell -NoProfile -Command ^
     "    exit 1;" ^
     "};" ^
     "$code = ($lines[$begin..($end - 1)] -join [Environment]::NewLine);" ^
-    "$b64 = [Convert]::ToBase64String([Text.Encoding]::Unicode.GetBytes($code));" ^
+    "$b64 = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
     "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$b64)"
 if !errorlevel! neq 0 (
     echo.
@@ -118,7 +118,7 @@ exit /b
 
 -----BEGIN POWERSHELL CODE-----
 
-[Console]::OutputEncoding=[Text.Encoding]::UTF8;
+[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
 $PID | Out-File -FilePath $env:pid_file -Encoding UTF8;
 $pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);
 $psi = [Diagnostics.ProcessStartInfo]::new();

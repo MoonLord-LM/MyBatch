@@ -71,31 +71,31 @@ if "!param1!" == "" (
 
         set "creation_date="
         set "video_file=!param1!"
-        for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+        for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
             set "creation_date=%%a"
         )
         if not "!creation_date!"=="" echo 视频容器 date 标记："!creation_date!"
         if "!creation_date!"=="" (
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 视频容器 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 视频流 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 苹果 QuickTime 格式标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             REM 识别微信导出视频文件名中的保存时间（mmexport + 13 位毫秒时间戳，UTC），转换为系统时区日期
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 微信文件名的导出时间："!creation_date!"
@@ -104,7 +104,7 @@ if "!param1!" == "" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
             set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!bili_out_file!"
             powershell -NoProfile -Command ^
-                "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+                "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
                 "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
                 "if(-not $m.Success) { exit; }" ^
@@ -148,7 +148,7 @@ if "!param1!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
@@ -189,7 +189,7 @@ if not "!working_dir!" == "" (
     set /a "rename_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
-    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
+    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         set "file_dir=%%~dpf"
@@ -199,31 +199,31 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
         set "creation_date="
-        for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+        for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=date -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
             set "creation_date=%%a"
         )
         if not "!creation_date!"=="" echo 视频容器 date 标记："!creation_date!"
         if "!creation_date!"=="" (
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 视频容器 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream_tags=creation_time -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 视频流 creation_time 标记："!creation_date!"
         )
         if "!creation_date!"=="" (
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -show_entries format_tags=com.apple.quicktime.creationdate -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 苹果 QuickTime 格式标记："!creation_date!"
         )
         if "!creation_date!"=="" (
             REM 识别微信导出视频文件名中的保存时间（mmexport + 13 位毫秒时间戳，UTC），转换为系统时区日期
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 微信文件名的导出时间："!creation_date!"
@@ -232,7 +232,7 @@ if not "!working_dir!" == "" (
             REM 联网查询 B 站最相邻 av 号的视频的发布时间，网络超时时间 30 秒，av 号最多尝试 10 个
             set "bili_out_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!bili_out_file!"
             powershell -NoProfile -Command ^
-                "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+                "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
                 "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
                 "if(-not $m.Success) { exit; }" ^
@@ -277,7 +277,7 @@ if not "!working_dir!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (

@@ -118,7 +118,7 @@ for %%i in ("!input_file!") do (
 
     REM 计算文件内容的 SHA512 哈希值
     for /f "delims=" %%a in ('powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
         "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
         "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"') do (
@@ -147,7 +147,7 @@ for %%i in ("!input_file!") do (
     if "!seven_zip!"=="" (
         echo 压缩方式：使用 PowerShell 内置的 GZipStream 压缩
         powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "Add-Type -AssemblyName System.IO.Compression;" ^
             "$rawBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
             "$memStream = New-Object System.IO.MemoryStream;" ^
@@ -186,7 +186,7 @@ for %%i in ("!input_file!") do (
     REM 转换 Base64 编码
     set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.txt" & type nul > "!temp_base64!"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$bytes = [System.IO.File]::ReadAllBytes($env:temp_gzip);" ^
         "$base64 = [Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
@@ -220,7 +220,7 @@ for %%i in ("!input_file!") do (
     set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
     set "origin_file_sha512_marker=-----ORIGIN FILE SHA512-----"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
         "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
         "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
@@ -292,7 +292,7 @@ for %%i in ("!input_file!") do (
     REM 转换 Base64 编码
     set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab.txt" & type nul > "!temp_base64!"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$bytes = [System.IO.File]::ReadAllBytes($env:temp_cab);" ^
         "$base64 = [Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
@@ -324,7 +324,7 @@ for %%i in ("!input_file!") do (
     set "inner_end_marker=-----END BATCH CODE 2-----"
     set "temp_output=%temp%\MyBatch_%random%_%random%_%random%_%random%.bat"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
         "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
         "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
@@ -373,7 +373,7 @@ for %%i in ("!input_file!") do (
 
     set "size_smaller=0"
     for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"'
     ) do (
         set "size_smaller=%%c"
@@ -439,7 +439,7 @@ for %%i in ("!input_file!") do (
         REM 转换 Base64 编码
         set "temp_base64=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z.txt" & type nul > "!temp_base64!"
         powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$bytes = [System.IO.File]::ReadAllBytes($env:temp_7z_exe);" ^
             "$base64 = [Convert]::ToBase64String($bytes);" ^
             "$list = New-Object System.Collections.Generic.List[string];" ^
@@ -471,7 +471,7 @@ for %%i in ("!input_file!") do (
         set "inner_end_marker=-----END BATCH CODE 3-----"
         set "temp_output=%temp%\MyBatch_%random%_%random%_%random%_%random%.bat"
         powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
             "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
             "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
@@ -519,7 +519,7 @@ for %%i in ("!input_file!") do (
 
         set "size_smaller=0"
         for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"'
         ) do (
             set "size_smaller=%%c"
@@ -591,7 +591,7 @@ if exist "!temp_file!" (
     )
     if "!size_matched!"=="1" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
             "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
             "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
@@ -604,7 +604,7 @@ if "!already_extracted!"=="0" (
     set "begin_marker=-----BEGIN GZIP FILE-----"
     set "end_marker=-----END GZIP FILE-----"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "Add-Type -AssemblyName System.IO.Compression;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
         "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
@@ -671,7 +671,7 @@ if exist "!temp_file!" (
     )
     if "!size_matched!"=="1" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
             "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
             "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
@@ -684,7 +684,7 @@ if "!already_extracted!"=="0" (
     set "begin_marker=-----BEGIN CAB FILE-----"
     set "end_marker=-----END CAB FILE-----"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
         "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
         "$end = [array]::IndexOf($lines, $env:end_marker);" ^
@@ -753,7 +753,7 @@ if exist "!temp_file!" (
     )
     if "!size_matched!"=="1" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
             "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
             "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
@@ -766,7 +766,7 @@ if "!already_extracted!"=="0" (
     set "begin_marker=-----BEGIN 7Z FILE-----"
     set "end_marker=-----END 7Z FILE-----"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
         "$begin = [array]::IndexOf($lines, $env:begin_marker) + 1;" ^
         "$end = [array]::IndexOf($lines, $env:end_marker);" ^

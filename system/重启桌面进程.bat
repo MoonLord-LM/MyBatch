@@ -45,7 +45,7 @@ set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nu
 
 echo 正在记录已打开的文件夹窗口
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "try {" ^
     "    $shell = New-Object -ComObject Shell.Application;" ^
     "}" ^
@@ -98,7 +98,7 @@ echo.
 
 echo 正在重启桌面进程
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$winlogon = Get-ItemProperty -LiteralPath 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Winlogon' -ErrorAction SilentlyContinue;" ^
     "$autoRestart = 0;" ^
     "if ($winlogon -and $winlogon.Shell -eq 'explorer.exe' -and $winlogon.AutoRestartShell -eq 1) {" ^
@@ -166,7 +166,7 @@ echo.
 
 echo 正在恢复已打开的文件夹窗口
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$paths = @(Get-Content -Encoding UTF8 -LiteralPath $env:temp_list -ErrorAction SilentlyContinue | Where-Object { $_ -ne '' });" ^
     "$ok = 0;" ^
     "$skip = 0;" ^

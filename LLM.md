@@ -99,7 +99,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 有时候，连续多行代码都使用 echo 命令输出中文内容时，会出现输出乱码或者代码解析错误的问题，报错 XXX is not recognized  
 可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM 这种无意义代码，进行规避  
 
-调用 PowerShell 时，在开头添加 `OutputEncoding=[Text.Encoding]::UTF8;` 代码，指定以 UTF-8 编码输出  
+调用 PowerShell 时，在开头添加 `OutputEncoding=[System.Text.Encoding]::UTF8;` 代码，指定以 UTF-8 编码输出  
 如果只是简单的一行命令，可以不加这段代码  
 
 调用 PowerShell 的 Get-Content、Set-Content、Out-File 等，读写文件时，必须指定 UTF-8 编码  
@@ -209,7 +209,7 @@ set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type
 
 set /a "total=0"
 set "file_path=!cd!"
-for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
+for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
     setlocal disabledelayedexpansion
     set "file_path=%%f"
     set "file_dir=%%~dpf"
@@ -243,7 +243,7 @@ REM 这里可以获取到内层的 "!total!" 的值
 最佳实践的代码示例如下：  
 
 ```batch
-for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
     set "audio_codec=%%a"
     echo audio_codec: %%a
 )
@@ -296,7 +296,7 @@ if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 ```batch
 set "size_smaller=0"
 for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "Write-Output ([int]([int64]$env:file_size -lt [int64]$env:smallest_size));"'
 ) do (
     set "size_smaller=%%c"

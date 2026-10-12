@@ -119,7 +119,7 @@ if /i "!path1!"=="!path2!" (
 
 
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "Add-Type -AssemblyName Microsoft.VisualBasic;" ^
     "$p1=$env:path1;" ^
     "$p2=$env:path2;" ^

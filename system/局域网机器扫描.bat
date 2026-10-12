@@ -29,7 +29,7 @@ echo 开始扫描...
 echo.
 
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$local_ip = $env:local_ip;" ^
     "$parts = $local_ip.Split('.');" ^
     "$prefix = $parts[0] + '.' + $parts[1] + '.' + $parts[2] + '.';" ^

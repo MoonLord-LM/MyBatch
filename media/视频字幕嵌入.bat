@@ -116,7 +116,7 @@ if "!param1!" == "" (
         )
         if "!remux_mp4_target_exist!"=="0" (
             set "has_sub=0"
-            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
+            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
                 set "has_sub=1"
             )
 
@@ -150,7 +150,7 @@ if "!param1!" == "" (
                         if not "!remux_mp4!"=="1" (
                             REM 源文件为 mkv 时原地替换，删除原文件（回收站）后移入新文件
                             set "file_to_delete=!param1!"
-                            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                            powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         )
                         move /y "!temp_video_file!" "!target_file!"
                         echo 嵌入成功
@@ -173,7 +173,7 @@ if not "!working_dir!" == "" (
     set /a "embed_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(mkv|mp4)$"
-    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
+    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         set "file_dir=%%~dpf"
@@ -201,7 +201,7 @@ if not "!working_dir!" == "" (
         )
         if "!remux_mp4_target_exist!"=="0" (
             set "has_sub=0"
-            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+            for /f "delims=" %%s in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
                 set "has_sub=1"
             )
 
@@ -239,7 +239,7 @@ if not "!working_dir!" == "" (
                         if not "!remux_mp4!"=="1" (
                             REM 源文件为 mkv 时原地替换，删除原文件（回收站）后移入新文件
                             set "file_to_delete=!video_file!"
-                            powershell -NoProfile -Command "[Console]::OutputEncoding=[Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+                            powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         )
                         move /y "!temp_video_file!" "!target_file!"
                         echo 嵌入成功

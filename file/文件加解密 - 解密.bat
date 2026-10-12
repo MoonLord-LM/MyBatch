@@ -123,7 +123,7 @@ if exist "!output_file!" (
 
 REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
+    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -LiteralPath $env:script_path -Encoding UTF8;" ^
     "$begin = [array]::IndexOf($lines, '-----BEGIN CSHARP CODE-----') + 1;" ^
     "$end = [array]::IndexOf($lines, '-----END CSHARP CODE-----');" ^
@@ -145,7 +145,7 @@ powershell -NoProfile -Command ^
     "    Write-Host '错误：密码不能为空' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
-    "$passwordBytes = [Text.Encoding]::UTF8.GetBytes($passwordText);" ^
+    "$passwordBytes = [System.Text.Encoding]::UTF8.GetBytes($passwordText);" ^
     "Write-Host '正在解密，请稍候...';" ^
     "$resultCode = [AesGcmCli]::DecryptFile($env:input_file, $env:output_file, $passwordBytes, [ref]$message);" ^
     "if ($resultCode -ne 0) {" ^
