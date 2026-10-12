@@ -124,7 +124,7 @@ try {
     try {
         $dpiResult = [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
     } catch { }
-    if(-not $dpiResult){
+    if(-not $dpiResult) {
         $dpiResult = [DpiHelper]::SetProcessDPIAware()
     }
 
@@ -837,6 +837,90 @@ try {
         $taskGridView.Rows[$rowIndex].Cells[1].Value = $pidText
     }
 
+    # ANSI 颜色转义序列映射表
+    $ansiForegroundColorMap = @{
+        '30'  = [System.Drawing.Color]::Black
+        '31'  = [System.Drawing.Color]::Maroon
+        '32'  = [System.Drawing.Color]::Green
+        '33'  = [System.Drawing.Color]::Olive
+        '34'  = [System.Drawing.Color]::Navy
+        '35'  = [System.Drawing.Color]::Purple
+        '36'  = [System.Drawing.Color]::Teal
+        '37'  = [System.Drawing.Color]::Silver
+        '90'  = [System.Drawing.Color]::Gray
+        '91'  = [System.Drawing.Color]::Red
+        '92'  = [System.Drawing.Color]::Lime
+        '93'  = [System.Drawing.Color]::Yellow
+        '94'  = [System.Drawing.Color]::Blue
+        '95'  = [System.Drawing.Color]::Magenta
+        '96'  = [System.Drawing.Color]::Cyan
+        '97'  = [System.Drawing.Color]::White
+    }
+    $ansiBackgroundColorMap = @{
+        '40'  = [System.Drawing.Color]::Black
+        '41'  = [System.Drawing.Color]::Maroon
+        '42'  = [System.Drawing.Color]::Green
+        '43'  = [System.Drawing.Color]::Olive
+        '44'  = [System.Drawing.Color]::Navy
+        '45'  = [System.Drawing.Color]::Purple
+        '46'  = [System.Drawing.Color]::Teal
+        '47'  = [System.Drawing.Color]::Silver
+        '100' = [System.Drawing.Color]::Gray
+        '101' = [System.Drawing.Color]::Red
+        '102' = [System.Drawing.Color]::Lime
+        '103' = [System.Drawing.Color]::Yellow
+        '104' = [System.Drawing.Color]::Blue
+        '105' = [System.Drawing.Color]::Magenta
+        '106' = [System.Drawing.Color]::Cyan
+        '107' = [System.Drawing.Color]::White
+    }
+
+    # 把含有 ANSI 颜色转义序列（如 ESC[36m INFO ESC[0m）的文本，以彩色样式展示到 RichTextBox 中
+    function Append-Ansi-Colored-Text {
+        param($TargetTextBox, [string]$SourceText, [System.Drawing.Color]$DefaultColor)
+
+        $escapeCharacter = [char]27
+        $ansiEscapePattern = [regex]::new([regex]::Escape($escapeCharacter.ToString()) + '\[[0-9;]*m')
+        $sourceLines = $SourceText.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
+        foreach ($sourceLine in $sourceLines) {
+            $currentForegroundColor = $DefaultColor
+            $currentBackgroundColor = [System.Drawing.Color]::Empty
+            $lastProcessedIndex = 0
+            foreach ($match in $ansiEscapePattern.Matches($sourceLine)) {
+                if ($match.Index -gt $lastProcessedIndex) {
+                    $TargetTextBox.SelectionColor = $currentForegroundColor
+                    if ($currentBackgroundColor -eq [System.Drawing.Color]::Empty) {
+                        $TargetTextBox.SelectionBackColor = $TargetTextBox.BackColor
+                    } else {
+                        $TargetTextBox.SelectionBackColor = $currentBackgroundColor
+                    }
+                    $TargetTextBox.AppendText($sourceLine.Substring($lastProcessedIndex, $match.Index - $lastProcessedIndex))
+                }
+                foreach ($code in $match.Value.Substring(2, $match.Value.Length - 3).Split(';')) {
+                    if ($code -eq '' -or $code -eq '0') {
+                        $currentForegroundColor = $DefaultColor
+                        $currentBackgroundColor = [System.Drawing.Color]::Empty
+                    } elseif ($ansiForegroundColorMap.ContainsKey($code)) {
+                        $currentForegroundColor = $ansiForegroundColorMap[$code]
+                    } elseif ($ansiBackgroundColorMap.ContainsKey($code)) {
+                        $currentBackgroundColor = $ansiBackgroundColorMap[$code]
+                    }
+                }
+                $lastProcessedIndex = $match.Index + $match.Length
+            }
+            if ($lastProcessedIndex -lt $sourceLine.Length) {
+                $TargetTextBox.SelectionColor = $currentForegroundColor
+                if ($currentBackgroundColor -eq [System.Drawing.Color]::Empty) {
+                    $TargetTextBox.SelectionBackColor = $TargetTextBox.BackColor
+                } else {
+                    $TargetTextBox.SelectionBackColor = $currentBackgroundColor
+                }
+                $TargetTextBox.AppendText($sourceLine.Substring($lastProcessedIndex))
+            }
+            $TargetTextBox.AppendText([System.Environment]::NewLine)
+        }
+    }
+
     # 新增任务日志：刷新内存缓存 + 日志文件 + 日志展示框，按 Level 决定颜色
     function Append-Task-Log-Internal {
         param([string]$TaskName, [string]$Message, [string]$Level = 'Info')
@@ -869,7 +953,10 @@ try {
                 $execution.logViewTextBox.SelectionFont = $execution.logViewTextBox.Font
                 $lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } elseif ($Level -eq 'Input') { [System.Drawing.Color]::Blue } else { [System.Drawing.Color]::Red }
                 $execution.logViewTextBox.SelectionColor = $lineColor
-                $execution.logViewTextBox.AppendText($logLine + "`r`n")
+                $execution.logViewTextBox.SelectionBackColor = $execution.logViewTextBox.BackColor
+                Append-Ansi-Colored-Text $execution.logViewTextBox $logLine $lineColor
+                $execution.logViewTextBox.SelectionColor = $lineColor
+                $execution.logViewTextBox.SelectionBackColor = $execution.logViewTextBox.BackColor
                 $execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
                 $execution.logViewTextBox.ScrollToCaret()
             }
@@ -1639,7 +1726,10 @@ try {
             $logViewTextBox.SelectionLength = 0
             $logViewTextBox.SelectionFont = $logViewTextBox.Font
             $logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
-            $logViewTextBox.AppendText($execution.logViewContent.ToString())
+            $logViewTextBox.SelectionBackColor = $logViewTextBox.BackColor
+            Append-Ansi-Colored-Text $logViewTextBox $execution.logViewContent.ToString() ([System.Drawing.Color]::Black)
+            $logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
+            $logViewTextBox.SelectionBackColor = $logViewTextBox.BackColor
             $logViewTextBox.SelectionStart = $logViewTextBox.TextLength
             $logViewTextBox.ScrollToCaret()
         }
@@ -2278,7 +2368,7 @@ try {
     Process-Task-Log-Queue
 
     # 释放单实例互斥量
-    try { if ($script:appMutex) { $script:appMutex.Dispose() } } catch { }
+    try { if ($script:appMutex) { $script:appMutex.Dispose() } } catch { } finally { }
 } catch {
     Handle-Exception $_
     pause
