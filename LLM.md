@@ -99,7 +99,7 @@ if /i "!cd!"=="!SystemRoot!\System32" (
 有时候，连续多行代码都使用 echo 命令输出中文内容时，会出现输出乱码或者代码解析错误的问题，报错 XXX is not recognized  
 可以将多行 echo 命令用空行、注释行分开，或者在末尾添加 & REM 这种无意义代码，进行规避  
 
-调用 PowerShell 时，在开头添加 `OutputEncoding=[System.Text.Encoding]::UTF8;` 代码，指定以 UTF-8 编码输出  
+调用 PowerShell 时，在开头添加 `[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;` 代码，指定以 UTF-8 编码输出  
 如果只是简单的一行命令，可以不加这段代码  
 
 调用 PowerShell 的 Get-Content、Set-Content、Out-File 等，读写文件时，必须指定 UTF-8 编码  
