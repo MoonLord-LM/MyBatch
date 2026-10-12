@@ -5,6 +5,8 @@ video2x
 *.exe
 *.DLL
 *.dll
+*.LNK
+*.lnk
 
 # Video files
 *.MP4
