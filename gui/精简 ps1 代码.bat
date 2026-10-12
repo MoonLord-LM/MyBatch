@@ -85,10 +85,10 @@ for %%i in ("!input_file!") do (
     echo.
 
     powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-        "[Console]::OutputEncoding = [Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8;" ^
         "$tokens = $null;" ^
         "$errors = $null;" ^
-        "$ast = [System.Management.Automation.Language.Parser]::ParseFile($env:input_file, [ref] $tokens, [ref] $errors);" ^
+        "[void][System.Management.Automation.Language.Parser]::ParseFile($env:input_file, [ref] $tokens, [ref] $errors);" ^
         "" ^
         "if ($errors) {" ^
         "    $errors | ForEach-Object { Write-Host ('解析错误: ' + $_) };" ^
