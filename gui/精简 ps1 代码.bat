@@ -85,62 +85,68 @@ for %%i in ("!input_file!") do (
     echo.
 
     powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-        "[Console]::OutputEncoding=[Text.Encoding]::UTF8;" ^
-        "$tokens=$null;" ^
-        "$errors=$null;" ^
-        "$ast=[System.Management.Automation.Language.Parser]::ParseFile($env:input_file,[ref]$tokens,[ref]$errors);" ^
-        "if($errors) {" ^
-        "    $errors | ForEach-Object{ Write-Host ('解析错误: ' + $_) };" ^
+        "[Console]::OutputEncoding = [Text.Encoding]::UTF8;" ^
+        "$tokens = $null;" ^
+        "$errors = $null;" ^
+        "$ast = [System.Management.Automation.Language.Parser]::ParseFile($env:input_file, [ref] $tokens, [ref] $errors);" ^
+        "" ^
+        "if ($errors) {" ^
+        "    $errors | ForEach-Object { Write-Host ('解析错误: ' + $_) };" ^
         "    exit 1" ^
         "};" ^
-        "$newSource=[System.Text.StringBuilder]::new();" ^
-        "$prev=$null;" ^
-        "for($i=0;$i -lt $tokens.Count;$i++) {" ^
-        "    $token=$tokens[$i];" ^
-        "    $next=if($i + 1 -lt $tokens.Count) { $tokens[$i + 1] } else { $null };" ^
         "" ^
-        "    if($token.Kind -eq 'Comment') {" ^
+        "$newSource = [System.Text.StringBuilder]::new();" ^
+        "$prev = $null;" ^
+        "" ^
+        "for ($i = 0; $i -lt $tokens.Count; $i++) {" ^
+        "    $token = $tokens[$i];" ^
+        "    $next = if ($i + 1 -lt $tokens.Count) { $tokens[$i + 1] } else { $null };" ^
+        "" ^
+        "    if ($token.Kind -eq 'Comment') {" ^
         "        continue;" ^
         "    };" ^
         "" ^
-        "    if($prev -and $prev.Kind -eq 'LCurly' -and $token.Kind -eq 'NewLine') {" ^
+        "    if ($prev -and $prev.Kind -eq 'LCurly' -and $token.Kind -eq 'NewLine') {" ^
         "        continue;" ^
         "    };" ^
-        "    if($next -and $next.Kind -eq 'RCurly' -and $token.Kind -eq 'NewLine') {" ^
+        "    if ($next -and $next.Kind -eq 'RCurly' -and $token.Kind -eq 'NewLine') {" ^
         "        continue;" ^
         "    };" ^
-        "    if(-not $prev -and $token.Kind -eq 'NewLine') {" ^
+        "    if (-not $prev -and $token.Kind -eq 'NewLine') {" ^
         "        continue;" ^
         "    };" ^
-        "    if($prev -and $prev.Kind -eq 'NewLine' -and $token.Kind -eq 'NewLine') {" ^
+        "    if ($prev -and $prev.Kind -eq 'NewLine' -and $token.Kind -eq 'NewLine') {" ^
         "        continue;" ^
         "    };" ^
-        "    if($token.Kind -eq 'NewLine') {" ^
+        "" ^
+        "    if ($token.Kind -eq 'NewLine') {" ^
         "        $newSource.Append($token.Text) | Out-Null;" ^
-        "        $prev=$token;" ^
+        "        $prev = $token;" ^
         "        continue;" ^
         "    };" ^
         "" ^
-        "    if($null -eq $next) {" ^
+        "    if ($null -eq $next) {" ^
         "        $newSource.Append($token.Text) | Out-Null;" ^
-        "        $prev=$token;" ^
+        "        $prev = $token;" ^
         "        continue;" ^
         "    };" ^
         "" ^
-        "    $padding=$next.Extent.StartOffset - $token.Extent.EndOffset;" ^
-        "    if($padding -eq 0) {" ^
+        "    $padding = $next.Extent.StartOffset - $token.Extent.EndOffset;" ^
+        "" ^
+        "    if ($padding -eq 0) {" ^
         "        $newSource.Append($token.Text) | Out-Null;" ^
-        "        $prev=$token;" ^
+        "        $prev = $token;" ^
         "        continue;" ^
         "    }" ^
         "    else {" ^
         "        $newSource.Append($token.Text + ' ') | Out-Null;" ^
-        "        $prev=@{Kind=$token.Kind;Text=$token.Text + ' '};" ^
+        "        $prev = @{ Kind = $token.Kind; Text = $token.Text + ' ' };" ^
         "        continue;" ^
         "    }" ^
         "};" ^
-        "$txt=$newSource.ToString();" ^
-        "if($txt.Length -eq 0) { Write-Host '警告：精简后内容为空' };" ^
+        "" ^
+        "$txt = $newSource.ToString();" ^
+        "if ($txt.Length -eq 0) { Write-Host '警告：精简后内容为空' };" ^
         "$txt | Out-File $env:output_file -Encoding UTF8;"
     if !errorlevel! neq 0 (
         echo 精简失败
