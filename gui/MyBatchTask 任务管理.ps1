@@ -1294,15 +1294,19 @@ try {
     Enable-Double-Buffered $mainForm | Out-null
     Enable-User-Paint $mainForm | Out-null
 
-    # 主窗口首次显示: 隐藏到托盘 + 自动启动任务
+    # 没有任务时显示主窗口，有任务时隐藏到托盘
     $mainForm.Add_Shown({
         param($EventSender, $EventArgs)
-        $EventSender.Hide()
-        for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
-            $task = $taskConfigList[$i]
-            $needStart = [bool]$task.autoStart
-            if ($needStart) {
-                Start-Task -Task $task
+        if ($taskConfigList.Count -eq 0) {
+            Show-Main-Window
+        } else {
+            $EventSender.Hide()
+            for ($i = 0; $i -lt $taskConfigList.Count; $i++) {
+                $task = $taskConfigList[$i]
+                $needStart = [bool]$task.autoStart
+                if ($needStart) {
+                    Start-Task -Task $task
+                }
             }
         }
     })
