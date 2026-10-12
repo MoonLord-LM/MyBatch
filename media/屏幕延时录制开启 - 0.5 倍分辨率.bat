@@ -84,7 +84,7 @@ echo 输出文件："!output_file!"
 
 
 
-REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码，并以隐藏窗口运行
+REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码
 powershell -NoProfile -Command ^
     "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^

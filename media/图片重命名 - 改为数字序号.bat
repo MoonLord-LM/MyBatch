@@ -109,10 +109,18 @@ if "!param1!" == "" (
                 )
             )
 
-            REM 将刚重命名为拍摄时间的单个文件，改为数字序号 0
+            REM 将刚重命名为拍摄时间的单个文件，改为数字序号 1
             set "rename_scope=file"
             set "rename_file=!file_dir!!new_name!"
-            powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path; $begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1; $end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----'); if ($begin -lt 1 -or $end -lt $begin) { Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red; exit 1 }; $code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine; Invoke-Expression $code"
+            REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+                "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+                "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+                "if ($begin -lt 1 -or $end -lt $begin) { Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red; exit 1 };" ^
+                "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+                "Invoke-Expression $code"
         )
     )
 )
@@ -200,7 +208,17 @@ if not "!working_dir!" == "" (
     REM 按拍摄时间顺序，将 IMG_ 开头的图片在每个文件夹内改为数字序号
     set "rename_scope=dir"
     set "rename_root=!working_dir!"
-    powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path; $begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1; $end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----'); if ($begin -lt 1 -or $end -lt $begin) { Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red; exit 1 }; $code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine; Invoke-Expression $code"
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+        "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+        "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+        "Invoke-Expression $code"
     if !errorlevel! neq 0 (
         echo 重编号失败，请检查报错信息
         echo.
