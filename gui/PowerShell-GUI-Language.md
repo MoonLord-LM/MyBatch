@@ -18,7 +18,7 @@ Powershell 通过 WinForms 调用系统公共对话框，错误显示英文界�
 
 检查项 2：  
 确保对以下特殊方法，使用 powershell 子进程隔离，避免污染主进程的语言信息：  
-`Get-ChildItem`、`Get-CimInstance`、`Get-Content`、`Get-ItemProperty`、`Get-Location`  
+`Get-ChildItem`、`Get-CimInstance`、`Get-Content`、`Get-Item`、`Get-ItemProperty`、`Get-Location`  
 
 ## 测试环境
 
@@ -242,7 +242,7 @@ Write-Host 'Test'
 
 ### 异常场景 3：加载程序集 + 修改输出编码 + 调用特殊方法 + 创建文件选择框 ❌
 
-此场景的特殊方法包含 `Get-ChildItem`、`Get-CimInstance`、`Get-Content`、`Get-ItemProperty`、`Get-Location` 等  
+此场景的特殊方法包含 `Get-ChildItem`、`Get-CimInstance`、`Get-Content`、`Get-Item`、`Get-ItemProperty`、`Get-Location` 等  
 以下代码都显示英文界面：  
 
 ```powershell
@@ -273,7 +273,7 @@ Get-Content -LiteralPath "$PSCommandPath" -Raw
 using assembly System.Windows.Forms
 Get-UICulture
 chcp 65001
-Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+(Get-Item -LiteralPath "$PSCommandPath").Length
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
 
@@ -281,8 +281,16 @@ Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
 [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-Get-Location
+Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
+```
+
+```powershell
+using assembly System.Windows.Forms
+Get-UICulture
+chcp 65001
+Get-Location
+[System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
 
 ### 异常场景 3 修复方案：使用 powershell 子进程隔离 ✅
@@ -318,7 +326,8 @@ $content = powershell -NoProfile -Command "Get-Content -LiteralPath `"$scriptPat
 using assembly System.Windows.Forms
 Get-UICulture
 chcp 65001
-$currentVersion = powershell -NoProfile -Command 'Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"'
+$scriptPath = $PSCommandPath
+$fileSize = powershell -NoProfile -Command ("Get-Item -LiteralPath `"$scriptPath`").Length")
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
 
@@ -326,6 +335,14 @@ $currentVersion = powershell -NoProfile -Command 'Get-ItemProperty "HKLM:\SOFTWA
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
 [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
-$callDirectory = powershell -NoProfile -Command '(Get-Location).Path'
+$currentVersion = powershell -NoProfile -Command 'Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion"'
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
+```
+
+```powershell
+using assembly System.Windows.Forms
+Get-UICulture
+chcp 65001
+$callDirectory = powershell -NoProfile -Command '(Get-Location).Path'
+[System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
