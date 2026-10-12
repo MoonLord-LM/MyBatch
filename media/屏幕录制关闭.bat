@@ -27,10 +27,10 @@ set "pipe_name=MyBatchFFmpegScreenRecorder"
 set "pid_file=!script_dir!_tmp_屏幕录制.pid"
 
 powershell -NoProfile -Command ^
-    "$pipe = [IO.Pipes.NamedPipeClientStream]::new('.', $env:pipe_name, [IO.Pipes.PipeDirection]::Out);" ^
+    "$pipe = [System.IO.Pipes.NamedPipeClientStream]::new('.', $env:pipe_name, [System.IO.Pipes.PipeDirection]::Out);" ^
     "try {" ^
     "    $pipe.Connect(2000);" ^
-    "    $writer = [IO.StreamWriter]::new($pipe);" ^
+    "    $writer = [System.IO.StreamWriter]::new($pipe);" ^
     "    $writer.WriteLine('stop');" ^
     "    $writer.Flush();" ^
     "    $writer.Dispose();" ^

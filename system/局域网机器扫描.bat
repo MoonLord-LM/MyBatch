@@ -54,7 +54,7 @@ powershell -NoProfile -Command ^
     "Write-Host ('扫描结果（' + $online.Count + ' 个）：');" ^
     "$dnsNames = @{};" ^
     "$nameTasks = foreach ($ip in $online) {" ^
-    "    [Net.Dns]::GetHostEntryAsync($ip);" ^
+    "    [System.Net.Dns]::GetHostEntryAsync($ip);" ^
     "};" ^
     "[System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]$nameTasks, 3000) | Out-Null;" ^
     "for ($i = 0; $i -lt $online.Count; $i++) {" ^

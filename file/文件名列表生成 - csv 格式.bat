@@ -66,7 +66,7 @@ if not "!working_dir!" == "" (
             "$utf8BOM = [System.Text.UTF8Encoding]::new($true);" ^
             "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
             "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
-            "$lines = @($files | Sort-Object Name | ForEach-Object { $modified_timestamp = [DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeMilliseconds(); '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\",\"{3}\"' -f $_.Name, $_.Length, $_.LastWriteTime, $modified_timestamp });" ^
+            "$lines = @($files | Sort-Object Name | ForEach-Object { $modified_timestamp = [System.DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeMilliseconds(); '\"{0}\",\"{1}\",\"{2:yyyy-MM-dd HH:mm:ss}\",\"{3}\"' -f $_.Name, $_.Length, $_.LastWriteTime, $modified_timestamp });" ^
             "[System.IO.File]::WriteAllLines($env:output_file, [string[]]$lines, $utf8BOM);" ^
             "Write-Host ('处理完成，共计 ' + $files.Count + ' 个文件');"
         if !errorlevel! neq 0 (

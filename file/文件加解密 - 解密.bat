@@ -131,7 +131,7 @@ powershell -NoProfile -Command ^
     "    Write-Host '错误：未找到引擎代码块' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
-    "$csharpSource = ($lines[$begin..($end - 1)] -join [Environment]::NewLine);" ^
+    "$csharpSource = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
     "Add-Type -TypeDefinition $csharpSource -Language CSharp;" ^
     "$message = $null;" ^
     "$resultCode = [AesGcmCli]::LoadLib($env:libcrypto, [ref]$message);" ^
@@ -140,7 +140,7 @@ powershell -NoProfile -Command ^
     "    exit 1;" ^
     "};" ^
     "$securePassword = Read-Host '请输入解密密码' -AsSecureString;" ^
-    "$passwordText = [Runtime.InteropServices.Marshal]::PtrToStringBSTR([Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword));" ^
+    "$passwordText = [System.Runtime.InteropServices.Marshal]::PtrToStringBSTR([System.Runtime.InteropServices.Marshal]::SecureStringToBSTR($securePassword));" ^
     "if ([string]::IsNullOrEmpty($passwordText)) {" ^
     "    Write-Host '错误：密码不能为空' -ForegroundColor Red;" ^
     "    exit 1;" ^

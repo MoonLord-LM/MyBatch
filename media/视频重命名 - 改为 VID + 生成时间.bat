@@ -95,7 +95,7 @@ if "!param1!" == "" (
             echo 未找到创建时间，跳过此文件
         ) else (
             set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & {param($UtcTime, $Duration) try { $dt = [DateTime]::Parse($UtcTime, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($Duration, [Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); $start = $start.Date.AddSeconds([Math]::Floor($start.TimeOfDay.TotalSeconds)); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch {} } -UtcTime $env:creation_time -Duration $env:duration" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & {param($UtcTime, $Duration) try { $dt = [DateTime]::Parse($UtcTime, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($Duration, [System.Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); $start = $start.Date.AddSeconds([System.Math]::Floor($start.TimeOfDay.TotalSeconds)); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch {} } -UtcTime $env:creation_time -Duration $env:duration" 2^>nul') do (
                 set "formatted_time=%%t"
             )
             if "!formatted_time!"=="" (
@@ -170,7 +170,7 @@ if not "!working_dir!" == "" (
             echo 未找到创建时间，跳过此文件
         ) else (
             set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & {param($UtcTime, $Duration) try { $dt = [DateTime]::Parse($UtcTime, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($Duration, [Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); $start = $start.Date.AddSeconds([Math]::Floor($start.TimeOfDay.TotalSeconds)); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch {} } -UtcTime $env:creation_time -Duration $env:duration" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & {param($UtcTime, $Duration) try { $dt = [DateTime]::Parse($UtcTime, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal); $start = $dt.AddSeconds(-[double]::Parse($Duration, [System.Globalization.CultureInfo]::InvariantCulture)).ToLocalTime(); $start = $start.Date.AddSeconds([System.Math]::Floor($start.TimeOfDay.TotalSeconds)); Write-Output $start.ToString('yyyyMMdd_HHmmss') } catch {} } -UtcTime $env:creation_time -Duration $env:duration" 2^>nul') do (
                 set "formatted_time=%%t"
             )
             if "!formatted_time!"=="" (

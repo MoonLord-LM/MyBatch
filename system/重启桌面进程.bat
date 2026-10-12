@@ -74,7 +74,7 @@ powershell -NoProfile -Command ^
     "            Write-Host ('忽略异常协议路径：' + $url) -ForegroundColor Yellow;" ^
     "            continue;" ^
     "        }" ^
-    "        $path = [Uri]::UnescapeDataString($p) -replace '/', '\';" ^
+    "        $path = [System.Uri]::UnescapeDataString($p) -replace '/', '\';" ^
     "        $paths += $path;" ^
     "        Write-Host ('文件夹窗口：' + $path);" ^
     "    }" ^
@@ -82,7 +82,7 @@ powershell -NoProfile -Command ^
     "        $skip++;" ^
     "    }" ^
     "}" ^
-    "[Runtime.InteropServices.Marshal]::ReleaseComObject($shell) | Out-Null;" ^
+    "[System.Runtime.InteropServices.Marshal]::ReleaseComObject($shell) | Out-Null;" ^
     "if ($paths.Count -gt 0) {" ^
     "    Set-Content -LiteralPath $env:temp_list -Value $paths -Encoding UTF8;" ^
     "};" ^

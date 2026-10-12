@@ -216,7 +216,7 @@ powershell -NoProfile -Command ^
     "$skip = 0;" ^
     "foreach ($f in $files) {" ^
     "    try {" ^
-    "        $fs = [IO.File]::Open($f, 'Open', 'Read', 'None');" ^
+    "        $fs = [System.IO.File]::Open($f, 'Open', 'Read', 'None');" ^
     "        $fs.Close();" ^
     "    } catch {" ^
     "        $skip++;" ^

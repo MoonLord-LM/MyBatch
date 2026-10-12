@@ -95,7 +95,7 @@ if "!param1!" == "" (
         )
         if "!creation_date!"=="" (
             REM 识别微信导出视频文件名中的保存时间（mmexport + 13 位毫秒时间戳，UTC），转换为系统时区日期
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[System.DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 微信文件名的导出时间："!creation_date!"
@@ -148,7 +148,7 @@ if "!param1!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [System.Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (
@@ -223,7 +223,7 @@ if not "!working_dir!" == "" (
         )
         if "!creation_date!"=="" (
             REM 识别微信导出视频文件名中的保存时间（mmexport + 13 位毫秒时间戳，UTC），转换为系统时区日期
-            for /f "delims=" %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
+            for /f "delims=" %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $n=$env:base_name; $m=[regex]::Match($n,'mmexport(\d{13})'); if($m.Success) { try { $dt=[System.DateTimeOffset]::FromUnixTimeMilliseconds([int64]$m.Groups[1].Value).ToLocalTime(); Write-Output $dt.ToString('yyyyMMdd') } catch {} }" 2^>nul') do (
                 set "creation_date=%%a"
             )
             if not "!creation_date!"=="" echo 微信文件名的导出时间："!creation_date!"
@@ -277,7 +277,7 @@ if not "!working_dir!" == "" (
             echo 未找到生成日期，跳过此文件
         ) else (
             set "formatted_date="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [Globalization.CultureInfo]::InvariantCulture, [Globalization.DateTimeStyles]::AssumeUniversal -bor [Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
+            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & { param($TimeStr) try { Write-Output $(if ($TimeStr.Length -eq 8) { [DateTime]::ParseExact($TimeStr, 'yyyyMMdd', [System.Globalization.CultureInfo]::InvariantCulture).ToLocalTime().ToString('yyyyMMdd') } else { [DateTime]::Parse($TimeStr, [System.Globalization.CultureInfo]::InvariantCulture, [System.Globalization.DateTimeStyles]::AssumeUniversal -bor [System.Globalization.DateTimeStyles]::AdjustToUniversal).ToLocalTime().ToString('yyyyMMdd') }) } catch { } } -TimeStr $env:creation_date" 2^>nul') do (
                 set "formatted_date=%%t"
             )
             if "!formatted_date!"=="" (

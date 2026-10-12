@@ -94,8 +94,8 @@ powershell -NoProfile -Command ^
     "    Write-Host '错误：未找到内嵌的 Powershell 代码块' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
-    "$code = ($lines[$begin..($end - 1)] -join [Environment]::NewLine);" ^
-    "$b64 = [Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
+    "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
+    "$b64 = [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
     "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$b64)"
 if !errorlevel! neq 0 (
     echo.
@@ -120,8 +120,8 @@ exit /b
 
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
 $PID | Out-File -FilePath $env:pid_file -Encoding UTF8;
-$pipe = [IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [IO.Pipes.PipeDirection]::In);
-$psi = [Diagnostics.ProcessStartInfo]::new();
+$pipe = [System.IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [System.IO.Pipes.PipeDirection]::In);
+$psi = [System.Diagnostics.ProcessStartInfo]::new();
 $psi.FileName = $env:ffmpeg_path;
 $creation_time = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz');
 $psi.Arguments = '-y -f gdigrab -framerate 30 -draw_mouse 1 -i desktop -c:v libx264rgb -crf 0 -preset ultrafast -pix_fmt bgr0 -movflags +faststart -metadata creation_time="' + $creation_time + '" ' + $env:output_file;
@@ -129,12 +129,12 @@ $psi.UseShellExecute = $false;
 $psi.CreateNoWindow = $true;
 $psi.RedirectStandardInput = $true;
 $psi.RedirectStandardError = $true;
-$p = [Diagnostics.Process]::new();
+$p = [System.Diagnostics.Process]::new();
 $p.StartInfo = $psi;
 $p.Start() | Out-Null;
 $errorLog = $p.StandardError.ReadToEndAsync();
 $pipe.WaitForConnection();
-$command = [IO.StreamReader]::new($pipe).ReadLine();
+$command = [System.IO.StreamReader]::new($pipe).ReadLine();
 if ($command -eq 'stop' -and -not $p.HasExited) {
     $p.StandardInput.WriteLine('q');
     $p.StandardInput.Close();

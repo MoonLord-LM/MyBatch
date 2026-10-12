@@ -188,10 +188,10 @@ for %%i in ("!input_file!") do (
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$bytes = [System.IO.File]::ReadAllBytes($env:temp_gzip);" ^
-        "$base64 = [Convert]::ToBase64String($bytes);" ^
+        "$base64 = [System.Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
         "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
-        "    $length = [Math]::Min(64, $base64.Length - $i);" ^
+        "    $length = [System.Math]::Min(64, $base64.Length - $i);" ^
         "    $list.Add($base64.Substring($i, $length));" ^
         "};" ^
         "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
@@ -294,10 +294,10 @@ for %%i in ("!input_file!") do (
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$bytes = [System.IO.File]::ReadAllBytes($env:temp_cab);" ^
-        "$base64 = [Convert]::ToBase64String($bytes);" ^
+        "$base64 = [System.Convert]::ToBase64String($bytes);" ^
         "$list = New-Object System.Collections.Generic.List[string];" ^
         "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
-        "    $length = [Math]::Min(64, $base64.Length - $i);" ^
+        "    $length = [System.Math]::Min(64, $base64.Length - $i);" ^
         "    $list.Add($base64.Substring($i, $length));" ^
         "};" ^
         "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
@@ -441,10 +441,10 @@ for %%i in ("!input_file!") do (
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$bytes = [System.IO.File]::ReadAllBytes($env:temp_7z_exe);" ^
-            "$base64 = [Convert]::ToBase64String($bytes);" ^
+            "$base64 = [System.Convert]::ToBase64String($bytes);" ^
             "$list = New-Object System.Collections.Generic.List[string];" ^
             "for ($i = 0; $i -lt $base64.Length; $i += 64) {" ^
-            "    $length = [Math]::Min(64, $base64.Length - $i);" ^
+            "    $length = [System.Math]::Min(64, $base64.Length - $i);" ^
             "    $list.Add($base64.Substring($i, $length));" ^
             "};" ^
             "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
@@ -614,7 +614,7 @@ if "!already_extracted!"=="0" (
         "};" ^
         "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
         "$base64 = $base64 -replace '\s', '';" ^
-        "$bytes = [Convert]::FromBase64String($base64);" ^
+        "$bytes = [System.Convert]::FromBase64String($base64);" ^
         "$memStream = New-Object System.IO.MemoryStream (,$bytes);" ^
         "$mode = [System.IO.Compression.CompressionMode]::Decompress;" ^
         "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
@@ -693,7 +693,7 @@ if "!already_extracted!"=="0" (
         "};" ^
         "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
         "$base64 = $base64 -replace '\s', '';" ^
-        "$bytes = [Convert]::FromBase64String($base64);" ^
+        "$bytes = [System.Convert]::FromBase64String($base64);" ^
         "[System.IO.File]::WriteAllBytes($env:temp_cab, $bytes);"
     if !errorlevel! neq 0 (
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
@@ -775,7 +775,7 @@ if "!already_extracted!"=="0" (
         "};" ^
         "$base64 = ($lines[$begin..($end - 1)] -join '');" ^
         "$base64 = $base64 -replace '\s', '';" ^
-        "$bytes = [Convert]::FromBase64String($base64);" ^
+        "$bytes = [System.Convert]::FromBase64String($base64);" ^
         "[System.IO.File]::WriteAllBytes($env:temp_7z_exe, $bytes);"
     if !errorlevel! neq 0 (
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
