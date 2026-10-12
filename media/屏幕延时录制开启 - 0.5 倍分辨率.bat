@@ -117,7 +117,6 @@ exit /b
 
 
 -----BEGIN POWERSHELL CODE-----
-
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
 $PID | Out-File -FilePath $env:pid_file -Encoding UTF8;
 $pipe = [System.IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [System.IO.Pipes.PipeDirection]::In);
@@ -149,5 +148,4 @@ if (Test-Path $env:pid_file) {
     Add-Type -AssemblyName Microsoft.VisualBasic;
     [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:pid_file, 'OnlyErrorDialogs', 'SendToRecycleBin');
 }
-
 -----END POWERSHELL CODE-----
