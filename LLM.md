@@ -332,11 +332,17 @@ if "!size_smaller!"=="1" (
 ```powershell
 [System.Console]::OutputEncoding
 [System.Convert]::DBNull
+[System.DateTimeOffset]::Now
+[System.Diagnostics.ProcessStartInfo]::new()
 [System.Drawing.Color]::Black
+[System.Environment]::UserName
 [System.Windows.Forms.Form]::new()
 [System.Globalization.CultureInfo]::CurrentCulture
 [System.IO.Directory]::GetCurrentDirectory()
 [System.Math]::PI
+[System.Net.Dns]::GetHostName()
+[System.Runtime.InteropServices.Marshal]::GetLastWin32Error()
 [System.Text.Encoding]::UTF8
 [System.Threading.Thread]::CurrentThread
+[System.Uri]::EscapeUriString('')
 ```
