@@ -1808,6 +1808,9 @@ try {
             $fileDialog.InitialDirectory = $workingDirectory
             if ($fileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {
                 $commandBox.Text = $fileDialog.FileName
+                if (-not $nameBox.Text) {
+                    $nameBox.Text = [System.IO.Path]::GetFileNameWithoutExtension($fileDialog.FileName)
+                }
                 if (-not $workingDirBox.Text) {
                     $workingDirBox.Text = Split-Path -Parent $fileDialog.FileName
                 }
