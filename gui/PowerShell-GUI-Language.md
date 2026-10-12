@@ -49,7 +49,7 @@ using assembly System.Windows.Forms
 修改输出编码的 2 种写法：  
 
 ```powershell
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 chcp 65001
 ```
 
@@ -91,19 +91,19 @@ using assembly System.Windows.Forms
 
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
 
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
 
 ```powershell
 using assembly System.Windows.Forms
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
 
@@ -129,7 +129,7 @@ chcp 65001
 
 ```powershell
 using assembly System.Windows.Forms
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
 
@@ -146,7 +146,7 @@ chcp 65001
 ```powershell
 using assembly System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
 
@@ -160,7 +160,7 @@ chcp 65001
 ```powershell
 using assembly System.Windows.Forms
 Get-UICulture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
 
@@ -178,7 +178,7 @@ chcp 65001
 
 ```powershell
 using assembly System.Windows.Forms
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Output 'Test'
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
@@ -192,7 +192,7 @@ Write-Output 'Test'
 
 ```powershell
 using assembly System.Windows.Forms
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Host 'Test'
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
@@ -211,7 +211,7 @@ Write-Host 'Test'
 ```powershell
 using assembly System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Output 'Test'
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
@@ -227,7 +227,7 @@ Write-Output 'Test'
 ```powershell
 using assembly System.Windows.Forms
 Get-UICulture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Write-Host 'Test'
 [System.Windows.Forms.OpenFileDialog]::new().ShowDialog()
 ```
@@ -248,7 +248,7 @@ Write-Host 'Test'
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Get-ChildItem -Path '.' -Filter '*.*' -File
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
@@ -264,7 +264,7 @@ Get-CimInstance Win32_OperatingSystem
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Get-Content -LiteralPath "$PSCommandPath" -Raw
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
@@ -280,7 +280,7 @@ Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 Get-Location
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
@@ -292,7 +292,7 @@ Get-Location
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $fileItems = powershell -NoProfile -Command '@(Get-ChildItem -Path "." -Filter "*.bat" -File)'
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```
@@ -308,7 +308,7 @@ $osInfo = powershell -NoProfile -Command 'Get-CimInstance Win32_OperatingSystem'
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $scriptPath = $PSCommandPath
 $content = powershell -NoProfile -Command "Get-Content -LiteralPath `"$scriptPath`" -Raw"
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
@@ -325,7 +325,7 @@ $currentVersion = powershell -NoProfile -Command 'Get-ItemProperty "HKLM:\SOFTWA
 ```powershell
 Add-Type -AssemblyName System.Windows.Forms
 Get-Culture
-[Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 $callDirectory = powershell -NoProfile -Command '(Get-Location).Path'
 (New-Object System.Windows.Forms.OpenFileDialog).ShowDialog()
 ```

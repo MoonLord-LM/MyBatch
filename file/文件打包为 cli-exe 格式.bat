@@ -119,7 +119,7 @@ for %%i in ("!input_file!") do (
 
     REM 计算文件内容的 SHA512 哈希值
     for /f "delims=" %%a in ('powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
         "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
         "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"') do (
@@ -148,7 +148,7 @@ for %%i in ("!input_file!") do (
     if "!seven_zip!"=="" (
         echo 压缩方式：使用 PowerShell 内置的 GZipStream 压缩
         powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "Add-Type -AssemblyName System.IO.Compression;" ^
             "$rawBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
             "$memStream = New-Object System.IO.MemoryStream;" ^
@@ -274,7 +274,7 @@ for %%i in ("!input_file!") do (
     echo cab 压缩包大小：!cab_size! 字节
     set "size_smaller=0"
     for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"'
     ) do (
         set "size_smaller=%%c"
@@ -288,7 +288,7 @@ for %%i in ("!input_file!") do (
         echo 7z 压缩包大小：!seven_zip_size! 字节
         set "size_smaller=0"
         for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"'
         ) do (
             set "size_smaller=%%c"
@@ -311,7 +311,7 @@ for %%i in ("!input_file!") do (
     set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
     set "origin_file_sha512_marker=-----ORIGIN FILE SHA512-----"
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
         "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
         "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
@@ -354,7 +354,7 @@ for %%i in ("!input_file!") do (
     set "temp_ico=%temp%\MyBatch_%random%_%random%_%random%_%random%.ico"
     if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "Add-Type -AssemblyName System.Drawing;" ^
         "$ch = $env:icon_char;" ^
         "if ([string]::IsNullOrEmpty($ch) -or ($ch.Length -gt 0 -and [char]::IsWhiteSpace($ch[0]))) { $ch = 'M' }" ^
@@ -410,7 +410,7 @@ for %%i in ("!input_file!") do (
     echo 正在编译代码，并嵌入压缩包资源
     echo.
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "[void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.CSharp');" ^
         "$provider = New-Object Microsoft.CSharp.CSharpCodeProvider;" ^
         "$params = New-Object System.CodeDom.Compiler.CompilerParameters;" ^

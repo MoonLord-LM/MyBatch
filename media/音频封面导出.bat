@@ -92,7 +92,7 @@ if "!param1!" == "" (
         set "has_cover=0"
         set "cover_index="
         set "cover_codec="
-        for /f "tokens=1,2,3 delims=," %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=index,codec_name:stream_disposition=attached_pic -of csv=p=0 $env:param1 2>$null"') do (
+        for /f "tokens=1,2,3 delims=," %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=index,codec_name:stream_disposition=attached_pic -of csv=p=0 $env:param1 2>$null"') do (
             if "%%c"=="1" (
                 set "has_cover=1"
                 set "cover_index=%%a"
@@ -140,7 +140,7 @@ if not "!working_dir!" == "" (
     set /a "export_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(flac|mp3)$"
-    for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
+    for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
         setlocal disabledelayedexpansion
         set "audio_file=%%f"
         set "file_dir=%%~dpf"
@@ -151,7 +151,7 @@ if not "!working_dir!" == "" (
         set "has_cover=0"
         set "cover_index="
         set "cover_codec="
-        for /f "tokens=1,2,3 delims=," %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=index,codec_name:stream_disposition=attached_pic -of csv=p=0 $env:audio_file 2>$null"') do (
+        for /f "tokens=1,2,3 delims=," %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=index,codec_name:stream_disposition=attached_pic -of csv=p=0 $env:audio_file 2>$null"') do (
             if "%%c"=="1" (
                 set "has_cover=1"
                 set "cover_index=%%a"

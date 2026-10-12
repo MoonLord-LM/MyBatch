@@ -137,7 +137,7 @@ if "!param1!" == "" (
                     if !errorlevel! equ 0 set "extracted=1"
                 ) else (
                     REM 依次测试密码列表中的密码
-                    for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
+                    for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
                         if "!extracted!"=="0" (
                             "!seven_zip!" t -y -sccUTF-8 -p"%%p" "!archive_path!" <nul >nul 2>&1
                             if !errorlevel! equ 0 (
@@ -160,7 +160,7 @@ if "!param1!" == "" (
                         if !errorlevel! equ 0 set "extracted=1"
                     ) else (
                         REM 依次测试密码列表中的密码
-                        for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
+                        for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
                             if "!extracted!"=="0" (
                                 "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                                 if !errorlevel! equ 0 (
@@ -211,7 +211,7 @@ if not "!working_dir!" == "" (
     set "file_path=!working_dir!"
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2|001)$"
     for /l %%d in (1,1,5) do (
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | ForEach-Object { $_.FullName }"') do (
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "archive_path=%%f"
             set "file_dir=%%~dpf"
@@ -219,7 +219,7 @@ if not "!working_dir!" == "" (
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; if ((Get-Content -Encoding UTF8 -LiteralPath $env:temp_skip) -contains $env:archive_path) { exit 0 } else { exit 1 }"
+            powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; if ((Get-Content -Encoding UTF8 -LiteralPath $env:temp_skip) -contains $env:archive_path) { exit 0 } else { exit 1 }"
             if !errorlevel! neq 0 (
                 echo 处理压缩文件："!archive_path!"
                 echo !archive_path!>>"!temp_skip!"
@@ -242,7 +242,7 @@ if not "!working_dir!" == "" (
                         if !errorlevel! equ 0 set "extracted=1"
                     ) else (
                         REM 依次测试密码列表中的密码
-                        for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
+                        for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
                             if "!extracted!"=="0" (
                                 "!seven_zip!" t -y -sccUTF-8 -p"%%p" "!archive_path!" <nul >nul 2>&1
                                 if !errorlevel! equ 0 (
@@ -265,7 +265,7 @@ if not "!working_dir!" == "" (
                             if !errorlevel! equ 0 set "extracted=1"
                         ) else (
                             REM 依次测试密码列表中的密码
-                            for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
+                            for /f "usebackq delims=" %%p in (`powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; %public_password_list%"`) do (
                                 if "!extracted!"=="0" (
                                     "!unrar!" t -y -p"%%p" "!archive_path!" <nul >nul 2>&1
                                     if !errorlevel! equ 0 (

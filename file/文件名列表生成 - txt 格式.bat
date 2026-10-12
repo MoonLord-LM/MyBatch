@@ -61,7 +61,7 @@ if not "!working_dir!" == "" (
 
         set "self_script=!script_path!"
         powershell -NoProfile -Command ^
-            "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
             "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
             "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^

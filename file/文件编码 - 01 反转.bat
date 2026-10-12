@@ -91,7 +91,7 @@ for %%i in ("!input_file!") do (
     )
 
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$bytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
         "for ($i = 0; $i -lt $bytes.Length; $i++) {" ^
         "    $byte = $bytes[$i];" ^

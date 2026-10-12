@@ -43,7 +43,7 @@ echo 开始扫描
 echo.
 set "log_file=!script_name!.log"
 set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
-powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; ('-- ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' --') | Out-File -LiteralPath $env:log_file -Append -Encoding UTF8"
+powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; ('-- ' + (Get-Date -Format 'yyyy-MM-dd HH:mm:ss') + ' --') | Out-File -LiteralPath $env:log_file -Append -Encoding UTF8"
 
 REM 龙之谷 DragonNest
 set "reg_value="
@@ -105,7 +105,7 @@ set "root_dir=!SystemRoot!\Temp"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
         "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -118,7 +118,7 @@ set "root_dir=!temp!"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
         "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -131,7 +131,7 @@ set "root_dir=!LocalAppData!\115Chrome\User Data\Default\Cache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
         "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -144,7 +144,7 @@ set "root_dir=!LocalAppData!\360ChromeX\Chrome\User Data\Default\Cache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
         "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -157,7 +157,7 @@ set "root_dir=!LocalAppData!\Microsoft\Edge\User Data\Default\Cache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
         "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -170,7 +170,7 @@ set "root_dir=!LocalAppData!\Quark\User Data\Default\Cache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 24 个小时前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddHours(-24);" ^
         "$found = @(Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -183,7 +183,7 @@ set "root_dir=!LocalAppData!\NVIDIA\DXCache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 12 个月前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddMonths(-12);" ^
         "Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -196,7 +196,7 @@ set "root_dir=!LocalAppData!\AMD\DXCache"
 if exist "!root_dir!" (
     echo 正在扫描文件夹："!root_dir!"，仅清理 12 个月前的
     powershell -NoProfile -Command ^
-        "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$time = (Get-Date).AddMonths(-12);" ^
         "Get-ChildItem -LiteralPath $env:root_dir -File -Recurse -ErrorAction SilentlyContinue |" ^
         "    Where-Object { $_.CreationTime -lt $time -and $_.LastWriteTime -lt $time -and $_.LastAccessTime -lt $time } |" ^
@@ -208,7 +208,7 @@ echo.
 echo 开始清理
 echo.
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "Add-Type -AssemblyName Microsoft.VisualBasic;" ^
     "$files = Get-Content -Encoding UTF8 -LiteralPath $env:temp_list | Where-Object { $_ -ne $env:temp_list };" ^
     "$ok = 0;" ^

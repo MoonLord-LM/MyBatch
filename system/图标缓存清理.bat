@@ -44,7 +44,7 @@ set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nu
 
 echo 正在记录已打开的文件夹窗口
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "try {" ^
     "    $shell = New-Object -ComObject Shell.Application;" ^
     "}" ^
@@ -97,7 +97,7 @@ echo.
 
 echo 正在结束桌面进程
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$old = @(Get-Process -Name explorer -ErrorAction SilentlyContinue | ForEach-Object { $_.Id });" ^
     "if ($old.Count -gt 0) {" ^
     "    try {" ^
@@ -140,7 +140,7 @@ echo.
 
 echo 正在启动桌面进程
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "try {" ^
     "    Start-Process explorer.exe -ErrorAction Stop;" ^
     "}" ^
@@ -169,7 +169,7 @@ echo.
 
 echo 正在恢复已打开的文件夹窗口
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$paths = @(Get-Content -Encoding UTF8 -LiteralPath $env:temp_list -ErrorAction SilentlyContinue | Where-Object { $_ -ne '' });" ^
     "$ok = 0;" ^
     "$skip = 0;" ^

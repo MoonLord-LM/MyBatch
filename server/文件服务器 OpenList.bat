@@ -90,7 +90,7 @@ echo.
 
 "explorer.exe" "https://localhost:15244/"
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$env:OPENLIST_HTTP_PORT='-1';" ^
     "$env:OPENLIST_HTTPS_PORT='15244';" ^
     "$env:OPENLIST_KEY_FILE='!ssl_key!';" ^

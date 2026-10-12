@@ -209,7 +209,7 @@ set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type
 
 set /a "total=0"
 set "file_path=!cd!"
-for /f "delims=" %%f in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
+for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
     setlocal disabledelayedexpansion
     set "file_path=%%f"
     set "file_dir=%%~dpf"
@@ -243,7 +243,7 @@ REM 这里可以获取到内层的 "!total!" 的值
 最佳实践的代码示例如下：  
 
 ```batch
-for /f "delims=" %%a in ('powershell -NoProfile -Command "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+for /f "delims=" %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
     set "audio_codec=%%a"
     echo audio_codec: %%a
 )
@@ -296,7 +296,7 @@ if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 ```batch
 set "size_smaller=0"
 for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "Write-Output ([int]([int64]$env:file_size -lt [int64]$env:smallest_size));"'
 ) do (
     set "size_smaller=%%c"

@@ -80,7 +80,7 @@ set "tunnel_count=0"
 echo 配置文件：!config_path!
 echo 可用域名：
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$cfg = ConvertFrom-Json -InputObject ([System.IO.File]::ReadAllText($env:config_path, [System.Text.Encoding]::UTF8));" ^
     "foreach ($item in $cfg.PSObject.Properties) {" ^
     "    if ($item.Value.local_port -and $item.Value.token) {" ^
@@ -132,7 +132,7 @@ echo.
 
 
 powershell -NoProfile -Command ^
-    "[Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$cfg = ConvertFrom-Json -InputObject ([System.IO.File]::ReadAllText($env:config_path, [System.Text.Encoding]::UTF8));" ^
     "foreach ($item in $cfg.PSObject.Properties) {" ^
     "    if ($item.Name -eq $env:input_host) {" ^
