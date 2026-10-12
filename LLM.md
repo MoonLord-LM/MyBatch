@@ -321,3 +321,19 @@ if "!size_smaller!"=="1" (
 
 优先使用单引号 `'`  
 只有需要变量扩展 / 子表达式才用双引号 `"`  
+
+## Powershell 命名空间
+
+一般情况下，尽量不要使用命名空间或简写，应该写出完整的类名称  
+
+代码示例如下：  
+
+```powershell
+[System.Console]::OutputEncoding
+[System.Drawing.Color]::Black
+[System.Windows.Forms.Form]::new()
+[System.Globalization.CultureInfo]::CurrentCulture
+[System.IO.Directory]::GetCurrentDirectory()
+[System.Text.Encoding]::UTF8
+[System.Threading.Thread]::CurrentThread
+```
