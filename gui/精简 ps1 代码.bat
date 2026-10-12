@@ -90,7 +90,7 @@ for %%i in ("!input_file!") do (
         "$errors=$null;" ^
         "$ast=[System.Management.Automation.Language.Parser]::ParseFile($env:input_file,[ref]$tokens,[ref]$errors);" ^
         "if($errors) {" ^
-        "    $errors|ForEach-Object{Write-Host ('解析错误: ' + $_)};" ^
+        "    $errors | ForEach-Object{ Write-Host ('解析错误: ' + $_) };" ^
         "    exit 1" ^
         "};" ^
         "$newSource=[System.Text.StringBuilder]::new();" ^
@@ -116,32 +116,32 @@ for %%i in ("!input_file!") do (
         "        continue;" ^
         "    };" ^
         "    if($token.Kind -eq 'NewLine') {" ^
-        "        $newSource.Append($token.Text)|Out-Null;" ^
+        "        $newSource.Append($token.Text) | Out-Null;" ^
         "        $prev=$token;" ^
         "        continue;" ^
         "    };" ^
         "" ^
         "    if($null -eq $next) {" ^
-        "        $newSource.Append($token.Text)|Out-Null;" ^
+        "        $newSource.Append($token.Text) | Out-Null;" ^
         "        $prev=$token;" ^
         "        continue;" ^
         "    };" ^
         "" ^
         "    $padding=$next.Extent.StartOffset - $token.Extent.EndOffset;" ^
         "    if($padding -eq 0) {" ^
-        "        $newSource.Append($token.Text)|Out-Null;" ^
+        "        $newSource.Append($token.Text) | Out-Null;" ^
         "        $prev=$token;" ^
         "        continue;" ^
         "    }" ^
         "    else {" ^
-        "        $newSource.Append($token.Text + ' ')|Out-Null;" ^
+        "        $newSource.Append($token.Text + ' ') | Out-Null;" ^
         "        $prev=@{Kind=$token.Kind;Text=$token.Text + ' '};" ^
         "        continue;" ^
         "    }" ^
         "};" ^
         "$txt=$newSource.ToString();" ^
-        "if($txt.Length -eq 0) {Write-Host '警告：精简后内容为空'};" ^
-        "$txt|Out-File $env:output_file -Encoding UTF8;"
+        "if($txt.Length -eq 0) { Write-Host '警告：精简后内容为空' };" ^
+        "$txt | Out-File $env:output_file -Encoding UTF8;"
     if !errorlevel! neq 0 (
         echo 精简失败
     ) else (
