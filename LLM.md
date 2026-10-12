@@ -296,7 +296,7 @@ if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 代码示例如下：  
 
 ```batch
-for /f %%s in ('powershell -NoProfile -Command "try { [System.IO.FileInfo]($env:file_path).Length } catch { -1 }"') do set "file_size=%%s"
+for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "file_size=%%s"
 ```
 
 ## 安全比较数字大小
