@@ -94,16 +94,8 @@ for %%i in ("!input_path!") do (
         echo 输入加密密码：
         "!seven_zip!" a %zip_params% -y -p "!output_path!" "!input_path!"
         if !errorlevel! equ 0 (
-            for %%j in ("!output_path!") do (
-                setlocal disabledelayedexpansion
-                set "file_size=%%~zj"
-                setlocal enabledelayedexpansion
-
-                echo 压缩成功："!output_path!"，大小：!file_size! 字节
-
-                endlocal
-                endlocal
-            )
+            for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_path)).Length } catch { -1 }"') do set "file_size=%%s"
+            echo 压缩成功："!output_path!"，大小：!file_size! 字节
         ) else (
             echo 压缩失败："!input_path!"
             if exist "!output_path!" ( del /f /q "!output_path!" )

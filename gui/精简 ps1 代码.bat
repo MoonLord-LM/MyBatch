@@ -75,10 +75,9 @@ for %%i in ("!input_file!") do (
     setlocal disabledelayedexpansion
     set "base_name=%%~ni"
     set "file_dir=%%~dpi"
-    set "file_path=%%~i"
     setlocal enabledelayedexpansion
 
-    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "input_size=%%s"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:input_file)).Length } catch { -1 }"') do set "input_size=%%s"
     echo 原始大小：!input_size! 字节
     echo.
     set "output_file=!file_dir!!base_name!.min.ps1"

@@ -157,16 +157,8 @@ powershell -NoProfile -Command ^
 if !errorlevel! neq 0 (
     echo 解密失败
 ) else (
-    for %%j in ("!output_file!") do (
-        setlocal disabledelayedexpansion
-        set "file_size=%%~zj"
-        setlocal enabledelayedexpansion
-
-        echo 解密成功，大小：!file_size! 字节
-
-        endlocal
-        endlocal
-    )
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_file)).Length } catch { -1 }"') do set "file_size=%%s"
+    echo 解密成功，大小：!file_size! 字节
 )
 
 

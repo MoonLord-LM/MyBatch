@@ -146,17 +146,17 @@ set /a "total=0"
 set /a "duplicate=0"
 set /a "deleted=0"
 set /a "failed=0"
-for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.FullName }"') do (
+for /f "tokens=1* delims=|" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:path1 -File -Recurse | ForEach-Object { $_.Length.ToString() + '|' + $_.FullName }"') do (
     setlocal disabledelayedexpansion
-    set "file1=%%f"
-    set "size1=%%~zf"
+    set "size1=%%f"
+    set "file1=%%g"
     setlocal enabledelayedexpansion
     echo set /a "total+=1">>"!temp_set!"
     for /f "delims=" %%g in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:es_path -path $env:path2 size:=$env:size1 2>$null"') do (
         setlocal disabledelayedexpansion
         set "file2=%%g"
         setlocal enabledelayedexpansion
-        REM echo 正在比对："!file1!" 和 "!file2!"，文件大小为 "!size1!"
+        REM echo 比对："!file1!" 和 "!file2!"
         if not "!file1!"=="!file2!" (
             if exist "!file1!" (
                 if exist "!file2!" (

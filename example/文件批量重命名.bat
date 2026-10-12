@@ -216,9 +216,7 @@ goto :eof
 
 REM "将完整的文件路径(file_path)转换为文件大小(file_size)"
 :filepath_to_filesize
-    for %%i in ("%file_path%") do (
-        set "file_size=%%~zi"
-    )
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "file_size=%%s"
 goto :eof
 
 REM "将新的文件名(new_name)中的字符串(参数1)替换为字符串(参数2)"

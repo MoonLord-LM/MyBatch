@@ -107,13 +107,13 @@ echo.
 
 for %%i in ("!input_file!") do (
     setlocal disabledelayedexpansion
-    set "file_size=%%~zi"
     set "file_dir=%%~dpi"
     set "base_name=%%~ni"
     set "file_name_ext=%%~nxi"
     setlocal enabledelayedexpansion
 
-    echo 原始大小：%%~zi 字节
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:input_file)).Length } catch { -1 }"') do set "file_size=%%s"
+    echo 原始大小：!file_size! 字节
     echo.
 
     REM 计算文件内容的 SHA512 哈希值
@@ -263,7 +263,7 @@ for %%i in ("!input_file!") do (
     ) >> "!output_file!"
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
-    for %%j in ("!output_file!") do set "smallest_size=%%~zj"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_file)).Length } catch { -1 }"') do set "smallest_size=%%s"
     set "smallest_format=gzip 格式"
     echo 文件大小：!smallest_size! 字节
     echo.
@@ -367,7 +367,7 @@ for %%i in ("!input_file!") do (
     ) >> "!temp_output!"
     if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
-    for %%j in ("!temp_output!") do set "cab_size=%%~zj"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_output)).Length } catch { -1 }"') do set "cab_size=%%s"
     echo 文件大小：!cab_size! 字节
     echo.
 
@@ -513,7 +513,7 @@ for %%i in ("!input_file!") do (
         ) >> "!temp_output!"
         if exist "!temp_base64!" ( del /f /q "!temp_base64!" )
 
-        for %%j in ("!temp_output!") do set "seven_zip_size=%%~zj"
+        for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_output)).Length } catch { -1 }"') do set "seven_zip_size=%%s"
         echo 文件大小：!seven_zip_size! 字节
         echo.
 
@@ -544,16 +544,8 @@ for %%i in ("!input_file!") do (
     echo 打包完成，保留较小的 !smallest_format! 的文件
     echo.
 
-    for %%j in ("!output_file!") do (
-        setlocal disabledelayedexpansion
-        set "file_size=%%~zj"
-        setlocal enabledelayedexpansion
-
-        echo 最终大小：!file_size! 字节
-
-        endlocal
-        endlocal
-    )
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_file)).Length } catch { -1 }"') do set "file_size=%%s"
+    echo 最终大小：!file_size! 字节
 
     endlocal
     endlocal
@@ -586,8 +578,8 @@ set "temp_file=!temp_dir!\!origin_file_name!"
 set "already_extracted=0"
 if exist "!temp_file!" (
     set "size_matched=0"
-    for %%i in ("!temp_file!") do (
-        if "!origin_file_size!"=="%%~zi" set "size_matched=1"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_file)).Length } catch { -1 }"') do (
+        if "!origin_file_size!"=="%%s" set "size_matched=1"
     )
     if "!size_matched!"=="1" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
@@ -666,8 +658,8 @@ set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
 set "already_extracted=0"
 if exist "!temp_file!" (
     set "size_matched=0"
-    for %%i in ("!temp_file!") do (
-        if "!origin_file_size!"=="%%~zi" set "size_matched=1"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_file)).Length } catch { -1 }"') do (
+        if "!origin_file_size!"=="%%s" set "size_matched=1"
     )
     if "!size_matched!"=="1" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^
@@ -748,8 +740,8 @@ set "temp_7z_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
 set "already_extracted=0"
 if exist "!temp_file!" (
     set "size_matched=0"
-    for %%i in ("!temp_file!") do (
-        if "!origin_file_size!"=="%%~zi" set "size_matched=1"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_file)).Length } catch { -1 }"') do (
+        if "!origin_file_size!"=="%%s" set "size_matched=1"
     )
     if "!size_matched!"=="1" (
         for /f "delims=" %%j in ('powershell -NoProfile -Command ^

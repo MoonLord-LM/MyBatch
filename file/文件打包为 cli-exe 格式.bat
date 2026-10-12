@@ -108,13 +108,13 @@ echo.
 
 for %%i in ("!input_file!") do (
     setlocal disabledelayedexpansion
-    set "file_size=%%~zi"
     set "file_dir=%%~dpi"
     set "base_name=%%~ni"
     set "file_name_ext=%%~nxi"
     setlocal enabledelayedexpansion
 
-    echo 原始大小：%%~zi 字节
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:input_file)).Length } catch { -1 }"') do set "file_size=%%s"
+    echo 原始大小：!file_size! 字节
     echo.
 
     REM 计算文件内容的 SHA512 哈希值
@@ -266,11 +266,13 @@ for %%i in ("!input_file!") do (
     set "resource_file="
     echo.
 
-    for %%j in ("!temp_gzip!") do set "gzip_size=%%~zj"
+    set "file_path=!temp_gzip!"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "gzip_size=%%s"
     echo gzip 压缩包大小：!gzip_size! 字节
     set "method=gzip" & set "smallest_size=!gzip_size!" & set "resource_file=!temp_gzip!"
 
-    for %%j in ("!temp_cab!") do set "cab_size=%%~zj"
+    set "file_path=!temp_cab!"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "cab_size=%%s"
     echo cab 压缩包大小：!cab_size! 字节
     set "size_smaller=0"
     for /f "delims=" %%c in ('powershell -NoProfile -Command ^
@@ -284,7 +286,8 @@ for %%i in ("!input_file!") do (
     )
 
     if "!use_7z_exe!"=="1" (
-        for %%j in ("!temp_7z_exe!") do set "seven_zip_size=%%~zj"
+        set "file_path=!temp_7z_exe!"
+        for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "seven_zip_size=%%s"
         echo 7z 压缩包大小：!seven_zip_size! 字节
         set "size_smaller=0"
         for /f "delims=" %%c in ('powershell -NoProfile -Command ^
@@ -462,16 +465,8 @@ for %%i in ("!input_file!") do (
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
     if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
 
-    for %%j in ("!output_file!") do (
-        setlocal disabledelayedexpansion
-        set "file_size=%%~zj"
-        setlocal enabledelayedexpansion
-
-        echo 最终大小：!file_size! 字节
-
-        endlocal
-        endlocal
-    )
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_file)).Length } catch { -1 }"') do set "file_size=%%s"
+    echo 最终大小：!file_size! 字节
 
     endlocal
     endlocal
