@@ -8,7 +8,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将带 EXIF 拍摄时间的图片，先按拍摄时间重命名，再按时间顺序改为数字序号 1-9 / 01-99 / 001-999' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将带 EXIF 拍摄时间的图片，先按拍摄时间重命名，再按时间顺序改为数字序号' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '按文件的总数量，分别使用 1-9 / 01-99 / 001-999 作为新的文件名，预留 0 / 00 / 000 给封面图使用' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
@@ -208,6 +209,7 @@ if not "!working_dir!" == "" (
     REM 按拍摄时间顺序，将 IMG_ 开头的图片在每个文件夹内改为数字序号
     set "rename_scope=dir"
     set "rename_root=!working_dir!"
+    REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
