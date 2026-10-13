@@ -1645,6 +1645,7 @@ try {
         # 在 `ReadOnly = true` 状态下，实现 `EnableAutoDragDrop = true` 的类似效果，允许拖拽文本
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragStart' -Value ([System.Drawing.Point]::Empty) -Force
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragAllowed' -Value $false -Force
+        $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragText' -Value '' -Force
         $logViewTextBox.Add_MouseDown({
             param($Sender, $EventArgs)
             if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
@@ -1652,16 +1653,18 @@ try {
                 $Sender.readOnlyDragAllowed = (
                     $Sender.SelectionLength -gt 0 -and
                     $charIndex -ge $Sender.SelectionStart -and
-                    $charIndex -lt ($Sender.SelectionStart + $Sender.SelectionLength
-                ))
+                    $charIndex -lt ($Sender.SelectionStart + $Sender.SelectionLength)
+                )
+                if ($Sender.readOnlyDragAllowed) {
+                    $Sender.readOnlyDragText = $Sender.SelectedText
+                }
                 $Sender.readOnlyDragStart = $EventArgs.Location
             }
         })
         $logViewTextBox.Add_MouseMove({
             param($Sender, $EventArgs)
             if (
-                ($EventArgs.Button -band [System.Windows.Forms.MouseButtons]::Left) -and
-                $Sender.readOnlyDragAllowed -and $Sender.SelectionLength -gt 0 -and
+                $Sender.readOnlyDragAllowed -and
                 $Sender.readOnlyDragStart -ne [System.Drawing.Point]::Empty
             ) {
                 $dx = $EventArgs.X - $Sender.readOnlyDragStart.X
@@ -1670,7 +1673,7 @@ try {
                     [Math]::Abs($dx) -gt [System.Windows.Forms.SystemInformation]::DragSize.Width -or
                     [Math]::Abs($dy) -gt [System.Windows.Forms.SystemInformation]::DragSize.Height
                 ) {
-                    $Sender.DoDragDrop($Sender.SelectedText, [System.Windows.Forms.DragDropEffects]::Copy)
+                    $Sender.DoDragDrop($Sender.readOnlyDragText, [System.Windows.Forms.DragDropEffects]::Copy)
                     $Sender.readOnlyDragStart = [System.Drawing.Point]::Empty
                     $Sender.readOnlyDragAllowed = $false
                 }
