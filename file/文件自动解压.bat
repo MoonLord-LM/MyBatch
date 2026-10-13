@@ -12,6 +12,7 @@ powershell -NoProfile -Command "Write-Host '使用预置的在互联网上公开
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的压缩文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个压缩文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '处理的范围为 7z zip rar tar gz bz2 xz tgz tbz2 格式的文件、.001 分卷压缩包以及无后缀的文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '自动跳过一些特殊的文件夹：.git .svn _internal node_modules __pycache__' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '预置的公开密码，保存在 public_password_list 变量中' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '文件会解压到与压缩文件同名的文件夹中，如果输出文件夹已存在，则跳过不处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对于嵌套压缩的压缩包文件，会尝试深入解压最多 5 层' -ForegroundColor Green"
@@ -210,8 +211,9 @@ if not "!working_dir!" == "" (
 
     set "file_path=!working_dir!"
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2|001)$"
+    set "skip_dirs=.git,.svn,_internal,node_modules,__pycache__"
     for /l %%d in (1,1,5) do (
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | ForEach-Object { $_.FullName }"') do (
+        for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $skipDirs=$env:skip_dirs -split ','; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | Where-Object { $d=$_.Directory; while ($d -ne $null) { if ($skipDirs -contains $d.Name) { return $false }; $d=$d.Parent }; return $true } | ForEach-Object { $_.FullName }"') do (
             setlocal disabledelayedexpansion
             set "archive_path=%%f"
             set "file_dir=%%~dpf"
