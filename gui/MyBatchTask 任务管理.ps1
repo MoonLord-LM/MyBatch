@@ -93,11 +93,11 @@ try {
     "[ Debug ] windowsVersion = $windowsVersion"
     "[ Debug ] powerShellVersion = $powerShellVersion"
     "[ Debug ] dotnetClrVersion = $dotnetClrVersion"
-    "[ Debug ] threadState = $threadState"
     try {
         $dotnetFrameworkDescription = [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
         "[ Debug ] dotnetFrameworkDescription = $dotnetFrameworkDescription"
     } catch { }
+    "[ Debug ] threadState = $threadState"
     "[ Debug ] machineName = $machineName"
     "[ Debug ] userName = $userName"
 
