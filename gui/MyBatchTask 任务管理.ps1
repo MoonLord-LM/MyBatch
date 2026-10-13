@@ -1167,6 +1167,11 @@ try {
             try { $execution.logFileWriter.Dispose() } catch {}
         }
         if ($execution.process) {
+            try { $execution.process.StandardOutput.Close() } catch {}
+            try { $execution.process.StandardOutput.Dispose() } catch {}
+            try { $execution.process.StandardError.Close()  } catch {}
+            try { $execution.process.StandardError.Dispose()  } catch {}
+            try { $execution.process.StandardInput.Close() } catch {}
             try { $execution.process.StandardInput.Dispose() } catch {}
         }
         foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {
