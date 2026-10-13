@@ -104,17 +104,25 @@ try {
 @'
     using System;
     using System.Runtime.InteropServices;
-    public static class DpiHelper {
-        [DllImport("user32.dll")]
-        public static extern bool SetProcessDPIAware();
-        [DllImport("user32.dll")]
-        public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
-    }
     public static class DpiContext {
         public static readonly IntPtr UNAWARE = (IntPtr)(-1);
         public static readonly IntPtr SYSTEM_AWARE = (IntPtr)(-2);
         public static readonly IntPtr PER_MONITOR_AWARE = (IntPtr)(-3);
         public static readonly IntPtr PER_MONITOR_AWARE_V2 = (IntPtr)(-4);
+    }
+    public static class Win32Scroll {
+        public const int EM_GETSCROLLPOS = 0x04DD;
+        public const int EM_SETSCROLLPOS = 0x04DE;
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT { public int X; public int Y; }
+    }
+    public static class Win32API {
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDPIAware();
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
+        [DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, ref Win32Scroll.POINT lParam);
     }
 '@
     Add-Type -TypeDefinition $win32ApiCode
@@ -122,10 +130,10 @@ try {
     # 禁用自动缩放
     $dpiResult = $false
     try {
-        $dpiResult = [DpiHelper]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
+        $dpiResult = [Win32API]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
     } catch { }
     if(-not $dpiResult) {
-        $dpiResult = [DpiHelper]::SetProcessDPIAware()
+        $dpiResult = [Win32API]::SetProcessDPIAware()
     }
 
     # 查看加载的 WinForms 程序集信息
@@ -1337,16 +1345,62 @@ try {
         }
     })
 
+    # 记录日志框滚动位置：隐藏前保存、显示后恢复
+    $savedLogScroll = @{}
+    function Collect-Log-TextBoxes {
+        $boxes = [System.Collections.Generic.List[System.Windows.Forms.RichTextBox]]::new()
+        if ($null -ne $systemLogTextBox -and -not $systemLogTextBox.IsDisposed) {
+            $boxes.Add($systemLogTextBox)
+        }
+        foreach ($key in $taskExecutionMap.Keys) {
+            $box = $taskExecutionMap[$key].logViewTextBox
+            if ($null -ne $box -and -not $box.IsDisposed) {
+                $boxes.Add($box)
+            }
+        }
+        return $boxes
+    }
+    function Save-Log-Scroll {
+        $map = @{}
+        foreach ($box in Collect-Log-TextBoxes) {
+            if (-not $box.IsHandleCreated) { continue }
+            $pos = [Win32Scroll+POINT]::new()
+            try {
+                [Win32API]::SendMessage($box.Handle, [Win32Scroll]::EM_GETSCROLLPOS, [IntPtr]::Zero, [ref]$pos) | Out-Null
+                $map[$box] = $pos
+            } catch { }
+        }
+        $script:savedLogScroll = $map
+    }
+    function Restore-Log-Scroll {
+        $map = $script:savedLogScroll
+        foreach ($box in Collect-Log-TextBoxes) {
+            if ($map.ContainsKey($box)) {
+                $pos = $map[$box]
+                try {
+                    [Win32API]::SendMessage($box.Handle, [Win32Scroll]::EM_SETSCROLLPOS, [IntPtr]::Zero, [ref]$pos) | Out-Null
+                    continue
+                } catch { }
+            }
+            try {
+                $box.SelectionStart = $box.TextLength
+                $box.ScrollToCaret()
+            } catch { }
+        }
+    }
+
     # 从托盘图标点击，显示主窗口
     function Show-Main-Window {
         $mainForm.Opacity = 1
         $mainForm.ShowInTaskbar = $true
         $mainForm.Show()
         $mainForm.Activate()
+        Restore-Log-Scroll
     }
 
     # 从托盘图标点击，隐藏主窗口
     function Hide-Main-Window {
+        Save-Log-Scroll
         $mainForm.Opacity = 0
         $mainForm.ShowInTaskbar = $false
         $mainForm.Hide()
@@ -1360,6 +1414,7 @@ try {
         param($EventSender, $EventArgs)
         if (-not $mainFormRealExit) {
             $EventArgs.Cancel = $true
+            Save-Log-Scroll
             $EventSender.Opacity = 0
             $EventSender.ShowInTaskbar = $false
             $EventSender.Hide()
@@ -1586,6 +1641,46 @@ try {
                 Start-Process $EventArgs.LinkText
             }
         })
+
+        # 在 `ReadOnly = true` 状态下，实现 `EnableAutoDragDrop = true` 的类似效果，允许拖拽文本
+        $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragStart' -Value ([System.Drawing.Point]::Empty) -Force
+        $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragAllowed' -Value $false -Force
+        $logViewTextBox.Add_MouseDown({
+            param($Sender, $EventArgs)
+            if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {
+                $charIndex = $Sender.GetCharIndexFromPosition($EventArgs.Location)
+                $Sender.readOnlyDragAllowed = (
+                    $Sender.SelectionLength -gt 0 -and
+                    $charIndex -ge $Sender.SelectionStart -and
+                    $charIndex -lt ($Sender.SelectionStart + $Sender.SelectionLength
+                ))
+                $Sender.readOnlyDragStart = $EventArgs.Location
+            }
+        })
+        $logViewTextBox.Add_MouseMove({
+            param($Sender, $EventArgs)
+            if (
+                ($EventArgs.Button -band [System.Windows.Forms.MouseButtons]::Left) -and
+                $Sender.readOnlyDragAllowed -and $Sender.SelectionLength -gt 0 -and
+                $Sender.readOnlyDragStart -ne [System.Drawing.Point]::Empty
+            ) {
+                $dx = $EventArgs.X - $Sender.readOnlyDragStart.X
+                $dy = $EventArgs.Y - $Sender.readOnlyDragStart.Y
+                if (
+                    [Math]::Abs($dx) -gt [System.Windows.Forms.SystemInformation]::DragSize.Width -or
+                    [Math]::Abs($dy) -gt [System.Windows.Forms.SystemInformation]::DragSize.Height
+                ) {
+                    $Sender.DoDragDrop($Sender.SelectedText, [System.Windows.Forms.DragDropEffects]::Copy)
+                    $Sender.readOnlyDragStart = [System.Drawing.Point]::Empty
+                    $Sender.readOnlyDragAllowed = $false
+                }
+            }
+        })
+        $logViewTextBox.Add_MouseUp({
+            param($Sender, $EventArgs)
+            $Sender.readOnlyDragStart = [System.Drawing.Point]::Empty
+            $Sender.readOnlyDragAllowed = $false
+        })
         $logLayoutPanel.Controls.Add($logViewTextBox, 0, 0)
 
         # 底部输入区域：输入框 + 发送按钮
@@ -1615,6 +1710,30 @@ try {
         $logInputTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
         $logInputTextBox.Margin = [System.Windows.Forms.Padding]::new(8, $vSpacing, 8, $vSpacing)
         $logInputBar.Controls.Add($logInputTextBox, 0, 0)
+
+        # 支持拖入文本
+        $logInputTextBox.AllowDrop = $true
+        $logInputTextBox.Add_DragEnter({
+            param($Sender, $EventArgs)
+            if (
+                $EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::Text) -or
+                $EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::UnicodeText
+            )) {
+                $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy
+            } else {
+                $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::None
+            }
+        })
+        $logInputTextBox.Add_DragDrop({
+            param($Sender, $EventArgs)
+            $dropped = $EventArgs.Data.GetData([System.Windows.Forms.DataFormats]::Text)
+            if (-not [string]::IsNullOrEmpty($dropped)) {
+                $insertPos = $Sender.SelectionStart
+                $Sender.Text = $Sender.Text.Insert($insertPos, $dropped)
+                $Sender.SelectionStart = $insertPos + $dropped.Length
+                $Sender.Focus() | Out-Null
+            }
+        })
 
         # 发送按钮
         $logInputButtonBand = [System.Windows.Forms.Panel]::new()
