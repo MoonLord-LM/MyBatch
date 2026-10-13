@@ -310,6 +310,7 @@ for %%i in ("!input_file!") do (
     set "origin_file_name_marker=-----ORIGIN FILE NAME-----"
     set "origin_file_size_marker=-----ORIGIN FILE SIZE-----"
     set "origin_file_sha512_marker=-----ORIGIN FILE SHA512-----"
+    set "origin_file_product_marker=-----ORIGIN FILE PRODUCT-----"
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -324,6 +325,7 @@ for %%i in ("!input_file!") do (
         "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $env:file_name_ext);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_product_marker, $env:base_name);" ^
         "};" ^
         "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
         "[System.IO.File]::WriteAllLines($env:temp_cs, $code, $utf8NoBOM);"
@@ -486,6 +488,9 @@ using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Windows.Forms;
 using System.Runtime.InteropServices;
+
+[assembly: System.Reflection.AssemblyTitle("-----ORIGIN FILE PRODUCT-----")]
+[assembly: System.Reflection.AssemblyProduct("-----ORIGIN FILE PRODUCT-----")]
 
 public static class Program
 {
