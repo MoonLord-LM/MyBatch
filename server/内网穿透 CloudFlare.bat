@@ -172,7 +172,20 @@ if !errorlevel! equ 0 (
     echo.
 )
 
-"!cloudflared_path!" tunnel --logfile "cloudflared.log" run --token "!target_token!"
+"!cloudflared_path!" ^
+    tunnel ^
+    --logfile "cloudflared.log" ^
+    run ^
+    --dns-resolver-addrs 1.1.1.1:53 ^
+    --dns-resolver-addrs 1.0.0.1:53 ^
+    --dns-resolver-addrs 8.8.8.8:53 ^
+    --dns-resolver-addrs 8.8.4.4:53 ^
+    --dns-resolver-addrs 223.5.5.5:53 ^
+    --dns-resolver-addrs 223.6.6.6:53 ^
+    --dns-resolver-addrs 119.29.29.29:53 ^
+    --dns-resolver-addrs 182.254.116.116:53 ^
+    --protocol http2 ^
+    --token "!target_token!"
 
 
 
