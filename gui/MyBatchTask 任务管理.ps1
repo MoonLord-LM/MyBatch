@@ -573,10 +573,10 @@ try {
         param([string]$Title = $ui.FormTitle, [string]$Message = '', [System.Windows.Forms.ToolTipIcon]$Icon = [System.Windows.Forms.ToolTipIcon]::Info)
 
         try {
-            if ($null -eq $script:trayIcon -or $script:trayIcon.Visible -eq $false) {
+            if ($null -eq $trayIcon -or $trayIcon.Visible -eq $false) {
                 return
             }
-            $script:trayIcon.ShowBalloonTip(10000, $Title, $Message, $Icon)
+            $trayIcon.ShowBalloonTip(10000, $Title, $Message, $Icon)
         } catch {
             Handle-Exception $_
         }
