@@ -260,8 +260,8 @@ try {
             StatusStopped = '手动结束'
             StatusExited = '正常结束'
             StatusExitedError = '异常结束'
-            NotifyTitleExitedError = '任务异常结束'
-            NotifyTextExitedError = '任务「{0}」异常结束，退出码 {1}'
+            NotifyTitleExitedError = '任务结束通知'
+            NotifyTextExitedError = '任务「{0}」已结束，退出码 {1}'
             LogCopy = '复制'
             LogCopyAll = '复制全部'
             LogClear = '清空日志显示'
@@ -358,8 +358,8 @@ try {
             StatusStopped = 'Manual Stop'
             StatusExited = 'Exited Normally'
             StatusExitedError = 'Abnormal Exit'
-            NotifyTitleExitedError = 'Task Abnormal Exit'
-            NotifyTextExitedError = "Task '{0}' exited abnormally, exit code {1}"
+            NotifyTitleExitedError = 'Task Finished Notification'
+            NotifyTextExitedError = "Task '{0}' finished, exit code {1}"
             LogCopy = 'Copy'
             LogCopyAll = 'Copy All'
             LogClear = 'Clear Log View'
@@ -1273,9 +1273,7 @@ try {
                     Update-Task-Grid-Row -TaskName $taskName
                     System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) 'Warning'
                     Append-Task-Log -TaskName $taskName -Message $taskEndMessage
-                    if ($execution.process.ExitCode -ne 0) {
-                        Show-Tray-Info -Title $ui.NotifyTitleExitedError -Message ($ui.NotifyTextExitedError -f $taskName, $execution.process.ExitCode)
-                    }
+                    Show-Tray-Info -Title $ui.NotifyTitleExitedError -Message ($ui.NotifyTextExitedError -f $taskName, $execution.process.ExitCode)
                 }
             }
         }
@@ -1687,7 +1685,7 @@ try {
                     $dragData = [System.Windows.Forms.DataObject]::new()
                     $dragData.SetData([System.Windows.Forms.DataFormats]::UnicodeText, $Sender.readOnlyDragText)
                     $dragData.SetData([System.Windows.Forms.DataFormats]::Text, $Sender.readOnlyDragText)
-                    $Sender.DoDragDrop($dragData, [System.Windows.Forms.DragDropEffects]::Copy)
+                    $Sender.DoDragDrop($dragData, [System.Windows.Forms.DragDropEffects]::Copy -bor [System.Windows.Forms.DragDropEffects]::Move)
                     $Sender.readOnlyDragStart = [System.Drawing.Point]::Empty
                     $Sender.readOnlyDragAllowed = $false
                 }
