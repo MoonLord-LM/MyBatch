@@ -250,6 +250,8 @@ try {
             StatusStopped = '手动结束'
             StatusExited = '正常结束'
             StatusExitedError = '异常结束'
+            NotifyTitleExitedError = '任务异常结束'
+            NotifyTextExitedError = '任务「{0}」异常结束，退出码 {1}'
             LogCopy = '复制'
             LogCopyAll = '复制全部'
             LogClear = '清空日志显示'
@@ -346,6 +348,8 @@ try {
             StatusStopped = 'Manual Stop'
             StatusExited = 'Exited Normally'
             StatusExitedError = 'Abnormal Exit'
+            NotifyTitleExitedError = 'Task Abnormal Exit'
+            NotifyTextExitedError = "Task '{0}' exited abnormally, exit code {1}"
             LogCopy = 'Copy'
             LogCopyAll = 'Copy All'
             LogClear = 'Clear Log View'
@@ -562,6 +566,20 @@ try {
             return
         }
         System-Log-Internal $systemLogTextBox $logLine $logColor
+    }
+
+    # 在桌面右下角弹出经典的 Windows 气球提示
+    function Show-Tray-Info {
+        param([string]$Title = $ui.FormTitle, [string]$Message = '', [System.Windows.Forms.ToolTipIcon]$Icon = [System.Windows.Forms.ToolTipIcon]::Info)
+
+        try {
+            if ($null -eq $script:trayIcon -or $script:trayIcon.Visible -eq $false) {
+                return
+            }
+            $script:trayIcon.ShowBalloonTip(10000, $Title, $Message, $Icon)
+        } catch {
+            Handle-Exception $_
+        }
     }
 
     # 任务配置列表
@@ -1240,6 +1258,9 @@ try {
                     Update-Task-Grid-Row -TaskName $taskName
                     System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) 'Warning'
                     Append-Task-Log -TaskName $taskName -Message $taskEndMessage
+                    if ($execution.process.ExitCode -ne 0) {
+                        Show-Tray-Info -Title $ui.NotifyTitleExitedError -Message ($ui.NotifyTextExitedError -f $taskName, $execution.process.ExitCode)
+                    }
                 }
             }
         }
