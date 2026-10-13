@@ -87,11 +87,13 @@ try {
     }
     $powerShellVersion = "$($PSVersionTable.PSVersion.ToString()) $($PSVersionTable.PSEdition)"
     $dotnetClrVersion = [System.Environment]::Version.ToString()
+    $threadState = [Threading.Thread]::CurrentThread.GetApartmentState()
     $machineName = [System.Net.Dns]::GetHostName()
     $userName = [System.Environment]::UserName
     "[ Debug ] windowsVersion = $windowsVersion"
     "[ Debug ] powerShellVersion = $powerShellVersion"
     "[ Debug ] dotnetClrVersion = $dotnetClrVersion"
+    "[ Debug ] threadState = $threadState"
     try {
         $dotnetFrameworkDescription = [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
         "[ Debug ] dotnetFrameworkDescription = $dotnetFrameworkDescription"
@@ -1720,7 +1722,6 @@ try {
         $logInputTextBox.Font = $mainForm.Font
         $boxHeight = $logInputTextBox.PreferredHeight
         $vSpacing = [int](([int]$logLayoutPanel.RowStyles[1].Height - $boxHeight) / 2)
-
         $logInputTextBox.Dock = [System.Windows.Forms.DockStyle]::Fill
         $logInputTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
         $logInputTextBox.Margin = [System.Windows.Forms.Padding]::new(8, $vSpacing, 8, $vSpacing)
