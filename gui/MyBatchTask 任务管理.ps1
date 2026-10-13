@@ -1625,7 +1625,6 @@ try {
 
         # 日志文本框
         $logViewTextBox = [System.Windows.Forms.RichTextBox]::new()
-        $logViewTextBox.ReadOnly = $true
         $logViewTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Both
         $logViewTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
         $logViewTextBox.BackColor = [System.Drawing.Color]::White
@@ -1642,16 +1641,9 @@ try {
             }
         })
 
-        # 在 `ReadOnly = true` 状态下，实现 `EnableAutoDragDrop = true` 的类似效果，允许拖拽文本
-        $logViewTextBox.AllowDrop = $true
-        $logViewTextBox.Add_DragEnter({
-            param($Sender, $EventArgs)
-            $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy
-        })
-        $logViewTextBox.Add_DragOver({
-            param($Sender, $EventArgs)
-            $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy
-        })
+        # 在 `ReadOnly = true` 状态下，实现 `EnableAutoDragDrop = true` 的类似效果，允许对外拖拽文本
+        $logViewTextBox.ReadOnly = $true
+        $logViewTextBox.AllowDrop = $false
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragStart' -Value ([System.Drawing.Point]::Empty) -Force
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragAllowed' -Value $false -Force
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragText' -Value '' -Force
