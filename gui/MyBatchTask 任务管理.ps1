@@ -1643,6 +1643,15 @@ try {
         })
 
         # 在 `ReadOnly = true` 状态下，实现 `EnableAutoDragDrop = true` 的类似效果，允许拖拽文本
+        $logViewTextBox.AllowDrop = $true
+        $logViewTextBox.Add_DragEnter({
+            param($Sender, $EventArgs)
+            $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy
+        })
+        $logViewTextBox.Add_DragOver({
+            param($Sender, $EventArgs)
+            $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy
+        })
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragStart' -Value ([System.Drawing.Point]::Empty) -Force
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragAllowed' -Value $false -Force
         $logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragText' -Value '' -Force
@@ -1673,7 +1682,10 @@ try {
                     [Math]::Abs($dx) -gt [System.Windows.Forms.SystemInformation]::DragSize.Width -or
                     [Math]::Abs($dy) -gt [System.Windows.Forms.SystemInformation]::DragSize.Height
                 ) {
-                    $Sender.DoDragDrop($Sender.readOnlyDragText, [System.Windows.Forms.DragDropEffects]::Copy)
+                    $dragData = [System.Windows.Forms.DataObject]::new()
+                    $dragData.SetData([System.Windows.Forms.DataFormats]::UnicodeText, $Sender.readOnlyDragText)
+                    $dragData.SetData([System.Windows.Forms.DataFormats]::Text, $Sender.readOnlyDragText)
+                    $Sender.DoDragDrop($dragData, [System.Windows.Forms.DragDropEffects]::Copy)
                     $Sender.readOnlyDragStart = [System.Drawing.Point]::Empty
                     $Sender.readOnlyDragAllowed = $false
                 }
@@ -1720,8 +1732,19 @@ try {
             param($Sender, $EventArgs)
             if (
                 $EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::Text) -or
-                $EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::UnicodeText
-            )) {
+                $EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::UnicodeText)
+            ) {
+                $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy
+            } else {
+                $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::None
+            }
+        })
+        $logInputTextBox.Add_DragOver({
+            param($Sender, $EventArgs)
+            if (
+                $EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::Text) -or
+                $EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::UnicodeText)
+            ) {
                 $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy
             } else {
                 $EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::None
