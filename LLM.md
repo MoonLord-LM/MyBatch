@@ -54,8 +54,8 @@ TODO 对任务增加：健康检查失败后，自动重启的机制
 chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
-set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
@@ -64,11 +64,6 @@ powershell -NoProfile -Command "Write-Host '这里是说明脚本整体功能的
 echo.
 
 
-
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
-    cd /d "!script_dir!"
-)
 
 REM 如果要获取管理员权限，在这里添加
 
@@ -90,11 +85,26 @@ exit /b
 
 ```
 
+如果需要接收外部参数，可以在 `script` 行的后面，继续增加 `param_???` 的变量定义  
+代码示例如下：  
+
+```batch
+@echo off
+chcp 65001 >nul
+setlocal disabledelayedexpansion
+set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
+set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
+set "param2=%~2" & set "param2_path=%~f2" & set "param2_dir=%~dp2" & set "param2_name=%~n2" & set "param2_ext=%~x2" & set "param2_name_ext=%~nx2"
+set "param3=%~3" & set "param3_path=%~f3" & set "param3_dir=%~dp3" & set "param3_name=%~n3" & set "param3_ext=%~x3" & set "param3_name_ext=%~nx3"
+setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
+powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
+```
+
 ## 右键以管理员身份运行
 
-脚本如果用右键的"以管理员权限运行"，默认会切换到系统目录  
-通常情况下，脚本并不想改变当前目录，因此需要主动切换回脚本所在目录  
-如果脚本的功能不需要关心当前目录，也可以不做处理  
+脚本如果用右键的"以管理员权限运行"，默认会切换到 `"!SystemRoot!\System32"` 系统目录  
+通常情况下，脚本并不想改变当前目录，因此需要主动调用 `cd /d "!script_dir!"` 切换回脚本所在目录  
 
 ## 注释代码
 
