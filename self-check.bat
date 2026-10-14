@@ -33,7 +33,11 @@ git config --local --list
 echo.
 
 set "root_dir=!script_dir!"
-for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:root_dir -File -Force -Recurse -Filter *.bat | ForEach-Object { $_.FullName }"') do (
+for /f "delims=" %%f in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "Get-ChildItem -LiteralPath $env:root_dir -File -Force -Recurse -Filter *.bat | ForEach-Object { $_.FullName }"
+') do (
     setlocal disabledelayedexpansion
     set "bat_file=%%f"
     set "file_dir=%%~dpf"

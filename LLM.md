@@ -309,10 +309,11 @@ for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env
 
 ```batch
 set "size_smaller=0"
-for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-    "Write-Output ([int]([int64]$env:file_size -lt [int64]$env:smallest_size));"'
-) do (
+for /f "delims=" %%c in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "Write-Output ([int]([int64]$env:file_size -lt [int64]$env:smallest_size));"
+') do (
     set "size_smaller=%%c"
 )
 if "!size_smaller!"=="1" (
