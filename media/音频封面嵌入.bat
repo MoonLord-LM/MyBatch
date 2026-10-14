@@ -91,7 +91,11 @@ if "!param1!" == "" (
         set "file_ext=!param1_ext!"
 
         set "has_cover=0"
-        for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
+        for /f "delims=" %%c in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"
+        ') do (
             set "has_cover=1"
         )
 
@@ -113,7 +117,11 @@ if "!param1!" == "" (
                 echo 找到封面："!cover_file!"
                 set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
                 set "cover_codec="
-                for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"') do (
+                for /f "delims=" %%c in ('
+                    powershell -NoProfile -Command ^
+                        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                        "& $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"
+                ') do (
                     set "cover_codec=%%c"
                 )
                 if /i "!cover_codec!"=="png" (
@@ -155,7 +163,11 @@ if not "!working_dir!" == "" (
     set /a "set_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(flac|mp3)$"
-    for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
+    for /f "delims=" %%f in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"
+    ') do (
         setlocal disabledelayedexpansion
         set "audio_file=%%f"
         set "file_dir=%%~dpf"
@@ -165,7 +177,11 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!audio_file!"
         set "has_cover=0"
-        for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:audio_file 2>$null"') do (
+        for /f "delims=" %%c in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:audio_file 2>$null"
+        ') do (
             set "has_cover=1"
         )
 
@@ -188,7 +204,11 @@ if not "!working_dir!" == "" (
                 echo 找到封面："!cover_file!"
                 set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
                 set "cover_codec="
-                for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"') do (
+                for /f "delims=" %%c in ('
+                    powershell -NoProfile -Command ^
+                        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                        "& $env:ffprobe_path -v error -select_streams v -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"
+                ') do (
                     set "cover_codec=%%c"
                 )
                 if /i "!cover_codec!"=="png" (

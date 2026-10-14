@@ -97,7 +97,11 @@ if "!param1!" == "" (
         )
 
         set "has_sub=0"
-        for /f "delims=" %%s in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"') do (
+        for /f "delims=" %%s in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:param1 2>$null"
+        ') do (
             set "has_sub=1"
         )
 
@@ -131,7 +135,11 @@ if not "!working_dir!" == "" (
     set /a "remove_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(mkv|mp4)$"
-    for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
+    for /f "delims=" %%f in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"
+    ') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         set "file_dir=%%~dpf"
@@ -141,7 +149,11 @@ if not "!working_dir!" == "" (
 
         echo 处理文件："!video_file!"
         set "has_sub=0"
-        for /f "delims=" %%s in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+        for /f "delims=" %%s in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:ffprobe_path -v error -select_streams s -show_entries stream=index -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"
+        ') do (
             set "has_sub=1"
         )
 

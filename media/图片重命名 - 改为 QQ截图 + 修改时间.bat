@@ -72,19 +72,31 @@ if "!param1!" == "" (
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
         set "creation_time="
-        for /f "delims=" %%x in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:param1 2>$null"') do (
+        for /f "delims=" %%x in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:param1 2>$null"
+        ') do (
             set "creation_time=%%x"
             echo 图片 Recorded_Date 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:param1 2>$null"') do (
+            for /f "delims=" %%x in ('
+                powershell -NoProfile -Command ^
+                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                    "& $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:param1 2>$null"
+            ') do (
                 set "creation_time=%%x"
                 echo 图片 Encoded_Date 标记："!creation_time!"
             )
         )
         set "exif_time="
         if not "!creation_time!"=="" (
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & {param($Time) try { $s = $Time -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [System.Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -Time $env:creation_time" 2^>nul') do (
+            for /f "delims=" %%t in ('
+                powershell -NoProfile -Command ^
+                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                    "& {param($Time) try { $s = $Time -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [System.Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -Time $env:creation_time" 2^>nul
+            ') do (
                 set "exif_time=%%t"
             )
         )
@@ -99,7 +111,11 @@ if "!param1!" == "" (
             echo 图片带有拍摄时间，跳过此文件
         ) else (
             set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; (Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (
+            for /f "delims=" %%t in ('
+                powershell -NoProfile -Command ^
+                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                    "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul
+            ') do (
                 set "formatted_time=%%t"
                 echo 图片文件修改时间："!formatted_time!"
             )
@@ -107,7 +123,11 @@ if "!param1!" == "" (
             if "!formatted_time!"=="" (
                 echo 时间获取失败，跳过此文件
             ) else (
-                for /f "delims=" %%l in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $env:file_ext.ToLower()"') do (
+                for /f "delims=" %%l in ('
+                    powershell -NoProfile -Command ^
+                        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                        "$env:file_ext.ToLower()"
+                ') do (
                     set "lower_file_ext=%%l"
                 )
                 set "new_name=QQ截图!formatted_time!!lower_file_ext!"
@@ -143,7 +163,11 @@ if not "!working_dir!" == "" (
     set /a "other_prefix=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
-    for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
+    for /f "delims=" %%f in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"
+    ') do (
         setlocal disabledelayedexpansion
         set "img_file=%%f"
         set "file_dir=%%~dpf"
@@ -155,19 +179,31 @@ if not "!working_dir!" == "" (
 
         REM 检查图片是否带有 EXIF 拍摄时间（Recorded_Date / Encoded_Date）
         set "creation_time="
-        for /f "delims=" %%x in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:img_file 2>$null"') do (
+        for /f "delims=" %%x in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:mediainfo_path '--Output=General;%%Recorded_Date%%' $env:img_file 2>$null"
+        ') do (
             set "creation_time=%%x"
             echo 图片 Recorded_Date 标记："!creation_time!"
         )
         if "!creation_time!"=="" (
-            for /f "delims=" %%x in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:img_file 2>$null"') do (
+            for /f "delims=" %%x in ('
+                powershell -NoProfile -Command ^
+                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                    "& $env:mediainfo_path '--Output=General;%%Encoded_Date%%' $env:img_file 2>$null"
+            ') do (
                 set "creation_time=%%x"
                 echo 图片 Encoded_Date 标记："!creation_time!"
             )
         )
         set "exif_time="
         if not "!creation_time!"=="" (
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & {param($Time) try { $s = $Time -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [System.Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -Time $env:creation_time" 2^>nul') do (
+            for /f "delims=" %%t in ('
+                powershell -NoProfile -Command ^
+                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                    "& {param($Time) try { $s = $Time -replace '(\d{4}):(\d{2}):(\d{2})', '$1-$2-$3'; $dt = [DateTime]::Parse($s, [System.Globalization.CultureInfo]::InvariantCulture); Write-Output $dt.ToString('yyyyMMdd_HHmmss_fff') } catch {} } -Time $env:creation_time" 2^>nul
+            ') do (
                 set "exif_time=%%t"
             )
         )
@@ -186,7 +222,11 @@ if not "!working_dir!" == "" (
             echo 图片带有拍摄时间，跳过此文件
         ) else (
             set "formatted_time="
-            for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; (Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul') do (
+            for /f "delims=" %%t in ('
+                powershell -NoProfile -Command ^
+                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                    "(Get-Item -LiteralPath $env:img_file).LastWriteTime.ToString('yyyyMMddHHmmss')" 2^>nul
+            ') do (
                 set "formatted_time=%%t"
                 echo 图片文件修改时间："!formatted_time!"
             )
@@ -195,7 +235,11 @@ if not "!working_dir!" == "" (
                 echo set /a "no_time+=1">>"!temp_set!"
                 echo 时间获取失败，跳过此文件
             ) else (
-                for /f "delims=" %%l in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $env:file_ext.ToLower()"') do (
+                for /f "delims=" %%l in ('
+                    powershell -NoProfile -Command ^
+                        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                        "$env:file_ext.ToLower()"
+                ') do (
                     set "lower_file_ext=%%l"
                 )
                 set "new_name=QQ截图!formatted_time!!lower_file_ext!"

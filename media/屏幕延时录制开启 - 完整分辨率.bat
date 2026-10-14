@@ -78,13 +78,18 @@ for /f "delims=" %%r in ('
 ') do set "%%r"
 echo 屏幕分辨率：!screen_size!
 
-for /f "delims=" %%t in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Date -Format 'yyyyMMdd_HHmmss'"') do set "time_stamp=%%t"
+for /f "delims=" %%t in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "Get-Date -Format 'yyyyMMdd_HHmmss'"
+') do set "time_stamp=%%t"
 set "output_file=!script_dir!延时录屏_!time_stamp!.mp4"
 echo 输出文件："!output_file!"
 
 
 
 REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码
+set "recorder_ps1=%temp%\MyBatch_%random%_%random%_%random%_%random%.ps1"
 powershell -NoProfile -Command ^
     "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -95,8 +100,8 @@ powershell -NoProfile -Command ^
     "    exit 1;" ^
     "};" ^
     "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
-    "$b64 = [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
-    "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$b64)"
+    "[System.IO.File]::WriteAllText($env:recorder_ps1, $code, [System.Text.UTF8Encoding]::new($true));" ^
+    "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',([string][char]34 + $env:recorder_ps1 + [string][char]34))"
 if !errorlevel! neq 0 (
     echo.
     echo 录制进程启动失败

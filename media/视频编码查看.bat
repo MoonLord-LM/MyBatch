@@ -66,10 +66,18 @@ if "!param1!" == "" (
 
         set "video_codec="
         set "audio_codec="
-        for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,codec_tag_string,profile,level -of csv=p=0 $env:param1 2>$null"') do (
+        for /f "delims=" %%c in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,codec_tag_string,profile,level -of csv=p=0 $env:param1 2>$null"
+        ') do (
             set "video_codec=%%c"
         )
-        for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 $env:param1 2>$null"') do (
+        for /f "delims=" %%c in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "& $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile -of csv=p=0 $env:param1 2>$null"
+        ') do (
             set "audio_codec=%%c"
         )
         if "!video_codec!" == "" (
@@ -105,7 +113,11 @@ if not "!working_dir!" == "" (
     set /a "parse_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm)$"
-    for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"') do (
+    for /f "delims=" %%f in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter } | ForEach-Object { $_.FullName }"
+    ') do (
         setlocal disabledelayedexpansion
         set "video_file=%%f"
         setlocal enabledelayedexpansion
@@ -150,7 +162,11 @@ if not "!working_dir!" == "" (
 
     set /a "video_codec_count=0"
     echo 已发现的视频编码列表：
-    for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_video_codecs | Where-Object { $_ } | Sort-Object -Unique"') do (
+    for /f "delims=" %%c in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Get-Content -Encoding UTF8 -LiteralPath $env:temp_video_codecs | Where-Object { $_ } | Sort-Object -Unique"
+    ') do (
         set "video_codec=%%c"
         echo !video_codec!
         set /a "video_codec_count+=1"
@@ -159,7 +175,11 @@ if not "!working_dir!" == "" (
 
     set /a "audio_codec_count=0"
     echo 已发现的音频编码列表：
-    for /f "delims=" %%c in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_audio_codecs | Where-Object { $_ } | Sort-Object -Unique"') do (
+    for /f "delims=" %%c in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Get-Content -Encoding UTF8 -LiteralPath $env:temp_audio_codecs | Where-Object { $_ } | Sort-Object -Unique"
+    ') do (
         set "audio_codec=%%c"
         echo !audio_codec!
         set /a "audio_codec_count+=1"
@@ -177,7 +197,11 @@ if not "!working_dir!" == "" (
     if !parse_failed! gtr 0 (
         echo.
         echo 解析失败的文件：
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-Content -Encoding UTF8 -LiteralPath $env:temp_failed_files | Where-Object { $_ }"') do (
+        for /f "delims=" %%f in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "Get-Content -Encoding UTF8 -LiteralPath $env:temp_failed_files | Where-Object { $_ }"
+        ') do (
             echo %%f
         )
     )
