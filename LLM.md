@@ -213,7 +213,11 @@ set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type
 
 set /a "total=0"
 set "file_path=!cd!"
-for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"') do (
+for /f "delims=" %%f in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | ForEach-Object { $_.FullName }"
+    ') do (
     setlocal disabledelayedexpansion
     set "file_path=%%f"
     set "file_dir=%%~dpf"
@@ -247,14 +251,20 @@ REM 这里可以获取到内层的 "!total!" 的值
 最佳实践的代码示例如下：  
 
 ```batch
-for /f "delims=" %%a in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"') do (
+for /f "delims=" %%a in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "& $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:video_file 2>$null"
+    ') do (
     set "audio_codec=%%a"
     echo audio_codec: %%a
 )
 ```
 
-以下示例代码，使用 `"!video_file!"` 传参，虽然大部分时候可以正常运行，但是当变量字符串的内容中包含 ^ 符号时，需要额外处理转义，因此不推荐  
+以下示例代码，使用 `"!video_file!"` 传参  
+虽然大部分时候可以正常运行，但是当变量字符串的内容中包含 ^ 符号时，需要额外处理转义，因此不推荐  
 不推荐的写法示例如下：  
+
 ```batch
 ffprobe -v error -select_streams a:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 "!video_file!"
 
