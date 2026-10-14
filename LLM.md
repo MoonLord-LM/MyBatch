@@ -257,10 +257,10 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本
 ```batch
 for /f "delims=" %%f in (...) do (
     setlocal disabledelayedexpansion
-    set "file_path=%%f"   REM 完整路径（含文件名）
-    set "file_dir=%%~dpf" REM 所在目录
-    set "base_name=%%~nf" REM 主文件名（不含扩展名）
-    set "file_ext=%%~xf"  REM 扩展名
+    set "file_path=%%f"
+    set "file_dir=%%~dpf"
+    set "base_name=%%~nf"
+    set "file_ext=%%~xf"
     ...
     setlocal enabledelayedexpansion
 
@@ -398,7 +398,7 @@ if "!size_smaller!"=="1" (
 )
 ```
 
-## Powershell 变量命名
+## PowerShell 变量命名
 
 变量名，使用 $xxxYyyZzz 的形式，例如 $configFilePath，小写字母开头，无分隔  
 函数名，使用 XXX-XXX-XXX 的形式，例如 Save-Config-File，大写字母开头，横线分隔  
@@ -409,12 +409,12 @@ if "!size_smaller!"=="1" (
 如果在函数内仅修改外部变量的对象属性，直接用 $xxx 的形式，例如 `$configMap['yyy'] = 'zzz'`  
 如果在函数内有对外部变量重新赋值，必须用 $script:xxx 的形式，例如 `$script:configFilePath = '...'`  
 
-## Powershell 引号使用
+## PowerShell 引号使用
 
 优先使用单引号 `'`  
 只有需要变量扩展 / 子表达式才用双引号 `"`  
 
-## Powershell 命名空间
+## PowerShell 命名空间
 
 一般情况下，尽量不要使用命名空间或简写，应该写出完整的类名称  
 类型加速器 [string]、[int]、[array]、[datetime]、[regex]、[char]、[double]、[type] 等除外  
