@@ -3,14 +3,15 @@
 这里记录一些已知问题  
 在使用 LLM 分析代码时，请参考已有结论，避免重复报告问题  
 
-## 关于环境信息
+## 关于环境信息与兼容性
 
-Windows 系统，优先考虑：Microsoft Windows 11 专业工作站版 24H2  
-PowerShell 组件，优先考虑：5.1.26100.4061 Desktop  
+Windows 系统，只需要考虑：Microsoft Windows 11  
+PowerShell 组件，只需要考虑：5.1.26100.4061 Desktop  
+不需要为了兼容更多环境，而做额外适配，增加代码复杂度  
 
 ## example 已知问题
 
-这里保存一些零散示例代码，仅用于参考  
+这里保存一些零散示例代码，仅用于参考，不保证质量  
 不需要对这个目录进行代码分析  
 
 
@@ -21,10 +22,10 @@ PowerShell 组件，优先考虑：5.1.26100.4061 Desktop
 
 ## MyBatchTask 任务管理.ps1
 
-TODO 对任务增加 exe 进程运行状态的检查机制  
-TODO 对任务增加 URL 健康检查机制  
-TODO 对任务增加自动按时间执行的机制  
-TODO 对任务增加健康检查失败后自动重启的机制  
+TODO 对任务增加：指定 exe 进程存在状态的检查机制  
+TODO 对任务增加：指定 URL 可访问的健康检查机制  
+TODO 对任务增加：按时间间隔，自动重启的机制  
+TODO 对任务增加：健康检查失败后，自动重启的机制  
 
 
 
@@ -43,7 +44,10 @@ TODO 对任务增加健康检查失败后自动重启的机制
 
 ## 代码结构
 
-建议的代码结构，示例如下：  
+建议的代码结构：  
+统一基础配置 + 3 个空行 + 整体功能说明 + 3 个空行 + 路径检查 / 权限检查 / 依赖组件检查 + 3 个空行 + 代码功能实现 + 3 个空行 + 尾部等待处理  
+
+代码示例如下：  
 
 ```batch
 @echo off
@@ -57,11 +61,12 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '这里是说明脚本整体功能的简单提示信息' -ForegroundColor Green"
+echo.
 
 
 
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
     cd /d "!script_dir!"
 )
 
@@ -69,7 +74,7 @@ REM 如果要检查依赖的外部组件，在这里添加
 
 
 
-REM 这里是代码主体功能部分，与首尾部分的代码用 3 个空行分开
+REM 这里是代码主体功能部分
 
 
 
@@ -84,16 +89,65 @@ exit /b
 统一用 `REM` 开头的注释  
 避免用 `::` 开头的注释，这种代码本质是按标签解析的，部分场景下会导致错误  
 
+## 跳转标签
+
+统一使用单个冒号 `:` 开头的标签，避免使用双冒号 `::` 写法，与注释混淆  
+标签相关的代码，增加 4 个空格缩进，方便理解  
+
+## 输入文件路径
+
+需要删除首尾引号、检查路径是否存在、检查路径是否是文件夹  
+
+代码示例如下：  
+
+```batch
+:input_file
+    if "!input_file!"=="" (
+        echo 请输入要处理的文件的路径
+        set /p "input_file="
+        if !errorlevel! neq 0 (
+            echo 无输入，退出脚本
+            echo.
+            exit /b 1
+        )
+        echo.
+    )
+    if "!input_file!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_file
+    )
+    set "input_file=!input_file:"=!"
+    if "!input_file!"=="" (
+        echo 输入不能为空，请重新输入
+        echo.
+        goto input_file
+    )
+    if "!input_file:~-1!"=="\" set "input_file=!input_file:~0,-1!"
+    if not exist "!input_file!" (
+        echo 错误：路径不存在："!input_file!"，请重新输入
+        echo.
+        set "input_file="
+        goto input_file
+    )
+    if exist "!input_file!\" (
+        echo 错误：不支持文件夹，请输入单个文件
+        echo.
+        set "input_file="
+        goto input_file
+    )
+```
+
 ## 右键以管理员身份运行
 
-脚本如果用右键的“以管理员权限运行”，默认会切换到系统目录  
+脚本如果用右键的"以管理员权限运行"，默认会切换到系统目录  
 通常情况下，脚本并不想改变当前目录，因此需要主动切换回脚本所在目录  
 
 代码示例如下：  
 
 ```batch
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在目录 & echo.
+    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在目录 & echo.
     cd /d "%~dp0"
 )
 ```
@@ -320,7 +374,7 @@ for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env
 
 谨慎使用 `( equ | neq | lss | leq | gtr | geq )` 这种比较数字的写法  
 批处理的 `if` 数字比较底层用 **32-bit signed int**，范围：`-2147483648 ~ +2147483647`，存在溢出风险  
-除了 `!errorlevel! equ 0` 这种与 0 的比较之外，其它场景都建议改为用 powershell 来做比较  
+除了 `!errorlevel! equ 0` 这种与固定小数字的 `equ`、`neq` 的比较之外，其它场景都建议改为用 powershell 来做比较  
 
 代码示例如下：  
 

@@ -10,14 +10,14 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '双击运行，开始屏幕录制，以完整的分辨率 + 最高 30 的帧率，录制为无损的 mp4 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '记录录制进程的 PID 文件，保存在当前文件夹下' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '需要停止录制时，运行 “屏幕录制关闭.bat” 即可' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '需要停止录制时，运行 "屏幕录制关闭.bat" 即可' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '录制生成的 mp4 文件，保存在当前文件夹下' -ForegroundColor Green"
 echo.
 
 
 
 if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的“以管理员权限运行”，切换到脚本所在文件夹 & echo.
+    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
     cd /d "!script_dir!"
 )
 
@@ -51,7 +51,7 @@ if exist "!pid_file!" (
     set /p "old_pid="< "!pid_file!"
     tasklist /fi "pid eq !old_pid!" | find /i "!old_pid!" >nul 2>&1
     if !errorlevel! equ 0 (
-        echo 检测到已有录制正在进行，请先运行 “屏幕录制关闭.bat” 结束当前录制
+        echo 检测到已有录制正在进行，请先运行 "屏幕录制关闭.bat" 结束当前录制
         echo.
         pause
         exit /b 1

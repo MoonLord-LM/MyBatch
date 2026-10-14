@@ -1554,7 +1554,7 @@ try {
     $tabContextMenu.Items.Add($closeAllTabMenuItem) | Out-Null
     $tabControl.ContextMenuStrip = $tabContextMenu
 
-    # 刷新标签页右键菜单的可用状态：仅当存在任务日志标签页时，“关闭所有任务日志”可用
+    # 刷新标签页右键菜单的可用状态：仅当存在任务日志标签页时，"关闭所有任务日志"可用
     function Update-Tab-Context-Menu-State {
         $hasLogTab = $false
         foreach ($tabPage in $tabControl.TabPages) {
