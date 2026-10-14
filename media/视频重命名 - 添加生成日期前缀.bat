@@ -4,6 +4,7 @@ setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
@@ -17,11 +18,6 @@ powershell -NoProfile -Command "Write-Host '特殊场景：没有内置的时间
 echo.
 
 
-
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
-    cd /d "!script_dir!"
-)
 
 REM 检查 ffprobe 组件
 if exist "!script_dir!ffprobe.exe" (

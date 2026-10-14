@@ -3,6 +3,7 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
@@ -13,11 +14,6 @@ powershell -NoProfile -Command "Write-Host '网页访问地址：https://localho
 echo.
 
 
-
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
-    cd /d "!script_dir!"
-)
 
 REM 检查 OpenSSL-Win64 组件
 if exist "!script_dir!openssl.exe" (

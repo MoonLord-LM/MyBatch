@@ -4,6 +4,7 @@ setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
@@ -13,13 +14,6 @@ powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '列表文件的内容为：完整路径 + 字节数 + 修改时间 + Unix 毫秒时间戳，用 | 分隔，每个文件一行' -ForegroundColor Green"
 echo.
-
-
-
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
-    cd /d "!script_dir!"
-)
 
 
 

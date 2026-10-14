@@ -3,6 +3,7 @@ chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
@@ -10,13 +11,6 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '打开虚拟应用列表' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '可以在这个列表中，为 UWP 应用创建桌面快捷方式' -ForegroundColor Green"
 echo.
-
-
-
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
-    cd /d "!script_dir!"
-)
 
 
 

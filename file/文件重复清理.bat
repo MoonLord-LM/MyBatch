@@ -5,6 +5,7 @@ set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 set "param2=%~2" & set "param2_path=%~f2" & set "param2_dir=%~dp2" & set "param2_name=%~n2" & set "param2_ext=%~x2" & set "param2_name_ext=%~nx2"
 setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
@@ -15,13 +16,6 @@ powershell -NoProfile -Command "Write-Host '也可以选中两个文件夹，拖
 powershell -NoProfile -Command "Write-Host '当两次输入的文件夹路径相同时，则清理该文件夹自身的重复文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '文件名称和内容比对一致后，将重复文件删除到回收站' -ForegroundColor Green"
 echo.
-
-
-
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
-    cd /d "!script_dir!"
-)
 
 
 

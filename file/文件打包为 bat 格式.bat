@@ -4,6 +4,7 @@ setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
 set "param1=%~1" & set "param1_path=%~f1" & set "param1_dir=%~dp1" & set "param1_name=%~n1" & set "param1_ext=%~x1" & set "param1_name_ext=%~nx1"
 setlocal enabledelayedexpansion
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 
 
@@ -16,11 +17,6 @@ powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要
 echo.
 
 
-
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
-    cd /d "!script_dir!"
-)
 
 REM 检查 7-Zip 组件（可选）
 if exist "!script_dir!7za.exe" (
@@ -573,9 +569,7 @@ set "origin_file_size=-----ORIGIN FILE SIZE-----"
 set "origin_file_sha512=-----ORIGIN FILE SHA512-----"
 set "all_args=%*"
 setlocal enabledelayedexpansion
-if /i "!cd!"=="!SystemRoot!\System32" (
-    cd /d "!script_dir!"
-)
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
@@ -656,9 +650,7 @@ set "origin_file_size=-----ORIGIN FILE SIZE-----"
 set "origin_file_sha512=-----ORIGIN FILE SHA512-----"
 set "all_args=%*"
 setlocal enabledelayedexpansion
-if /i "!cd!"=="!SystemRoot!\System32" (
-    cd /d "!script_dir!"
-)
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
@@ -748,9 +740,7 @@ set "origin_file_size=-----ORIGIN FILE SIZE-----"
 set "origin_file_sha512=-----ORIGIN FILE SHA512-----"
 set "all_args=%*"
 setlocal enabledelayedexpansion
-if /i "!cd!"=="!SystemRoot!\System32" (
-    cd /d "!script_dir!"
-)
+if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 set "temp_dir=%temp%\MyBatch\cache\!origin_file_size!\!origin_file_sha512!"
 if not exist "!temp_dir!" mkdir "!temp_dir!"
 set "temp_file=!temp_dir!\!origin_file_name!"
