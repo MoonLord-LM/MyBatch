@@ -22,6 +22,8 @@ if "!local_ip!"=="" (
     exit /b 1
 )
 
+
+
 echo 本机局域网 IP：!local_ip!
 echo.
 

@@ -50,6 +50,8 @@ if "!param1!" == "" (
     )
 )
 
+
+
 if not "!working_dir!" == "" (
     set "file_path=!working_dir!"
     if "!file_path:~-1!"=="\" set "file_path=!file_path:~0,-1!"

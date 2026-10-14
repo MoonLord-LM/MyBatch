@@ -156,6 +156,8 @@ if "!target_token!"=="" (
     goto input_host
 )
 
+
+
 echo 外部域名：!target_host!
 echo 隧道协议：!target_protocol!
 echo 本地网址：!target_protocol!://localhost:!target_port!

@@ -116,6 +116,8 @@ if "!param1!" == "" (
     )
 )
 
+
+
 if not "!working_dir!" == "" (
     set "file_count=0"
     set "file_consistent=1"

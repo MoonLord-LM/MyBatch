@@ -74,6 +74,8 @@ if "!param1!" == "" (
     )
 )
 
+
+
 set "zip_params=-tzip -mx=0 -mcu=on -mmt=on -mtc=on -mta=on -mtm=on -sccUTF-8 -scsUTF-8"
 
 for %%i in ("!input_path!") do (

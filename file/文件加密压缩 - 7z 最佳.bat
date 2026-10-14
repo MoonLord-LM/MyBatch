@@ -76,6 +76,8 @@ if "!param1!" == "" (
     )
 )
 
+
+
 set "zip_params=-t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mhe=on -mtc=on -mta=on -mtm=on -sccUTF-8 -scsUTF-8"
 
 for %%i in ("!input_path!") do (

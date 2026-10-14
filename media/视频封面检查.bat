@@ -84,6 +84,8 @@ if "!param1!" == "" (
     )
 )
 
+
+
 if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
@@ -134,7 +136,7 @@ if not "!working_dir!" == "" (
 
     echo 批量处理完成 & REM
     echo 共计：!total! 个视频，有封面：!with_cover! 个，无封面：!no_cover! 个
-    if !no_cover! gtr 0 (
+    if !no_cover! neq 0 (
         echo 缺失封面的完整路径列表：
         echo.
         for /f "usebackq delims=" %%i in ("!temp_list!") do (

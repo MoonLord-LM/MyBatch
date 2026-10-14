@@ -101,6 +101,8 @@ if "!param1!" == "" (
     )
 )
 
+
+
 if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
@@ -194,7 +196,7 @@ if not "!working_dir!" == "" (
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个，发现 !video_codec_count! 种视频编码、!audio_codec_count! 种音频编码。 & REM
     echo 其中，解析成功 !succeeded! 个，解析失败 !parse_failed! 个
 
-    if !parse_failed! gtr 0 (
+    if !parse_failed! neq 0 (
         echo.
         echo 解析失败的文件：
         for /f "delims=" %%f in ('

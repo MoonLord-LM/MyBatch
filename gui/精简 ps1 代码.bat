@@ -21,6 +21,8 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
 
+
+
 set "input_file=!param1_path!"
 
 :input_file

@@ -79,15 +79,6 @@ if !errorlevel! neq 0 (
 
 
 
-REM 预置的公开密码
-set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','shoujihao','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
-
-set /a "total=0"
-set /a "succeeded=0"
-set /a "password_succeeded=0"
-set /a "output_exist=0"
-set /a "extract_failed=0"
-
 if "!param1!" == "" (
     echo 开始处理当前文件夹："!cd!"
     set "working_dir=!cd!"
@@ -202,6 +193,11 @@ if "!param1!" == "" (
     )
 )
 
+
+
+REM 预置的公开密码
+set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','shoujihao','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
+
 if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
     set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
@@ -209,6 +205,11 @@ if not "!working_dir!" == "" (
     REM 记录已处理过的文件路径，用于去重
     set "temp_skip=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_skip!"
 
+set /a "total=0"
+set /a "succeeded=0"
+set /a "password_succeeded=0"
+set /a "output_exist=0"
+set /a "extract_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2|001)$"
     set "skip_dirs=.git,.svn,_internal,node_modules,__pycache__"
