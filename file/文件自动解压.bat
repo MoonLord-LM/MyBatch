@@ -213,7 +213,12 @@ if not "!working_dir!" == "" (
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2|001)$"
     set "skip_dirs=.git,.svn,_internal,node_modules,__pycache__"
     for /l %%d in (1,1,5) do (
-        for /f "delims=" %%f in ('powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $skipDirs=$env:skip_dirs -split ','; Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | Where-Object { $d=$_.Directory; while ($d -ne $null) { if ($skipDirs -contains $d.Name) { return $false }; $d=$d.Parent }; return $true } | ForEach-Object { $_.FullName }"') do (
+        for /f "delims=" %%f in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "$skipDirs=$env:skip_dirs -split ',';" ^
+                "Get-ChildItem -LiteralPath $env:file_path -File -Force -Recurse | Where-Object { $_.Extension -match $env:ext_filter -or $_.Extension -eq '' } | Where-Object { $d=$_.Directory; while ($d -ne $null) { if ($skipDirs -contains $d.Name) { return $false }; $d=$d.Parent }; return $true } | ForEach-Object { $_.FullName }"
+        ') do (
             setlocal disabledelayedexpansion
             set "archive_path=%%f"
             set "file_dir=%%~dpf"

@@ -118,11 +118,13 @@ for %%i in ("!input_file!") do (
     echo.
 
     REM 计算文件内容的 SHA512 哈希值
-    for /f "delims=" %%a in ('powershell -NoProfile -Command ^
-        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-        "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
-        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"') do (
+    for /f "delims=" %%a in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+            "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"
+    ') do (
         set "file_sha512=%%a"
     )
     if "!file_sha512!"=="" (
@@ -273,10 +275,11 @@ for %%i in ("!input_file!") do (
     for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_cab)).Length } catch { -1 }"') do set "cab_size=%%s"
     echo cab 压缩包大小：!cab_size! 字节
     set "size_smaller=0"
-    for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"'
-    ) do (
+    for /f "delims=" %%c in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"
+    ') do (
         set "size_smaller=%%c"
     )
     if "!size_smaller!"=="1" (
@@ -287,10 +290,11 @@ for %%i in ("!input_file!") do (
         for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_7z_exe)).Length } catch { -1 }"') do set "seven_zip_size=%%s"
         echo 7z 压缩包大小：!seven_zip_size! 字节
         set "size_smaller=0"
-        for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"'
-        ) do (
+        for /f "delims=" %%c in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"
+        ') do (
             set "size_smaller=%%c"
         )
         if "!size_smaller!"=="1" (

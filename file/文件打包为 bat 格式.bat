@@ -117,11 +117,13 @@ for %%i in ("!input_file!") do (
     echo.
 
     REM 计算文件内容的 SHA512 哈希值
-    for /f "delims=" %%a in ('powershell -NoProfile -Command ^
-        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-        "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
-        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"') do (
+    for /f "delims=" %%a in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+            "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
+            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"
+    ') do (
         set "file_sha512=%%a"
     )
     if "!file_sha512!"=="" (
@@ -372,10 +374,11 @@ for %%i in ("!input_file!") do (
     echo.
 
     set "size_smaller=0"
-    for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"'
-    ) do (
+    for /f "delims=" %%c in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "Write-Output ([int]([int64]$env:cab_size -lt [int64]$env:smallest_size));"
+    ') do (
         set "size_smaller=%%c"
     )
     if "!size_smaller!"=="1" (
@@ -518,10 +521,11 @@ for %%i in ("!input_file!") do (
         echo.
 
         set "size_smaller=0"
-        for /f "delims=" %%c in ('powershell -NoProfile -Command ^
-            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"'
-        ) do (
+        for /f "delims=" %%c in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "Write-Output ([int]([int64]$env:seven_zip_size -lt [int64]$env:smallest_size));"
+        ') do (
             set "size_smaller=%%c"
         )
         if "!size_smaller!"=="1" (
@@ -582,12 +586,13 @@ if exist "!temp_file!" (
         if "!origin_file_size!"=="%%s" set "size_matched=1"
     )
     if "!size_matched!"=="1" (
-        for /f "delims=" %%j in ('powershell -NoProfile -Command ^
-            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-            "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
-            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
-        ) do (
+        for /f "delims=" %%j in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+                "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+                "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"
+        ') do (
             if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
     )
@@ -662,12 +667,13 @@ if exist "!temp_file!" (
         if "!origin_file_size!"=="%%s" set "size_matched=1"
     )
     if "!size_matched!"=="1" (
-        for /f "delims=" %%j in ('powershell -NoProfile -Command ^
-            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-            "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
-            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
-        ) do (
+        for /f "delims=" %%j in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+                "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+                "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"
+        ') do (
             if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
     )
@@ -744,12 +750,13 @@ if exist "!temp_file!" (
         if "!origin_file_size!"=="%%s" set "size_matched=1"
     )
     if "!size_matched!"=="1" (
-        for /f "delims=" %%j in ('powershell -NoProfile -Command ^
-            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
-            "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
-            "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"'
-        ) do (
+        for /f "delims=" %%j in ('
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+                "$fileBytes = [System.IO.File]::ReadAllBytes($env:temp_file);" ^
+                "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"
+        ') do (
             if "!origin_file_sha512!"=="%%j" set "already_extracted=1"
         )
     )
