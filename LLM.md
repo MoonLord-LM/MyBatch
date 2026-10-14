@@ -45,7 +45,7 @@ TODO 对任务增加：健康检查失败后，自动重启的机制
 ## 代码结构
 
 建议的代码结构：  
-统一基础配置 + 3 个空行 + 整体功能说明 + 3 个空行 + 路径检查 / 权限检查 / 依赖组件检查 + 3 个空行 + 代码功能实现 + 3 个空行 + 尾部等待处理  
+统一基础配置 + 3 个空行 + 整体功能说明 + 3 个空行 + 路径检查 / 权限检查 / 依赖组件检查 + 3 个空行 + 校验输入参数 + 3 个空行 + 代码功能实现 + 3 个空行 + 尾部等待处理  
 
 代码示例如下：  
 
@@ -70,7 +70,13 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
 
+REM 如果要获取管理员权限，在这里添加
+
 REM 如果要检查依赖的外部组件，在这里添加
+
+
+
+REM 如果要校验输入的参数，在这里添加
 
 
 
@@ -84,10 +90,50 @@ exit /b
 
 ```
 
+## 右键以管理员身份运行
+
+脚本如果用右键的"以管理员权限运行"，默认会切换到系统目录  
+通常情况下，脚本并不想改变当前目录，因此需要主动切换回脚本所在目录  
+
+代码示例如下：  
+
+```batch
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在目录 & echo.
+    cd /d "%~dp0"
+)
+```
+
 ## 注释代码
 
 统一用 `REM` 开头的注释  
 避免用 `::` 开头的注释，这种代码本质是按标签解析的，部分场景下会导致错误  
+
+## 获取管理员权限
+
+代码示例如下：  
+
+```batch
+REM 获取系统管理员权限
+net file >nul 2>&1
+if !errorlevel! equ 0 (
+    powershell -NoProfile -Command "Write-Host '已获取系统管理员权限' -ForegroundColor Green"
+    echo.
+) else (
+    powershell -NoProfile -Command "Write-Host '需要系统管理员权限，请确认……' -ForegroundColor Green"
+    echo.
+    setlocal disabledelayedexpansion
+    powershell start -verb "RunAs" "%~f0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9" >nul 2>&1
+    endlocal
+    if !errorlevel! neq 0 (
+        powershell -NoProfile -Command "Write-Host '错误：获取系统管理员权限失败' -ForegroundColor Red"
+        echo.
+        pause
+        exit /b 1
+    )
+    exit /b
+)
+```
 
 ## 跳转标签
 
@@ -138,20 +184,6 @@ exit /b
     )
 ```
 
-## 右键以管理员身份运行
-
-脚本如果用右键的"以管理员权限运行"，默认会切换到系统目录  
-通常情况下，脚本并不想改变当前目录，因此需要主动切换回脚本所在目录  
-
-代码示例如下：  
-
-```batch
-if /i "!cd!"=="!SystemRoot!\System32" (
-    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在目录 & echo.
-    cd /d "%~dp0"
-)
-```
-
 ## 输出中文乱码问题
 
 首先，bat 脚本需要保存为 UTF-8 without BOM 格式，ps1 脚本需要保存为 UTF-8 with BOM 格式  
@@ -188,8 +220,8 @@ $utf8NoBOM = New-Object System.Text.UTF8Encoding($false)
 
 ## 判断上一个命令是否执行成功
 
-需要考虑到一些程序的异常退出码可能是负数，因此不建议使用 `if errorlevel 1` 的写法，这种写法是判断大于等于 1，才认为属于异常  
-推荐使用 `if !errorlevel! neq 0` 的写法，不等于 0，就认为属于异常  
+需要考虑到一些程序的异常退出码可能是负数，因此不建议使用 `if errorlevel 1` 的写法，这种写法是判断大于等于 1，才认为出现异常  
+推荐使用 `if !errorlevel! neq 0` 的写法，`!errorlevel!` 不等于 0，就认为出现异常  
 
 代码示例如下：  
 
@@ -203,38 +235,12 @@ if !errorlevel! neq 0 (
 )
 ```
 
-## 获取管理员权限
-
-代码示例如下：  
-
-```batch
-REM 获取系统管理员权限
-net file >nul 2>&1
-if !errorlevel! equ 0 (
-    powershell -NoProfile -Command "Write-Host '已获取系统管理员权限' -ForegroundColor Green"
-    echo.
-) else (
-    powershell -NoProfile -Command "Write-Host '需要系统管理员权限，请确认……' -ForegroundColor Green"
-    echo.
-    setlocal disabledelayedexpansion
-    powershell start -verb "RunAs" "%~f0" "%~1" "%~2" "%~3" "%~4" "%~5" "%~6" "%~7" "%~8" "%~9" >nul 2>&1
-    endlocal
-    if !errorlevel! neq 0 (
-        powershell -NoProfile -Command "Write-Host '错误：获取系统管理员权限失败' -ForegroundColor Red"
-        echo.
-        pause
-        exit /b 1
-    )
-    exit /b
-)
-```
-
 ## 调用 PowerShell 命令
 
 代码示例如下：  
 
 ```batch
-powershell -NoProfile -Command "这里是 PowerShell 命令，传参可以用 $env:变量名 来传递"
+powershell -NoProfile -Command "这里是 PowerShell 代码，传参可以用 $env:变量名 来传递"
 powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本文件的路径"
 ```
 
