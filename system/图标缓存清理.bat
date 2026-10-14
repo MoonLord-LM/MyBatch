@@ -127,14 +127,10 @@ if !errorlevel! neq 0 (
 echo.
 
 echo 正在清理文件图标缓存
-if exist "%userprofile%\AppData\Local\IconCache.db" (
-    attrib -h -r "%userprofile%\AppData\Local\IconCache.db"
-    if exist "%userprofile%\AppData\Local\IconCache.db" ( del /f /q "%userprofile%\AppData\Local\IconCache.db" )
-)
-if exist "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\" (
-    attrib /s /d -h -r -s "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db"
-    if exist "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db" ( del /f /q "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db" )
-)
+if exist "%userprofile%\AppData\Local\IconCache.db" ( attrib -h -r "%userprofile%\AppData\Local\IconCache.db" )
+if exist "%userprofile%\AppData\Local\IconCache.db" ( del /f /q "%userprofile%\AppData\Local\IconCache.db" )
+if exist "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\" ( attrib /s /d -h -r -s "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db" )
+if exist "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db" ( del /f /q "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db" )
 echo.
 
 echo 正在清理系统托盘图标缓存
