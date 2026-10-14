@@ -40,7 +40,7 @@ TODO 对任务增加：健康检查失败后，自动重启的机制
     组合使用 setlocal 和 endlocal 处理变量实时生效和特殊符号转义问题  
     开头位置，使用 powershell 显示带颜色的提示信息  
     正常退出时，使用 exit /b，异常退出时，使用 exit /b 1  
-    结尾位置，使用 pause，来保证异常信息可以显示  
+    结尾位置，使用 pause 或 timeout /t 3 /nobreak，尽量保证异常信息可以显示  
 
 ## 代码结构
 
@@ -339,7 +339,7 @@ for /f "delims=" %%a in ('ffprobe -v error -select_streams a:0 -show_entries str
     set "audio_codec=%%a"
     echo audio_codec: %%a
 )
-```batch
+
 for /f "delims=" %%a in ('call "!ffprobe_path!" -v error -select_streams a:0 -show_entries stream^=codec_name -of default^=noprint_wrappers^=1:nokey^=1 "!video_file!" 2^>nul') do (
     set "audio_codec=%%a"
     echo audio_codec: %%a
