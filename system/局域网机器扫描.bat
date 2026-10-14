@@ -12,6 +12,13 @@ echo.
 
 
 
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
+    cd /d "!script_dir!"
+)
+
+
+
 set "local_ip="
 for /f "delims=" %%a in ('powershell -NoProfile -Command "try { (Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway } | Select-Object -First 1).IPv4Address.IPAddress } catch { }"') do set "local_ip=%%a"
 
@@ -32,8 +39,8 @@ echo.
 
 powershell -NoProfile -Command ^
     "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-    "$local_ip = $env:local_ip;" ^
-    "$parts = $local_ip.Split('.');" ^
+    "$localIp = $env:local_ip;" ^
+    "$parts = $localIp.Split('.');" ^
     "$prefix = $parts[0] + '.' + $parts[1] + '.' + $parts[2] + '.';" ^
     "$self = [int]$parts[3];" ^
     "Write-Host ('扫描网段：' + $prefix + '0 - ' + $prefix + '255');" ^
@@ -43,13 +50,19 @@ powershell -NoProfile -Command ^
     "        $ips += ($prefix + $n);" ^
     "    };" ^
     "};" ^
-    "$tasks = foreach ($ip in $ips) {" ^
-    "    (New-Object Net.NetworkInformation.Ping).SendPingAsync($ip, 500);" ^
+    "$statuses = foreach ($ip in $ips) {" ^
+    "    $ping = [System.Net.NetworkInformation.Ping]::new();" ^
+    "    try {" ^
+    "        $reply = $ping.SendPingAsync($ip, 500).GetAwaiter().GetResult();" ^
+    "        $reply.Status;" ^
+    "    }" ^
+    "    finally {" ^
+    "        $ping.Dispose();" ^
+    "    }" ^
     "};" ^
-    "[System.Threading.Tasks.Task]::WaitAll([System.Threading.Tasks.Task[]]$tasks);" ^
     "$online = @();" ^
     "for ($i = 0; $i -lt $ips.Count; $i++) {" ^
-    "    if ($tasks[$i].Result.Status -eq 'Success') {" ^
+    "    if ($statuses[$i] -eq 'Success') {" ^
     "        $online += $ips[$i];" ^
     "    };" ^
     "};" ^

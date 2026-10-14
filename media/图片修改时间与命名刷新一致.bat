@@ -24,6 +24,8 @@ if /i "!cd!"=="!SystemRoot!\System32" (
     cd /d "!script_dir!"
 )
 
+REM 操作结果记录到脚本所在文件夹
+set "log_file=!script_dir!!script_name!.log"
 
 
 
@@ -94,9 +96,6 @@ if "!param1!" == "" (
 )
 
 
-
-REM 操作结果记录到脚本所在文件夹
-set "log_file=!script_dir!!script_name!.log"
 
 if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件

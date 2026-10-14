@@ -77,6 +77,9 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
+REM 预置的公开密码
+set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','shoujihao','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
+
 
 
 if "!param1!" == "" (
@@ -194,9 +197,6 @@ if "!param1!" == "" (
 )
 
 
-
-REM 预置的公开密码
-set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','shoujihao','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
 
 if not "!working_dir!" == "" (
     REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件

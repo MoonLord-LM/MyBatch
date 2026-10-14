@@ -12,7 +12,15 @@ echo.
 
 
 
+if /i "!cd!"=="!SystemRoot!\System32" (
+    echo 检测到使用右键的 "以管理员权限运行"，切换到脚本所在文件夹 & echo.
+    cd /d "!script_dir!"
+)
+
+
+
 powershell -NoProfile -WindowStyle Hidden -Command ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$source = 'using System.Runtime.InteropServices;' +" ^
     "    'public static class ScreenPower {' +" ^
     "    '[DllImport(\"user32.dll\")] public static extern bool PostMessage(int hWnd, int Msg, int wParam, int lParam);' +" ^

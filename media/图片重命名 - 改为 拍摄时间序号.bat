@@ -310,8 +310,8 @@ exit /b
 
 -----BEGIN POWERSHELL CODE-----
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
-$ext_filter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$';
-$hasTemp = (Test-Path -LiteralPath env:temp_set) -and (Test-Path -LiteralPath $env:temp_set);
+$extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$';
+$hasTemp = [bool]$env:temp_set -and (Test-Path -LiteralPath $env:temp_set);
 function Report($line) { if ($hasTemp) { Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value $line } }
 function Count($name, $n) { Report ('set /a ' + $name + '+=' + $n) }
 
@@ -336,7 +336,7 @@ if ($env:rename_scope -eq 'file') {
 
 $dirs = @(Get-Item -LiteralPath $env:rename_root) + @(Get-ChildItem -LiteralPath $env:rename_root -Directory -Recurse);
 foreach ($d in $dirs) {
-    $files = @(Get-ChildItem -LiteralPath $d.FullName -File -Force | Where-Object { $_.Name -like 'IMG_*' -and $_.Extension -match $ext_filter } | Sort-Object Name);
+    $files = @(Get-ChildItem -LiteralPath $d.FullName -File -Force | Where-Object { $_.Name -like 'IMG_*' -and $_.Extension -match $extFilter } | Sort-Object Name);
     $count = $files.Count;
     if ($count -eq 0) { continue }
     $width = $count.ToString().Length;

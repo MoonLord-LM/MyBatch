@@ -67,7 +67,7 @@ if not "!working_dir!" == "" (
             "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
             "$files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file });" ^
             "if ($files.Count -eq 0) { Write-Host '文件夹中没有文件'; exit 0 };" ^
-            "$items = @($files | Sort-Object Name | ForEach-Object { $modified_timestamp = [System.DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeMilliseconds(); '    {{\"name\":\"{0}\",\"size\":{1},\"modifiedTime\":\"{2:yyyy-MM-dd HH:mm:ss}\",\"modifiedTimestamp\":{3}}}' -f $_.Name, $_.Length, $_.LastWriteTime, $modified_timestamp });" ^
+            "$items = @($files | Sort-Object Name | ForEach-Object { $modifiedTimestamp = [System.DateTimeOffset]::new($_.LastWriteTime).ToUnixTimeMilliseconds(); '    {{\"name\":\"{0}\",\"size\":{1},\"modifiedTime\":\"{2:yyyy-MM-dd HH:mm:ss}\",\"modifiedTimestamp\":{3}}}' -f $_.Name, $_.Length, $_.LastWriteTime, $modifiedTimestamp });" ^
             "$newline = [System.Environment]::NewLine;" ^
             "$json = '[' + $newline + ($items -join (',' + $newline)) + $newline + ']' + $newline;" ^
             "[System.IO.File]::WriteAllText($env:output_file, $json, $utf8NoBOM);" ^

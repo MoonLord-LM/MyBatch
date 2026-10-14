@@ -231,9 +231,9 @@ for %%i in ("!input_file!") do (
         "    exit 1;" ^
         "};" ^
         "$code = $lines[$begin..($end - 1)];" ^
-        "$safe_file_name_ext = $env:file_name_ext.Replace('%%', '%%%%');" ^
+        "$safeFileNameExt = $env:file_name_ext.Replace('%%', '%%%%');" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safeFileNameExt);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
@@ -335,9 +335,9 @@ for %%i in ("!input_file!") do (
         "    exit 1;" ^
         "};" ^
         "$code = $lines[$begin..($end - 1)];" ^
-        "$safe_file_name_ext = $env:file_name_ext.Replace('%%', '%%%%');" ^
+        "$safeFileNameExt = $env:file_name_ext.Replace('%%', '%%%%');" ^
         "for ($i = 0; $i -lt $code.Count; $i++) {" ^
-        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
+        "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safeFileNameExt);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
         "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
         "};" ^
@@ -483,9 +483,9 @@ for %%i in ("!input_file!") do (
             "    exit 1;" ^
             "};" ^
             "$code = $lines[$begin..($end - 1)];" ^
-            "$safe_file_name_ext = $env:file_name_ext.Replace('%%', '%%%%');" ^
+            "$safeFileNameExt = $env:file_name_ext.Replace('%%', '%%%%');" ^
             "for ($i = 0; $i -lt $code.Count; $i++) {" ^
-            "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safe_file_name_ext);" ^
+            "    $code[$i] = $code[$i].Replace($env:origin_file_name_marker, $safeFileNameExt);" ^
             "    $code[$i] = $code[$i].Replace($env:origin_file_size_marker, $env:file_size);" ^
             "    $code[$i] = $code[$i].Replace($env:origin_file_sha512_marker, $env:file_sha512);" ^
             "};" ^
@@ -623,7 +623,10 @@ if "!already_extracted!"=="0" (
         "$outStream.Close();" ^
         "[System.IO.File]::WriteAllBytes($env:temp_file, $rawBytes);"
     if !errorlevel! neq 0 (
+        echo 错误：解压内嵌数据失败
+        echo.
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        pause
         exit /b 1
     )
 )
@@ -694,19 +697,28 @@ if "!already_extracted!"=="0" (
         "$bytes = [System.Convert]::FromBase64String($base64);" ^
         "[System.IO.File]::WriteAllBytes($env:temp_cab, $bytes);"
     if !errorlevel! neq 0 (
+        echo 错误：提取内嵌数据失败
+        echo.
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        pause
         exit /b 1
     )
     if exist "!temp_file!" ( del /f /q "!temp_file!" )
     expand "!temp_cab!" "!temp_file!" >nul
     if !errorlevel! neq 0 (
+        echo 错误：解压内嵌数据失败
+        echo.
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        pause
         exit /b 1
     )
     if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
     if not exist "!temp_file!" (
+        echo 错误：内嵌数据不完整
+        echo.
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        pause
         exit /b 1
     )
 )
@@ -777,18 +789,27 @@ if "!already_extracted!"=="0" (
         "$bytes = [System.Convert]::FromBase64String($base64);" ^
         "[System.IO.File]::WriteAllBytes($env:temp_7z_exe, $bytes);"
     if !errorlevel! neq 0 (
+        echo 错误：提取内嵌数据失败
+        echo.
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        pause
         exit /b 1
     )
     "!temp_7z_exe!" -o"!temp_dir!" -y >nul
     if !errorlevel! neq 0 (
+        echo 错误：解压内嵌数据失败
+        echo.
         if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        pause
         exit /b 1
     )
     if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
     if not exist "!temp_file!" (
+        echo 错误：内嵌数据不完整
+        echo.
         if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
+        pause
         exit /b 1
     )
 )
