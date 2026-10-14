@@ -128,9 +128,9 @@ echo.
 
 echo 正在清理文件图标缓存
 attrib -h -r "%userprofile%\AppData\Local\IconCache.db"
-del /f "%userprofile%\AppData\Local\IconCache.db"
+del /f /q "%userprofile%\AppData\Local\IconCache.db"
 attrib /s /d -h -r -s "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db"
-del /f "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db"
+del /f /q "%userprofile%\AppData\Local\Microsoft\Windows\Explorer\*.db"
 echo.
 
 echo 正在清理系统托盘图标缓存

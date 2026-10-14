@@ -220,13 +220,19 @@ if not "!working_dir!" == "" (
             set /a "name_count+=1"
             set "name_list=!name_list! 第00%%i集.mp4"
         )
-        if !name_count! gtr 1 (
+        if !name_count! equ 0 (
+            REM 无匹配，跳过
+        ) else if !name_count! equ 1 (
+            REM 单个匹配，正常
+        ) else (
             echo 错误：序号 %%i 存在多个命名方式相同的文件：!name_list!，请只保留其中一个文件
             echo.
             pause
             exit /b 1
         )
-        if !name_count! gtr 0 (
+        if !name_count! equ 0 (
+            REM 无匹配
+        ) else (
             if "!min_i!"=="0" set "min_i=%%i"
             set "max_i=%%i"
         )

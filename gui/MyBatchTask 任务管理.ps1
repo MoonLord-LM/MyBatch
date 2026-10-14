@@ -87,7 +87,7 @@ try {
     }
     $powerShellVersion = "$($PSVersionTable.PSVersion.ToString()) $($PSVersionTable.PSEdition)"
     $dotnetClrVersion = [System.Environment]::Version.ToString()
-    $threadState = [Threading.Thread]::CurrentThread.GetApartmentState()
+    $threadState = [System.Threading.Thread]::CurrentThread.GetApartmentState()
     $machineName = [System.Net.Dns]::GetHostName()
     $userName = [System.Environment]::UserName
     "[ Debug ] windowsVersion = $windowsVersion"

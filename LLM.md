@@ -19,7 +19,6 @@ PowerShell 组件，优先考虑：5.1.26100.4061 Desktop
 
 这里记录一些代办事项  
 
-
 ## MyBatchTask 任务管理.ps1
 
 TODO 对任务增加 exe 进程运行状态的检查机制  
