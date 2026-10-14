@@ -8,6 +8,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '扫描当前文件夹下的所有 bat 文件，自动处理编码规范问题' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '自动触发规则，定义在文件 .github/workflows/self-check.yml 中' -ForegroundColor Green"
 echo.
 
 
