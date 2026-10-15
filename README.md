@@ -9,7 +9,7 @@ A collection of commonly used Windows Batch scripts
 
 ```
 MyBatch/
-├── batch/
+├── console/
 │   ├── file/
 │   │   ├── 文件 ed2k 链接生成.bat
 │   │   ├── 文件编码 - 01 反转.bat
@@ -45,9 +45,6 @@ MyBatch/
 │   │   ├── 文件重复清理 - 快速版.bat
 │   │   ├── 文件重复清理.bat
 │   │   └── 文件自动解压.bat
-│   ├── gui/
-│   │   ├── MyBatchTask 任务管理.ps1
-│   │   └── 精简 ps1 代码.bat
 │   ├── media/
 │   │   ├── 屏幕录制关闭.bat
 │   │   ├── 屏幕录制开启 - 0.5 倍分辨率.bat
@@ -120,6 +117,9 @@ MyBatch/
 │       ├── 显示器关闭.bat
 │       ├── 显示器开启.bat
 │       └── 重启桌面进程.bat
+├── gui/
+│   ├── MyBatchTask 任务管理.ps1
+│   └── 精简 ps1 代码.bat
 ├── example/               # 零散示例代码
 ├── LLM.md                 # 提示信息
 ├── README.md              # 工程说明
