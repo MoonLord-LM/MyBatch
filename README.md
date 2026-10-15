@@ -7,17 +7,15 @@ A collection of commonly used Windows Batch scripts
 
 ## [功能分类]
 
-| 功能分类 | 说明 | 目录 |
+| 目录 | 功能分类 | 说明 |
 | --- | --- | --- |
-| [窗体程序](#gui) | 控制台任务批量管理 | [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) |
-| [文件处理](#file) | 压缩解压、加密解密、打包、去重、生成列表等 | [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) |
-| [多媒体工具](#media) | 视频合并、切片、转码、AI 放大插帧、封面管理、字幕管理、批量重命名等 | [console/media](https://github.com/MoonLord-LM/MyBatch/tree/master/console/media) |
-| [网络服务](#server) | 内网穿透、本地文件服务器等 | [console/server](https://github.com/MoonLord-LM/MyBatch/tree/master/console/server) |
-| [系统优化](#system) | 垃圾清理、缓存清理等 | [console/system](https://github.com/MoonLord-LM/MyBatch/tree/master/console/system) |
+| [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) | [窗体程序](#窗体程序) | 控制台任务批量管理 |
+| [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) | [文件处理](#文件处理) | 压缩解压、加密解密、打包、去重、生成列表等 |
+| [console/media](https://github.com/MoonLord-LM/MyBatch/tree/master/console/media) | [多媒体工具](#多媒体工具) | 视频合并、切片、转码、AI 放大插帧、封面管理、字幕管理、批量重命名等 |
+| [console/server](https://github.com/MoonLord-LM/MyBatch/tree/master/console/server) | [网络服务](#网络服务) | 内网穿透、本地文件服务器等 |
+| [console/system](https://github.com/MoonLord-LM/MyBatch/tree/master/console/system) | [系统优化](#系统优化) | 垃圾清理、缓存清理等 |
 
 ## [脚本清单]
-
-<a id="gui"></a>
 
 ### 窗体程序
 
@@ -25,8 +23,6 @@ A collection of commonly used Windows Batch scripts
 | --- | --- |
 | [MyBatchTask 任务管理.ps1](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/MyBatchTask%20任务管理.ps1) | 图形化任务 / 进程管理工具 |
 | [精简 ps1 代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/精简%20ps1%20代码.bat) | 压缩精简 PowerShell 脚本体积（去空白 / 注释） |
-
-<a id="file"></a>
 
 ### 文件处理
 
@@ -66,8 +62,6 @@ A collection of commonly used Windows Batch scripts
 | [文件重复清理 - 快速版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20快速版.bat) | 按大小 + 快速哈希去重清理 |
 | [文件重复清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理.bat) | 按完整哈希去重清理重复文件 |
 | [文件自动解压.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件自动解压.bat) | 识别格式并自动解压压缩包 |
-
-<a id="media"></a>
 
 ### 多媒体工具
 
@@ -130,8 +124,6 @@ A collection of commonly used Windows Batch scripts
 | [音频封面嵌入.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频封面嵌入.bat) | 嵌入封面到音频 |
 | [音频封面移除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频封面移除.bat) | 移除音频封面 |
 
-<a id="server"></a>
-
 ### 网络服务
 
 | 脚本 | 说明 |
@@ -139,8 +131,6 @@ A collection of commonly used Windows Batch scripts
 | [内网穿透 CloudFlare.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/内网穿透%20CloudFlare.bat) | 通过 CloudFlare 建立内网穿透隧道 |
 | [内网穿透 Frp.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/内网穿透%20Frp.bat) | 通过 Frp 建立内网穿透 |
 | [文件服务器 OpenList.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/文件服务器%20OpenList.bat) | 启动 OpenList 文件服务器 |
-
-<a id="system"></a>
 
 ### 系统优化
 
