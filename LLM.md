@@ -221,6 +221,32 @@ if "!libcrypto!" == "" (
 )
 ```
 
+示例代码 4 如下：  
+
+```
+REM 检查 Video2X 组件
+if exist "!script_dir!Video2X\video2x.exe" (
+    set "video2x_path=!script_dir!Video2X\video2x.exe"
+) else if exist "!cd!\Video2X\video2x.exe" (
+    set "video2x_path=!cd!\Video2X\video2x.exe"
+) else if exist "!script_dir!..\Video2X\video2x.exe" (
+    set "video2x_path=!script_dir!..\Video2X\video2x.exe"
+) else if exist "..\Video2X\video2x.exe" (
+    set "video2x_path=..\Video2X\video2x.exe"
+) else (
+    set "video2x_path=video2x"
+)
+"!video2x_path!" --version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 Video2X 组件 & REM
+    echo 请从 https://github.com/k4yt3x/video2x/releases 下载，然后把 Video2X 文件夹放到脚本所在文件夹 & REM
+    "explorer.exe" "https://github.com/k4yt3x/video2x/releases"
+    echo.
+    pause
+    exit /b 1
+)
+```
+
 ## 跳转标签
 
 统一使用单个冒号 `:` 开头的标签，避免使用双冒号 `::` 写法，与注释混淆  
