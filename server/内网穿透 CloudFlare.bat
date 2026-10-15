@@ -30,8 +30,8 @@ if exist "!script_dir!cloudflared.exe" (
 )
 "!cloudflared_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 CloudFlared 组件
-    echo 请从 https://github.com/cloudflare/cloudflared/releases 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 CloudFlared 组件 & REM
+    echo 请从 https://github.com/cloudflare/cloudflared/releases 下载，然后把 cloudflared.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://github.com/cloudflare/cloudflared/releases"
     echo.
     pause

@@ -34,8 +34,8 @@ if exist "!script_dir!ffmpeg.exe" (
 )
 "!ffmpeg_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 ffmpeg 组件
-    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 ffmpeg 组件 & REM
+    echo 请从 https://ffmpeg.org/download.html 下载，然后把 ffmpeg.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
@@ -56,8 +56,8 @@ if exist "!script_dir!ffprobe.exe" (
 )
 "!ffprobe_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 ffprobe 组件
-    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 ffprobe 组件 & REM
+    echo 请从 https://ffmpeg.org/download.html 下载，然后把 ffprobe.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
@@ -78,8 +78,8 @@ if exist "!script_dir!MediaInfo.exe" (
 )
 "!mediainfo_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 MediaInfo 组件
-    echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 MediaInfo 组件 & REM
+    echo 请从 https://mediaarea.net/en/MediaInfo 下载，然后把 MediaInfo.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://mediaarea.net/en/MediaInfo"
     echo.
     pause

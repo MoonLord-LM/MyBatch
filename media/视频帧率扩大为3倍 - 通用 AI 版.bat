@@ -32,8 +32,8 @@ if exist "!script_dir!ffmpeg.exe" (
 )
 "!ffmpeg_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 ffmpeg 组件
-    echo 请从 https://ffmpeg.org/download.html 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 ffmpeg 组件 & REM
+    echo 请从 https://ffmpeg.org/download.html 下载，然后把 ffmpeg.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://ffmpeg.org/download.html"
     echo.
     pause
@@ -54,8 +54,8 @@ if exist "!script_dir!Video2X\video2x.exe" (
 )
 "!video2x_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 video2x 组件
-    echo 请从 https://github.com/k4yt3x/video2x/releases 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 video2x 组件 & REM
+    echo 请从 https://github.com/k4yt3x/video2x/releases 下载，然后把 video2x.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://github.com/k4yt3x/video2x/releases"
     echo.
     pause

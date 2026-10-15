@@ -34,8 +34,8 @@ if exist "!script_dir!libcrypto-4-x64.dll" (
     set "libcrypto=!ProgramFiles!\Git\mingw64\bin\libcrypto-4-x64.dll"
 )
 if "!libcrypto!" == "" (
-    echo 错误：缺少 OpenSSL-Win64 组件
-    echo 请从 https://slproweb.com/products/Win32OpenSSL.html 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 OpenSSL-Win64 组件 & REM
+    echo 请从 https://slproweb.com/products/Win32OpenSSL.html 下载，然后把 libcrypto-4-x64.dll 放到脚本所在文件夹 & REM
     "explorer.exe" "https://slproweb.com/products/Win32OpenSSL.html"
     echo.
     pause

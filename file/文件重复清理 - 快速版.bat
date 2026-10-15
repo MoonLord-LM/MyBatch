@@ -34,8 +34,8 @@ if exist "!script_dir!es.exe" (
 )
 "!es_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 Everything 命令行组件
-    echo 请从 https://www.voidtools.com/zh-cn/downloads/ 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 Everything 命令行组件 & REM
+    echo 请从 https://www.voidtools.com/zh-cn/downloads/ 下载，然后把 es.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://www.voidtools.com/zh-cn/downloads/"
     echo.
     pause

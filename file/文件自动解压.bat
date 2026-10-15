@@ -39,8 +39,8 @@ if exist "!script_dir!7za.exe" (
 )
 "!seven_zip!" i >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 7-Zip 组件
-    echo 请从 https://www.7-zip.org/download.html 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 7-Zip 组件 & REM
+    echo 请从 https://www.7-zip.org/download.html 下载，然后把 7za.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://www.7-zip.org/download.html"
     echo.
     pause
@@ -65,8 +65,8 @@ if exist "!script_dir!UnRAR.exe" (
 )
 "!unrar!" -iver >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 WinRAR 组件
-    echo 请从 https://www.rarlab.com/download.htm 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 WinRAR 组件 & REM
+    echo 请从 https://www.rarlab.com/download.htm 下载，然后把 UnRAR.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://www.rarlab.com/download.htm"
     echo.
     pause

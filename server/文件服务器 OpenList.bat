@@ -33,8 +33,8 @@ if exist "!script_dir!openssl.exe" (
 )
 "!openssl_path!" -version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 OpenSSL-Win64 组件
-    echo 请从 https://slproweb.com/products/Win32OpenSSL.html 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 OpenSSL-Win64 组件 & REM
+    echo 请从 https://slproweb.com/products/Win32OpenSSL.html 下载，然后把 openssl.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://slproweb.com/products/Win32OpenSSL.html"
     echo.
     pause
@@ -54,8 +54,8 @@ if exist "!script_dir!openlist.exe" (
 )
 "!openlist_path!" version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 OpenList 组件
-    echo 请从 https://github.com/OpenListTeam/OpenList/releases 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 OpenList 组件 & REM
+    echo 请从 https://github.com/OpenListTeam/OpenList/releases 下载，然后把 openlist.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://github.com/OpenListTeam/OpenList/releases"
     echo.
     pause

@@ -29,8 +29,8 @@ if exist "!script_dir!rhash.exe" (
 )
 "!rhash_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 RHash 组件
-    echo 请从 https://rhash.sourceforge.io 下载，然后放到脚本所在文件夹
+    echo 错误：缺少 RHash 组件 & REM
+    echo 请从 https://rhash.sourceforge.io 下载，然后把 rhash.exe 放到脚本所在文件夹 & REM
     "explorer.exe" "https://rhash.sourceforge.io"
     echo.
     pause
