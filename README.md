@@ -18,6 +18,7 @@ A collection of commonly used Windows Batch scripts
 ## [脚本清单]
 
 <a id="gui"></a>
+
 ### 窗体程序
 
 | 脚本 / 文件 | 说明 |
@@ -26,6 +27,7 @@ A collection of commonly used Windows Batch scripts
 | [精简 ps1 代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/精简%20ps1%20代码.bat) | 压缩精简 PowerShell 脚本体积（去空白 / 注释） |
 
 <a id="file"></a>
+
 ### 文件处理
 
 | 脚本 | 说明 |
@@ -66,6 +68,7 @@ A collection of commonly used Windows Batch scripts
 | [文件自动解压.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件自动解压.bat) | 识别格式并自动解压压缩包 |
 
 <a id="media"></a>
+
 ### 多媒体工具
 
 | 脚本 | 说明 |
@@ -128,6 +131,7 @@ A collection of commonly used Windows Batch scripts
 | [音频封面移除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频封面移除.bat) | 移除音频封面 |
 
 <a id="server"></a>
+
 ### 网络服务
 
 | 脚本 | 说明 |
@@ -137,6 +141,7 @@ A collection of commonly used Windows Batch scripts
 | [文件服务器 OpenList.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/文件服务器%20OpenList.bat) | 启动 OpenList 文件服务器 |
 
 <a id="system"></a>
+
 ### 系统优化
 
 | 脚本 | 说明 |
