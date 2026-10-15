@@ -40,7 +40,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-REM 检查 video2x 组件
+REM 检查 Video2X 组件
 if exist "!script_dir!Video2X\video2x.exe" (
     set "video2x_path=!script_dir!Video2X\video2x.exe"
 ) else if exist "!cd!\Video2X\video2x.exe" (
@@ -54,8 +54,8 @@ if exist "!script_dir!Video2X\video2x.exe" (
 )
 "!video2x_path!" --version >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 video2x 组件 & REM
-    echo 请从 https://github.com/k4yt3x/video2x/releases 下载，然后把 video2x.exe 放到脚本所在文件夹 & REM
+    echo 错误：缺少 Video2X 组件 & REM
+    echo 请从 https://github.com/k4yt3x/video2x/releases 下载，然后把 Video2X 文件夹放到脚本所在文件夹 & REM
     "explorer.exe" "https://github.com/k4yt3x/video2x/releases"
     echo.
     pause
