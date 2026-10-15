@@ -255,6 +255,7 @@ try {
             MenuDelete = '删除任务'
             MenuStartAll = '全部启动'
             MenuStopAll = '全部停止'
+            MenuRestartAll = '全部重启'
             StatusNotStarted = '未启动'
             StatusRunning = '运行中'
             StatusStopped = '手动结束'
@@ -300,6 +301,7 @@ try {
             INFO_NameRenamed = '任务名称「{0}」重复，已自动重命名为「{1}」'
             INFO_StartAllDone = '已启动全部任务'
             INFO_StopAllDone = '已停止全部任务'
+            INFO_RestartAllDone = '已重启全部任务'
             INFO_LogCopied = '日志已复制到剪贴板'
             INFO_LogOpened = '已打开日志文件: {0}'
             INFO_NoLog = '当前没有日志内容'
@@ -353,6 +355,7 @@ try {
             MenuDelete = 'Delete Task'
             MenuStartAll = 'Start All'
             MenuStopAll = 'Stop All'
+            MenuRestartAll = 'Restart All'
             StatusNotStarted = 'Not Started'
             StatusRunning = 'Running'
             StatusStopped = 'Manual Stop'
@@ -398,6 +401,7 @@ try {
             INFO_NameRenamed = "Task name '{0}' is duplicated and has been renamed to '{1}'"
             INFO_StartAllDone = 'All tasks started'
             INFO_StopAllDone = 'All tasks stopped'
+            INFO_RestartAllDone = 'All tasks restarted'
             INFO_LogCopied = 'Log copied to clipboard'
             INFO_LogOpened = 'Log file opened: {0}'
             INFO_NoLog = 'No log content'
@@ -1300,6 +1304,17 @@ try {
             Stop-Task -Task $task
         }
         System-Log $ui.INFO_StopAllDone 'Info'
+    }
+
+    # 重启全部任务
+    function Restart-All-Tasks {
+        foreach ($task in $taskConfigList) {
+            Stop-Task -Task $task
+        }
+        foreach ($task in $taskConfigList) {
+            Start-Task -Task $task
+        }
+        System-Log $ui.INFO_RestartAllDone 'Success'
     }
 } catch {
     Handle-Exception $_
@@ -2241,7 +2256,7 @@ try {
     $taskGridView = $dataGridView
     Enable-Double-Buffered $taskGridView | Out-Null
 
-    # 任务列表的右键菜单: 启动任务 / 停止任务 / 重启任务 / 查看日志 / 启动所有 / 停止所有 / 新增 / 编辑 / 删除 / 上移 / 下移
+    # 任务列表的右键菜单: 启动任务 / 停止任务 / 重启任务 / 查看日志 / 全部启动 / 全部停止 / 全部重启 / 新增 / 编辑 / 删除 / 上移 / 下移
     $taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
     $menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStartItem.Text = $ui.MenuStart
@@ -2290,6 +2305,9 @@ try {
     $menuStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuStopAllItem.Text = $ui.MenuStopAll
     $menuStopAllItem.Add_Click({ Stop-All-Tasks })
+    $menuRestartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+    $menuRestartAllItem.Text = $ui.MenuRestartAll
+    $menuRestartAllItem.Add_Click({ Restart-All-Tasks })
     $menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
     $menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
     $menuAddItem.Text = $ui.MenuAdd
@@ -2373,7 +2391,7 @@ try {
     })
     foreach ($item in @(
         $menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
-        $menuSep1, $menuStartAllItem, $menuStopAllItem,
+        $menuSep1, $menuStartAllItem, $menuStopAllItem, $menuRestartAllItem,
         $menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem,
         $menuSep3, $menuMoveUpItem, $menuMoveDownItem
     )) {
@@ -2407,6 +2425,7 @@ try {
         $menuMoveDownItem.Enabled = ($index -ge 0 -and $index -lt ($count - 1))
         $menuStartAllItem.Enabled = ($count -gt 0)
         $menuStopAllItem.Enabled = ($count -gt 0)
+        $menuRestartAllItem.Enabled = ($count -gt 0)
     })
     $dataGridView.ContextMenuStrip = $taskContextMenu
 
