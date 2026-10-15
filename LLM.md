@@ -139,6 +139,88 @@ if !errorlevel! equ 0 (
 )
 ```
 
+## 组件检查
+
+示例代码 1 如下：  
+
+```
+REM 检查 ffmpeg 组件
+if exist "!script_dir!ffmpeg.exe" (
+    set "ffmpeg_path=!script_dir!ffmpeg.exe"
+) else if exist "!cd!\ffmpeg.exe" (
+    set "ffmpeg_path=!cd!\ffmpeg.exe"
+) else if exist "!script_dir!..\ffmpeg.exe" (
+    set "ffmpeg_path=!script_dir!..\ffmpeg.exe"
+) else if exist "..\ffmpeg.exe" (
+    set "ffmpeg_path=..\ffmpeg.exe"
+) else (
+    set "ffmpeg_path=ffmpeg"
+)
+"!ffmpeg_path!" -version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 ffmpeg 组件 & REM
+    echo 请从 https://ffmpeg.org/download.html 下载，然后把 ffmpeg.exe 放到脚本所在文件夹 & REM
+    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo.
+    pause
+    exit /b 1
+)
+```
+
+示例代码 2 如下：  
+
+```
+REM 检查 RHash 组件
+if exist "!script_dir!rhash.exe" (
+    set "rhash_path=!script_dir!rhash.exe"
+) else if exist "!cd!\rhash.exe" (
+    set "rhash_path=!cd!\rhash.exe"
+) else if exist "!script_dir!..\rhash.exe" (
+    set "rhash_path=!script_dir!..\rhash.exe"
+) else if exist "..\rhash.exe" (
+    set "rhash_path=..\rhash.exe"
+) else (
+    set "rhash_path=rhash"
+)
+"!rhash_path!" --version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 RHash 组件 & REM
+    echo 请从 https://rhash.sourceforge.io 下载，然后把 rhash.exe 放到脚本所在文件夹 & REM
+    "explorer.exe" "https://rhash.sourceforge.io"
+    echo.
+    pause
+    exit /b 1
+)
+```
+
+示例代码 3 如下：  
+
+```
+REM 检查 OpenSSL-Win64 组件
+set "libcrypto="
+if exist "!script_dir!libcrypto-4-x64.dll" (
+    set "libcrypto=!script_dir!libcrypto-4-x64.dll"
+) else if exist "!cd!\libcrypto-4-x64.dll" (
+    set "libcrypto=!cd!\libcrypto-4-x64.dll"
+) else if exist "!script_dir!..\libcrypto-4-x64.dll" (
+    set "libcrypto=!script_dir!..\libcrypto-4-x64.dll"
+) else if exist "..\libcrypto-4-x64.dll" (
+    set "libcrypto=..\libcrypto-4-x64.dll"
+) else if exist "!ProgramFiles!\OpenSSL-Win64\bin\libcrypto-4-x64.dll" (
+    set "libcrypto=!ProgramFiles!\OpenSSL-Win64\bin\libcrypto-4-x64.dll"
+) else if exist "!ProgramFiles!\Git\mingw64\bin\libcrypto-4-x64.dll" (
+    set "libcrypto=!ProgramFiles!\Git\mingw64\bin\libcrypto-4-x64.dll"
+)
+if "!libcrypto!" == "" (
+    echo 错误：缺少 OpenSSL-Win64 组件 & REM
+    echo 请从 https://slproweb.com/products/Win32OpenSSL.html 下载，然后把 libcrypto-4-x64.dll 放到脚本所在文件夹 & REM
+    "explorer.exe" "https://slproweb.com/products/Win32OpenSSL.html"
+    echo.
+    pause
+    exit /b 1
+)
+```
+
 ## 跳转标签
 
 统一使用单个冒号 `:` 开头的标签，避免使用双冒号 `::` 写法，与注释混淆  
