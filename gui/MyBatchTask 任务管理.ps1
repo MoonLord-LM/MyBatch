@@ -1939,7 +1939,7 @@ try {
         # 对话框窗体
         $dialogForm = [System.Windows.Forms.Form]::new()
         $dialogForm.Text = if ($editIndex -ge 0) { $ui.DialogEditTitle } else { $ui.DialogAddTitle }
-        $dialogForm.Size = [System.Drawing.Size]::new(750, 550)
+        $dialogForm.Size = [System.Drawing.Size]::new(1250, 550)
         $dialogForm.FormBorderStyle = 'FixedDialog'
         $dialogForm.StartPosition = 'CenterParent'
         $dialogForm.MaximizeBox = $false
@@ -1961,7 +1961,7 @@ try {
             param([int]$Top)
             $textBox = [System.Windows.Forms.TextBox]::new()
             $textBox.Location = [System.Drawing.Point]::new(146, $Top)
-            $textBox.Size = [System.Drawing.Size]::new(428, 30)
+            $textBox.Size = [System.Drawing.Size]::new(908, 30)
             $textBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
             $dialogForm.Controls.Add($textBox)
             return $textBox
@@ -1974,7 +1974,7 @@ try {
         $commandBox = New-Dialog-TextBox 96
         $browseCommandButton = [System.Windows.Forms.Button]::new()
         $browseCommandButton.Text = $ui.DialogBrowseCommand
-        $browseCommandButton.Location = [System.Drawing.Point]::new(584, 92)
+        $browseCommandButton.Location = [System.Drawing.Point]::new(1064, 92)
         $browseCommandButton.Size = [System.Drawing.Size]::new(120, 42)
         $browseCommandButton.FlatStyle = 'Flat'
         $browseCommandButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
@@ -2006,7 +2006,7 @@ try {
         $workingDirBox = New-Dialog-TextBox 216
         $browseDirButton = [System.Windows.Forms.Button]::new()
         $browseDirButton.Text = $ui.DialogBrowseDir
-        $browseDirButton.Location = [System.Drawing.Point]::new(584, 212)
+        $browseDirButton.Location = [System.Drawing.Point]::new(1064, 212)
         $browseDirButton.Size = [System.Drawing.Size]::new(120, 42)
         $browseDirButton.FlatStyle = 'Flat'
         $browseDirButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
@@ -2053,7 +2053,7 @@ try {
         # 确定按钮
         $okButton = [System.Windows.Forms.Button]::new()
         $okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
-        $okButton.Location = [System.Drawing.Point]::new(180, 400)
+        $okButton.Location = [System.Drawing.Point]::new(433, 400)
         $okButton.Size = [System.Drawing.Size]::new(180, 46)
         $okButton.FlatStyle = 'Flat'
         $okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
@@ -2161,7 +2161,7 @@ try {
         # 取消按钮
         $cancelButton = [System.Windows.Forms.Button]::new()
         $cancelButton.Text = $ui.DialogCancel
-        $cancelButton.Location = [System.Drawing.Point]::new(384, 400)
+        $cancelButton.Location = [System.Drawing.Point]::new(637, 400)
         $cancelButton.Size = [System.Drawing.Size]::new(180, 46)
         $cancelButton.FlatStyle = 'Flat'
         $cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
