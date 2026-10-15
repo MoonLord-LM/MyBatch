@@ -143,7 +143,7 @@ if !errorlevel! equ 0 (
 
 示例代码 1 如下：  
 
-```
+```batch
 REM 检查 ffmpeg 组件
 if exist "!script_dir!ffmpeg.exe" (
     set "ffmpeg_path=!script_dir!ffmpeg.exe"
@@ -169,7 +169,7 @@ if !errorlevel! neq 0 (
 
 示例代码 2 如下：  
 
-```
+```batch
 REM 检查 RHash 组件
 if exist "!script_dir!rhash.exe" (
     set "rhash_path=!script_dir!rhash.exe"
@@ -195,7 +195,7 @@ if !errorlevel! neq 0 (
 
 示例代码 3 如下：  
 
-```
+```batch
 REM 检查 OpenSSL-Win64 组件
 set "libcrypto="
 if exist "!script_dir!libcrypto-4-x64.dll" (
@@ -223,7 +223,7 @@ if "!libcrypto!" == "" (
 
 示例代码 4 如下：  
 
-```
+```batch
 REM 检查 Video2X 组件
 if exist "!script_dir!Video2X\video2x.exe" (
     set "video2x_path=!script_dir!Video2X\video2x.exe"
