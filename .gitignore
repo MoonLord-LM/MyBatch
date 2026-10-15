@@ -144,3 +144,5 @@ temp
 *.pem
 *.TOML
 *.toml
+*.MIN.PS1
+*.min.ps1
