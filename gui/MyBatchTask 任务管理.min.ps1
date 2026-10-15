@@ -1,0 +1,1509 @@
+﻿function Handle-Exception {param([Parameter(Mandatory=$true)][System.Management.Automation.ErrorRecord]$ErrorRecord)
+''
+"[ Error ] Message: $($ErrorRecord.Exception.Message)"
+if ($ErrorRecord.InvocationInfo) {"[ Error ] Line: $($ErrorRecord.InvocationInfo.ScriptLineNumber)"
+if ($ErrorRecord.InvocationInfo.Line) {"[ Error ] Code: $($ErrorRecord.InvocationInfo.Line.Trim())"}}
+''}
+try {Add-Type -AssemblyName System.Windows.Forms
+Add-Type -AssemblyName System.Drawing
+[System.Windows.Forms.Application]::EnableVisualStyles()
+[System.Windows.Forms.Application]::SetCompatibleTextRenderingDefault($false)
+Get-Culture > $null
+Get-UICulture > $null
+$defaultOutputEncoding = [System.Console]::OutputEncoding.EncodingName
+[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+$currentOutputEncoding = [System.Console]::OutputEncoding.EncodingName
+$workingEncoding= [System.Text.UTF8Encoding]::new($false)
+"[ Debug ] defaultOutputEncoding = $defaultOutputEncoding"
+"[ Debug ] currentOutputEncoding = $currentOutputEncoding"
+"[ Debug ] workingEncoding = $workingEncoding"
+$windowsVersion = powershell -NoProfile -Command {$windowsOSInfo = Get-CimInstance Win32_OperatingSystem
+$windowsCurrentVersion = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
+$windowsVersion = "$($windowsOSInfo.Caption) $($windowsCurrentVersion.DisplayVersion)"
+return $windowsVersion}
+$powerShellVersion = "$($PSVersionTable.PSVersion.ToString()) $($PSVersionTable.PSEdition)"
+$dotnetClrVersion = [System.Environment]::Version.ToString()
+$threadState = [System.Threading.Thread]::CurrentThread.GetApartmentState()
+$machineName = [System.Net.Dns]::GetHostName()
+$userName = [System.Environment]::UserName
+"[ Debug ] windowsVersion = $windowsVersion"
+"[ Debug ] powerShellVersion = $powerShellVersion"
+"[ Debug ] dotnetClrVersion = $dotnetClrVersion"
+try {$dotnetFrameworkDescription = [System.Runtime.InteropServices.RuntimeInformation]::FrameworkDescription
+"[ Debug ] dotnetFrameworkDescription = $dotnetFrameworkDescription"} catch { }
+"[ Debug ] threadState = $threadState"
+"[ Debug ] machineName = $machineName"
+"[ Debug ] userName = $userName"
+$win32ApiCode =
+@'
+    using System;
+    using System.Runtime.InteropServices;
+    public static class DpiContext {
+        public static readonly IntPtr UNAWARE = (IntPtr)(-1);
+        public static readonly IntPtr SYSTEM_AWARE = (IntPtr)(-2);
+        public static readonly IntPtr PER_MONITOR_AWARE = (IntPtr)(-3);
+        public static readonly IntPtr PER_MONITOR_AWARE_V2 = (IntPtr)(-4);
+    }
+    public static class Win32Scroll {
+        public const int EM_GETSCROLLPOS = 0x04DD;
+        public const int EM_SETSCROLLPOS = 0x04DE;
+        [StructLayout(LayoutKind.Sequential)]
+        public struct POINT { public int X; public int Y; }
+    }
+    public static class Win32API {
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDPIAware();
+        [DllImport("user32.dll")]
+        public static extern bool SetProcessDpiAwarenessContext(IntPtr value);
+        [DllImport("user32.dll")]
+        public static extern IntPtr SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, ref Win32Scroll.POINT lParam);
+    }
+'@
+Add-Type -TypeDefinition $win32ApiCode
+$dpiResult = $false
+try {$dpiResult = [Win32API]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)} catch { }
+if(-not $dpiResult) {$dpiResult = [Win32API]::SetProcessDPIAware()}
+$winFormsAssembly = [System.Reflection.Assembly]::GetAssembly([System.Windows.Forms.Form])
+"[ Debug ] winFormsAssemblyRuntime = $($winFormsAssembly.ImageRuntimeVersion)"
+"[ Debug ] winFormsAssembly = $($winFormsAssembly.FullName)"
+"[ Debug ] winFormsAssemblyLocation = $($winFormsAssembly.Location)"
+function Enable-Double-Buffered {param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
+$flags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
+$doubleBufferedProperty = [System.Windows.Forms.Control].GetProperty('DoubleBuffered', $flags)
+$doubleBufferedProperty.SetValue($Control, $true)
+return $doubleBufferedProperty.GetValue($Control)}
+function Enable-User-Paint {param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
+$flags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
+$SetStyleMethod = [System.Windows.Forms.Control].GetMethod('SetStyle', $flags)
+$SetStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::UserPaint, $true))
+$SetStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::AllPaintingInWmPaint, $true))}
+$currentCulture = [System.Globalization.CultureInfo]::CurrentCulture.Name
+$currentUICulture = [System.Globalization.CultureInfo]::CurrentUICulture.Name
+$installedUICulture = [System.Globalization.CultureInfo]::InstalledUICulture.Name
+$currentThreadCulture = [System.Threading.Thread]::CurrentThread.CurrentCulture.Name
+$currentThreadUICulture = [System.Threading.Thread]::CurrentThread.CurrentUICulture.Name
+$workingLanguage = 'en-US'
+$zhCNCount = 0
+$enUSCount = 0
+if ($currentCulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+if ($currentUICulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+if ($installedUICulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+if ($currentThreadCulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+if ($currentThreadUICulture -eq 'zh-CN') { $zhCNCount += 1 } else { $enUSCount += 1 }
+if ($zhCNCount -ge $enUSCount) {$workingLanguage = 'zh-CN'} else {$workingLanguage = 'en-US'}
+"[ Debug ] currentCulture = $currentCulture"
+"[ Debug ] currentUICulture = $currentUICulture"
+"[ Debug ] installedUICulture = $installedUICulture"
+"[ Debug ] currentThreadCulture = $currentThreadCulture"
+"[ Debug ] currentThreadUICulture = $currentThreadUICulture"
+"[ Debug ] workingLanguage = $workingLanguage"
+$currentDirectory = [System.IO.Directory]::GetCurrentDirectory()
+$callDirectory = powershell -NoProfile -Command '(Get-Location).Path'
+$scriptDirectory = $PSScriptRoot
+$systemDirectory = [System.Environment]::SystemDirectory
+$userDirectory = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::UserProfile)
+$tempDirectory = [System.IO.Path]::GetTempPath()
+$workingDirectory = [System.Environment]::GetFolderPath([System.Environment+SpecialFolder]::Desktop)
+foreach ($dir in @($currentDirectory, $callDirectory, $scriptDirectory)) {if ($dir) {if ($dir -ine $systemDirectory) {if ($dir -ine $userDirectory) {if ($dir -ine $tempDirectory) {$workingDirectory = $dir
+break}}}}}
+"[ Debug ] currentDirectory = $currentDirectory"
+"[ Debug ] callDirectory = $callDirectory"
+"[ Debug ] scriptDirectory = $scriptDirectory"
+"[ Debug ] systemDirectory = $systemDirectory"
+"[ Debug ] userDirectory = $userDirectory"
+"[ Debug ] tempDirectory = $tempDirectory"
+"[ Debug ] workingDirectory = $workingDirectory"} catch {Handle-Exception $_
+pause
+exit 1}
+try {$uiTextResources = @{
+'zh-CN' = @{
+FormTitle = 'MyBatchTask 任务管理'
+ColumnStatus = '状态'
+ColumnPid = 'PID'
+ColumnName = '任务名称'
+ColumnCommand = '命令'
+ColumnArguments = '参数'
+ColumnWorkingDir = '工作目录'
+TabTaskList = '任务列表'
+TabRunLog = '系统日志'
+TrayShow = '显示主界面'
+TrayStartAll = '全部启动'
+TrayStopAll = '全部停止'
+TrayExit = '退出'
+MenuAdd = '新增任务'
+MenuStart = '启动'
+MenuStop = '停止'
+MenuRestart = '重启'
+MenuViewLog = '查看日志'
+MenuMoveUp = '上移'
+MenuMoveDown = '下移'
+MenuEdit = '修改任务'
+MenuDelete = '删除任务'
+MenuStartAll = '全部启动'
+MenuStopAll = '全部停止'
+MenuRestartAll = '全部重启'
+StatusNotStarted = '未启动'
+StatusRunning = '运行中'
+StatusStopped = '手动结束'
+StatusExited = '正常结束'
+StatusExitedError = '异常结束'
+NotifyTitleExitedError = '任务结束通知'
+NotifyTextExitedError = '任务「{0}」已结束，退出码 {1}'
+LogCopy = '复制'
+LogCopyAll = '复制全部'
+LogClear = '清空日志显示'
+LogOpenFile = '打开完整日志文件'
+InputSend = '发送输入内容'
+InputSent = '» 已发送输入: {0}'
+ERROR_SendInputFailed = '发送输入失败: {0}'
+INFO_NoRunningProcess = '任务未运行，无法发送输入'
+ConfirmTitle = '确认'
+ConfirmDelete = '确定删除任务「{0}」吗？'
+ConfirmExit = '退出将停止所有运行中的任务，是否继续？'
+ERROR_CommandEmpty = '命令不能为空'
+ERROR_CommandNotFound = '命令文件不存在: {0}'
+ERROR_NameEmpty = '任务名称不能为空'
+ERROR_NameDuplicated = '任务名称已存在: {0}'
+ERROR_NameReserved = '任务名称不能使用为系统日志保留的名称: {0}'
+ERROR_NameInvalid = '任务名称包含特殊字符，不能作为 Windows 文件名: {0}'
+ERROR_FieldMissing = '任务配置缺少必填字段，已跳过该任务: {0}'
+ERROR_WorkDirNotFound = '工作目录不存在: {0}'
+ERROR_NoSelection = '请先在列表中选择一个任务'
+ERROR_AlreadyRunning = '程序已经在运行中，请查看桌面右下角的托盘图标'
+ERROR_TaskStartFailed = '任务启动失败: {0}'
+ERROR_TaskStopFailed = '任务停止失败: {0}'
+ERROR_TaskStopTimeout = '停止任务超时: {0}'
+INFO_Started = '任务已启动: {0} (PID {1})'
+INFO_Stopped = '任务已停止: {0}'
+INFO_Exited = '任务已退出: {0} (退出码 {1})'
+INFO_AlreadyRunning = '任务已在运行中: {0}'
+INFO_NotStarted = '任务尚未启动: {0}'
+INFO_AlreadyStopped = '任务已处于停止状态: {0}'
+INFO_Deleted = '任务已删除: {0}'
+INFO_Saved = '配置已保存到 {0}'
+INFO_ConfigLoaded = '已加载 {0} 个任务'
+INFO_ConfigLoadFailed = '配置文件加载失败: {0}'
+INFO_ConfigNotFound = '未找到配置文件: {0}'
+INFO_NameRenamed = '任务名称「{0}」重复，已自动重命名为「{1}」'
+INFO_StartAllDone = '已启动全部任务'
+INFO_StopAllDone = '已停止全部任务'
+INFO_RestartAllDone = '已重启全部任务'
+INFO_LogCopied = '日志已复制到剪贴板'
+INFO_LogOpened = '已打开日志文件: {0}'
+INFO_NoLog = '当前没有日志内容'
+INFO_SystemInfo = '配置文件: [ {0} ]'
+DialogAddTitle = '新增任务'
+DialogEditTitle = '修改任务'
+DialogName = '任务名称:'
+DialogCommand = '命令:'
+DialogArguments = '参数:'
+DialogWorkingDir = '工作目录:'
+DialogStartMode = '启动方式:'
+DialogAutoStart = '管理器启动时自动运行'
+DialogManualStart = '手动执行'
+DialogBrowseCommand = '选择文件'
+DialogBrowseDir = '选择目录'
+DialogBrowseCommandTitle = '选择命令文件'
+DialogBrowseDirTitle = '选择工作目录'
+DialogExeFilter = '可执行文件 (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|所有文件 (*.*)|*.*'
+DialogSave = '保存'
+DialogSaveRestart = '保存并重启任务'
+DialogCancel = '取消'
+CloseTab = '关闭当前任务日志'
+CloseAllTabs = '关闭所有任务日志'
+LogTaskStart = '———————————— 开始新进程 ————————————————'
+LogTaskEndNormal = '———————————— 正常退出进程 ————————————————'
+LogTaskEndError = '———————————— 异常结束进程，错误码 {0} ————————————————'
+LogTaskStopManual = '———————————— 手动结束进程 ————————————————'}
+'en-US' = @{
+FormTitle = 'MyBatchTask Batch Task Manager'
+ColumnStatus = 'Status'
+ColumnPid = 'PID'
+ColumnName = 'Task Name'
+ColumnCommand = 'Command'
+ColumnArguments = 'Arguments'
+ColumnWorkingDir = 'Working Directory'
+TabTaskList = 'Task List'
+TabRunLog = 'System Log'
+TrayShow = 'Show Main Window'
+TrayStartAll = 'Start All'
+TrayStopAll = 'Stop All'
+TrayExit = 'Exit'
+MenuAdd = 'Add Task'
+MenuStart = 'Start'
+MenuStop = 'Stop'
+MenuRestart = 'Restart'
+MenuViewLog = 'View Log'
+MenuMoveUp = 'Move Up'
+MenuMoveDown = 'Move Down'
+MenuEdit = 'Edit Task'
+MenuDelete = 'Delete Task'
+MenuStartAll = 'Start All'
+MenuStopAll = 'Stop All'
+MenuRestartAll = 'Restart All'
+StatusNotStarted = 'Not Started'
+StatusRunning = 'Running'
+StatusStopped = 'Manual Stop'
+StatusExited = 'Exited Normally'
+StatusExitedError = 'Abnormal Exit'
+NotifyTitleExitedError = 'Task Finished Notification'
+NotifyTextExitedError = "Task '{0}' finished, exit code {1}"
+LogCopy = 'Copy'
+LogCopyAll = 'Copy All'
+LogClear = 'Clear Log View'
+LogOpenFile = 'Open Full Log File'
+InputSend = 'Send Input'
+InputSent = '» Sent input: {0}'
+ERROR_SendInputFailed = 'Failed to send input: {0}'
+INFO_NoRunningProcess = 'Task is not running, cannot send input'
+ConfirmTitle = 'Confirm'
+ConfirmDelete = "Delete task '{0}'?"
+ConfirmExit = 'Exit will stop all running tasks. Continue?'
+ERROR_CommandEmpty = 'Command must not be empty'
+ERROR_CommandNotFound = 'Command file not found: {0}'
+ERROR_NameEmpty = 'Task name must not be empty'
+ERROR_NameDuplicated = 'Task name already exists: {0}'
+ERROR_NameReserved = 'Task name must not use the name reserved for the system log: {0}'
+ERROR_NameInvalid = 'Task name contains special characters and cannot be used as a Windows file name: {0}'
+ERROR_FieldMissing = 'Task config is missing required field, task skipped: {0}'
+ERROR_WorkDirNotFound = 'Working directory not found: {0}'
+ERROR_NoSelection = 'Please select a task from the list first'
+ERROR_AlreadyRunning = 'The program is already running. Please check the tray icon in the lower right corner.'
+ERROR_TaskStartFailed = 'Failed to start task: {0}'
+ERROR_TaskStopFailed = 'Failed to stop task: {0}'
+ERROR_TaskStopTimeout = 'Stopping task timed out: {0}'
+INFO_Started = 'Task started: {0} (PID {1})'
+INFO_Stopped = 'Task stopped: {0}'
+INFO_Exited = 'Task exited: {0} (exit code {1})'
+INFO_AlreadyRunning = 'Task is already running: {0}'
+INFO_NotStarted = 'Task has not started: {0}'
+INFO_AlreadyStopped = 'Task is already stopped: {0}'
+INFO_Deleted = 'Task deleted: {0}'
+INFO_Saved = 'Configuration saved to {0}'
+INFO_ConfigLoaded = 'Loaded {0} task(s)'
+INFO_ConfigLoadFailed = 'Failed to load configuration file: {0}'
+INFO_ConfigNotFound = 'Configuration file not found: {0}'
+INFO_NameRenamed = "Task name '{0}' is duplicated and has been renamed to '{1}'"
+INFO_StartAllDone = 'All tasks started'
+INFO_StopAllDone = 'All tasks stopped'
+INFO_RestartAllDone = 'All tasks restarted'
+INFO_LogCopied = 'Log copied to clipboard'
+INFO_LogOpened = 'Log file opened: {0}'
+INFO_NoLog = 'No log content'
+INFO_SystemInfo = 'Config file: [ {0} ]'
+DialogAddTitle = 'Add Task'
+DialogEditTitle = 'Edit Task'
+DialogName = 'Task Name:'
+DialogCommand = 'Command:'
+DialogArguments = 'Arguments:'
+DialogWorkingDir = 'Working Directory:'
+DialogStartMode = 'Start Mode:'
+DialogAutoStart = 'Auto start when the manager starts'
+DialogManualStart = 'Manual'
+DialogBrowseCommand = 'Browse'
+DialogBrowseDir = 'Browse'
+DialogBrowseCommandTitle = 'Select Command File'
+DialogBrowseDirTitle = 'Select Working Directory'
+DialogExeFilter = 'Executable files (*.exe;*.bat;*.cmd;*.ps1;*.py)|*.exe;*.bat;*.cmd;*.ps1;*.py|All files (*.*)|*.*'
+DialogSave = 'Save'
+DialogSaveRestart = 'Save and Restart Task'
+DialogCancel = 'Cancel'
+CloseTab = 'Close Current Task Log'
+CloseAllTabs = 'Close All Task Logs'
+LogTaskStart = '———————————— Start new process ————————————————'
+LogTaskEndNormal = '———————————— Process finished normally ————————————————'
+LogTaskEndError = '———————————— Process exited abnormally, error code {0} ————————————————'
+LogTaskStopManual = '———————————— Manual stop process ————————————————'}}
+$ui = $uiTextResources[$workingLanguage]
+$appName = 'MyBatchTask'
+$appMutexCreateSuccess = $null
+$appMutex = [System.Threading.Mutex]::new($false, "Local\Mutex_$appName", [ref]$appMutexCreateSuccess)
+if (-not $appMutexCreateSuccess) {$appMutex.Dispose()
+$appMutex = $null
+[System.Windows.Forms.MessageBox]::Show($ui.ERROR_AlreadyRunning, $ui.FormTitle, 'OK', 'Warning') | Out-Null
+exit 1}
+$myBatchTaskDir = [System.IO.Path]::Combine($workingDirectory, $appName)
+if (-not [System.IO.Directory]::Exists($myBatchTaskDir)) {[System.IO.Directory]::CreateDirectory($myBatchTaskDir) | Out-Null}
+$myBatchTaskLogsDir = [System.IO.Path]::Combine($myBatchTaskDir, 'logs')
+if (-not [System.IO.Directory]::Exists($myBatchTaskLogsDir)) {[System.IO.Directory]::CreateDirectory($myBatchTaskLogsDir) | Out-Null}
+$myBatchTaskSystemLogFile = [System.IO.Path]::Combine($myBatchTaskLogsDir, $appName + '.log')
+if (-not [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {[System.IO.File]::WriteAllText($myBatchTaskSystemLogFile, '', $workingEncoding)}
+$myBatchTaskConfigFile = [System.IO.Path]::Combine($myBatchTaskDir, 'config.json')
+$defaultJsonConfig = @{
+'zh-CN' =
+@'
+[
+    {
+        "name": "Ping 测试",
+        "command": "%SystemRoot%\\System32\\cmd.exe",
+        "arguments": "/s /c \"chcp 65001 >nul && ping github.com\"",
+        "workingDirectory": "%SystemRoot%\\System32",
+        "autoStart": true
+    }
+]
+'@
+'en-US' =
+@'
+[
+    {
+        "name": "Ping Test",
+        "command": "%SystemRoot%\\System32\\cmd.exe",
+        "arguments": "/s /c \"chcp 65001 >nul && ping github.com\"",
+        "workingDirectory": "%SystemRoot%\\System32",
+        "autoStart": true
+    }
+]
+'@}
+if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {[System.IO.File]::WriteAllText($myBatchTaskConfigFile, $defaultJsonConfig[$workingLanguage], $workingEncoding)}} catch {Handle-Exception $_
+pause
+exit 1}
+try {$systemLogFileLock = [object]::new()
+$systemLogTextBox = $null
+$systemLogColorMap = @{
+Info = [System.Drawing.Color]::Black
+Success = [System.Drawing.Color]::Green
+Warning = [System.Drawing.Color]::DarkOrange
+Error = [System.Drawing.Color]::Red
+Progress = [System.Drawing.Color]::Blue
+Debug = [System.Drawing.Color]::Gray}
+function System-Log-Internal {param($TextBox, $Text, $Color)
+try {if ($null -eq $TextBox -or $TextBox.IsDisposed) {return}
+$TextBox.SuspendLayout()
+try {$TextBox.SelectionStart = $TextBox.TextLength
+$TextBox.SelectionLength = 0
+$TextBox.SelectionFont = $TextBox.Font
+$TextBox.SelectionColor = $Color
+$TextBox.AppendText($Text)
+$TextBox.SelectionStart = $TextBox.TextLength
+$TextBox.ScrollToCaret()}
+finally {$TextBox.ResumeLayout()}} catch {Handle-Exception $_}}
+$systemLogInternalAction = [Action[System.Windows.Forms.RichTextBox, string, System.Drawing.Color]]{param($TextBox, $Text, $Color)
+System-Log-Internal $TextBox $Text $Color}
+function System-Log {param([string]$Message = '', [string]$Level = 'Info')
+$logLine = "[{0}] {1}`r`n" -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
+$lockTaken = $false
+try {[System.Threading.Monitor]::Enter($systemLogFileLock, [ref]$lockTaken)
+[System.IO.File]::AppendAllText($myBatchTaskSystemLogFile, $logLine, $workingEncoding)} catch {Handle-Exception $_} finally {if ($lockTaken) {[System.Threading.Monitor]::Exit($systemLogFileLock)}}
+if ($null -eq $systemLogTextBox -or $systemLogTextBox.IsDisposed) {return}
+$logColor = if ($systemLogColorMap.ContainsKey($Level)) {$systemLogColorMap[$Level]} else {[System.Drawing.Color]::Black}
+if ($systemLogTextBox.IsHandleCreated -and $systemLogTextBox.InvokeRequired) {try {$systemLogTextBox.BeginInvoke($systemLogInternalAction, $systemLogTextBox, $logLine, $logColor) | Out-Null} catch {Handle-Exception $_}
+return}
+System-Log-Internal $systemLogTextBox $logLine $logColor}
+function Show-Tray-Info {param([string]$Title = $ui.FormTitle, [string]$Message = '', [System.Windows.Forms.ToolTipIcon]$Icon = [System.Windows.Forms.ToolTipIcon]::Info)
+try {if ($null -eq $trayIcon -or $trayIcon.Visible -eq $false) {return}
+$trayIcon.ShowBalloonTip(10000, $Title, $Message, $Icon)} catch {Handle-Exception $_}}
+$taskConfigList = @()
+function Test-Task-Name {param([string]$TaskName, [ref]$ValidName)
+$name = ''
+if ($TaskName) {$name = $TaskName.Trim()}
+if ($ValidName) {$ValidName.Value = $name}
+if (-not $name) {return $ui.ERROR_NameEmpty}
+if ($name -ieq $appName) {return ($ui.ERROR_NameReserved -f $name)}
+if ($name.IndexOfAny([System.IO.Path]::GetInvalidFileNameChars()) -ge 0) {return ($ui.ERROR_NameInvalid -f $name)}
+return ''}
+function Save-Config {$objects = [System.Collections.Generic.List[PSCustomObject]]::new()
+foreach ($task in $taskConfigList) {$objects.Add([PSCustomObject]@{
+name = [string]$task.name
+command = [string]$task.command
+arguments = [string]$task.arguments
+workingDirectory = [string]$task.workingDirectory
+autoStart = [bool]$task.autoStart})}
+$json = ConvertTo-Json -InputObject @($objects) -Depth 100
+[System.IO.File]::WriteAllText($myBatchTaskConfigFile, $json, $workingEncoding)
+System-Log ($ui.INFO_Saved -f $myBatchTaskConfigFile) 'Debug'}
+function Load-Config {if (-not [System.IO.File]::Exists($myBatchTaskConfigFile)) {System-Log ($ui.INFO_ConfigNotFound -f $myBatchTaskConfigFile) 'Warning'
+return $false}
+try {$configText = [System.IO.File]::ReadAllText($myBatchTaskConfigFile, $workingEncoding)
+$config = $configText | ConvertFrom-Json
+$seenNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
+$newTaskConfigList = @()
+$configItemCount = 0
+$configChanged = $false
+foreach ($item in @($config)) {if ($item -isnot [PSCustomObject]) { continue; }
+$configItemCount += 1
+$itemOriginalJson = ConvertTo-Json -InputObject $item -Depth 10 -Compress
+if ($item.PSObject.Properties.Match('name').Count -eq 0) {System-Log ($ui.ERROR_FieldMissing -f 'name') 'Warning'
+continue}
+$taskName = ''
+$taskNameError = Test-Task-Name -TaskName ([string]$item.name) -ValidName ([ref]$taskName)
+if ($taskNameError) {System-Log $taskNameError 'Warning'
+continue}
+if ($seenNames.Contains($taskName)) {$baseName = $taskName
+$nameSuffix = 2
+while ($seenNames.Contains($baseName + $nameSuffix)) {$nameSuffix += 1}
+$taskName = $baseName + $nameSuffix
+$item.name = $taskName
+System-Log ($ui.INFO_NameRenamed -f $baseName, $taskName) 'Warning'}
+$item.name = $taskName
+$seenNames.Add($taskName) | Out-Null
+if ($item.PSObject.Properties.Match('command').Count -eq 0) {System-Log ($ui.ERROR_FieldMissing -f 'command') 'Warning'
+continue}
+$commandValue = [string]$item.command
+if (-not $commandValue) {System-Log ($ui.ERROR_CommandEmpty) 'Warning'
+continue}
+$commandValue = $commandValue.Trim()
+if (-not $commandValue) {System-Log ($ui.ERROR_CommandEmpty) 'Warning'
+continue}
+$item.command = $commandValue
+if ($item.PSObject.Properties.Match('arguments').Count -eq 0) {System-Log ($ui.ERROR_FieldMissing -f 'arguments') 'Warning'
+continue}
+if ($null -eq $item.arguments) {System-Log ($ui.ERROR_FieldMissing -f 'arguments') 'Warning'
+continue}
+$argumentsValue = [string]$item.arguments
+$argumentsValue = $argumentsValue.Trim()
+$item.arguments = $argumentsValue
+if ($item.PSObject.Properties.Match('workingDirectory').Count -eq 0) {System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') 'Warning'
+continue}
+if ($null -eq $item.workingDirectory) {System-Log ($ui.ERROR_FieldMissing -f 'workingDirectory') 'Warning'
+continue}
+$workingDirectoryValue = [string]$item.workingDirectory
+$workingDirectoryValue = $workingDirectoryValue.Trim()
+$item.workingDirectory = $workingDirectoryValue
+if ($item.PSObject.Properties.Match('autoStart').Count -eq 0) {System-Log ($ui.ERROR_FieldMissing -f 'autoStart') 'Warning'
+continue}
+if ($null -eq $item.autoStart) {System-Log ($ui.ERROR_FieldMissing -f 'autoStart') 'Warning'
+continue}
+$autoStartValue = [bool]$item.autoStart
+$item.autoStart = $autoStartValue
+$newTaskConfigList += $item
+if ((ConvertTo-Json -InputObject $item -Depth 10 -Compress) -cne $itemOriginalJson) {$configChanged = $true}}
+$script:taskConfigList = $newTaskConfigList
+Update-Task-Grid
+if ($configChanged -or $newTaskConfigList.Count -ne $configItemCount) {Save-Config}} catch {System-Log ($ui.INFO_ConfigLoadFailed -f $_.Exception.Message) 'Error'
+return $false}
+System-Log ($ui.INFO_ConfigLoaded -f $taskConfigList.Count) 'Success'
+return $true}
+$taskGridView = $null
+function Get-Task-Config-Index {param([string]$TaskName)
+if (-not $TaskName) { return -1 }
+for ($i = 0; $i -lt $taskConfigList.Count; $i++) {if ([string]$taskConfigList[$i].name -eq $TaskName) {return $i}}
+return -1}
+function Get-Selected-Task-Index {if ($taskGridView.SelectedRows.Count -eq 0) { return -1 }
+return (Get-Task-Config-Index -TaskName ([string]$taskGridView.SelectedRows[0].Tag))}
+$taskExecutionMap = @{}
+function Get-Task-Execution {param([string]$TaskName)
+if (-not $taskExecutionMap.ContainsKey($TaskName)) {$taskExecutionMap[$TaskName] = @{
+process = $null
+status = $ui.StatusNotStarted
+logViewContent = [System.Text.StringBuilder]::new()
+logFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $TaskName + '.log')
+logFileWriter = $null
+logViewTextBox = $null
+StandardOutputReader = $null
+StandardErrorReader = $null
+RunspacePool = $null}}
+return $taskExecutionMap[$TaskName]}
+function Update-Task-Grid {if ($null -eq $taskGridView -or $taskGridView.IsDisposed) {return}
+$taskGridView.SuspendLayout()
+try {$taskGridView.Rows.Clear()
+for ($i = 0; $i -lt $taskConfigList.Count; $i++) {$task = $taskConfigList[$i]
+$taskName = $task.name
+$statusText = $ui.StatusNotStarted
+$pidText = ''
+$execution = Get-Task-Execution -TaskName ([string]$taskName)
+if ($execution.status) {$statusText = $execution.status}
+if ($execution.process -and -not $execution.process.HasExited) {$pidText = [string]$execution.process.Id}
+$rowIndex = $taskGridView.Rows.Add($statusText, $pidText, [string]$task.name, [string]$task.command, [string]$task.arguments, [string]$task.workingDirectory)
+$taskGridView.Rows[$rowIndex].Tag = [string]$task.name}}
+finally {$taskGridView.ResumeLayout()}}
+function Update-Task-Grid-Row {param([string]$TaskName)
+if ($null -eq $taskGridView -or $taskGridView.IsDisposed) {return}
+$rowIndex = -1
+for ($i = 0; $i -lt $taskGridView.Rows.Count; $i++) {if ([string]$taskGridView.Rows[$i].Tag -eq $TaskName) {$rowIndex = $i
+break}}
+if ($rowIndex -lt 0) {return}
+$statusText = $ui.StatusNotStarted
+$pidText = ''
+$execution = Get-Task-Execution -TaskName $TaskName
+if ($execution.status) {$statusText = $execution.status}
+if ($execution.process -and -not $execution.process.HasExited) {$pidText = [string]$execution.process.Id}
+$taskGridView.Rows[$rowIndex].Cells[0].Value = $statusText
+$taskGridView.Rows[$rowIndex].Cells[1].Value = $pidText}
+$ansiForegroundColorMap = @{
+'30' = [System.Drawing.Color]::Black
+'31' = [System.Drawing.Color]::Maroon
+'32' = [System.Drawing.Color]::Green
+'33' = [System.Drawing.Color]::Olive
+'34' = [System.Drawing.Color]::Navy
+'35' = [System.Drawing.Color]::Purple
+'36' = [System.Drawing.Color]::Teal
+'37' = [System.Drawing.Color]::Silver
+'90' = [System.Drawing.Color]::Gray
+'91' = [System.Drawing.Color]::Red
+'92' = [System.Drawing.Color]::Lime
+'93' = [System.Drawing.Color]::Yellow
+'94' = [System.Drawing.Color]::Blue
+'95' = [System.Drawing.Color]::Magenta
+'96' = [System.Drawing.Color]::Cyan
+'97' = [System.Drawing.Color]::White}
+$ansiBackgroundColorMap = @{
+'40' = [System.Drawing.Color]::Black
+'41' = [System.Drawing.Color]::Maroon
+'42' = [System.Drawing.Color]::Green
+'43' = [System.Drawing.Color]::Olive
+'44' = [System.Drawing.Color]::Navy
+'45' = [System.Drawing.Color]::Purple
+'46' = [System.Drawing.Color]::Teal
+'47' = [System.Drawing.Color]::Silver
+'100' = [System.Drawing.Color]::Gray
+'101' = [System.Drawing.Color]::Red
+'102' = [System.Drawing.Color]::Lime
+'103' = [System.Drawing.Color]::Yellow
+'104' = [System.Drawing.Color]::Blue
+'105' = [System.Drawing.Color]::Magenta
+'106' = [System.Drawing.Color]::Cyan
+'107' = [System.Drawing.Color]::White}
+function Append-Ansi-Colored-Text {param($TargetTextBox, [string]$SourceText, [System.Drawing.Color]$DefaultColor)
+$escapeCharacter = [char]27
+$ansiEscapePattern = [regex]::new([regex]::Escape($escapeCharacter.ToString()) + '\[[0-9;]*m')
+$sourceLines = $SourceText.Split([System.Environment]::NewLine, [System.StringSplitOptions]::RemoveEmptyEntries)
+foreach ($sourceLine in $sourceLines) {$currentForegroundColor = $DefaultColor
+$currentBackgroundColor = [System.Drawing.Color]::Empty
+$lastProcessedIndex = 0
+foreach ($match in $ansiEscapePattern.Matches($sourceLine)) {if ($match.Index -gt $lastProcessedIndex) {$TargetTextBox.SelectionColor = $currentForegroundColor
+if ($currentBackgroundColor -eq [System.Drawing.Color]::Empty) {$TargetTextBox.SelectionBackColor = $TargetTextBox.BackColor} else {$TargetTextBox.SelectionBackColor = $currentBackgroundColor}
+$TargetTextBox.AppendText($sourceLine.Substring($lastProcessedIndex, $match.Index - $lastProcessedIndex))}
+foreach ($code in $match.Value.Substring(2, $match.Value.Length - 3).Split(';')) {if ($code -eq '' -or $code -eq '0') {$currentForegroundColor = $DefaultColor
+$currentBackgroundColor = [System.Drawing.Color]::Empty} elseif ($ansiForegroundColorMap.ContainsKey($code)) {$currentForegroundColor = $ansiForegroundColorMap[$code]} elseif ($ansiBackgroundColorMap.ContainsKey($code)) {$currentBackgroundColor = $ansiBackgroundColorMap[$code]}}
+$lastProcessedIndex = $match.Index + $match.Length}
+if ($lastProcessedIndex -lt $sourceLine.Length) {$TargetTextBox.SelectionColor = $currentForegroundColor
+if ($currentBackgroundColor -eq [System.Drawing.Color]::Empty) {$TargetTextBox.SelectionBackColor = $TargetTextBox.BackColor} else {$TargetTextBox.SelectionBackColor = $currentBackgroundColor}
+$TargetTextBox.AppendText($sourceLine.Substring($lastProcessedIndex))}
+$TargetTextBox.AppendText([System.Environment]::NewLine)}}
+function Append-Task-Log-Internal {param([string]$TaskName, [string]$Message, [string]$Level = 'Info')
+if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
+$logLine = '[{0}] {1}' -f $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $Message
+$execution = $taskExecutionMap[$TaskName]
+$execution.logViewContent.AppendLine($logLine) | Out-Null
+try {if ($execution.logFileWriter) {$execution.logFileWriter.WriteLine($logLine)} elseif ($execution.logFilePath) {[System.IO.File]::AppendAllText($execution.logFilePath, $logLine + "`r`n", $workingEncoding)}} catch {Handle-Exception $_}
+try {if ($null -eq $execution.logViewTextBox -or $execution.logViewTextBox.IsDisposed) {return}
+$execution.logViewTextBox.SuspendLayout()
+try {$execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
+$execution.logViewTextBox.SelectionLength = 0
+$execution.logViewTextBox.SelectionFont = $execution.logViewTextBox.Font
+$lineColor = if ($Level -eq 'Info') { [System.Drawing.Color]::Black } elseif ($Level -eq 'Input') { [System.Drawing.Color]::Blue } else { [System.Drawing.Color]::Red }
+$execution.logViewTextBox.SelectionColor = $lineColor
+$execution.logViewTextBox.SelectionBackColor = $execution.logViewTextBox.BackColor
+Append-Ansi-Colored-Text $execution.logViewTextBox $logLine $lineColor
+$execution.logViewTextBox.SelectionColor = $lineColor
+$execution.logViewTextBox.SelectionBackColor = $execution.logViewTextBox.BackColor
+$execution.logViewTextBox.SelectionStart = $execution.logViewTextBox.TextLength
+$execution.logViewTextBox.ScrollToCaret()}
+finally {$execution.logViewTextBox.ResumeLayout()}} catch {Handle-Exception $_}}
+function Clear-Task-Log-Internal {param([string]$TaskName)
+if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
+$execution = $taskExecutionMap[$TaskName]
+$execution.logViewContent.Clear() | Out-Null
+try {if ($null -eq $execution.logViewTextBox -or $execution.logViewTextBox.IsDisposed) {return}
+$execution.logViewTextBox.Clear()} catch {Handle-Exception $_}}
+$taskLogAppendQueue = [System.Collections.Concurrent.ConcurrentQueue[hashtable]]::new()
+function Append-Task-Log {param([string]$TaskName, [string]$Message, [string]$Level = 'Info')
+$taskLogAppendQueue.Enqueue(@{ TaskName = $TaskName; Message = $Message; Level = $Level })}
+function Process-Task-Log-Queue {$logItem = $null
+while ($taskLogAppendQueue.TryDequeue([ref]$logItem)) {Append-Task-Log-Internal -TaskName $logItem.TaskName -Message $logItem.Message -Level $logItem.Level}}
+function Start-Task {param([PSCustomObject]$Task)
+if ($null -eq $Task) { return }
+$taskName = [string]$Task.name
+$execution = Get-Task-Execution -TaskName $taskName
+if ($execution.process -and -not $execution.process.HasExited) {System-Log ($ui.INFO_AlreadyRunning -f $taskName) 'Warning'
+return}
+if ($execution.process) {Release-Task-Resources -TaskName $taskName}
+$commandText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.command)
+$argumentText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.arguments)
+$workingDirText = [System.Environment]::ExpandEnvironmentVariables([string]$Task.workingDirectory)
+$resolvedCommand = $commandText
+if (-not [System.IO.File]::Exists($resolvedCommand)) {$resolvedItem = Get-Command $commandText -ErrorAction SilentlyContinue
+if ($resolvedItem -and $resolvedItem.Source) {$resolvedCommand = [string]$resolvedItem.Source}}
+$startInfo = [System.Diagnostics.ProcessStartInfo]::new()
+$startInfo.FileName = $resolvedCommand
+$startInfo.Arguments = $argumentText
+$commandExtension = [System.IO.Path]::GetExtension($resolvedCommand).ToLower()
+if ($commandExtension -eq '.bat' -or $commandExtension -eq '.cmd') {$startInfo.FileName = $env:ComSpec
+$startInfo.Arguments = '/s /c ""' + $resolvedCommand + '" ' + $argumentText + '"'} elseif ($commandExtension -eq '.ps1') {$powerShellExe = 'powershell.exe'
+$resolvedPowerShell = Get-Command $powerShellExe -ErrorAction SilentlyContinue
+if ($resolvedPowerShell -and $resolvedPowerShell.Source) {$powerShellExe = [string]$resolvedPowerShell.Source}
+$startInfo.FileName = $powerShellExe
+$startInfo.Arguments = '-NoProfile -ExecutionPolicy Bypass -File "' + $resolvedCommand + '" ' + $argumentText} elseif ($commandExtension -eq '.py') {$pythonExe = 'python.exe'
+$resolvedPython = Get-Command $pythonExe -ErrorAction SilentlyContinue
+if ($resolvedPython -and $resolvedPython.Source) {$pythonExe = [string]$resolvedPython.Source}
+$startInfo.FileName = $pythonExe
+$startInfo.Arguments = '"' + $resolvedCommand + '" ' + $argumentText}
+if ([string]::IsNullOrEmpty($workingDirText)) {$workingDirText = [System.IO.Path]::GetDirectoryName($resolvedCommand)}
+if (-not [System.IO.Directory]::Exists($workingDirText)) {System-Log ($ui.ERROR_WorkDirNotFound -f $workingDirText) 'Error'
+return}
+$startInfo.WorkingDirectory = $workingDirText
+$startInfo.UseShellExecute = $false
+$startInfo.CreateNoWindow = $true
+$startInfo.RedirectStandardOutput = $true
+$startInfo.RedirectStandardError = $true
+$startInfo.RedirectStandardInput = $true
+$startInfo.StandardOutputEncoding = $workingEncoding
+$startInfo.StandardErrorEncoding = $workingEncoding
+try {$process = [System.Diagnostics.Process]::new()
+$process.StartInfo = $startInfo
+if (-not $process.Start()) {System-Log ($ui.ERROR_TaskStartFailed -f $taskName) 'Error'
+return}} catch {System-Log ($ui.ERROR_TaskStartFailed -f $_.Exception.Message) 'Error'
+return}
+$execution.process = $process
+$execution.status = $ui.StatusRunning
+try {$logFileStream = [System.IO.File]::Open($execution.logFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+$execution.logFileWriter = [System.IO.StreamWriter]::new($logFileStream, $workingEncoding)
+$execution.logFileWriter.AutoFlush = $true} catch {Handle-Exception $_}
+$readerScript = {param($Reader, $Queue, $TaskName, $Level)
+try {while ($true) {$line = $Reader.ReadLine()
+if ($null -eq $line) { break }
+$Queue.Enqueue(@{ TaskName = $TaskName; Message = $line; Level = $Level })}} catch {}}
+$readerRunspacePool = [System.Management.Automation.Runspaces.RunspaceFactory]::CreateRunspacePool(2, 2)
+$readerRunspacePool.Open()
+$stdoutReaderPs = [System.Management.Automation.PowerShell]::Create()
+$stdoutReaderPs.RunspacePool = $readerRunspacePool
+$stdoutReaderPs.AddScript($readerScript) | Out-Null
+$stdoutReaderPs.AddParameter('Reader', $process.StandardOutput)
+$stdoutReaderPs.AddParameter('Queue', $taskLogAppendQueue)
+$stdoutReaderPs.AddParameter('TaskName', $taskName)
+$stdoutReaderPs.AddParameter('Level', 'Info')
+$stdoutReaderPs.BeginInvoke() | Out-Null
+$execution.StandardOutputReader = $stdoutReaderPs
+$stderrReaderPs = [System.Management.Automation.PowerShell]::Create()
+$stderrReaderPs.RunspacePool = $readerRunspacePool
+$stderrReaderPs.AddScript($readerScript) | Out-Null
+$stderrReaderPs.AddParameter('Reader', $process.StandardError)
+$stderrReaderPs.AddParameter('Queue', $taskLogAppendQueue)
+$stderrReaderPs.AddParameter('TaskName', $taskName)
+$stderrReaderPs.AddParameter('Level', 'Error')
+$stderrReaderPs.BeginInvoke() | Out-Null
+$execution.StandardErrorReader = $stderrReaderPs
+$execution.RunspacePool = $readerRunspacePool
+Append-Task-Log -TaskName $taskName -Message $ui.LogTaskStart
+Update-Task-Grid-Row -TaskName $taskName
+System-Log ($ui.INFO_Started -f $taskName, $process.Id) 'Success'}
+function Release-Task-Resources {param([string]$TaskName)
+if (-not $taskExecutionMap.ContainsKey($TaskName)) { return }
+$execution = $taskExecutionMap[$TaskName]
+if ($execution.logFileWriter) {try { $execution.logFileWriter.Dispose() } catch {}}
+if ($execution.process) {try { $execution.process.StandardOutput.Close() } catch {}
+try { $execution.process.StandardOutput.Dispose() } catch {}
+try { $execution.process.StandardError.Close() } catch {}
+try { $execution.process.StandardError.Dispose() } catch {}
+try { $execution.process.StandardInput.Close() } catch {}
+try { $execution.process.StandardInput.Dispose() } catch {}}
+foreach ($taskReader in @($execution.StandardOutputReader, $execution.StandardErrorReader)) {if ($null -eq $taskReader) { continue }
+try { $taskReader.Stop() } catch {}
+try { $taskReader.Dispose() } catch {}}
+if ($execution.RunspacePool) {try { $execution.RunspacePool.Close() } catch {}
+try { $execution.RunspacePool.Dispose() } catch {}}
+$execution.logFileWriter = $null
+$execution.StandardOutputReader = $null
+$execution.StandardErrorReader = $null
+$execution.RunspacePool = $null}
+function Stop-Task {param([PSCustomObject]$Task)
+if ($null -eq $Task) { return }
+$taskName = [string]$Task.name
+$execution = Get-Task-Execution -TaskName $taskName
+if (-not $execution.process) {System-Log ($ui.INFO_NotStarted -f $taskName) 'Warning'
+return}
+if ($execution.process.HasExited) {System-Log ($ui.INFO_AlreadyStopped -f $taskName) 'Warning'
+return}
+try {$killInfo = [System.Diagnostics.ProcessStartInfo]::new()
+$killInfo.FileName = 'taskkill.exe'
+$killInfo.Arguments = "/pid $($execution.process.Id) /t /f"
+$killInfo.UseShellExecute = $false
+$killInfo.CreateNoWindow = $true
+$killProcess = [System.Diagnostics.Process]::Start($killInfo)
+if ($killProcess.WaitForExit(10000)) {if ($killProcess.ExitCode -ne 0) {if ($execution.process.HasExited) {System-Log ($ui.INFO_AlreadyStopped -f $taskName) 'Warning'} else {System-Log ($ui.ERROR_TaskStopFailed -f $taskName) 'Error'
+return}}} else {System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) 'Warning'}} catch {System-Log ($ui.ERROR_TaskStopFailed -f $_.Exception.Message) 'Error'} finally {if ($killProcess) { $killProcess.Dispose() }}
+if (-not $execution.process.WaitForExit(5000)) {System-Log ($ui.ERROR_TaskStopTimeout -f $taskName) 'Warning'
+return}
+$execution.status = $ui.StatusStopped
+Release-Task-Resources -TaskName $taskName
+Update-Task-Grid-Row -TaskName $taskName
+System-Log ($ui.INFO_Stopped -f $taskName) 'Info'
+Append-Task-Log -TaskName $taskName -Message $ui.LogTaskStopManual}
+function Monitor-Task-Status {for ($i = 0; $i -lt $taskConfigList.Count; $i++) {$task = $taskConfigList[$i]
+$taskName = [string]$task.name
+$execution = Get-Task-Execution -TaskName $taskName
+if (-not $execution.process) { continue }
+if ($execution.status -eq $ui.StatusRunning) {if ($execution.process.HasExited) {if ($execution.process.ExitCode -eq 0) {$execution.status = $ui.StatusExited
+$taskEndMessage = $ui.LogTaskEndNormal} else {$execution.status = $ui.StatusExitedError
+$taskEndMessage = ($ui.LogTaskEndError -f $execution.process.ExitCode)}
+Release-Task-Resources -TaskName $taskName
+Update-Task-Grid-Row -TaskName $taskName
+System-Log ($ui.INFO_Exited -f $taskName, $execution.process.ExitCode) 'Warning'
+Append-Task-Log -TaskName $taskName -Message $taskEndMessage
+Show-Tray-Info -Title $ui.NotifyTitleExitedError -Message ($ui.NotifyTextExitedError -f $taskName, $execution.process.ExitCode)}}}}
+function Restart-Task {param([PSCustomObject]$Task)
+Stop-Task -Task $Task
+Start-Task -Task $Task}
+function Start-All-Tasks {foreach ($task in $taskConfigList) {Start-Task -Task $task}
+System-Log $ui.INFO_StartAllDone 'Success'}
+function Stop-All-Tasks {foreach ($task in $taskConfigList) {Stop-Task -Task $task}
+System-Log $ui.INFO_StopAllDone 'Info'}
+function Restart-All-Tasks {foreach ($task in $taskConfigList) {Stop-Task -Task $task}
+foreach ($task in $taskConfigList) {Start-Task -Task $task}
+System-Log $ui.INFO_RestartAllDone 'Success'}} catch {Handle-Exception $_
+pause
+exit 1}
+try {$mainForm = [System.Windows.Forms.Form]::new()
+$mainForm.Text = $ui.FormTitle
+$mainForm.Size = [System.Drawing.Size]::new(1650, 950)
+$mainForm.MinimumSize = [System.Drawing.Size]::new(850, 650)
+$mainForm.StartPosition = 'CenterScreen'
+$mainForm.Font = [System.Drawing.Font]::new('Microsoft YaHei', 10)
+$mainForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
+$mainForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+$mainForm.Opacity = 0
+$mainForm.ShowInTaskbar = $false
+Enable-Double-Buffered $mainForm | Out-null
+Enable-User-Paint $mainForm | Out-null
+$mainForm.Add_Shown({param($EventSender, $EventArgs)
+if ($taskConfigList.Count -eq 0) {Show-Main-Window} else {$EventSender.Hide()
+for ($i = 0; $i -lt $taskConfigList.Count; $i++) {$task = $taskConfigList[$i]
+$needStart = [bool]$task.autoStart
+if ($needStart) {Start-Task -Task $task}}}})
+$savedLogScroll = @{}
+function Collect-Log-TextBoxes {$boxes = [System.Collections.Generic.List[System.Windows.Forms.RichTextBox]]::new()
+if ($null -ne $systemLogTextBox -and -not $systemLogTextBox.IsDisposed) {$boxes.Add($systemLogTextBox)}
+foreach ($key in $taskExecutionMap.Keys) {$box = $taskExecutionMap[$key].logViewTextBox
+if ($null -ne $box -and -not $box.IsDisposed) {$boxes.Add($box)}}
+return $boxes}
+function Save-Log-Scroll {$map = @{}
+foreach ($box in Collect-Log-TextBoxes) {if (-not $box.IsHandleCreated) { continue }
+$pos = [Win32Scroll+POINT]::new()
+try {[Win32API]::SendMessage($box.Handle, [Win32Scroll]::EM_GETSCROLLPOS, [IntPtr]::Zero, [ref]$pos) | Out-Null
+$map[$box] = $pos} catch { }}
+$script:savedLogScroll = $map}
+function Restore-Log-Scroll {$map = $script:savedLogScroll
+foreach ($box in Collect-Log-TextBoxes) {if ($map.ContainsKey($box)) {$pos = $map[$box]
+try {[Win32API]::SendMessage($box.Handle, [Win32Scroll]::EM_SETSCROLLPOS, [IntPtr]::Zero, [ref]$pos) | Out-Null
+continue} catch { }}
+try {$box.SelectionStart = $box.TextLength
+$box.ScrollToCaret()} catch { }}}
+function Show-Main-Window {$mainForm.Opacity = 1
+$mainForm.ShowInTaskbar = $true
+$mainForm.Show()
+$mainForm.Activate()
+Restore-Log-Scroll}
+function Hide-Main-Window {Save-Log-Scroll
+$mainForm.Opacity = 0
+$mainForm.ShowInTaskbar = $false
+$mainForm.Hide()}
+$mainFormRealExit = $false
+$mainForm.Add_FormClosing({param($EventSender, $EventArgs)
+if (-not $mainFormRealExit) {$EventArgs.Cancel = $true
+Save-Log-Scroll
+$EventSender.Opacity = 0
+$EventSender.ShowInTaskbar = $false
+$EventSender.Hide()}})
+$trayBitmap = [System.Drawing.Bitmap]::new(32, 32)
+$trayGraphics = [System.Drawing.Graphics]::FromImage($trayBitmap)
+$trayGraphics.SmoothingMode = [System.Drawing.Drawing2D.SmoothingMode]::AntiAlias
+$trayGraphics.Clear([System.Drawing.Color]::Transparent)
+$trayBrush = [System.Drawing.SolidBrush]::new([System.Drawing.Color]::FromArgb(91, 155, 213))
+$trayGraphics.FillEllipse($trayBrush, 1, 1, 30, 30)
+$trayFont = [System.Drawing.Font]::new($mainForm.Font.FontFamily, 15, [System.Drawing.FontStyle]::Bold)
+$trayFormat = [System.Drawing.StringFormat]::new()
+$trayFormat.Alignment = [System.Drawing.StringAlignment]::Center
+$trayFormat.LineAlignment = [System.Drawing.StringAlignment]::Center
+$trayRect = [System.Drawing.RectangleF]::new(0, 2, 32, 28)
+$trayGraphics.DrawString('M', $trayFont, [System.Drawing.Brushes]::White, $trayRect, $trayFormat)
+try { $trayBrush.Dispose() } catch { }
+try { $trayFont.Dispose() } catch { }
+try { $trayFormat.Dispose() } catch { }
+try { $trayGraphics.Dispose() } catch { }
+$appWindowIcon = [System.Drawing.Icon]::FromHandle($trayBitmap.GetHicon())
+$trayIcon = [System.Windows.Forms.NotifyIcon]::new()
+$trayIcon.Icon = $appWindowIcon
+$trayIcon.Text = $ui.FormTitle
+$trayIcon.Visible = $true
+$mainForm.Icon = $appWindowIcon.Clone()
+$trayIcon.Add_MouseClick({param($EventSender, $EventArgs)
+if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {if ($mainForm.Opacity -eq 1) {Hide-Main-Window} else {Show-Main-Window}}})
+$trayIcon.Add_MouseDoubleClick({param($EventSender, $EventArgs)
+if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {Show-Main-Window}})
+$trayShowItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$trayShowItem.Text = $ui.TrayShow
+$trayShowItem.Add_Click({ Show-Main-Window })
+$trayStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$trayStartAllItem.Text = $ui.TrayStartAll
+$trayStartAllItem.Add_Click({ Start-All-Tasks })
+$trayStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$trayStopAllItem.Text = $ui.TrayStopAll
+$trayStopAllItem.Add_Click({ Stop-All-Tasks })
+$trayExitItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$trayExitItem.Text = $ui.TrayExit
+$trayExitItem.Add_Click({$hasRunningTask = $false
+foreach ($task in $taskConfigList) {$execution = Get-Task-Execution -TaskName ([string]$task.name)
+if ($execution.process -and -not $execution.process.HasExited) {$hasRunningTask = $true
+break}}
+if ($hasRunningTask) {$confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmExit, $ui.ConfirmTitle, 'YesNo', 'Question')
+if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }}
+$script:mainFormRealExit = $true
+try { $trayIcon.Visible = $false } catch { }
+try { $trayIcon.Dispose() } catch { }
+try { $mainForm.Close() } catch { }})
+$trayMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+foreach ($item in @($trayShowItem, $trayStartAllItem, $trayStopAllItem, $trayExitItem)) {$trayMenu.Items.Add($item) | Out-Null}
+$trayIcon.ContextMenuStrip = $trayMenu
+$tabControl = [System.Windows.Forms.TabControl]::new()
+$tabControl.Dock = 'Fill'
+$tabControl.Padding = [System.Drawing.Point]::new(20, 10)
+$tabControl.Font = $mainForm.Font
+$mainForm.Controls.Add($tabControl)
+$tabControlCurrentTab = $null
+$tabContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+$closeTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$closeTabMenuItem.Text = $ui.CloseTab
+$closeTabMenuItem.Add_Click({if (-not $tabControlCurrentTab -or $tabControlCurrentTab.IsDisposed) { return }
+$tabName = $tabControlCurrentTab.Name
+if ($tabName.StartsWith('LogPage_')) {$taskName = $tabName.Substring(8)
+if ($taskExecutionMap.ContainsKey($taskName)) {$script:taskExecutionMap[$taskName].logViewTextBox = $null}}
+$tabControl.TabPages.Remove($tabControlCurrentTab)
+$tabControlCurrentTab.Dispose()
+$script:tabControlCurrentTab = $null
+Update-Tab-Context-Menu-State})
+$tabContextMenu.Items.Add($closeTabMenuItem) | Out-Null
+$closeAllTabMenuItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$closeAllTabMenuItem.Text = $ui.CloseAllTabs
+$closeAllTabMenuItem.Add_Click({$logTabPages = @()
+foreach ($tabPage in $tabControl.TabPages) {if ($tabPage.Name.StartsWith('LogPage_')) { $logTabPages += $tabPage }}
+foreach ($tabPage in $logTabPages) {$taskName = $tabPage.Name.Substring(8)
+if ($taskExecutionMap.ContainsKey($taskName)) {$script:taskExecutionMap[$taskName].logViewTextBox = $null}
+$tabControl.TabPages.Remove($tabPage)
+$tabPage.Dispose()}
+$script:tabControlCurrentTab = $null
+Update-Tab-Context-Menu-State})
+$tabContextMenu.Items.Add($closeAllTabMenuItem) | Out-Null
+$tabControl.ContextMenuStrip = $tabContextMenu
+function Update-Tab-Context-Menu-State {$hasLogTab = $false
+foreach ($tabPage in $tabControl.TabPages) {if ($tabPage.Name.StartsWith('LogPage_')) { $hasLogTab = $true; break }}
+$closeAllTabMenuItem.Enabled = $hasLogTab}
+$tabControl.Add_MouseDown({param($EventSender, $EventArgs)
+for ($i = 0; $i -lt $tabControl.TabPages.Count; $i++) {$tabRect = $tabControl.GetTabRect($i)
+if (-not $tabRect.Contains($EventArgs.Location)) { continue }
+$tabPage = $tabControl.TabPages[$i]
+if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Right) {$script:tabControlCurrentTab = $tabPage
+$closeTabMenuItem.Enabled = ($i -ge 2)
+Update-Tab-Context-Menu-State
+return}
+if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left -and $tabPage.Name.StartsWith('LogPage_')) {$closeMarkWidth = [System.Windows.Forms.TextRenderer]::MeasureText(' ✕', $tabControl.Font).Width + 4
+if ($EventArgs.X -ge ($tabRect.Right - $closeMarkWidth)) {$script:tabControlCurrentTab = $tabPage
+$tabControl.BeginInvoke([System.Windows.Forms.MethodInvoker]{$closeTabMenuItem.PerformClick()}) | Out-Null}}
+return}
+if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Right) {$script:tabControlCurrentTab = $null
+$closeTabMenuItem.Enabled = $false
+Update-Tab-Context-Menu-State}})
+function Show-Task-Log-Viewer {param([string]$TaskName)
+$logViewTabPageName = 'LogPage_' + $TaskName
+$existingLogViewTabPage = $tabControl.TabPages[$logViewTabPageName]
+if ($existingLogViewTabPage) {$tabControl.SelectedTab = $existingLogViewTabPage
+return}
+$execution = Get-Task-Execution -TaskName $TaskName
+$logViewTabPage = [System.Windows.Forms.TabPage]::new()
+$logViewTabPage.Name = $logViewTabPageName
+$logViewTabPage.Text = $TaskName + '  ✕'
+$logViewTabPage.BackColor = [System.Drawing.Color]::White
+$logLayoutPanel = [System.Windows.Forms.TableLayoutPanel]::new()
+$logLayoutPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
+$logLayoutPanel.ColumnCount = 1
+$logLayoutPanel.RowCount = 2
+$logLayoutPanel.RowStyles.Add([System.Windows.Forms.RowStyle]::new([System.Windows.Forms.SizeType]::Percent, 100)) | Out-Null
+$logLayoutPanel.RowStyles.Add([System.Windows.Forms.RowStyle]::new([System.Windows.Forms.SizeType]::Absolute, 88)) | Out-Null
+$logLayoutPanel.Padding = [System.Windows.Forms.Padding]::new(0)
+$logViewTabPage.Controls.Add($logLayoutPanel)
+$logViewTextBox = [System.Windows.Forms.RichTextBox]::new()
+$logViewTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Both
+$logViewTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+$logViewTextBox.BackColor = [System.Drawing.Color]::White
+$logViewTextBox.WordWrap = $false
+$logViewTextBox.Font = $mainForm.Font
+$logViewTextBox.DetectUrls = $true
+$logViewTextBox.ShortcutsEnabled = $true
+$logViewTextBox.Dock = 'Fill'
+$logViewTextBox.Margin = [System.Windows.Forms.Padding]::Empty
+$logViewTextBox.Add_LinkClicked({param($EventSender, $EventArgs)
+if ($EventArgs.LinkText) {Start-Process $EventArgs.LinkText}})
+$logViewTextBox.ReadOnly = $true
+$logViewTextBox.AllowDrop = $false
+$logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragStart' -Value ([System.Drawing.Point]::Empty) -Force
+$logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragAllowed' -Value $false -Force
+$logViewTextBox | Add-Member -MemberType NoteProperty -Name 'readOnlyDragText' -Value '' -Force
+$logViewTextBox.Add_MouseDown({param($Sender, $EventArgs)
+if ($EventArgs.Button -eq [System.Windows.Forms.MouseButtons]::Left) {$charIndex = $Sender.GetCharIndexFromPosition($EventArgs.Location)
+$Sender.readOnlyDragAllowed = (
+$Sender.SelectionLength -gt 0 -and
+$charIndex -ge $Sender.SelectionStart -and
+$charIndex -lt ($Sender.SelectionStart + $Sender.SelectionLength)
+)
+if ($Sender.readOnlyDragAllowed) {$Sender.readOnlyDragText = $Sender.SelectedText}
+$Sender.readOnlyDragStart = $EventArgs.Location}})
+$logViewTextBox.Add_MouseMove({param($Sender, $EventArgs)
+if (
+$Sender.readOnlyDragAllowed -and
+$Sender.readOnlyDragStart -ne [System.Drawing.Point]::Empty
+) {$dx = $EventArgs.X - $Sender.readOnlyDragStart.X
+$dy = $EventArgs.Y - $Sender.readOnlyDragStart.Y
+if (
+[Math]::Abs($dx) -gt [System.Windows.Forms.SystemInformation]::DragSize.Width -or
+[Math]::Abs($dy) -gt [System.Windows.Forms.SystemInformation]::DragSize.Height
+) {$dragData = [System.Windows.Forms.DataObject]::new()
+$dragData.SetData([System.Windows.Forms.DataFormats]::UnicodeText, $Sender.readOnlyDragText)
+$dragData.SetData([System.Windows.Forms.DataFormats]::Text, $Sender.readOnlyDragText)
+$Sender.DoDragDrop($dragData, [System.Windows.Forms.DragDropEffects]::Copy -bor [System.Windows.Forms.DragDropEffects]::Move)
+$Sender.readOnlyDragStart = [System.Drawing.Point]::Empty
+$Sender.readOnlyDragAllowed = $false}}})
+$logViewTextBox.Add_MouseUp({param($Sender, $EventArgs)
+$Sender.readOnlyDragStart = [System.Drawing.Point]::Empty
+$Sender.readOnlyDragAllowed = $false})
+$logLayoutPanel.Controls.Add($logViewTextBox, 0, 0)
+$logInputPanel = [System.Windows.Forms.Panel]::new()
+$logInputPanel.Dock = [System.Windows.Forms.DockStyle]::Fill
+$logInputPanel.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$logLayoutPanel.Controls.Add($logInputPanel, 0, 1)
+$logInputBar = [System.Windows.Forms.TableLayoutPanel]::new()
+$logInputBar.Dock = [System.Windows.Forms.DockStyle]::Fill
+$logInputBar.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$logInputBar.ColumnCount = 2
+$logInputBar.RowCount = 1
+$logInputBar.ColumnStyles.Add([System.Windows.Forms.ColumnStyle]::new([System.Windows.Forms.SizeType]::Percent, 100))
+$logInputBar.ColumnStyles.Add([System.Windows.Forms.ColumnStyle]::new([System.Windows.Forms.SizeType]::Absolute, 168))
+$logInputBar.RowStyles.Add([System.Windows.Forms.RowStyle]::new([System.Windows.Forms.SizeType]::Percent, 100))
+$logInputPanel.Controls.Add($logInputBar)
+$logInputTextBox = [System.Windows.Forms.TextBox]::new()
+$logInputTextBox.Multiline = $false
+$logInputTextBox.Font = $mainForm.Font
+$boxHeight = $logInputTextBox.PreferredHeight
+$vSpacing = [int](([int]$logLayoutPanel.RowStyles[1].Height - $boxHeight) / 2)
+$logInputTextBox.Dock = [System.Windows.Forms.DockStyle]::Fill
+$logInputTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$logInputTextBox.Margin = [System.Windows.Forms.Padding]::new(8, $vSpacing, 8, $vSpacing)
+$logInputBar.Controls.Add($logInputTextBox, 0, 0)
+$logInputTextBox.AllowDrop = $true
+$logInputTextBox.Add_DragEnter({param($Sender, $EventArgs)
+if (
+$EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::Text) -or
+$EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::UnicodeText)
+) {$EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy} else {$EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::None}})
+$logInputTextBox.Add_DragOver({param($Sender, $EventArgs)
+if (
+$EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::Text) -or
+$EventArgs.Data.GetDataPresent([System.Windows.Forms.DataFormats]::UnicodeText)
+) {$EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::Copy} else {$EventArgs.Effect = [System.Windows.Forms.DragDropEffects]::None}})
+$logInputTextBox.Add_DragDrop({param($Sender, $EventArgs)
+$dropped = $EventArgs.Data.GetData([System.Windows.Forms.DataFormats]::Text)
+if (-not [string]::IsNullOrEmpty($dropped)) {$insertPos = $Sender.SelectionStart
+$Sender.Text = $Sender.Text.Insert($insertPos, $dropped)
+$Sender.SelectionStart = $insertPos + $dropped.Length
+$Sender.Focus() | Out-Null}})
+$logInputButtonBand = [System.Windows.Forms.Panel]::new()
+$logInputButtonBand.Dock = [System.Windows.Forms.DockStyle]::Fill
+$logInputButtonBand.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$buttonVSpacing = [int](([int]$logLayoutPanel.RowStyles[1].Height - 60) / 2)
+$logInputButtonBand.Padding = [System.Windows.Forms.Padding]::new(4, $buttonVSpacing, 4, $buttonVSpacing)
+$logInputBar.Controls.Add($logInputButtonBand, 1, 0)
+$logInputSendButton = [System.Windows.Forms.Button]::new()
+$logInputSendButton.Text = $ui.InputSend
+$logInputSendButton.Dock = [System.Windows.Forms.DockStyle]::Fill
+$logInputSendButton.FlatStyle = 'Flat'
+$logInputSendButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$logInputSendButton.ForeColor = [System.Drawing.Color]::Black
+$logInputSendButton.FlatAppearance.BorderSize = 1
+$logInputSendButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+$logInputSendButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
+$logInputSendButton.Tag = @{ taskName = $TaskName; inputTextBox = $logInputTextBox }
+$logInputSendButton.Add_Click({param($EventSender, $EventArgs)
+$taskName = [string]$EventSender.Tag.taskName
+$inputBox = $EventSender.Tag.inputTextBox
+if ($null -eq $inputBox -or $inputBox.IsDisposed) { return }
+$execution = Get-Task-Execution -TaskName $taskName
+$inputText = $inputBox.Text
+if ($execution.process -and -not $execution.process.HasExited -and $execution.process.StartInfo.RedirectStandardInput) {try {$stdInStream = $execution.process.StandardInput.BaseStream
+if ($stdInStream) {$bytes = $workingEncoding.GetBytes($inputText + "`r`n")
+$stdInStream.Write($bytes, 0, $bytes.Length)
+$stdInStream.Flush()} else {$execution.process.StandardInput.WriteLine($inputText)}
+$cleanInputText = $inputText.TrimEnd([char[]]@("`r", "`n"))
+Append-Task-Log -TaskName $taskName -Message ($ui.InputSent -f $cleanInputText) -Level 'Input'
+System-Log ($ui.InputSent -f ('[' + $taskName + '] ' + $cleanInputText)) 'Info'} catch {System-Log ($ui.ERROR_SendInputFailed -f $_.Exception.Message) 'Error'}} else {System-Log $ui.INFO_NoRunningProcess 'Warning'}
+$inputBox.Clear()
+$inputBox.Focus() | Out-Null})
+$logInputTextBox.Tag = @{ sendButton = $logInputSendButton }
+$logInputTextBox.Add_KeyDown({param($EventSender, $EventArgs)
+if ($EventArgs.KeyCode -eq [System.Windows.Forms.Keys]::Enter) {$EventArgs.SuppressKeyPress = $true
+$sendButton = $EventSender.Tag.sendButton
+if ($null -ne $sendButton -and -not $sendButton.IsDisposed) {$sendButton.PerformClick()}}})
+$logInputButtonBand.Controls.Add($logInputSendButton)
+$logViewContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+$logViewCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$logViewCopyItem.Text = $ui.LogCopy
+$logViewCopyItem.Tag = @{ taskName = $TaskName }
+$logViewCopyItem.Add_Click({param($MenuItem, $EventArgs)
+$logViewTextBox = (Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)).logViewTextBox
+if ($null -eq $logViewTextBox -or $logViewTextBox.IsDisposed -or $logViewTextBox.SelectedText.Length -eq 0) {return}
+[System.Windows.Forms.Clipboard]::SetText($logViewTextBox.SelectedText)
+System-Log $ui.INFO_LogCopied 'Debug'})
+$logViewCopyAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$logViewCopyAllItem.Text = $ui.LogCopyAll
+$logViewCopyAllItem.Tag = @{ taskName = $TaskName }
+$logViewCopyAllItem.Add_Click({param($MenuItem, $EventArgs)
+$logViewTextBox = (Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)).logViewTextBox
+if ($null -eq $logViewTextBox -or $logViewTextBox.IsDisposed) {System-Log $ui.INFO_NoLog 'Warning'
+return}
+if ($logViewTextBox.Text.Length -gt 0) {[System.Windows.Forms.Clipboard]::SetText($logViewTextBox.Text)
+System-Log $ui.INFO_LogCopied 'Debug'} else {System-Log $ui.INFO_NoLog 'Warning'}})
+$logViewClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$logViewClearItem.Text = $ui.LogClear
+$logViewClearItem.Tag = @{ taskName = $TaskName }
+$logViewClearItem.Add_Click({param($MenuItem, $EventArgs)
+Clear-Task-Log-Internal -TaskName ([string]$MenuItem.Tag.taskName)})
+$logViewOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$logViewOpenItem.Text = $ui.LogOpenFile
+$logViewOpenItem.Tag = @{ taskName = $TaskName }
+$logViewOpenItem.Add_Click({param($MenuItem, $EventArgs)
+$execution = Get-Task-Execution -TaskName ([string]$MenuItem.Tag.taskName)
+if ($execution.logFilePath -and [System.IO.File]::Exists($execution.logFilePath)) {Start-Process 'explorer.exe' -ArgumentList ('/select,"' + $execution.logFilePath + '"')
+System-Log ($ui.INFO_LogOpened -f $execution.logFilePath) 'Success'} else {System-Log $ui.INFO_NoLog 'Warning'}})
+$logViewContextMenu.Items.Add($logViewCopyItem) | Out-Null
+$logViewContextMenu.Items.Add($logViewCopyAllItem) | Out-Null
+$logViewContextMenu.Items.Add($logViewClearItem) | Out-Null
+$logViewContextMenu.Items.Add($logViewOpenItem) | Out-Null
+$logViewContextMenu.Tag = @{ copyItem = $logViewCopyItem }
+$logViewTextBox.ContextMenuStrip = $logViewContextMenu
+$logViewContextMenu.Add_Opening({param($Sender, $EventArgs)
+$sourceTextBox = $Sender.SourceControl
+$copyItem = $Sender.Tag.copyItem
+if ($null -ne $copyItem) {$copyItem.Enabled = ($null -ne $sourceTextBox -and -not $sourceTextBox.IsDisposed -and $sourceTextBox.SelectedText.Length -gt 0)}})
+$tabControl.TabPages.Add($logViewTabPage)
+$tabControl.SelectedTab = $logViewTabPage
+$logViewTextBox.SuspendLayout()
+try {$logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+$logViewTextBox.SelectionLength = 0
+$logViewTextBox.SelectionFont = $logViewTextBox.Font
+$logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
+$logViewTextBox.SelectionBackColor = $logViewTextBox.BackColor
+Append-Ansi-Colored-Text $logViewTextBox $execution.logViewContent.ToString() ([System.Drawing.Color]::Black)
+$logViewTextBox.SelectionColor = [System.Drawing.Color]::Black
+$logViewTextBox.SelectionBackColor = $logViewTextBox.BackColor
+$logViewTextBox.SelectionStart = $logViewTextBox.TextLength
+$logViewTextBox.ScrollToCaret()}
+finally {$logViewTextBox.ResumeLayout()}
+$execution.logViewTextBox = $logViewTextBox}
+function Edit-Task-Dialog {param([string]$TaskName = '')
+$editIndex = Get-Task-Config-Index -TaskName $TaskName
+$willRestart = $false
+if ($editIndex -ge 0) {$editExecution = Get-Task-Execution -TaskName $TaskName
+if ($editExecution.process -and -not $editExecution.process.HasExited) {$willRestart = $true}}
+$dialogForm = [System.Windows.Forms.Form]::new()
+$dialogForm.Text = if ($editIndex -ge 0) { $ui.DialogEditTitle } else { $ui.DialogAddTitle }
+$dialogForm.Size = [System.Drawing.Size]::new(1250, 550)
+$dialogForm.FormBorderStyle = 'FixedDialog'
+$dialogForm.StartPosition = 'CenterParent'
+$dialogForm.MaximizeBox = $false
+$dialogForm.MinimizeBox = $false
+$dialogForm.ShowInTaskbar = $false
+$dialogForm.Font = $mainForm.Font
+$dialogForm.BackColor = [System.Drawing.Color]::FromArgb(248, 249, 250)
+$dialogForm.AutoScaleMode = [System.Windows.Forms.AutoScaleMode]::None
+function New-Dialog-Label {param([string]$Text, [int]$Top)
+$label = [System.Windows.Forms.Label]::new()
+$label.Text = $Text
+$label.Location = [System.Drawing.Point]::new(36, $Top + 4)
+$label.Size = [System.Drawing.Size]::new(100, 28)
+$label.TextAlign = [System.Drawing.ContentAlignment]::MiddleLeft
+$dialogForm.Controls.Add($label)}
+function New-Dialog-TextBox {param([int]$Top)
+$textBox = [System.Windows.Forms.TextBox]::new()
+$textBox.Location = [System.Drawing.Point]::new(146, $Top)
+$textBox.Size = [System.Drawing.Size]::new(908, 30)
+$textBox.BorderStyle = [System.Windows.Forms.BorderStyle]::FixedSingle
+$dialogForm.Controls.Add($textBox)
+return $textBox}
+New-Dialog-Label $ui.DialogName 36
+$nameBox = New-Dialog-TextBox 36
+New-Dialog-Label $ui.DialogCommand 96
+$commandBox = New-Dialog-TextBox 96
+$browseCommandButton = [System.Windows.Forms.Button]::new()
+$browseCommandButton.Text = $ui.DialogBrowseCommand
+$browseCommandButton.Location = [System.Drawing.Point]::new(1064, 92)
+$browseCommandButton.Size = [System.Drawing.Size]::new(120, 42)
+$browseCommandButton.FlatStyle = 'Flat'
+$browseCommandButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$browseCommandButton.ForeColor = [System.Drawing.Color]::Black
+$browseCommandButton.FlatAppearance.BorderSize = 1
+$browseCommandButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+$browseCommandButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
+$browseCommandButton.Add_Click({$fileDialog = [System.Windows.Forms.OpenFileDialog]::new()
+$fileDialog.Filter = $ui.DialogExeFilter
+$fileDialog.Title = $ui.DialogBrowseCommandTitle
+$fileDialog.InitialDirectory = $workingDirectory
+if ($fileDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {$commandBox.Text = $fileDialog.FileName
+if (-not $nameBox.Text) {$nameBox.Text = [System.IO.Path]::GetFileNameWithoutExtension($fileDialog.FileName)}
+if (-not $workingDirBox.Text) {$workingDirBox.Text = Split-Path -Parent $fileDialog.FileName}}})
+$dialogForm.Controls.Add($browseCommandButton)
+New-Dialog-Label $ui.DialogArguments 156
+$argumentsBox = New-Dialog-TextBox 156
+New-Dialog-Label $ui.DialogWorkingDir 216
+$workingDirBox = New-Dialog-TextBox 216
+$browseDirButton = [System.Windows.Forms.Button]::new()
+$browseDirButton.Text = $ui.DialogBrowseDir
+$browseDirButton.Location = [System.Drawing.Point]::new(1064, 212)
+$browseDirButton.Size = [System.Drawing.Size]::new(120, 42)
+$browseDirButton.FlatStyle = 'Flat'
+$browseDirButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$browseDirButton.ForeColor = [System.Drawing.Color]::Black
+$browseDirButton.FlatAppearance.BorderSize = 1
+$browseDirButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+$browseDirButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
+$browseDirButton.Add_Click({$folderDialog = [System.Windows.Forms.FolderBrowserDialog]::new()
+$folderDialog.Description = $ui.DialogBrowseDirTitle
+$folderDialog.SelectedPath = $workingDirectory
+if ($folderDialog.ShowDialog() -eq [System.Windows.Forms.DialogResult]::OK) {$workingDirBox.Text = $folderDialog.SelectedPath}})
+$dialogForm.Controls.Add($browseDirButton)
+New-Dialog-Label $ui.DialogStartMode 276
+$autoStartRadioButton = [System.Windows.Forms.RadioButton]::new()
+$autoStartRadioButton.Text = $ui.DialogAutoStart
+$autoStartRadioButton.Location = [System.Drawing.Point]::new(146, 280)
+$autoStartRadioButton.Size = [System.Drawing.Size]::new(240, 28)
+$autoStartRadioButton.Checked = $true
+$dialogForm.Controls.Add($autoStartRadioButton)
+$manualStartRadioButton = [System.Windows.Forms.RadioButton]::new()
+$manualStartRadioButton.Text = $ui.DialogManualStart
+$manualStartRadioButton.Location = [System.Drawing.Point]::new(420, 280)
+$manualStartRadioButton.Size = [System.Drawing.Size]::new(240, 28)
+$dialogForm.Controls.Add($manualStartRadioButton)
+$originalName = ''
+if ($editIndex -ge 0) {$task = $taskConfigList[$editIndex]
+$originalName = [string]$task.name
+$nameBox.Text = $originalName
+$commandBox.Text = [string]$task.command
+$argumentsBox.Text = [string]$task.arguments
+$workingDirBox.Text = [string]$task.workingDirectory
+$autoStartRadioButton.Checked = [bool]$task.autoStart
+$manualStartRadioButton.Checked = -not [bool]$task.autoStart}
+$okButton = [System.Windows.Forms.Button]::new()
+$okButton.Text = if ($willRestart) { $ui.DialogSaveRestart } else { $ui.DialogSave }
+$okButton.Location = [System.Drawing.Point]::new(433, 400)
+$okButton.Size = [System.Drawing.Size]::new(180, 46)
+$okButton.FlatStyle = 'Flat'
+$okButton.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
+$okButton.ForeColor = [System.Drawing.Color]::White
+$okButton.FlatAppearance.BorderSize = 1
+$okButton.FlatAppearance.BorderColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
+$okButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(71, 135, 193)
+$okButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(51, 115, 173)
+$okButton.Add_Click({$newCommand = $commandBox.Text.Trim()
+$newArguments = $argumentsBox.Text.Trim()
+$newWorkingDir = $workingDirBox.Text.Trim()
+$newName = ''
+$newNameError = Test-Task-Name -TaskName $nameBox.Text -ValidName ([ref]$newName)
+if ($newNameError) {[System.Windows.Forms.MessageBox]::Show($newNameError, $ui.FormTitle, 'OK', 'Warning') | Out-Null
+return}
+if (-not $newCommand) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandEmpty, $ui.FormTitle, 'OK', 'Warning') | Out-Null
+return}
+for ($i = 0; $i -lt $taskConfigList.Count; $i++) {if ($i -eq $editIndex) { continue }
+if ([string]$taskConfigList[$i].name -ieq $newName) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NameDuplicated -f $newName, $ui.FormTitle, 'OK', 'Warning') | Out-Null
+return}}
+$expandedCommand = [System.Environment]::ExpandEnvironmentVariables($newCommand)
+if ($expandedCommand -and -not [System.IO.File]::Exists($expandedCommand) -and -not (Get-Command $expandedCommand -ErrorAction SilentlyContinue)) {$confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ERROR_CommandNotFound -f $expandedCommand, $ui.FormTitle, 'YesNo', 'Warning')
+if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) {return}}
+if ($newWorkingDir) {$expandedDir = [System.Environment]::ExpandEnvironmentVariables($newWorkingDir)
+if (-not [System.IO.Directory]::Exists($expandedDir)) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_WorkDirNotFound -f $expandedDir, $ui.FormTitle, 'OK', 'Warning') | Out-Null
+return}}
+$newTask = [PSCustomObject]@{
+name = $newName
+command = $newCommand
+arguments = $newArguments
+workingDirectory = $newWorkingDir
+autoStart = $autoStartRadioButton.Checked}
+if ($editIndex -ge 0) {$script:taskConfigList[$editIndex] = $newTask
+if ($originalName -ine $newName -and $taskExecutionMap.ContainsKey($originalName)) {$oldRuntime = $taskExecutionMap[$originalName]
+$oldLogViewTabPageName = 'LogPage_' + $originalName
+$oldLogViewTabPage = $tabControl.TabPages[$oldLogViewTabPageName]
+if ($oldLogViewTabPage) {$tabControl.TabPages.Remove($oldLogViewTabPage)
+$oldLogViewTabPage.Dispose()}
+$newLogFilePath = [System.IO.Path]::Combine($myBatchTaskLogsDir, $newName + '.log')
+if ($oldRuntime.logFilePath -and $oldRuntime.logFilePath -ne $newLogFilePath) {$logWriterWasOpen = ($null -ne $oldRuntime.logFileWriter)
+if ($logWriterWasOpen) {try { $oldRuntime.logFileWriter.Dispose() } catch { }
+$oldRuntime.logFileWriter = $null}
+if ([System.IO.File]::Exists($oldRuntime.logFilePath)) {try {[System.IO.File]::Move($oldRuntime.logFilePath, $newLogFilePath)} catch { }}
+$oldRuntime.logFilePath = $newLogFilePath
+if ($logWriterWasOpen) {try {$newLogFileStream = [System.IO.File]::Open($newLogFilePath, [System.IO.FileMode]::Append, [System.IO.FileAccess]::Write, [System.IO.FileShare]::ReadWrite)
+$oldRuntime.logFileWriter = [System.IO.StreamWriter]::new($newLogFileStream, $workingEncoding)
+$oldRuntime.logFileWriter.AutoFlush = $true} catch { }}}
+$script:taskExecutionMap[$newName] = $oldRuntime
+$taskExecutionMap.Remove($originalName) | Out-Null}} else {$script:taskConfigList += $newTask}
+Save-Config
+Update-Task-Grid
+if ($willRestart) {Restart-Task -Task $script:taskConfigList[$editIndex]}
+$dialogForm.DialogResult = [System.Windows.Forms.DialogResult]::OK
+$dialogForm.Close()})
+$dialogForm.Controls.Add($okButton)
+$dialogForm.AcceptButton = $okButton
+$cancelButton = [System.Windows.Forms.Button]::new()
+$cancelButton.Text = $ui.DialogCancel
+$cancelButton.Location = [System.Drawing.Point]::new(637, 400)
+$cancelButton.Size = [System.Drawing.Size]::new(180, 46)
+$cancelButton.FlatStyle = 'Flat'
+$cancelButton.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$cancelButton.ForeColor = [System.Drawing.Color]::Black
+$cancelButton.FlatAppearance.BorderSize = 1
+$cancelButton.FlatAppearance.MouseOverBackColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+$cancelButton.FlatAppearance.MouseDownBackColor = [System.Drawing.Color]::FromArgb(206, 208, 210)
+$cancelButton.Add_Click({$dialogForm.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+$dialogForm.Close()})
+$dialogForm.Controls.Add($cancelButton)
+$dialogForm.CancelButton = $cancelButton
+$result = $dialogForm.ShowDialog($mainForm)
+$dialogForm.Dispose()
+return $result}
+$taskListTabPage = [System.Windows.Forms.TabPage]::new()
+$taskListTabPage.Text = $ui.TabTaskList
+$taskListTabPage.BackColor = [System.Drawing.Color]::White
+$tabControl.Controls.Add($taskListTabPage)
+$dataGridView = [System.Windows.Forms.DataGridView]::new()
+$dataGridView.ReadOnly = $true
+$dataGridView.AllowUserToAddRows = $false
+$dataGridView.AllowUserToDeleteRows = $false
+$dataGridView.AllowUserToResizeRows = $false
+$dataGridView.RowHeadersVisible = $false
+$dataGridView.ScrollBars = [System.Windows.Forms.ScrollBars]::Both
+$dataGridView.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+$dataGridView.BackgroundColor = [System.Drawing.Color]::White
+$dataGridView.GridColor = [System.Drawing.Color]::FromArgb(226, 228, 230)
+$dataGridView.CellBorderStyle = [System.Windows.Forms.DataGridViewCellBorderStyle]::SingleHorizontal
+$dataGridView.EnableHeadersVisualStyles = $false
+$dataGridView.ColumnHeadersDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(91, 155, 213)
+$dataGridView.ColumnHeadersDefaultCellStyle.ForeColor = [System.Drawing.Color]::White
+$dataGridView.ColumnHeadersDefaultCellStyle.Font = [System.Drawing.Font]::new($mainForm.Font, [System.Drawing.FontStyle]::Bold)
+$dataGridView.ColumnHeadersHeight = 40
+$dataGridView.RowTemplate.Height = 36
+$dataGridView.AlternatingRowsDefaultCellStyle.BackColor = [System.Drawing.Color]::FromArgb(241, 243, 245)
+$dataGridView.DefaultCellStyle.Font = $mainForm.Font
+$dataGridView.DefaultCellStyle.SelectionBackColor = [System.Drawing.Color]::FromArgb(231, 240, 255)
+$dataGridView.DefaultCellStyle.SelectionForeColor = [System.Drawing.Color]::Black
+$dataGridView.Dock = 'Fill'
+$dataGridView.ColumnCount = 6
+$dataGridView.Columns[0].Name = $ui.ColumnStatus
+$dataGridView.Columns[1].Name = $ui.ColumnPid
+$dataGridView.Columns[2].Name = $ui.ColumnName
+$dataGridView.Columns[3].Name = $ui.ColumnCommand
+$dataGridView.Columns[4].Name = $ui.ColumnArguments
+$dataGridView.Columns[5].Name = $ui.ColumnWorkingDir
+$dataGridView.Columns[0].Width = 175
+$dataGridView.Columns[0].MinimumWidth = $dataGridView.Columns[0].Width / 2
+$dataGridView.Columns[1].Width = 125
+$dataGridView.Columns[1].MinimumWidth = $dataGridView.Columns[1].Width / 2
+$dataGridView.Columns[2].Width = 300
+$dataGridView.Columns[2].MinimumWidth = $dataGridView.Columns[2].Width / 2
+$dataGridView.Columns[3].Width = 400
+$dataGridView.Columns[3].MinimumWidth = $dataGridView.Columns[3].Width / 2
+$dataGridView.Columns[4].Width = 300
+$dataGridView.Columns[4].MinimumWidth = $dataGridView.Columns[4].Width / 2
+$dataGridView.Columns[5].Width = 300
+$dataGridView.Columns[5].MinimumWidth = $dataGridView.Columns[5].Width / 2
+for ($i = 0; $i -lt $dataGridView.Columns.Count; $i++) {$dataGridView.Columns[$i].SortMode = [System.Windows.Forms.DataGridViewColumnSortMode]::NotSortable}
+$dataGridView.SelectionMode = [System.Windows.Forms.DataGridViewSelectionMode]::FullRowSelect
+$dataGridView.MultiSelect = $false
+$dataGridView.Add_CellMouseDown({param($EventSender, $EventArgs)
+if ($EventArgs.RowIndex -ge 0) {$dataGridView.ClearSelection()
+$dataGridView.Rows[$EventArgs.RowIndex].Selected = $true
+$dataGridView.CurrentCell = $dataGridView.Rows[$EventArgs.RowIndex].Cells[0]}})
+$dataGridView.Add_CellDoubleClick({param($EventSender, $EventArgs)
+if ($EventArgs.RowIndex -lt 0 -or $EventArgs.RowIndex -ge $dataGridView.Rows.Count) { return }
+$taskName = [string]$dataGridView.Rows[$EventArgs.RowIndex].Tag
+if (-not $taskName) { return }
+Show-Task-Log-Viewer -TaskName $taskName})
+$taskListTabPage.Controls.Add($dataGridView)
+$taskGridView = $dataGridView
+Enable-Double-Buffered $taskGridView | Out-Null
+$taskContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+$menuStartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuStartItem.Text = $ui.MenuStart
+$menuStartItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+Start-Task -Task $taskConfigList[$index]})
+$menuStopItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuStopItem.Text = $ui.MenuStop
+$menuStopItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+Stop-Task -Task $taskConfigList[$index]})
+$menuRestartItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuRestartItem.Text = $ui.MenuRestart
+$menuRestartItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+Restart-Task -Task $taskConfigList[$index]})
+$menuViewLogItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuViewLogItem.Text = $ui.MenuViewLog
+$menuViewLogItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+Show-Task-Log-Viewer -TaskName ([string]$taskConfigList[$index].name)})
+$menuSep1 = [System.Windows.Forms.ToolStripSeparator]::new()
+$menuStartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuStartAllItem.Text = $ui.MenuStartAll
+$menuStartAllItem.Add_Click({ Start-All-Tasks })
+$menuStopAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuStopAllItem.Text = $ui.MenuStopAll
+$menuStopAllItem.Add_Click({ Stop-All-Tasks })
+$menuRestartAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuRestartAllItem.Text = $ui.MenuRestartAll
+$menuRestartAllItem.Add_Click({ Restart-All-Tasks })
+$menuSep2 = [System.Windows.Forms.ToolStripSeparator]::new()
+$menuAddItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuAddItem.Text = $ui.MenuAdd
+$menuAddItem.Add_Click({ Edit-Task-Dialog -TaskName '' })
+$menuEditItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuEditItem.Text = $ui.MenuEdit
+$menuEditItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+$task = $taskConfigList[$index]
+$taskName = [string]$task.name
+Edit-Task-Dialog -TaskName $taskName | Out-Null})
+$menuDeleteItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuDeleteItem.Text = $ui.MenuDelete
+$menuDeleteItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+$taskName = [string]$taskConfigList[$index].name
+$confirmResult = [System.Windows.Forms.MessageBox]::Show($ui.ConfirmDelete -f $taskName, $ui.ConfirmTitle, 'YesNo', 'Question')
+if ($confirmResult -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+Stop-Task -Task $taskConfigList[$index]
+if ($taskExecutionMap.ContainsKey($taskName)) {$logViewTabPageName = 'LogPage_' + $taskName
+$logViewTabPage = $tabControl.TabPages[$logViewTabPageName]
+if ($logViewTabPage) {$tabControl.TabPages.Remove($logViewTabPage)
+$logViewTabPage.Dispose()}
+$taskExecutionMap.Remove($taskName) | Out-Null}
+$newTasks = @()
+for ($i = 0; $i -lt $taskConfigList.Count; $i++) {if ($i -ne $index) { $newTasks += $taskConfigList[$i] }}
+$script:taskConfigList = $newTasks
+Save-Config
+Update-Task-Grid
+System-Log ($ui.INFO_Deleted -f $taskName) 'Info'})
+$menuSep3 = [System.Windows.Forms.ToolStripSeparator]::new()
+$menuMoveUpItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuMoveUpItem.Text = $ui.MenuMoveUp
+$menuMoveUpItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+if ($index -le 0) { return }
+$upper = $taskConfigList[$index - 1]
+$script:taskConfigList[$index - 1] = $script:taskConfigList[$index]
+$script:taskConfigList[$index] = $upper
+Save-Config
+Update-Task-Grid
+$dataGridView.Rows[$index - 1].Selected = $true
+$dataGridView.CurrentCell = $dataGridView.Rows[$index - 1].Cells[0]})
+$menuMoveDownItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$menuMoveDownItem.Text = $ui.MenuMoveDown
+$menuMoveDownItem.Add_Click({$index = Get-Selected-Task-Index
+if ($index -lt 0) {[System.Windows.Forms.MessageBox]::Show($ui.ERROR_NoSelection, $ui.FormTitle, 'OK', 'Information') | Out-Null
+return}
+if ($index -ge ($taskConfigList.Count - 1)) { return }
+$lower = $taskConfigList[$index + 1]
+$script:taskConfigList[$index + 1] = $script:taskConfigList[$index]
+$script:taskConfigList[$index] = $lower
+Save-Config
+Update-Task-Grid
+$dataGridView.Rows[$index + 1].Selected = $true
+$dataGridView.CurrentCell = $dataGridView.Rows[$index + 1].Cells[0]})
+foreach ($item in @(
+$menuStartItem, $menuStopItem, $menuRestartItem, $menuViewLogItem,
+$menuSep1, $menuStartAllItem, $menuStopAllItem, $menuRestartAllItem,
+$menuSep2, $menuAddItem, $menuEditItem, $menuDeleteItem,
+$menuSep3, $menuMoveUpItem, $menuMoveDownItem
+)) {$taskContextMenu.Items.Add($item) | Out-Null}
+$taskContextMenu.Add_Opening({$index = Get-Selected-Task-Index
+$count = $taskConfigList.Count
+$hasSelection = ($index -ge 0)
+$selectedIsRunning = $false
+if ($hasSelection) {$selectedExecution = Get-Task-Execution -TaskName ([string]$taskConfigList[$index].name)
+if ($selectedExecution.process -and -not $selectedExecution.process.HasExited) {$selectedIsRunning = $true}}
+$runningCount = 0
+foreach ($task in $taskConfigList) {$taskExecution = Get-Task-Execution -TaskName ([string]$task.name)
+if ($taskExecution.process -and -not $taskExecution.process.HasExited) {$runningCount += 1}}
+$menuStartItem.Enabled = ($hasSelection -and -not $selectedIsRunning)
+$menuStopItem.Enabled = ($hasSelection -and $selectedIsRunning)
+$menuRestartItem.Enabled = ($hasSelection)
+$menuViewLogItem.Enabled = $hasSelection
+$menuEditItem.Enabled = $hasSelection
+$menuDeleteItem.Enabled = $hasSelection
+$menuMoveUpItem.Enabled = ($index -gt 0)
+$menuMoveDownItem.Enabled = ($index -ge 0 -and $index -lt ($count - 1))
+$menuStartAllItem.Enabled = ($count -gt 0)
+$menuStopAllItem.Enabled = ($count -gt 0)
+$menuRestartAllItem.Enabled = ($count -gt 0)})
+$dataGridView.ContextMenuStrip = $taskContextMenu
+$logTabPage = [System.Windows.Forms.TabPage]::new()
+$logTabPage.Text = $ui.TabRunLog
+$logTabPage.BackColor = [System.Drawing.Color]::White
+$tabControl.Controls.Add($logTabPage)
+$logTextBox = [System.Windows.Forms.RichTextBox]::new()
+$logTextBox.ReadOnly = $true
+$logTextBox.ScrollBars = [System.Windows.Forms.RichTextBoxScrollBars]::Vertical
+$logTextBox.BorderStyle = [System.Windows.Forms.BorderStyle]::None
+$logTextBox.BackColor = [System.Drawing.Color]::White
+$logTextBox.Font = $mainForm.Font
+$logTextBox.DetectUrls = $true
+$logTextBox.WordWrap = $false
+$logTextBox.Dock = 'Fill'
+$logTextBox.Margin = [System.Windows.Forms.Padding]::Empty
+$logTextBox.Add_LinkClicked({param($EventSender, $EventArgs)
+if ($EventArgs.LinkText) {Start-Process $EventArgs.LinkText}})
+$logTabPage.Controls.Add($logTextBox)
+$systemLogTextBox = $logTextBox
+$systemLogContextMenu = [System.Windows.Forms.ContextMenuStrip]::new()
+$systemLogCopyItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$systemLogCopyItem.Text = $ui.LogCopy
+$systemLogCopyItem.Add_Click({if ($null -eq $logTextBox -or $logTextBox.IsDisposed -or $logTextBox.SelectedText.Length -eq 0) {return}
+[System.Windows.Forms.Clipboard]::SetText($logTextBox.SelectedText)
+System-Log $ui.INFO_LogCopied 'Debug'})
+$systemLogCopyAllItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$systemLogCopyAllItem.Text = $ui.LogCopyAll
+$systemLogCopyAllItem.Add_Click({if ($logTextBox.Text.Length -gt 0) {[System.Windows.Forms.Clipboard]::SetText($logTextBox.Text)
+System-Log $ui.INFO_LogCopied 'Debug'} else {System-Log $ui.INFO_NoLog 'Warning'}})
+$systemLogClearItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$systemLogClearItem.Text = $ui.LogClear
+$systemLogClearItem.Add_Click({$logTextBox.Clear()})
+$systemLogOpenItem = [System.Windows.Forms.ToolStripMenuItem]::new()
+$systemLogOpenItem.Text = $ui.LogOpenFile
+$systemLogOpenItem.Add_Click({if ($myBatchTaskSystemLogFile -and [System.IO.File]::Exists($myBatchTaskSystemLogFile)) {Start-Process 'explorer.exe' -ArgumentList ('/select,"' + $myBatchTaskSystemLogFile + '"')
+System-Log ($ui.INFO_LogOpened -f $myBatchTaskSystemLogFile) 'Success'} else {System-Log $ui.INFO_NoLog 'Warning'}})
+$systemLogContextMenu.Items.Add($systemLogCopyItem) | Out-Null
+$systemLogContextMenu.Items.Add($systemLogCopyAllItem) | Out-Null
+$systemLogContextMenu.Items.Add($systemLogClearItem) | Out-Null
+$systemLogContextMenu.Items.Add($systemLogOpenItem) | Out-Null
+$systemLogContextMenu.Tag = @{ copyItem = $systemLogCopyItem }
+$logTextBox.ContextMenuStrip = $systemLogContextMenu
+$systemLogContextMenu.Add_Opening({param($Sender, $EventArgs)
+$sourceTextBox = $Sender.SourceControl
+$copyItem = $Sender.Tag.copyItem
+if ($null -ne $copyItem) {$copyItem.Enabled = ($null -ne $sourceTextBox -and -not $sourceTextBox.IsDisposed -and $sourceTextBox.SelectedText.Length -gt 0)}})
+$taskLogQueueProcessTimer = [System.Windows.Forms.Timer]::new()
+$taskLogQueueProcessTimer.Interval = 200
+$taskLogQueueProcessTimer.Add_Tick({Process-Task-Log-Queue})
+$taskLogQueueProcessTimer.Start()
+$taskStatusMonitorTimer = [System.Windows.Forms.Timer]::new()
+$taskStatusMonitorTimer.Interval = 500
+$taskStatusMonitorTimer.Add_Tick({Monitor-Task-Status})
+$taskStatusMonitorTimer.Start()} catch {Handle-Exception $_
+pause
+exit 1}
+try {System-Log ($ui.INFO_SystemInfo -f $myBatchTaskConfigFile) 'Info'
+Load-Config | Out-Null
+[System.Windows.Forms.Application]::Run($mainForm)
+try { $trayIcon.Visible = $false } catch { }
+try { $trayIcon.Dispose() } catch { }
+try { $mainForm.Hide() } catch { }
+try { $mainForm.Close() } catch { }
+Stop-All-Tasks
+try { $taskLogQueueProcessTimer.Stop() } catch { }
+try { $taskLogQueueProcessTimer.Dispose() } catch { }
+try { $taskStatusMonitorTimer.Stop() } catch { }
+try { $taskStatusMonitorTimer.Dispose() } catch { }
+Process-Task-Log-Queue
+try { if ($script:appMutex) { $script:appMutex.Dispose() } } catch { }} catch {Handle-Exception $_
+pause
+exit 1}
+
