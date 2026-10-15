@@ -247,6 +247,21 @@ if !errorlevel! neq 0 (
 )
 ```
 
+示例代码 5 如下：  
+
+```batch
+REM 检查 Node.js 组件
+call node -v >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 Node.js 组件 & REM
+    echo 请从 https://nodejs.org/en/download 下载，并完成安装 & REM
+    "explorer.exe" "https://nodejs.org/en/download"
+    echo.
+    pause
+    exit /b 1
+)
+```
+
 ## 跳转标签
 
 统一使用单个冒号 `:` 开头的标签，避免使用双冒号 `::` 写法，与注释混淆  
