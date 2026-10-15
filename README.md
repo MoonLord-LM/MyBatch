@@ -7,18 +7,18 @@ A collection of commonly used Windows Batch scripts
 
 ## [功能分类]
 
-| 目录 | 功能分类 | 说明 |
+| 功能分类 | 说明 | 目录 |
 | --- | --- | --- |
-| [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) | [窗体程序](#gui) | 控制台任务批量管理 |
-| [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) | [文件处理](#file) | 压缩解压、加密解密、打包、去重、生成列表等 |
-| [console/media](https://github.com/MoonLord-LM/MyBatch/tree/master/console/media) | [多媒体工具](#media) | 视频合并、切片、转码、AI 放大插帧、封面管理、字幕管理、批量重命名等 |
-| [console/server](https://github.com/MoonLord-LM/MyBatch/tree/master/console/server) | [网络服务](#server) | 内网穿透、本地文件服务器等 |
-| [console/system](https://github.com/MoonLord-LM/MyBatch/tree/master/console/system) | [系统优化](#system) | 垃圾清理、缓存清理等 |
+| [窗体程序](#gui) | 控制台任务批量管理 | [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) |
+| [文件处理](#file) | 压缩解压、加密解密、打包、去重、生成列表等 | [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) |
+| [多媒体工具](#media) | 视频合并、切片、转码、AI 放大插帧、封面管理、字幕管理、批量重命名等 | [console/media](https://github.com/MoonLord-LM/MyBatch/tree/master/console/media) |
+| [网络服务](#server) | 内网穿透、本地文件服务器等 | [console/server](https://github.com/MoonLord-LM/MyBatch/tree/master/console/server) |
+| [系统优化](#system) | 垃圾清理、缓存清理等 | [console/system](https://github.com/MoonLord-LM/MyBatch/tree/master/console/system) |
 
 ## [脚本清单]
 
 <a id="gui"></a>
-### gui · 窗体程序
+### 窗体程序
 
 | 脚本 / 文件 | 说明 |
 | --- | --- |
@@ -26,7 +26,7 @@ A collection of commonly used Windows Batch scripts
 | [精简 ps1 代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/精简%20ps1%20代码.bat) | 压缩精简 PowerShell 脚本体积（去空白 / 注释） |
 
 <a id="file"></a>
-### console/file · 文件处理
+### 文件处理
 
 | 脚本 | 说明 |
 | --- | --- |
@@ -66,7 +66,7 @@ A collection of commonly used Windows Batch scripts
 | [文件自动解压.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件自动解压.bat) | 识别格式并自动解压压缩包 |
 
 <a id="media"></a>
-### console/media · 多媒体工具
+### 多媒体工具
 
 | 脚本 | 说明 |
 | --- | --- |
@@ -128,7 +128,7 @@ A collection of commonly used Windows Batch scripts
 | [音频封面移除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频封面移除.bat) | 移除音频封面 |
 
 <a id="server"></a>
-### console/server · 网络服务
+### 网络服务
 
 | 脚本 | 说明 |
 | --- | --- |
@@ -137,7 +137,7 @@ A collection of commonly used Windows Batch scripts
 | [文件服务器 OpenList.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/文件服务器%20OpenList.bat) | 启动 OpenList 文件服务器 |
 
 <a id="system"></a>
-### console/system · 系统优化
+### 系统优化
 
 | 脚本 | 说明 |
 | --- | --- |
