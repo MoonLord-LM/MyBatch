@@ -37,6 +37,7 @@ jobs:
           git diff --cached --quiet
           if ($LASTEXITCODE -ne 0) {
             git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "auto-fix by [ self-check.bat ]"
+            git pull --rebase origin master
             git push origin HEAD
           } else {
             Write-Host 'No changes after self-check.'
