@@ -73,12 +73,12 @@ try {
     $defaultOutputEncoding = [System.Console]::OutputEncoding.EncodingName
     [System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8
     $currentOutputEncoding = [System.Console]::OutputEncoding.EncodingName
-    $workingEncoding= [System.Text.UTF8Encoding]::new($false)
+    $workingEncoding = [System.Text.UTF8Encoding]::new($false)
     "[ Debug ] defaultOutputEncoding = $defaultOutputEncoding"
     "[ Debug ] currentOutputEncoding = $currentOutputEncoding"
     "[ Debug ] workingEncoding = $workingEncoding"
 
-    # 获取环境信息，使用单独进程隔离 Get-CimInstance 对语言的影响
+    # 获取环境信息，使用单独进程隔离 Get-CimInstance 和 Get-ItemProperty 对语言的影响
     $windowsVersion = powershell -NoProfile -Command {
         $windowsOSInfo = Get-CimInstance Win32_OperatingSystem
         $windowsCurrentVersion = Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Windows NT\CurrentVersion'
@@ -159,9 +159,9 @@ try {
         param([Parameter(Mandatory=$true)][System.Windows.Forms.Control]$Control)
 
         $flags = [System.Reflection.BindingFlags]::NonPublic -bor [System.Reflection.BindingFlags]::Instance
-        $SetStyleMethod = [System.Windows.Forms.Control].GetMethod('SetStyle', $flags)
-        $SetStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::UserPaint, $true))
-        $SetStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::AllPaintingInWmPaint, $true))
+        $setStyleMethod = [System.Windows.Forms.Control].GetMethod('SetStyle', $flags)
+        $setStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::UserPaint, $true))
+        $setStyleMethod.Invoke($Control, @([System.Windows.Forms.ControlStyles]::AllPaintingInWmPaint, $true))
     }
 
     # 分析合适的显示语言
