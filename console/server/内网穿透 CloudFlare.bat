@@ -23,8 +23,10 @@ if exist "!script_dir!cloudflared.exe" (
     set "cloudflared_path=!script_dir!..\cloudflared.exe"
 ) else if exist "..\cloudflared.exe" (
     set "cloudflared_path=..\cloudflared.exe"
-) else if exist "C:\Program Files (x86)\cloudflared\cloudflared.exe" (
-    set "cloudflared_path=C:\Program Files (x86)\cloudflared\cloudflared.exe"
+) else if exist "!ProgramFiles!\cloudflared\cloudflared.exe" (
+    set "cloudflared_path=!ProgramFiles!\cloudflared\cloudflared.exe"
+) else if exist "!ProgramFiles(x86)!\cloudflared\cloudflared.exe" (
+    set "cloudflared_path=!ProgramFiles(x86)!\cloudflared\cloudflared.exe"
 ) else (
     set "cloudflared_path=cloudflared"
 )

@@ -617,6 +617,6 @@ if "!file_sha512!"=="" (
 )
 
 set "temp_dir=%temp%\MyBatch\cache\!file_size!\!file_sha512!"
-if not exist "!temp_dir!" mkdir "!temp_dir!"
+if not exist "!temp_dir!" ( mkdir "!temp_dir!" )
 set "temp_file=!temp_dir!\!file_name!"
 ```

@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将单个文件编码为 pem 格式的文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '格式：Base64 编码，并且带 -----BEGIN CERTIFICATE----- 和 -----END CERTIFICATE----- 标记）' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '格式：Base64 编码，并且带 -----BEGIN CERTIFICATE----- 和 -----END CERTIFICATE----- 标记' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host 'Base64 编码后，体积增大到约 1.33 倍' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要编码的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果输出 pem 文件已存在，则跳过不处理' -ForegroundColor Green"

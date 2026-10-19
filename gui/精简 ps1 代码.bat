@@ -146,6 +146,9 @@ for %%i in ("!input_file!") do (
         "$txt | Out-File $env:output_file -Encoding UTF8;"
     if !errorlevel! neq 0 (
         echo 精简失败
+        echo.
+        pause
+        exit /b 1
     ) else (
         for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_file)).Length } catch { -1 }"') do set "output_size=%%s"
         echo 精简成功，最终大小：!output_size! 字节

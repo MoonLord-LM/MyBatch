@@ -51,6 +51,8 @@ if exist "!script_dir!openlist.exe" (
     set "openlist_path=!script_dir!..\openlist.exe"
 ) else if exist "..\openlist.exe" (
     set "openlist_path=..\openlist.exe"
+) else (
+    set "openlist_path=openlist"
 )
 "!openlist_path!" version >nul 2>&1
 if !errorlevel! neq 0 (
