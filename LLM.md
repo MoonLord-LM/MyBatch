@@ -501,7 +501,14 @@ if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 代码示例如下：  
 
 ```batch
+set "file_size=-1"
 for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:file_path)).Length } catch { -1 }"') do set "file_size=%%s"
+if "!file_size!"=="-1" (
+    echo 错误：文件大小获取失败："!file_path!"
+    echo.
+    pause
+    exit /b 1
+)
 ```
 
 ## 安全比较数字大小
@@ -588,16 +595,7 @@ echo 中文括号可以不转义：（Hello）
 代码示例如下：  
 
 ```batch
-REM 已知 input_file 和 file_name
-
-set "file_size=-1"
-for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:input_file)).Length } catch { -1 }"') do set "file_size=%%s"
-if "!file_size!"=="-1" (
-    echo 错误：文件大小获取失败："!input_file!"
-    echo.
-    pause
-    exit /b 1
-)
+REM 已知 input_file、file_size、file_name
 
 set "file_sha512="
 for /f "delims=" %%a in ('
