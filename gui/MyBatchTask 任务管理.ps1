@@ -134,7 +134,7 @@ try {
     try {
         $dpiResult = [Win32API]::SetProcessDpiAwarenessContext([DpiContext]::PER_MONITOR_AWARE_V2)
     } catch { }
-    if(-not $dpiResult) {
+    if (-not $dpiResult) {
         $dpiResult = [Win32API]::SetProcessDPIAware()
     }
 

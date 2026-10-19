@@ -125,7 +125,7 @@ if "!param1!" == "" (
                 "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
                 "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
-                "if(-not $m.Success) { exit; }" ^
+                "if (-not $m.Success) { exit; }" ^
                 "$av=[int64]$m.Groups[1].Value;" ^
                 "$out='';" ^
                 "for($k=0;$k -lt 10;$k++) {" ^
@@ -285,7 +285,7 @@ if not "!working_dir!" == "" (
                 "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
                 "$bn=$env:base_name;" ^
                 "$m=[regex]::Match($bn,'\[av(\d+)\]$');" ^
-                "if(-not $m.Success) { exit; }" ^
+                "if (-not $m.Success) { exit; }" ^
                 "$av=[int64]$m.Groups[1].Value;" ^
                 "$out='';" ^
                 "for($k=0;$k -lt 10;$k++) {" ^
