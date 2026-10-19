@@ -415,7 +415,7 @@ for %%i in ("!input_file!") do (
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$epoch = [System.DateTimeOffset]::FromUnixTimeSeconds(0).UtcDateTime;" ^
-        "$paths = @($env:temp_gzip, $env:temp_cab, $env:temp_7z, $env:temp_7z_exe, $env:temp_cs, $env:temp_ico);" ^
+        "$paths = @($env:temp_gzip, $env:temp_cab, $env:temp_7z, $env:temp_7z_exe, $env:temp_cs);" ^
         "foreach ($p in $paths) {" ^
         "    if ([string]::IsNullOrEmpty($p)) { continue };" ^
         "    if (-not [System.IO.File]::Exists($p)) { continue };" ^
