@@ -579,3 +579,44 @@ echo 中文括号可以不转义：（Hello）
 [System.Threading.Thread]::CurrentThread
 [System.Uri]::EscapeUriString('')
 ```
+
+## 临时文件缓存
+
+如果已知文件名和文件内容，需要将文件释放到临时文件目录，并进行缓存  
+可以使用 %temp% + \MyBatch\cache + \文件大小 + \文件 SHA-512 的值 + \文件名，拼接一个较为安全的临时文件路径  
+
+代码示例如下：  
+
+```batch
+REM 已知 input_file 和 file_name
+
+set "file_size=-1"
+for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:input_file)).Length } catch { -1 }"') do set "file_size=%%s"
+if "!file_size!"=="-1" (
+    echo 错误：文件大小获取失败："!input_file!"
+    echo.
+    pause
+    exit /b 1
+)
+
+set "file_sha512="
+for /f "delims=" %%a in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "$sha512 = [System.Security.Cryptography.SHA512]::Create();" ^
+        "$fileBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
+        "Write-Output ([System.BitConverter]::ToString($sha512.ComputeHash($fileBytes)).Replace('-', '').ToLowerInvariant());"
+') do (
+    set "file_sha512=%%a"
+)
+if "!file_sha512!"=="" (
+    echo 错误：计算文件内容的 SHA512 哈希值失败："!input_file!"
+    echo.
+    pause
+    exit /b 1
+)
+
+set "temp_dir=%temp%\MyBatch\cache\!file_size!\!file_sha512!"
+if not exist "!temp_dir!" mkdir "!temp_dir!"
+set "temp_file=!temp_dir!\!file_name!"
+```
