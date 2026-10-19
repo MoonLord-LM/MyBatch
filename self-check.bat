@@ -27,7 +27,10 @@ echo 当前 Git 配置：
 git config --local --list
 echo.
 
+
+
 set "root_dir=!script_dir!"
+
 for /f "delims=" %%f in ('
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
@@ -40,7 +43,7 @@ for /f "delims=" %%f in ('
     set "file_ext=%%~xf"
     setlocal enabledelayedexpansion
 
-    echo 处理文件："!bat_file!"
+    echo 处理 bat 文件："!bat_file!"
 
     REM 统一编码为 UTF-8 without BOM，统一换行符为 CRLF
     powershell -NoProfile -Command ^
@@ -180,7 +183,104 @@ for /f "delims=" %%f in ('
     endlocal
     echo.
 )
-echo 处理完成
+echo bat 处理完成
+echo.
+
+for /f "delims=" %%f in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "Get-ChildItem -LiteralPath $env:root_dir -File -Force -Recurse -Filter *.ps1 | ForEach-Object { $_.FullName }"
+') do (
+    setlocal disabledelayedexpansion
+    set "ps1_file=%%f"
+    set "file_dir=%%~dpf"
+    set "base_name=%%~nf"
+    set "file_ext=%%~xf"
+    setlocal enabledelayedexpansion
+
+    echo 处理 ps1 文件："!ps1_file!"
+
+    REM 统一编码为 UTF-8 with BOM，统一换行符为 CRLF
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "$utf8BOM = [System.Text.UTF8Encoding]::new($true);" ^
+        "$bytes = [System.IO.File]::ReadAllBytes($env:ps1_file);" ^
+        "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
+        "try {" ^
+            "$chars = New-Object Char[] ($utf8Strict.GetDecoder().GetCharCount($bytes, 0, $bytes.Length));" ^
+            "$utf8Strict.GetDecoder().GetChars($bytes, 0, $bytes.Length, $chars, 0) | Out-Null;" ^
+            "$content = -join $chars;" ^
+        "} catch [System.Text.DecoderFallbackException] {" ^
+            "$content = [System.Text.Encoding]::GetEncoding(936).GetString($bytes);" ^
+        "}" ^
+        "$hasBOM = $bytes.Length -ge 3 -and $bytes[0] -eq 0xEF -and $bytes[1] -eq 0xBB -and $bytes[2] -eq 0xBF;" ^
+        "$newContent = ($content -replace '^\uFEFF', '') -replace '(\r?\n)', \""`r`n\"";" ^
+        "if (-not $hasBOM -or $newContent -ne ($content -replace '^\uFEFF', '')) {" ^
+            "[System.IO.File]::WriteAllText($env:ps1_file, $newContent, $utf8BOM);" ^
+            "Write-Output '已将编码统一为 UTF-8 with BOM，换行符统一为 CRLF';" ^
+        "}"
+    if !errorlevel! neq 0 (
+        echo [错误] 编码转换失败："!ps1_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM 替换制表符为 4 个空格
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "$utf8BOM = [System.Text.UTF8Encoding]::new($true);" ^
+        "$lines = [System.IO.File]::ReadAllLines($env:ps1_file, [System.Text.Encoding]::UTF8);" ^
+        "$tab = [string][char]9;" ^
+        "$changed = 0;" ^
+        "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+            "if ($lines[$i] -match $tab) {" ^
+                "$lines[$i] = $lines[$i] -replace $tab, '    ';" ^
+                "$changed++;" ^
+            "}" ^
+        "}" ^
+        "if ($changed -gt 0) {" ^
+            "[System.IO.File]::WriteAllLines($env:ps1_file, $lines, $utf8BOM);" ^
+            "Write-Output ('已将 ' + $changed + ' 行中的制表符替换为 4 个空格');" ^
+        "}"
+    if !errorlevel! neq 0 (
+        echo [错误] 替换制表符失败："!ps1_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM 删除行末尾的空格
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "$utf8BOM = [System.Text.UTF8Encoding]::new($true);" ^
+        "$lines = [System.IO.File]::ReadAllLines($env:ps1_file, [System.Text.Encoding]::UTF8);" ^
+        "$changed = 0;" ^
+        "for ($i = 0; $i -lt $lines.Count; $i++) {" ^
+            "if ($lines[$i] -match '[ \t]+$') {" ^
+                "$lines[$i] = $lines[$i] -replace '[ \t]+$', '';" ^
+                "$changed++;" ^
+            "}" ^
+        "}" ^
+        "if ($changed -gt 0) {" ^
+            "[System.IO.File]::WriteAllLines($env:ps1_file, $lines, $utf8BOM);" ^
+            "Write-Output ('已将 ' + $changed + ' 行中的末尾的空格删除');" ^
+        "}"
+    if !errorlevel! neq 0 (
+        echo [错误] 删除行末尾空格失败："!ps1_file!"
+        echo.
+        pause
+        exit /b 1
+    )
+
+    endlocal
+    endlocal
+    echo.
+)
+echo ps1 处理完成
+echo.
+
+echo 全部处理完成
 
 
 
