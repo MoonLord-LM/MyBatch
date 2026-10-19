@@ -6,10 +6,10 @@ on:
   workflow_dispatch:
   push:
     branches: [master]
-    paths: ['**/*.bat', 'self-check.bat', '.github/workflows/self-check.yml']
+    paths: ['**/*.bat', '**/*.ps1', 'self-check.bat', '.github/workflows/self-check.yml']
   pull_request:
     branches: [master]
-    paths: ['**/*.bat', 'self-check.bat', '.github/workflows/self-check.yml']
+    paths: ['**/*.bat', '**/*.ps1', 'self-check.bat', '.github/workflows/self-check.yml']
 
 permissions:
   contents: write
