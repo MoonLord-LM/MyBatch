@@ -10,11 +10,12 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将单个文件，打包转换为 exe 窗体程序，自动附加图标' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '适用于对不需要控制台交互的程序打包，不会显示 cmd 黑窗口，但是也无法展示输入输出流' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击生成的 exe 脚本，自动解码解压并打开原文件，如果是 ps1 / bat / py / exe 则自动执行' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '处理方式：把原文件内容，执行压缩，嵌入到自解压的 C# 程序中作为资源，编译出 exe 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '尝试使用 PowerShell 内置的 GZipStream / makecab.exe / 7-Zip 压缩，尽可能压缩到最小' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要打包转换的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '优先使用系统的 C# Roslyn 编译器并开启 /deterministic 参数，保证相同输入打包出的 exe 字节完全一致' -ForegroundColor Green"
 echo.
 
 
@@ -55,6 +56,20 @@ if exist "!script_dir!7zCon.sfx" (
     set "seven_zip_sfx=!ProgramFiles(x86)!\7-Zip\7zCon.sfx"
 ) else (
     set "seven_zip_sfx="
+)
+
+REM 检查 C# Roslyn 编译器（可选）
+set "csharp_roslyn_compiler="
+for %%v in (18 2022) do (
+    for %%r in ("!ProgramFiles!" "!ProgramFiles(x86)!") do (
+        for %%e in (Enterprise Professional Community BuildTools) do (
+            if "!csharp_roslyn_compiler!"=="" (
+                if exist "%%~r\Microsoft Visual Studio\%%v\%%e\MSBuild\Current\Bin\Roslyn\csc.exe" (
+                    set "csharp_roslyn_compiler=%%~r\Microsoft Visual Studio\%%v\%%e\MSBuild\Current\Bin\Roslyn\csc.exe"
+                )
+            )
+        )
+    )
 )
 
 
@@ -109,11 +124,19 @@ for %%i in ("!input_file!") do (
     set "file_name_ext=%%~nxi"
     setlocal enabledelayedexpansion
 
+    set "file_size=-1"
     for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:input_file)).Length } catch { -1 }"') do set "file_size=%%s"
+    if "!file_size!"=="-1" (
+        echo 错误：文件大小获取失败："!input_file!"
+        echo.
+        pause
+        exit /b 1
+    )
     echo 原始大小：!file_size! 字节
     echo.
 
     REM 计算文件内容的 SHA512 哈希值
+    set "file_sha512="
     for /f "delims=" %%a in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
@@ -138,10 +161,14 @@ for %%i in ("!input_file!") do (
     echo 目标文件："!output_file!"
     echo.
 
+    REM 临时文件统一放在固定目录，保证生成一致性
+    set "temp_dir=%temp%\MyBatch\cache\!file_size!\!file_sha512!"
+    if not exist "!temp_dir!" ( mkdir "!temp_dir!" )
+
 
 
     REM 方式一：压缩为 gzip 格式
-    set "temp_gzip=%temp%\MyBatch_%random%_%random%_%random%_%random%.gz"
+    set "temp_gzip=!temp_dir!\archive.gz"
     if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
     if "!seven_zip!"=="" (
         echo 压缩方式：使用 PowerShell 内置的 GZipStream 压缩
@@ -186,7 +213,7 @@ for %%i in ("!input_file!") do (
 
     REM 方式二：压缩为 cab 格式
     echo 压缩方式：使用 makecab 压缩 cab 格式
-    set "temp_cab=%temp%\MyBatch_%random%_%random%_%random%_%random%.cab"
+    set "temp_cab=!temp_dir!\archive.cab"
     if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
     makecab /D CompressionType=LZX /D CompressionMemory=21 "!input_file!" "!temp_cab!" >nul
     if !errorlevel! neq 0 (
@@ -220,7 +247,7 @@ for %%i in ("!input_file!") do (
     )
     if "!use_7z_exe!"=="1" (
         echo 压缩方式：使用 7z 自解压 exe 格式
-        set "temp_7z=%temp%\MyBatch_%random%_%random%_%random%_%random%.7z"
+        set "temp_7z=!temp_dir!\archive.7z"
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
         "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
         if !errorlevel! neq 0 (
@@ -241,7 +268,7 @@ for %%i in ("!input_file!") do (
             exit /b 1
         )
 
-        set "temp_7z_exe=%temp%\MyBatch_%random%_%random%_%random%_%random%.exe"
+        set "temp_7z_exe=!temp_dir!\archive.sfx.exe"
         copy /b /y "!seven_zip_sfx!" + "!temp_7z!" "!temp_7z_exe!" >nul
         if !errorlevel! neq 0 (
             echo 错误：制作自解压 exe 失败："!temp_7z_exe!"
@@ -264,11 +291,33 @@ for %%i in ("!input_file!") do (
     set "resource_file="
     echo.
 
+    set "gzip_size=-1"
     for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_gzip)).Length } catch { -1 }"') do set "gzip_size=%%s"
+    if "!gzip_size!"=="-1" (
+        echo 错误：获取 gzip 压缩包大小失败："!temp_gzip!"
+        echo.
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
+        pause
+        exit /b 1
+    )
     echo gzip 压缩包大小：!gzip_size! 字节
     set "method=gzip" & set "smallest_size=!gzip_size!" & set "resource_file=!temp_gzip!"
 
+    set "cab_size=-1"
     for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_cab)).Length } catch { -1 }"') do set "cab_size=%%s"
+    if "!cab_size!"=="-1" (
+        echo 错误：获取 cab 压缩包大小失败："!temp_cab!"
+        echo.
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
+        pause
+        exit /b 1
+    )
     echo cab 压缩包大小：!cab_size! 字节
     set "size_smaller=0"
     for /f "delims=" %%c in ('
@@ -283,7 +332,18 @@ for %%i in ("!input_file!") do (
     )
 
     if "!use_7z_exe!"=="1" (
+        set "seven_zip_size=-1"
         for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:temp_7z_exe)).Length } catch { -1 }"') do set "seven_zip_size=%%s"
+        if "!seven_zip_size!"=="-1" (
+            echo 错误：获取 7z 压缩包大小失败："!temp_7z_exe!"
+            echo.
+            if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+            if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+            if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+            if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
+            pause
+            exit /b 1
+        )
         echo 7z 压缩包大小：!seven_zip_size! 字节
         set "size_smaller=0"
         for /f "delims=" %%c in ('
@@ -303,7 +363,7 @@ for %%i in ("!input_file!") do (
     echo.
 
     REM 提取内嵌的 C# 代码
-    set "temp_cs=%temp%\MyBatch_%random%_%random%_%random%_%random%.cs"
+    set "temp_cs=!temp_dir!\program.cs"
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
     set "inner_begin_marker=-----BEGIN CSHARP CODE-----"
     set "inner_end_marker=-----END CSHARP CODE-----"
@@ -353,7 +413,7 @@ for %%i in ("!input_file!") do (
 
     REM 自动生成图标：以源文件名的首字，绘制蓝色圆形 + 白色首字的 ico 文件
     set "icon_char=!base_name:~0,1!"
-    set "temp_ico=%temp%\MyBatch_%random%_%random%_%random%_%random%.ico"
+    set "temp_ico=!temp_dir!\icon.ico"
     if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
@@ -409,30 +469,69 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
-    echo 正在编译代码，并嵌入压缩包资源
-    echo.
+    REM 临时文件写入完成后，把时间统一刷新为 UNIX 0 时间戳（1970-01-01 00:00:00 UTC），保证生成一致性
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "[void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.CSharp');" ^
-        "$provider = New-Object Microsoft.CSharp.CSharpCodeProvider;" ^
-        "$params = New-Object System.CodeDom.Compiler.CompilerParameters;" ^
-        "$params.OutputAssembly = $env:output_file;" ^
-        "$params.GenerateExecutable = $true;" ^
-        "$params.CompilerOptions = '/target:winexe /optimize /win32icon:\"' + $env:temp_ico + '\"';" ^
-        "[void]$params.ReferencedAssemblies.Add('System.dll');" ^
-        "[void]$params.ReferencedAssemblies.Add('System.Core.dll');" ^
-        "[void]$params.ReferencedAssemblies.Add('System.IO.Compression.dll');" ^
-        "[void]$params.ReferencedAssemblies.Add('System.Windows.Forms.dll');" ^
-        "[void]$params.EmbeddedResources.Add($env:resource_file);" ^
-        "$result = $provider.CompileAssemblyFromFile($params, $env:temp_cs);" ^
-        "if ($result.Errors.Count -gt 0) {" ^
-        "    Write-Host '错误：编译 C# 代码失败：' -ForegroundColor Red;" ^
-        "    foreach ($err in $result.Errors) { Write-Host $err.ToString() -ForegroundColor Red };" ^
-        "    exit 1;" ^
-        "};" ^
-        "Write-Host '编译完成' -ForegroundColor Green"
+        "$epoch = [System.DateTimeOffset]::FromUnixTimeSeconds(0).UtcDateTime;" ^
+        "$paths = @($env:temp_gzip, $env:temp_cab, $env:temp_7z, $env:temp_7z_exe, $env:temp_cs, $env:temp_ico);" ^
+        "foreach ($p in $paths) {" ^
+        "    if ([string]::IsNullOrEmpty($p)) { continue };" ^
+        "    if (-not [System.IO.File]::Exists($p)) { continue };" ^
+        "    [System.IO.File]::SetCreationTimeUtc($p, $epoch);" ^
+        "    [System.IO.File]::SetLastWriteTimeUtc($p, $epoch);" ^
+        "    [System.IO.File]::SetLastAccessTimeUtc($p, $epoch);" ^
+        "}"
     if !errorlevel! neq 0 (
-        echo 错误：生成 exe 失败："!output_file!"
+        echo 错误：临时文件时间刷新失败："!temp_dir!"
+        echo.
+        if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
+        if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
+        if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
+        if exist "!temp_7z_exe!" ( del /f /q "!temp_7z_exe!" )
+        if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
+        if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
+        pause
+        exit /b 1
+    )
+
+
+
+    echo 正在编译代码，并嵌入压缩包资源
+    echo.
+    if exist "!output_file!" ( del /f /q "!output_file!" )
+    if not "!csharp_roslyn_compiler!"=="" (
+        echo 使用 C# Roslyn 编译器 + /deterministic 参数，保证一致性 & REM
+        echo.
+        "!csharp_roslyn_compiler!" /deterministic /target:winexe /optimize "/pathmap:!temp_dir!=/src" ^
+            /out:"!output_file!" ^
+            /win32icon:"!temp_ico!" ^
+            /resource:"!resource_file!" ^
+            "!temp_cs!"
+    ) else (
+        echo 使用系统默认的 C# 编译器，不保证一致性 & REM
+        echo.
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "[void][System.Reflection.Assembly]::LoadWithPartialName('Microsoft.CSharp');" ^
+            "$provider = New-Object Microsoft.CSharp.CSharpCodeProvider;" ^
+            "$params = New-Object System.CodeDom.Compiler.CompilerParameters;" ^
+            "$params.OutputAssembly = $env:output_file;" ^
+            "$params.GenerateExecutable = $true;" ^
+            "$params.CompilerOptions = '/target:winexe /optimize /win32icon:\"' + $env:temp_ico + '\"';" ^
+            "[void]$params.ReferencedAssemblies.Add('System.dll');" ^
+            "[void]$params.ReferencedAssemblies.Add('System.Core.dll');" ^
+            "[void]$params.ReferencedAssemblies.Add('System.IO.Compression.dll');" ^
+            "[void]$params.ReferencedAssemblies.Add('System.Windows.Forms.dll');" ^
+            "[void]$params.EmbeddedResources.Add($env:resource_file);" ^
+            "$result = $provider.CompileAssemblyFromFile($params, $env:temp_cs);" ^
+            "if ($result.Errors.Count -gt 0) {" ^
+            "    Write-Host '错误：编译 C# 代码失败：' -ForegroundColor Red;" ^
+            "    foreach ($err in $result.Errors) { Write-Host $err.ToString() -ForegroundColor Red };" ^
+            "    exit 1;" ^
+            "}"
+    )
+    if !errorlevel! neq 0 (
+        echo 错误：编译 C# 代码失败："!temp_cs!"
         echo.
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
@@ -444,6 +543,8 @@ for %%i in ("!input_file!") do (
         pause
         exit /b 1
     )
+    echo 编译完成
+    echo.
     if not exist "!output_file!" (
         echo 错误：生成 exe 文件不存在："!output_file!"
         echo.
@@ -464,6 +565,7 @@ for %%i in ("!input_file!") do (
     if exist "!temp_cs!" ( del /f /q "!temp_cs!" )
     if exist "!temp_ico!" ( del /f /q "!temp_ico!" )
 
+    set "file_size=-1"
     for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_file)).Length } catch { -1 }"') do set "file_size=%%s"
     echo 最终大小：!file_size! 字节
 
