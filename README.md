@@ -147,7 +147,7 @@ A collection of commonly used Windows Batch scripts
 | [显示器开启.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器开启.bat) | 唤醒 / 开启显示器 |
 | [重启桌面进程.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/重启桌面进程.bat) | 重启 Windows 资源管理器（explorer） |
 
-## [目录结构]
+## [工程结构]
 
 ```
 MyBatch/
