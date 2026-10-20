@@ -165,6 +165,23 @@ for %%i in ("!input_file!") do (
     set "temp_dir=%temp%\MyBatch\cache\!file_size!\!file_sha512!"
     if not exist "!temp_dir!" ( mkdir "!temp_dir!" )
 
+    REM 原始文件先复制到临时目录，并把修改时间固定为常量 1980-01-01（cab 可支持的最小值），保证生成一致性
+    set "temp_src=!temp_dir!\src\!file_name_ext!"
+    if not exist "!temp_dir!\src" ( mkdir "!temp_dir!\src" )
+    if exist "!temp_src!" ( del /f /q "!temp_src!" )
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "[System.IO.File]::Copy($env:input_file, $env:temp_src, $true);" ^
+        "$fixed_time = [datetime]::new(1980, 1, 1, 0, 0, 0, [System.DateTimeKind]::Utc);" ^
+        "[System.IO.File]::SetCreationTime($env:temp_src, $fixed_time);" ^
+        "[System.IO.File]::SetLastWriteTime($env:temp_src, $fixed_time);"
+    if !errorlevel! neq 0 (
+        echo 错误：复制原始文件失败："!temp_src!"
+        echo.
+        pause
+        exit /b 1
+    )
+
 
 
     REM 方式一：压缩为 gzip 格式
@@ -175,7 +192,7 @@ for %%i in ("!input_file!") do (
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "Add-Type -AssemblyName System.IO.Compression;" ^
-            "$rawBytes = [System.IO.File]::ReadAllBytes($env:input_file);" ^
+            "$rawBytes = [System.IO.File]::ReadAllBytes($env:temp_src);" ^
             "$memStream = New-Object System.IO.MemoryStream;" ^
             "$mode = [System.IO.Compression.CompressionMode]::Compress;" ^
             "$gzipStream = New-Object System.IO.Compression.GzipStream($memStream, $mode);" ^
@@ -187,16 +204,18 @@ for %%i in ("!input_file!") do (
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
+            if exist "!temp_src!" ( del /f /q "!temp_src!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             pause
             exit /b 1
         )
     ) else (
         echo 压缩方式：使用 7-Zip 压缩 gzip 格式
-        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!input_file!" >nul
+        "!seven_zip!" a -tgzip -mx=9 -mmt=on -mtc=off -mtm=off -mta=off -si"!file_name_ext!" "!temp_gzip!" < "!temp_src!" >nul
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
+            if exist "!temp_src!" ( del /f /q "!temp_src!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             pause
             exit /b 1
@@ -215,16 +234,18 @@ for %%i in ("!input_file!") do (
     echo 压缩方式：使用 makecab 压缩 cab 格式
     set "temp_cab=!temp_dir!\archive.cab"
     if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
-    makecab /D CompressionType=LZX /D CompressionMemory=21 "!input_file!" "!temp_cab!" >nul
+    makecab /D CompressionType=LZX /D CompressionMemory=21 "!temp_src!" "!temp_cab!" >nul
     if !errorlevel! neq 0 (
         echo 错误：压缩失败："!input_file!"
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         pause
         exit /b 1
     )
     if not exist "!temp_cab!" (
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         echo 错误：压缩文件生成失败："!temp_cab!"
         echo.
@@ -249,10 +270,11 @@ for %%i in ("!input_file!") do (
         echo 压缩方式：使用 7z 自解压 exe 格式
         set "temp_7z=!temp_dir!\archive.7z"
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
-        "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!input_file!" >nul
+        "!seven_zip!" a -t7z -mx=9 -m0=LZMA2 -md=2048m -mfb=256 -ms=off -mmt=on -mtc=off -mtm=off -mta=off -sccUTF-8 -scsUTF-8 -y "!temp_7z!" "!temp_src!" >nul
         if !errorlevel! neq 0 (
             echo 错误：压缩失败："!input_file!"
             echo.
+            if exist "!temp_src!" ( del /f /q "!temp_src!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
             if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -262,6 +284,7 @@ for %%i in ("!input_file!") do (
         if not exist "!temp_7z!" (
             echo 错误：压缩文件生成失败："!temp_7z!"
             echo.
+            if exist "!temp_src!" ( del /f /q "!temp_src!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
             pause
@@ -273,6 +296,7 @@ for %%i in ("!input_file!") do (
         if !errorlevel! neq 0 (
             echo 错误：制作自解压 exe 失败："!temp_7z_exe!"
             echo.
+            if exist "!temp_src!" ( del /f /q "!temp_src!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
             if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -296,6 +320,7 @@ for %%i in ("!input_file!") do (
     if "!gzip_size!"=="-1" (
         echo 错误：获取 gzip 压缩包大小失败："!temp_gzip!"
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -311,6 +336,7 @@ for %%i in ("!input_file!") do (
     if "!cab_size!"=="-1" (
         echo 错误：获取 cab 压缩包大小失败："!temp_cab!"
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -337,6 +363,7 @@ for %%i in ("!input_file!") do (
         if "!seven_zip_size!"=="-1" (
             echo 错误：获取 7z 压缩包大小失败："!temp_7z_exe!"
             echo.
+            if exist "!temp_src!" ( del /f /q "!temp_src!" )
             if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
             if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
             if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -392,6 +419,7 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：提取内嵌代码失败
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -403,6 +431,7 @@ for %%i in ("!input_file!") do (
     if not exist "!temp_cs!" (
         echo 错误：提取内嵌代码文件生成失败："!temp_cs!"
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -426,6 +455,7 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：临时文件时间刷新失败："!temp_dir!"
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -473,6 +503,7 @@ for %%i in ("!input_file!") do (
     if !errorlevel! neq 0 (
         echo 错误：编译 C# 代码失败："!temp_cs!"
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -487,6 +518,7 @@ for %%i in ("!input_file!") do (
     if not exist "!output_file!" (
         echo 错误：生成 exe 文件不存在："!output_file!"
         echo.
+        if exist "!temp_src!" ( del /f /q "!temp_src!" )
         if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
         if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
         if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
@@ -496,6 +528,7 @@ for %%i in ("!input_file!") do (
         exit /b 1
     )
 
+    if exist "!temp_src!" ( del /f /q "!temp_src!" )
     if exist "!temp_gzip!" ( del /f /q "!temp_gzip!" )
     if exist "!temp_cab!" ( del /f /q "!temp_cab!" )
     if exist "!temp_7z!" ( del /f /q "!temp_7z!" )
