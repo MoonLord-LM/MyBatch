@@ -94,8 +94,8 @@ A collection of commonly used Windows Batch scripts
 | [视频格式封装为 mp4.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mp4.bat) | 封装为 MP4 容器，不做转码 |
 | [视频合并.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频合并.bat) | 合并多个视频片段 |
 | [视频画面截取.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频画面截取.bat) | 截取视频某一帧画面 |
-| [视频降噪.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频降噪.bat) | 对视频降噪处理 |
-| [视频切片截取.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频切片截取.bat) | 按时间段切片截取视频片段 |
+| [视频降噪.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频降噪.bat) | 对视频做降噪处理 |
+| [视频切片截取.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频切片截取.bat) | 按指定的时间段切片，截取视频片段 |
 | [视频详细参数导出.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频详细参数导出.bat) | 导出视频详细参数信息 |
 | [视频音频导出.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频音频导出.bat) | 提取视频中的音频 |
 | [视频帧率扩大为2倍 - 通用 AI 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频帧率扩大为2倍%20-%20通用%20AI%20版.bat) | AI 插帧把帧率提高至 2 倍 |
