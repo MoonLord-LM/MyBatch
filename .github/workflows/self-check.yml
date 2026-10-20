@@ -3,6 +3,7 @@ name: self-check
 on:
   schedule:
     - cron: '57 23 * * *'
+      timezone: 'Asia/Shanghai'
   workflow_dispatch:
   push:
     branches: [master]
