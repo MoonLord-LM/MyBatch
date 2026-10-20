@@ -151,14 +151,14 @@ A collection of commonly used Windows Batch scripts
 
 ```
 MyBatch/
-├── gui/             # 窗体程序
+├── gui/              # 窗体程序
 ├── console/
-│   ├── file/        # 文件处理
-│   ├── media/       # 多媒体工具
-│   ├── server/      # 网络服务
-│   └── system/      # 系统优化
-├── example/         # 零散示例脚本
-├── LLM.md           # 提示信息
-├── README.md        # 工程说明
-└── self-check.bat   # 自检脚本
+│   ├── file/         # 文件处理
+│   ├── media/        # 多媒体工具
+│   ├── server/       # 网络服务
+│   └── system/       # 系统优化
+├── example/          # 零散示例脚本
+├── LLM.md            # 提示信息
+├── README.md         # 工程说明
+└── self-check.bat    # 自检脚本
 ```
