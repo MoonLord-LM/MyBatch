@@ -9,8 +9,8 @@ A collection of commonly used Windows Batch scripts
 
 | 目录 | 功能分类 | 说明 |
 | --- | --- | --- |
-| [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) | [窗体程序](#窗体程序) | 控制台任务批量管理 |
-| [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) | [文件处理](#文件处理) | 压缩解压、加密解密、打包、去重、生成列表等 |
+| [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) | [窗体程序](#窗体程序) | 任务批量管理 |
+| [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) | [文件处理](#文件处理) | 压缩解压、加密解密、打包加壳、文件去重、文件夹生成列表等 |
 | [console/media](https://github.com/MoonLord-LM/MyBatch/tree/master/console/media) | [多媒体工具](#多媒体工具) | 视频合并、切片、转码、AI 放大插帧、封面管理、字幕管理、批量重命名等 |
 | [console/server](https://github.com/MoonLord-LM/MyBatch/tree/master/console/server) | [网络服务](#网络服务) | 内网穿透、本地文件服务器等 |
 | [console/system](https://github.com/MoonLord-LM/MyBatch/tree/master/console/system) | [系统优化](#系统优化) | 垃圾清理、缓存清理等 |
@@ -21,7 +21,7 @@ A collection of commonly used Windows Batch scripts
 
 | 脚本 / 文件 | 说明 |
 | --- | --- |
-| [MyBatchTask 任务管理.ps1](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/MyBatchTask%20任务管理.ps1) | 图形化窗口的控制台任务批量管理工具 |
+| [MyBatchTask 任务管理.ps1](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/MyBatchTask%20任务管理.ps1) | 图形化界面的任务批量管理工具 |
 | [精简 ps1 代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/精简%20ps1%20代码.bat) | 精简 ps1 脚本文件，移除多余的注释和空行 |
 
 ### 文件处理
@@ -70,8 +70,8 @@ A collection of commonly used Windows Batch scripts
 | [屏幕录制关闭.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕录制关闭.bat) | 关闭系统屏幕录制 |
 | [屏幕录制开启 - 0.5 倍分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕录制开启%20-%200.5%20倍分辨率.bat) | 开启屏幕录制（输出 0.5 倍分辨率） |
 | [屏幕录制开启 - 完整分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕录制开启%20-%20完整分辨率.bat) | 开启屏幕录制（输出完整分辨率） |
-| [屏幕延时录制开启 - 0.5 倍分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕延时录制开启%20-%200.5%20倍分辨率.bat) | 延时后开始屏幕录制（0.5 倍分辨率） |
-| [屏幕延时录制开启 - 完整分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕延时录制开启%20-%20完整分辨率.bat) | 延时后开始屏幕录制（完整分辨率） |
+| [屏幕延时录制开启 - 0.5 倍分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕延时录制开启%20-%200.5%20倍分辨率.bat) | 开始屏幕延时慢速录制（输出 0.5 倍分辨率） |
+| [屏幕延时录制开启 - 完整分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕延时录制开启%20-%20完整分辨率.bat) | 开始屏幕延时慢速录制（输出完整分辨率） |
 | [视频编码查看.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码查看.bat) | 查看视频的编码格式信息 |
 | [视频编码转换为 av1 - 画质优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20画质优先.bat) | 转码为 AV1（画质优先） |
 | [视频编码转换为 av1 - 速度优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20速度优先.bat) | 转码为 AV1（速度优先） |
