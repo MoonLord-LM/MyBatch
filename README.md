@@ -21,47 +21,47 @@ A collection of commonly used Windows Batch scripts
 
 | 脚本 / 文件 | 说明 |
 | --- | --- |
-| [MyBatchTask 任务管理.ps1](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/MyBatchTask%20任务管理.ps1) | 图形化任务 / 进程管理工具 |
-| [精简 ps1 代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/精简%20ps1%20代码.bat) | 压缩精简 PowerShell 脚本体积（去空白 / 注释） |
+| [MyBatchTask 任务管理.ps1](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/MyBatchTask%20任务管理.ps1) | 图形化窗口的控制台任务批量管理工具 |
+| [精简 ps1 代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/gui/精简%20ps1%20代码.bat) | 精简 ps1 脚本文件，移除多余的注释和空行 |
 
 ### 文件处理
 
 | 脚本 | 说明 |
 | --- | --- |
-| [文件 ed2k 链接生成.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件%20ed2k%20链接生成.bat) | 为文件生成 eD2k 电驴下载链接 |
-| [文件编码 - 01 反转.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编码%20-%2001%20反转.bat) | 对文件做 0/1 位反转的轻量编码 / 混淆 |
-| [文件编码 - PEM 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编码%20-%20PEM%20格式.bat) | 把任意文件编码为 PEM 文本格式（Base64 + 头尾） |
-| [文件打包为 bat 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20bat%20格式.bat) | 把文件打包进单个 .bat，运行时还原为原文件 |
-| [文件打包为 cli-exe 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20cli-exe%20格式.bat) | 打包为命令行 exe（带图标） |
-| [文件打包为 cli-exe 格式 - 无图标版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20cli-exe%20格式%20-%20无图标版.bat) | 打包为命令行 exe（无图标） |
-| [文件打包为 gui-exe 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20gui-exe%20格式.bat) | 打包为带图形界面的 exe |
-| [文件打包为 gui-exe 格式 - 无图标版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20gui-exe%20格式%20-%20无图标版.bat) | 打包为带图形界面的 exe（无图标） |
-| [文件哈希值生成 - RHash 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件哈希值生成%20-%20RHash%20版.bat) | 用 RHash 计算文件多算法哈希值 |
+| [文件 ed2k 链接生成.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件%20ed2k%20链接生成.bat) | 为文件生成 ed2k 电驴下载链接 |
+| [文件编码 - 01 反转.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编码%20-%2001%20反转.bat) | 对文件做二进制 0/1 位反转处理 |
+| [文件编码 - PEM 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编码%20-%20PEM%20格式.bat) | 将文件编码为 PEM 文本格式 |
+| [文件打包为 bat 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20bat%20格式.bat) | 把文件或程序打包为单个 bat 文件，运行时自动还原 |
+| [文件打包为 cli-exe 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20cli-exe%20格式.bat) | 把文件或程序打包为单个控制台 exe 文件，运行时自动还原 |
+| [文件打包为 cli-exe 格式 - 无图标版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20cli-exe%20格式%20-%20无图标版.bat) | 把文件或程序打包为单个控制台 exe 文件，运行时自动还原 |
+| [文件打包为 gui-exe 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20gui-exe%20格式.bat) | 把文件或程序打包为单个 exe 文件，运行时自动还原 |
+| [文件打包为 gui-exe 格式 - 无图标版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20gui-exe%20格式%20-%20无图标版.bat) | 把文件或程序打包为单个 exe 文件，运行时自动还原 |
+| [文件哈希值生成 - RHash 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件哈希值生成%20-%20RHash%20版.bat) | 计算文件的哈希值，使用 RHash 工具 |
 | [文件哈希值生成.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件哈希值生成.bat) | 计算文件的哈希值 |
-| [文件加解密 - 加密.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加解密%20-%20加密.bat) | 加密文件 |
-| [文件加解密 - 解密.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加解密%20-%20解密.bat) | 解密文件 |
-| [文件加密压缩 - 7z 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加密压缩%20-%207z%20存储.bat) | 加密压缩为 7z（仅存储不压缩） |
-| [文件加密压缩 - 7z 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加密压缩%20-%207z%20最佳.bat) | 加密压缩为 7z（最佳压缩率） |
-| [文件夹显示.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件夹显示.bat) | 取消文件夹隐藏属性，使其可见 |
+| [文件加解密 - 加密.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加解密%20-%20加密.bat) | 加密文件，使用 OpenSSL 的 AES-256-GCM 算法 |
+| [文件加解密 - 解密.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加解密%20-%20解密.bat) | 解密文件，使用 OpenSSL 的 AES-256-GCM 算法 |
+| [文件加密压缩 - 7z 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加密压缩%20-%207z%20存储.bat) | 加密压缩为 7z（最快读取速度） |
+| [文件加密压缩 - 7z 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加密压缩%20-%207z%20最佳.bat) | 加密压缩为 7z（最佳压缩比率） |
+| [文件夹显示.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件夹显示.bat) | 取消文件夹的隐藏属性 |
 | [文件夹隐藏.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件夹隐藏.bat) | 设置文件夹为隐藏属性 |
 | [文件解码 - PEM 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件解码%20-%20PEM%20格式.bat) | 把 PEM 文本解码还原为原文件 |
-| [文件列表生成 - csv 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20csv%20格式.bat) | 导出目录下文件清单（CSV，含大小 / 时间） |
-| [文件列表生成 - json 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20json%20格式.bat) | 导出目录下文件清单（JSON） |
-| [文件列表生成 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20txt%20格式.bat) | 导出目录下文件清单（TXT） |
-| [文件名列表生成 - csv 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20csv%20格式.bat) | 仅导出文件名字列表（CSV） |
-| [文件名列表生成 - json 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20json%20格式.bat) | 仅导出文件名字列表（JSON） |
-| [文件名列表生成 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20txt%20格式.bat) | 仅导出文件名字列表（TXT） |
-| [文件名删除重复前后缀.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名删除重复前后缀.bat) | 批量去除文件名中重复的相同前后缀 |
-| [文件压缩 - 7z 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%207z%20存储.bat) | 压缩为 7z（仅存储不压缩） |
-| [文件压缩 - 7z 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%207z%20最佳.bat) | 压缩为 7z（最佳压缩率） |
-| [文件压缩 - exe 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20exe%20存储.bat) | 压缩为自解压 exe（存储） |
-| [文件压缩 - exe 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20exe%20最佳.bat) | 压缩为自解压 exe（最佳） |
-| [文件压缩 - zip 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20zip%20存储.bat) | 压缩为 zip（存储） |
-| [文件压缩 - zip 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20zip%20最佳.bat) | 压缩为 zip（最佳） |
-| [文件重复清理 - 仅比对大小.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20仅比对大小.bat) | 仅按文件大小比对去重清理 |
-| [文件重复清理 - 快速版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20快速版.bat) | 按大小 + 快速哈希去重清理 |
-| [文件重复清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理.bat) | 按完整哈希去重清理重复文件 |
-| [文件自动解压.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件自动解压.bat) | 识别格式并自动解压压缩包 |
+| [文件列表生成 - csv 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20csv%20格式.bat) | 导出指定目录下的文件清单 |
+| [文件列表生成 - json 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20json%20格式.bat) | 导出指定目录下的文件清单 |
+| [文件列表生成 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20txt%20格式.bat) | 导出指定目录下的文件清单 |
+| [文件名列表生成 - csv 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20csv%20格式.bat) | 导出指定目录下的文件名清单 |
+| [文件名列表生成 - json 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20json%20格式.bat) | 导出指定目录下的文件名清单 |
+| [文件名列表生成 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20txt%20格式.bat) | 导出指定目录下的文件名清单 |
+| [文件名删除重复前后缀.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名删除重复前后缀.bat) | 批量删除文件名中重复的前后缀部分 |
+| [文件压缩 - 7z 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%207z%20存储.bat) | 压缩为 7z（最快读取速度） |
+| [文件压缩 - 7z 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%207z%20最佳.bat) | 压缩为 7z（最佳压缩比率） |
+| [文件压缩 - exe 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20exe%20存储.bat) | 压缩为自解压 exe（最快读取速度） |
+| [文件压缩 - exe 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20exe%20最佳.bat) | 压缩为自解压 exe（最佳压缩比率） |
+| [文件压缩 - zip 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20zip%20存储.bat) | 压缩为 zip（最快读取速度） |
+| [文件压缩 - zip 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20zip%20最佳.bat) | 压缩为 zip（最佳压缩比率） |
+| [文件重复清理 - 仅比对大小.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20仅比对大小.bat) | 仅按文件名称和大小比对去重，清理重复文件 |
+| [文件重复清理 - 快速版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20快速版.bat) | 清理重复文件，使用 EveryThing 加速 |
+| [文件重复清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理.bat) | 清理重复文件 |
+| [文件自动解压.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件自动解压.bat) | 使用内置的密码，自动解压压缩包 |
 
 ### 多媒体工具
 
@@ -76,7 +76,7 @@ A collection of commonly used Windows Batch scripts
 | [视频编码转换为 av1 - 画质优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20画质优先.bat) | 转码为 AV1（画质优先） |
 | [视频编码转换为 av1 - 速度优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20速度优先.bat) | 转码为 AV1（速度优先） |
 | [视频编码转换为 h264.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20h264.bat) | 转码为 H.264 |
-| [视频编码转换为 h265.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20h265.bat) | 转码为 H.265 / HEVC |
+| [视频编码转换为 h265.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20h265.bat) | 转码为 H.265 |
 | [视频的画面内容替换.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频的画面内容替换.bat) | 替换视频画面内容 |
 | [视频的声音内容替换.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频的声音内容替换.bat) | 替换视频音轨 |
 | [视频的音画内容替换.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频的音画内容替换.bat) | 同时替换画面与音轨 |
@@ -90,8 +90,8 @@ A collection of commonly used Windows Batch scripts
 | [视频封面检查.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频封面检查.bat) | 检查视频是否含封面 |
 | [视频封面嵌入.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频封面嵌入.bat) | 嵌入封面到视频 |
 | [视频封面移除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频封面移除.bat) | 移除视频封面 |
-| [视频格式封装为 mkv.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mkv.bat) | 封装为 MKV 容器（不重编码） |
-| [视频格式封装为 mp4.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mp4.bat) | 封装为 MP4 容器（不重编码） |
+| [视频格式封装为 mkv.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mkv.bat) | 封装为 MKV 容器，不重编码 |
+| [视频格式封装为 mp4.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mp4.bat) | 封装为 MP4 容器，不重编码 |
 | [视频合并.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频合并.bat) | 合并多个视频片段 |
 | [视频画面截取.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频画面截取.bat) | 截取视频某一帧画面 |
 | [视频降噪.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频降噪.bat) | 对视频降噪处理 |
@@ -129,7 +129,7 @@ A collection of commonly used Windows Batch scripts
 | 脚本 | 说明 |
 | --- | --- |
 | [内网穿透 CloudFlare.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/内网穿透%20CloudFlare.bat) | 通过 CloudFlare 建立内网穿透隧道 |
-| [内网穿透 Frp.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/内网穿透%20Frp.bat) | 通过 Frp 建立内网穿透 |
+| [内网穿透 Frp.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/内网穿透%20Frp.bat) | 通过 Frp 建立内网穿透隧道 |
 | [文件服务器 OpenList.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/server/文件服务器%20OpenList.bat) | 启动 OpenList 文件服务器 |
 
 ### 系统优化
@@ -139,13 +139,13 @@ A collection of commonly used Windows Batch scripts
 | [打开虚拟应用列表.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/打开虚拟应用列表.bat) | 打开 Windows 虚拟应用列表 |
 | [打开自启动文件夹 - 当前用户.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/打开自启动文件夹%20-%20当前用户.bat) | 打开当前用户的启动文件夹 |
 | [打开自启动文件夹 - 所有用户.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/打开自启动文件夹%20-%20所有用户.bat) | 打开所有用户的启动文件夹 |
-| [局域网机器扫描.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/局域网机器扫描.bat) | 扫描局域网内存活的主机 |
-| [垃圾文件清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/垃圾文件清理.bat) | 清理系统垃圾文件 |
-| [清理浏览器的组织管理策略.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/清理浏览器的组织管理策略.bat) | 清除浏览器被组策略锁定的管理项 |
-| [图标缓存清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/图标缓存清理.bat) | 重建 / 清理图标缓存 |
-| [显示器关闭.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器关闭.bat) | 关闭显示器进入节能状态 |
-| [显示器开启.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器开启.bat) | 唤醒 / 开启显示器 |
-| [重启桌面进程.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/重启桌面进程.bat) | 重启 Windows 资源管理器（explorer） |
+| [局域网机器扫描.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/局域网机器扫描.bat) | 扫描局域网内存在的主机 |
+| [垃圾文件清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/垃圾文件清理.bat) | 清理系统垃圾文件，删除到回收站中 |
+| [清理浏览器的组织管理策略.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/清理浏览器的组织管理策略.bat) | 清理浏览器的组织管理策略 |
+| [图标缓存清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/图标缓存清理.bat) | 清理重建图标缓存 |
+| [显示器关闭.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器关闭.bat) | 关闭显示器 |
+| [显示器开启.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器开启.bat) | 开启显示器 |
+| [重启桌面进程.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/重启桌面进程.bat) | 重启 Windows 资源管理器进程 |
 
 ## [工程结构]
 
