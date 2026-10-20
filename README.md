@@ -141,7 +141,7 @@ A collection of commonly used Windows Batch scripts
 | [打开自启动文件夹 - 所有用户.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/打开自启动文件夹%20-%20所有用户.bat) | 打开所有用户的启动文件夹 |
 | [局域网机器扫描.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/局域网机器扫描.bat) | 扫描局域网内存在的主机 |
 | [垃圾文件清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/垃圾文件清理.bat) | 清理系统垃圾文件，删除到回收站中 |
-| [清理浏览器的组织管理策略.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/清理浏览器的组织管理策略.bat) | 清理浏览器的组织管理策略 |
+| [清理浏览器的组织管理策略.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/清理浏览器的组织管理策略.bat) | 清理 Chrome 浏览器的组织管理策略的注册表项 |
 | [图标缓存清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/图标缓存清理.bat) | 清理重建图标缓存 |
 | [显示器关闭.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器关闭.bat) | 关闭显示器 |
 | [显示器开启.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器开启.bat) | 开启显示器 |
