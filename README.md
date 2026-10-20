@@ -73,10 +73,10 @@ A collection of commonly used Windows Batch scripts
 | [屏幕延时录制开启 - 0.5 倍分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕延时录制开启%20-%200.5%20倍分辨率.bat) | 开始屏幕延时慢速录制（输出 0.5 倍分辨率） |
 | [屏幕延时录制开启 - 完整分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕延时录制开启%20-%20完整分辨率.bat) | 开始屏幕延时慢速录制（输出完整分辨率） |
 | [视频编码查看.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码查看.bat) | 查看视频的编码格式信息 |
-| [视频编码转换为 av1 - 画质优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20画质优先.bat) | 转码为 AV1（画质优先） |
-| [视频编码转换为 av1 - 速度优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20速度优先.bat) | 转码为 AV1（速度优先） |
-| [视频编码转换为 h264.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20h264.bat) | 转码为 H.264 |
-| [视频编码转换为 h265.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20h265.bat) | 转码为 H.265 |
+| [视频编码转换为 av1 - 画质优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20画质优先.bat) | 转换编码为 AV1（画质优先） |
+| [视频编码转换为 av1 - 速度优先.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20av1%20-%20速度优先.bat) | 转换编码为 AV1（速度优先） |
+| [视频编码转换为 h264.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20h264.bat) | 转换编码为 H.264 |
+| [视频编码转换为 h265.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频编码转换为%20h265.bat) | 转换编码为 H.265 |
 | [视频的画面内容替换.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频的画面内容替换.bat) | 替换视频画面内容 |
 | [视频的声音内容替换.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频的声音内容替换.bat) | 替换视频音轨 |
 | [视频的音画内容替换.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频的音画内容替换.bat) | 同时替换画面与音轨 |
@@ -90,8 +90,8 @@ A collection of commonly used Windows Batch scripts
 | [视频封面检查.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频封面检查.bat) | 检查视频是否含封面 |
 | [视频封面嵌入.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频封面嵌入.bat) | 嵌入封面到视频 |
 | [视频封面移除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频封面移除.bat) | 移除视频封面 |
-| [视频格式封装为 mkv.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mkv.bat) | 封装为 MKV 容器，不重编码 |
-| [视频格式封装为 mp4.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mp4.bat) | 封装为 MP4 容器，不重编码 |
+| [视频格式封装为 mkv.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mkv.bat) | 封装为 MKV 容器，不做转码 |
+| [视频格式封装为 mp4.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频格式封装为%20mp4.bat) | 封装为 MP4 容器，不做转码 |
 | [视频合并.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频合并.bat) | 合并多个视频片段 |
 | [视频画面截取.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频画面截取.bat) | 截取视频某一帧画面 |
 | [视频降噪.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频降噪.bat) | 对视频降噪处理 |
