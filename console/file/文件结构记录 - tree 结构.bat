@@ -13,7 +13,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '记录指定文件夹的树形结构，生成 txt 文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '第 1 个参数：要记录的文件夹路径，第 2 个参数：探索深度，默认 0 代表不限制深度' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '参数1：要记录的文件夹路径，可选参数2：探索深度，默认 0 代表不限制深度' -ForegroundColor Green"
 echo.
 
 
