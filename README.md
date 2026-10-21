@@ -44,7 +44,7 @@ A collection of commonly used Windows Batch scripts
 | [文件加密压缩 - 7z 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件加密压缩%20-%207z%20最佳.bat) | 加密压缩为 7z（最佳压缩比率） |
 | [文件夹显示.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件夹显示.bat) | 取消文件夹的隐藏属性 |
 | [文件夹隐藏.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件夹隐藏.bat) | 设置文件夹为隐藏属性 |
-| [文件结构记录 - tree 结构.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件结构记录%20-%20tree%20结构.bat) | 记录指定目录的树形结构 |
+| [文件结构记录 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件结构记录%20-%20txt%20格式.bat) | 记录指定目录的树形结构 |
 | [文件解码 - PEM 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件解码%20-%20PEM%20格式.bat) | 把 PEM 文本解码还原为原文件 |
 | [文件列表生成 - csv 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20csv%20格式.bat) | 导出指定目录下的文件清单 |
 | [文件列表生成 - json 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20json%20格式.bat) | 导出指定目录下的文件清单 |
