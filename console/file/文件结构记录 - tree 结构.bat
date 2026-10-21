@@ -73,16 +73,16 @@ if not "!working_dir!" == "" (
             "if (-not ($rawDepth -match '^\d+$')) { Write-Host '错误：探索深度必须是非负整数' -ForegroundColor Red; exit 1 };" ^
             "$maxDepth = [int]$rawDepth;" ^
             "function Print-Tree { param($Path, $Prefix, $Depth, $MaxDepth)" ^
-            "    $items = @(Get-ChildItem -LiteralPath $Path | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file } | Sort-Object { -not $_.PSIsContainer }, Name);" ^
+            "    $items = @(Get-ChildItem -LiteralPath $Path | Where-Object { $_.FullName -ne $env:self_script -and $_.FullName -ne $env:output_file } | Sort-Object PSIsContainer, Name);" ^
             "    $result = @();" ^
             "    for ($i = 0; $i -lt $items.Count; $i++) {" ^
             "        $isLast = ($i -eq ($items.Count - 1));" ^
-            "        $conn = if ($isLast) { '└─ ' } else { '├─ ' };" ^
+            "        $conn = if ($isLast) { '└───' } else { '├───' };" ^
             "        $result += ($Prefix + $conn + $items[$i].Name);" ^
             "        if ($items[$i].PSIsContainer) {" ^
             "            $canRecurse = ($MaxDepth -eq 0) -or ($Depth -lt $MaxDepth);" ^
             "            if ($canRecurse) {" ^
-            "                $childPrefix = $Prefix + $(if ($isLast) { '   ' } else { '│  ' });" ^
+            "                $childPrefix = $Prefix + $(if ($isLast) { '    ' } else { '│   ' });" ^
             "                $result += Print-Tree -Path $items[$i].FullName -Prefix $childPrefix -Depth ($Depth + 1) -MaxDepth $MaxDepth;" ^
             "            }" ^
             "        }" ^
