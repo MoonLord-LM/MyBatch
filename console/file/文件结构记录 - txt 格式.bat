@@ -77,12 +77,12 @@ if not "!working_dir!" == "" (
             "    $result = @();" ^
             "    for ($i = 0; $i -lt $items.Count; $i++) {" ^
             "        $isLast = ($i -eq ($items.Count - 1));" ^
-            "        $conn = if ($isLast) { '└───' } else { '├───' };" ^
-            "        $result += ($Prefix + $conn + $items[$i].Name);" ^
+            "        $conn = if ($isLast) { '└──' } else { '├──' };" ^
+            "        $result += ($Prefix + $conn + ' ' + $items[$i].Name);" ^
             "        if ($items[$i].PSIsContainer) {" ^
             "            $canRecurse = ($MaxDepth -eq 0) -or ($Depth -lt $MaxDepth);" ^
             "            if ($canRecurse) {" ^
-            "                $childPrefix = $Prefix + $(if ($isLast) { '    ' } else { '│   ' });" ^
+            "                $childPrefix = $Prefix + $(if ($isLast) { '    ' } else { '│    ' });" ^
             "                $result += Print-Tree -Path $items[$i].FullName -Prefix $childPrefix -Depth ($Depth + 1) -MaxDepth $MaxDepth;" ^
             "            }" ^
             "        }" ^
