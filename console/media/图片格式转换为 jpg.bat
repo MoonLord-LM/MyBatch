@@ -9,7 +9,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将图片格式转换为 jpg 格式，使用最高质量 -q:v 2 - 4:4:4 无色度子采样' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将图片格式转换为 jpg 格式，使用最高质量 -q:v 2 和完整色彩 yuv444p' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '透明区域，例如 PNG、WebP 等带透明通道的格式，自动填充为白色底色' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有非 jpg 格式的图片' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
@@ -73,7 +73,7 @@ if "!param1!" == "" (
                 echo 已存在："!output_file!"，跳过此文件
             ) else (
                 echo 正在转换为："!output_file!"
-                "!ffmpeg_path!" -i "!param1!" -vf "color=white[bg];[bg][0]scale2ref[bg][src];[bg][src]overlay=format=auto,format=yuvj444p" -q:v 2 -frames:v 1 -update 1 "!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "color=white[bg];[bg][0]scale2ref[bg][src];[bg][src]overlay=format=auto,format=yuv444p" -q:v 2 -frames:v 1 -update 1 "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 转换失败
@@ -115,7 +115,7 @@ if not "!working_dir!" == "" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在转换为："!output_file!"
-            "!ffmpeg_path!" -i "!img_file!" -vf "color=white[bg];[bg][0]scale2ref[bg][src];[bg][src]overlay=format=auto,format=yuvj444p" -q:v 2 -frames:v 1 -update 1 "!output_file!"
+            "!ffmpeg_path!" -i "!img_file!" -vf "color=white[bg];[bg][0]scale2ref[bg][src];[bg][src]overlay=format=auto,format=yuv444p" -q:v 2 -frames:v 1 -update 1 "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">>"!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
