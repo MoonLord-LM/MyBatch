@@ -344,6 +344,7 @@ $parseFailed = 0;
 $removedMap = @{};
 
 Write-Host ('开始比对差异评分，评分不高于 ' + $threshold.ToString('F6') + ' 即判定为重复');
+Write-Host '';
 
 for ($i = 0; $i -lt $files1.Count; $i++) {
     $f1 = $files1[$i];
@@ -352,8 +353,8 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
     $e1 = $entryMap[$f1.FullName];
     if ($null -eq $e1) {
         $parseFailed++;
-        Write-Host '  跳过，图片解析失败：';
-        Write-Host ('  "' + $f1.FullName + '"');
+        Write-Host '跳过，图片解析失败：';
+        Write-Host ('"' + $f1.FullName + '"');
         continue;
     }
 
@@ -384,14 +385,14 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
 
     if ($null -eq $dropFile) {
         if ($null -eq $nearestFile) {
-            Write-Host '  无参考图片';
-            Write-Host ('  保留："' + $f1.FullName + '"');
+            Write-Host '无参考图片';
+            Write-Host ('保留："' + $f1.FullName + '"');
             Write-Host '';
         } else {
             $scoreValue = [ImgDiffKernel]::FineDistance($e1.Fine, $entryMap[$nearestFile.FullName].Fine);
-            Write-Host ('  差异评分 ' + $scoreValue.ToString('F6') + '  不重复');
-            Write-Host ('  保留："' + $f1.FullName + '"');
-            Write-Host ('  最接近："' + $nearestFile.FullName + '"');
+            Write-Host ('差异评分 ' + $scoreValue.ToString('F6') + '，判定不重复');
+            Write-Host ('保留："' + $f1.FullName + '"');
+            Write-Host ('最接近："' + $nearestFile.FullName + '"');
             Write-Host '';
         }
         if ($selfMode) { $referenceList.Add($f1) }
@@ -399,9 +400,9 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
     }
 
     $duplicate++;
-    Write-Host ('  差异评分 ' + $scoreValue.ToString('F6') + '  判定重复');
-    Write-Host ('  保留："' + $keepFile.FullName + '"');
-    Write-Host ('  删除："' + $dropFile.FullName + '"');
+    Write-Host ('差异评分 ' + $scoreValue.ToString('F6') + '，判定重复');
+    Write-Host ('保留："' + $keepFile.FullName + '"');
+    Write-Host ('删除："' + $dropFile.FullName + '"');
 
     $deleteError = '';
     try {
@@ -411,16 +412,16 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
     }
     if ($deleteError -ne '') {
         $failed++;
-        Write-Host ('  删除失败，报错信息：' + $deleteError);
+        Write-Host ('删除失败，报错信息：' + $deleteError);
         Write-Host '';
     } elseif (Test-Path -LiteralPath $dropFile.FullName) {
         $failed++;
-        Write-Host '  删除失败'
+        Write-Host '删除失败'
         Write-Host '';
     } else {
         $deleted++;
         $removedMap[$dropFile.FullName] = $true;
-        Write-Host '  已删除到回收站';
+        Write-Host '已删除到回收站';
         Write-Host '';
     }
 }
