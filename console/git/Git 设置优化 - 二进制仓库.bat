@@ -10,8 +10,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '优化 Git 的二进制仓库设置' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '优化内容：大文件阈值 100MB、关闭压缩、单个 pack 文件限制 2GB' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '关闭压缩后，仓库体积会变大，但是提交和读取的速度会变快' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '优化内容：原始保存的大文件阈值 100MB、关闭压缩处理' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '效果说明：仓库体积会变大，但是对于大文件的处理速度会变快' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.
@@ -94,14 +94,6 @@ if !errorlevel! neq 0 (
 "git.exe" -C "!working_dir!" config --local pack.compression 0
 if !errorlevel! neq 0 (
     echo 错误：设置 pack.compression 失败
-    echo.
-    pause
-    exit /b 1
-)
-
-"git.exe" -C "!working_dir!" config --local pack.packSizeLimit 2g
-if !errorlevel! neq 0 (
-    echo 错误：设置 pack.packSizeLimit 失败
     echo.
     pause
     exit /b 1
