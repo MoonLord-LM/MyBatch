@@ -17,6 +17,7 @@ powershell -NoProfile -Command "Write-Host '当两次输入的文件夹路径相
 powershell -NoProfile -Command "Write-Host '两张图片的差异评分不高于阈值时，即判定为重复，将重复图片删除到回收站' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '图片特征提取：使用 256*256 的像素采样格，逐格计算全部像素的 R G B 平均值，得到 256*256*3 个字节的特征值' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '差异评分计算方式：计算不同图片的相同位置的采样格的 R G B 值的空间距离，最后计算全部格子的平均值' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '差异评分计算时，会尝试做 8 种变换：旋转 0、90、180、270 度，以及水平、垂直、主对角、副对角镜像，取最小的值' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
 echo.
 
@@ -200,9 +201,9 @@ exit /b
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
 
 $gridSize = 256;
-$coarseSize = 16;
 $cellCount = $gridSize * $gridSize;
 $cellByteCount = $cellCount * 3;
+$transformNames = @('原图', '顺时针 90 度', '旋转 180 度', '逆时针 90 度', '水平镜像', '垂直镜像', '主对角镜像', '副对角镜像');
 
 $ffmpegPath = $env:ffmpeg_path;
 $dir1 = $env:path1;
@@ -218,53 +219,80 @@ using System;
 
 public static class ImgDiffKernel
 {
-    public static double[] BuildCoarse(byte[] fine, int gridSize, int coarseSize)
+    // 8 种等价变换，覆盖 4 个旋转与 2 个镜像的组合
+    // 0 原图 1 顺时针 90 度 2 旋转 180 度 3 逆时针 90 度 4 水平镜像 5 垂直镜像 6 主对角镜像 7 副对角镜像
+    public const int TransformCount = 8;
+
+    private static int[][] fineMap;
+
+    public static void Init(int gridSize)
     {
-        int block = gridSize / coarseSize;
-        int perBlock = block * block;
-        double[] coarse = new double[coarseSize * coarseSize * 3];
-        for (int y = 0; y < gridSize; y++) {
-            int cy = y / block;
-            for (int x = 0; x < gridSize; x++) {
-                int cx = x / block;
-                int src = (y * gridSize + x) * 3;
-                int dst = (cy * coarseSize + cx) * 3;
-                coarse[dst] += fine[src];
-                coarse[dst + 1] += fine[src + 1];
-                coarse[dst + 2] += fine[src + 2];
+        fineMap = BuildMaps(gridSize);
+    }
+
+    // 预计算每种变换下，目标格 (x, y) 所对应源数据的字节偏移，避免在比对时反复做坐标换算
+    private static int[][] BuildMaps(int n)
+    {
+        int[][] maps = new int[TransformCount][];
+        for (int t = 0; t < TransformCount; t++) {
+            int[] map = new int[n * n];
+            for (int y = 0; y < n; y++) {
+                for (int x = 0; x < n; x++) {
+                int sx;
+                int sy;
+                switch (t) {
+                    case 0: sx = x; sy = y; break;
+                    case 1: sx = y; sy = n - 1 - x; break;
+                    case 2: sx = n - 1 - x; sy = n - 1 - y; break;
+                    case 3: sx = n - 1 - y; sy = x; break;
+                    case 4: sx = n - 1 - x; sy = y; break;
+                    case 5: sx = x; sy = n - 1 - y; break;
+                    case 6: sx = y; sy = x; break;
+                    default: sx = n - 1 - y; sy = n - 1 - x; break;
+                }
+                map[y * n + x] = (sy * n + sx) * 3;
+                }
             }
+            maps[t] = map;
         }
-        for (int i = 0; i < coarse.Length; i++) {
-            coarse[i] /= perBlock;
-        }
-        return coarse;
+        return maps;
     }
 
-    public static double CoarseDistance(double[] a, double[] b)
+    // 按指定变换逐格累加距离；累加值一旦超过 budget 就提前结束，返回值小于 0 表示超出预算
+    private static double FineDistanceTransformed(byte[] a, byte[] b, int t, double budget)
     {
+        int[] map = fineMap[t];
+        int cellCount = map.Length;
         double sum = 0;
-        for (int i = 0; i < a.Length; i += 3) {
-            double dr = (a[i] - b[i]) / 255.0;
-            double dg = (a[i + 1] - b[i + 1]) / 255.0;
-            double db = (a[i + 2] - b[i + 2]) / 255.0;
+        for (int i = 0; i < cellCount; i++) {
+            int j = map[i];
+            double dr = (a[i * 3] - b[j]) / 255.0;
+            double dg = (a[i * 3 + 1] - b[j + 1]) / 255.0;
+            double db = (a[i * 3 + 2] - b[j + 2]) / 255.0;
             sum += Math.Sqrt(dr * dr + dg * dg + db * db);
+            if (sum > budget) { return -1; }
         }
-        return sum / (a.Length / 3);
+        return sum / cellCount;
     }
 
-    public static double FineDistance(byte[] a, byte[] b)
+    // 遍历 8 种变换，每种都按 256*256 逐格完整计算，取最小的差异评分，并给出取得最小值的变换
+    public static double MinFineDistance(byte[] a, byte[] b, out int transform)
     {
-        double sum = 0;
-        for (int i = 0; i < a.Length; i += 3) {
-            double dr = (a[i] - b[i]) / 255.0;
-            double dg = (a[i + 1] - b[i + 1]) / 255.0;
-            double db = (a[i + 2] - b[i + 2]) / 255.0;
-            sum += Math.Sqrt(dr * dr + dg * dg + db * db);
+        double best = -1;
+        transform = -1;
+        for (int t = 0; t < TransformCount; t++) {
+            // 已经算出更小的结果时，用它折算出的距离和作为预算，超出预算的变换不可能是最小值所在
+            double budget = (best < 0) ? double.MaxValue : (best * fineMap[t].Length);
+            double v = FineDistanceTransformed(a, b, t, budget);
+            if (v < 0) { continue; }
+            if (best < 0 || v < best) { best = v; transform = t; }
         }
-        return sum / (a.Length / 3);
+        return best;
     }
 }
 '@;
+
+[ImgDiffKernel]::Init($gridSize);
 
 $files1 = @(Get-ChildItem -LiteralPath $dir1 -File -Force -Recurse | Where-Object { $_.Extension -match $extFilter } | Sort-Object FullName);
 if ($selfMode) {
@@ -331,11 +359,12 @@ for ($k = 0; $k -lt $pathList.Count; $k++) {
         Write-Host '';
         continue;
     }
-    $entryMap[$p] = @{ Fine = $fine; Coarse = [ImgDiffKernel]::BuildCoarse($fine, $gridSize, $coarseSize) };
+    $entryMap[$p] = $fine;
 }
 Write-Host '';
 
 # 逐对比对：每个格子的 R G B 差值除以 255 作为 XYZ 坐标，取空间距离后求全部格子的平均值
+# 每组比对都会遍历 8 种旋转与镜像的等价变换，取其中最小的差异评分
 $total = 0;
 $duplicate = 0;
 $deleted = 0;
@@ -358,26 +387,28 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
         continue;
     }
 
-    # 先按 16*16 的粗粒度特征过滤，粗粒度距离是全距离的下界，不会漏判
     $keepFile = $null;
     $dropFile = $null;
     $scoreValue = 0;
+    $scoreTransform = 0;
     $nearestFile = $null;
     $nearestValue = -1;
+    $nearestTransform = 0;
     for ($j = 0; $j -lt $referenceList.Count; $j++) {
         $f2 = $referenceList[$j];
         if ($f2.FullName -eq $f1.FullName) { continue }
         if ($removedMap.ContainsKey($f2.FullName)) { continue }
         $e2 = $entryMap[$f2.FullName];
         if ($null -eq $e2) { continue }
-        $coarseValue = [ImgDiffKernel]::CoarseDistance($e1.Coarse, $e2.Coarse);
-        if ($nearestValue -lt 0 -or $coarseValue -lt $nearestValue) {
-            $nearestValue = $coarseValue;
+        $hitTransform = -1;
+        $scoreValue = [ImgDiffKernel]::MinFineDistance($e1, $e2, [ref]$hitTransform);
+        if ($nearestValue -lt 0 -or $scoreValue -lt $nearestValue) {
+            $nearestValue = $scoreValue;
             $nearestFile = $f2;
+            $nearestTransform = $hitTransform;
         }
-        if ($coarseValue -gt $threshold) { continue }
-        $scoreValue = [ImgDiffKernel]::FineDistance($e1.Fine, $e2.Fine);
         if ($scoreValue -gt $threshold) { continue }
+        $scoreTransform = $hitTransform;
         $keepFile = $f2;
         $dropFile = $f1;
         break;
@@ -389,8 +420,7 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
             Write-Host ('保留："' + $f1.FullName + '"');
             Write-Host '';
         } else {
-            $scoreValue = [ImgDiffKernel]::FineDistance($e1.Fine, $entryMap[$nearestFile.FullName].Fine);
-            Write-Host ('差异评分 ' + $scoreValue.ToString('F6') + '，判定不重复');
+            Write-Host ('差异评分 ' + $nearestValue.ToString('F6') + '（' + $transformNames[$nearestTransform] + '），判定不重复');
             Write-Host ('保留："' + $f1.FullName + '"');
             Write-Host ('最接近："' + $nearestFile.FullName + '"');
             Write-Host '';
@@ -400,7 +430,7 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
     }
 
     $duplicate++;
-    Write-Host ('差异评分 ' + $scoreValue.ToString('F6') + '，判定重复');
+    Write-Host ('差异评分 ' + $scoreValue.ToString('F6') + '（' + $transformNames[$scoreTransform] + '），判定重复');
     Write-Host ('保留："' + $keepFile.FullName + '"');
     Write-Host ('删除："' + $dropFile.FullName + '"');
 
