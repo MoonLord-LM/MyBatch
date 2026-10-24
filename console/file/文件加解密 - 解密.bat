@@ -144,12 +144,15 @@ powershell -NoProfile -Command ^
     "};" ^
     "$passwordBytes = [System.Text.Encoding]::UTF8.GetBytes($passwordText);" ^
     "Write-Host '正在解密，请稍候...';" ^
+    "$stopwatch = [System.Diagnostics.Stopwatch]::StartNew();" ^
     "$resultCode = [AesGcmCli]::DecryptFile($env:input_file, $env:output_file, $passwordBytes, [ref]$message);" ^
+    "$stopwatch.Stop();" ^
     "if ($resultCode -ne 0) {" ^
     "    Write-Host ('解密失败：' + $message) -ForegroundColor Red;" ^
     "    if (Test-Path $env:output_file) { Remove-Item $env:output_file -Force -ErrorAction SilentlyContinue };" ^
     "    exit 1;" ^
     "};" ^
+    "Write-Host ('解密耗时：' + $stopwatch.Elapsed.TotalSeconds.ToString('0.000') + ' 秒');" ^
     "Write-Host '解密完成' -ForegroundColor Green"
 if !errorlevel! neq 0 (
     echo 解密失败
