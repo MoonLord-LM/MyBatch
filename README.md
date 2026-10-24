@@ -29,8 +29,9 @@ A collection of commonly used Windows Batch scripts
 | 脚本 | 说明 |
 | --- | --- |
 | [文件 ed2k 链接生成.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件%20ed2k%20链接生成.bat) | 为文件生成 ed2k 电驴下载链接 |
-| [文件编码 - 01 反转.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编码%20-%2001%20反转.bat) | 对文件做二进制 0/1 位反转处理 |
-| [文件编码 - PEM 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编码%20-%20PEM%20格式.bat) | 将文件编码为 PEM 文本格式 |
+| [文件编解码 - 01 反转.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编解码%20-%2001%20反转.bat) | 对文件做二进制 0/1 位反转处理 |
+| [文件编解码 - 编码 pem 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编解码%20-%20编码%20pem%20格式.bat) | 将文件编码为 PEM 文本格式 |
+| [文件编解码 - 解码 pem 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件编解码%20-%20解码%20pem%20格式.bat) | 把 PEM 文本解码还原为原文件 |
 | [文件打包为 bat 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20bat%20格式.bat) | 把文件或程序打包为单个 bat 文件，运行时自动还原 |
 | [文件打包为 cli-exe 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20cli-exe%20格式.bat) | 把文件或程序打包为单个控制台 exe 文件，运行时自动还原 |
 | [文件打包为 cli-exe 格式 - 无图标版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件打包为%20cli-exe%20格式%20-%20无图标版.bat) | 把文件或程序打包为单个控制台 exe 文件，运行时自动还原 |
@@ -45,7 +46,6 @@ A collection of commonly used Windows Batch scripts
 | [文件夹显示.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件夹显示.bat) | 取消文件夹的隐藏属性 |
 | [文件夹隐藏.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件夹隐藏.bat) | 设置文件夹为隐藏属性 |
 | [文件结构记录 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件结构记录%20-%20txt%20格式.bat) | 记录指定目录的树形结构 |
-| [文件解码 - PEM 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件解码%20-%20PEM%20格式.bat) | 把 PEM 文本解码还原为原文件 |
 | [文件列表生成 - csv 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20csv%20格式.bat) | 导出指定目录下的文件清单 |
 | [文件列表生成 - json 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20json%20格式.bat) | 导出指定目录下的文件清单 |
 | [文件列表生成 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件列表生成%20-%20txt%20格式.bat) | 导出指定目录下的文件清单 |
