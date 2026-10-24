@@ -9,10 +9,9 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码，先拉取远端的最新信息，再合并到当前分支' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹下的 Git 仓库文件夹，逐个同步' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，如果拖入的文件夹是 Git 仓库，则只同步这一个仓库，否则扫描其中的子文件夹' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '如果仓库处于分离 HEAD 状态，或者本地存在未提交的修改，则跳过该仓库，不做同步' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.
 
 
@@ -56,25 +55,18 @@ if "!param1!" == "" (
 
 
 
-set "scan_dir=!working_dir!"
 set "temp_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_list!"
-
-if exist "!scan_dir!\.git" (
-    set "scan_self=1"
-) else (
-    set "scan_self=0"
-)
 
 set "repo_count=0"
 for /f "delims=" %%n in ('
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
-        "if ($env:scan_self -eq '1') {" ^
-        "    [System.IO.File]::WriteAllText($env:temp_list, $env:scan_dir, $utf8NoBOM);" ^
+        "if (Test-Path -LiteralPath (Join-Path $env:working_dir '.git')) {" ^
+        "    [System.IO.File]::WriteAllText($env:temp_list, $env:working_dir, $utf8NoBOM);" ^
         "    Write-Output 1;" ^
         "} else {" ^
-        "    $found = @(Get-ChildItem -LiteralPath $env:scan_dir -Directory -Force -ErrorAction SilentlyContinue |" ^
+        "    $found = @(Get-ChildItem -LiteralPath $env:working_dir -Directory -Force -ErrorAction SilentlyContinue |" ^
         "        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName '.git') } |" ^
         "        ForEach-Object { $_.FullName });" ^
         "    if ($found.Count -gt 0) { [System.IO.File]::WriteAllLines($env:temp_list, [string[]]$found, $utf8NoBOM) };" ^
@@ -85,7 +77,7 @@ for /f "delims=" %%n in ('
 )
 
 if "!repo_count!"=="0" (
-    echo 错误：未扫描到 Git 仓库文件夹："!scan_dir!"
+    echo 错误：未扫描到 Git 仓库文件夹："!working_dir!"
     if exist "!temp_list!" ( del /f /q "!temp_list!" )
     echo.
     pause
@@ -94,8 +86,6 @@ if "!repo_count!"=="0" (
 
 echo 扫描到 !repo_count! 个 Git 仓库
 echo.
-
-
 
 REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
 set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"

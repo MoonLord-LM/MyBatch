@@ -71,7 +71,7 @@ A collection of commonly used Windows Batch scripts
 | --- | --- |
 | [Git 设置优化 - 二进制仓库.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20设置优化%20-%20二进制仓库.bat) | 优化 Git 的二进制仓库设置 |
 | [Git 设置优化 - 全局默认.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20设置优化%20-%20全局默认.bat) | 优化 Git 的全局默认设置 |
-| [Git 同步远端代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20同步远端代码.bat) | 批量拉取并合并 Git 仓库的远端代码 |
+| [Git 同步远端代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20同步远端代码.bat) | 批量同步 Git 仓库的远端代码 |
 
 ### 多媒体工具
 
