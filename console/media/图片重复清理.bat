@@ -14,8 +14,9 @@ powershell -NoProfile -Command "Write-Host '搜索和清理重复图片，将会
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入两个文件夹路径' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '也可以选中两个文件夹，拖拽到此脚本上，自动识别处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '当两次输入的文件夹路径相同时，则清理该文件夹自身的重复图片，保留体积最大的那一张' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '比对方式：缩放到 256*256 的像素框，逐格计算平均 R G B 值的空间距离，全部格子的平均值即为差异评分' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '两张图片的差异评分不高于阈值时，即判定为重复，将多余的那一张删除到回收站' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '两张图片的差异评分不高于阈值时，即判定为重复，将重复图片删除到回收站' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '图片特征提取：使用 256*256 的像素采样格，逐格计算全部像素的 R G B 平均值，得到 256*256*3 个字节的特征值' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '差异评分计算方式：计算不同图片的相同位置的采样格的 R G B 值的空间距离，最后计算全部格子的平均值' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
 echo.
 
