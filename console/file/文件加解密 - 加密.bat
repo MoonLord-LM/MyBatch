@@ -10,7 +10,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将单个文件加密，生成 enc 后缀的加密文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '加密实现：将用户输入的密码，使用 PBKDF2-HMAC-SHA512 产生密钥，然后进行 AES-256-GCM 加密' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '加密实现：将用户输入的密码，使用 PBKDF2-HMAC-SHA512 迭代 1000W 次，产生密钥，然后进行 AES-256-GCM 加密' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '加密文件布局为 pbkdf2_salt (16 字节) + aes_gcm_iv (12 字节) + aes_gcm_tag (16 字节) 头部 + 文件内容密文' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '加密文件比原始文件大 44 字节' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要加密的文件的路径；也可以拖拽单个文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果输出 enc 文件已存在，则跳过不处理' -ForegroundColor Green"
@@ -149,7 +150,7 @@ exit /b
 
 -----BEGIN CSHARP CODE-----
 // AES-256-GCM 文件加解密，使用 OpenSSL libcrypto P/Invoke 实现
-// 密钥产生算法为 PBKDF2-HMAC-SHA512 + 迭代次数 100 万
+// 密钥产生算法为 PBKDF2-HMAC-SHA512 + 迭代次数 1000 万
 // 生成文件布局为 pbkdf2_salt (16 字节) + aes_gcm_iv (12 字节) + aes_gcm_tag (16 字节) 头部 + 文件内容密文
 
 using System;
@@ -165,7 +166,7 @@ public static class AesGcmCli
     private const int AesGcmKeyLength = 32;
     private const int HeaderLength = Pbkdf2SaltLength + AesGcmIvLength + AesGcmTagLength;
 
-    private const int IterationCount = 1000000;
+    private const int IterationCount = 10000000;
 
     // openssl/evp.h 中 EVP_CTRL_GCM_* 宏的取值
     private const int GcmSetIvlLength = 0x9;
