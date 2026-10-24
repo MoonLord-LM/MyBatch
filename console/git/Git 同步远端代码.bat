@@ -155,7 +155,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
                 echo 错误：合并远端的分支失败
                 echo set /a "failed+=1">>"!temp_set!"
                 echo set /a "total+=1">>"!temp_set!"
-                ) else (
+            ) else (
                 echo 同步完成
                 echo set /a "succeeded+=1">>"!temp_set!"
                 echo set /a "total+=1">>"!temp_set!"
