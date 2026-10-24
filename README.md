@@ -108,6 +108,7 @@ A collection of commonly used Windows Batch scripts
 | [视频字幕导出.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频字幕导出.bat) | 提取视频字幕 |
 | [视频字幕嵌入.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频字幕嵌入.bat) | 嵌入字幕到视频 |
 | [视频字幕移除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/视频字幕移除.bat) | 移除视频字幕 |
+| [图片重复清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片重复清理.bat) | 比对图片的像素差异，清理内容相似的图片 |
 | [图片分辨率扩大为2倍 - 动漫 AI 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片分辨率扩大为2倍%20-%20动漫%20AI%20版.bat) | AI 超分放大图片至 2 倍（动漫模型） |
 | [图片分辨率扩大为3倍 - 动漫 AI 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片分辨率扩大为3倍%20-%20动漫%20AI%20版.bat) | AI 超分放大图片至 3 倍（动漫模型） |
 | [图片分辨率扩大为4倍 - 动漫 AI 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片分辨率扩大为4倍%20-%20动漫%20AI%20版.bat) | AI 超分放大图片至 4 倍（动漫模型） |
