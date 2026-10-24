@@ -386,11 +386,13 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
         if ($null -eq $nearestFile) {
             Write-Host '  无参考图片';
             Write-Host ('  保留："' + $f1.FullName + '"');
+            Write-Host '';
         } else {
             $scoreValue = [ImgDiffKernel]::FineDistance($e1.Fine, $entryMap[$nearestFile.FullName].Fine);
             Write-Host ('  差异评分 ' + $scoreValue.ToString('F6') + '  不重复');
             Write-Host ('  保留："' + $f1.FullName + '"');
             Write-Host ('  最接近："' + $nearestFile.FullName + '"');
+            Write-Host '';
         }
         if ($selfMode) { $referenceList.Add($f1) }
         continue;
@@ -409,16 +411,16 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
     }
     if ($deleteError -ne '') {
         $failed++;
-        Write-Host ('删除失败，报错信息：' + $deleteError);
+        Write-Host ('  删除失败，报错信息：' + $deleteError);
         Write-Host '';
     } elseif (Test-Path -LiteralPath $dropFile.FullName) {
         $failed++;
-        Write-Host '删除失败'
+        Write-Host '  删除失败'
         Write-Host '';
     } else {
         $deleted++;
         $removedMap[$dropFile.FullName] = $true;
-        Write-Host '已删除到回收站';
+        Write-Host '  已删除到回收站';
         Write-Host '';
     }
 }
