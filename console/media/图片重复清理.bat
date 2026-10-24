@@ -143,10 +143,10 @@ set "score_threshold=0.025"
     for /f "delims=" %%v in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "& {param($Value) try {" ^
-            "    $n = [double]::Parse($Value, [System.Globalization.CultureInfo]::InvariantCulture);" ^
+            "try {" ^
+            "    $n = [double]::Parse($env:score_threshold, [System.Globalization.CultureInfo]::InvariantCulture);" ^
             "    if ($n -ge 0 -and $n -le 1) { Write-Output 1 } else { Write-Output 0 };" ^
-            "} catch { Write-Output 0 } } -Value $env:score_threshold" 2^>nul
+            "} catch { Write-Output 0 }" 2^>nul
     ') do (
         set "threshold_valid=%%v"
     )
@@ -291,18 +291,20 @@ if ($selfMode) {
     Write-Host ('参考文件夹中找到 ' + $files2.Count + ' 个图片文件');
 }
 Write-Host '';
+if ($files1.Count -eq 0) { Write-Host '清理文件夹中没有找到指定格式的图片文件'; exit 0 }
 
 # 逐个生成图片特征：缩放到 256*256 的像素框，每个格子取原始像素的平均 R G B 值
 $entryMap = @{};
-$pathList = @();
-foreach ($f in $files1) { if (-not $entryMap.ContainsKey($f.FullName)) { $entryMap[$f.FullName] = $null; $pathList += $f.FullName } }
-foreach ($f in $files2) { if (-not $entryMap.ContainsKey($f.FullName)) { $entryMap[$f.FullName] = $null; $pathList += $f.FullName } }
+$pathList = New-Object System.Collections.Generic.List[string];
+foreach ($f in $files1) { if (-not $entryMap.ContainsKey($f.FullName)) { $entryMap[$f.FullName] = $null; $pathList.Add($f.FullName) } }
+foreach ($f in $files2) { if (-not $entryMap.ContainsKey($f.FullName)) { $entryMap[$f.FullName] = $null; $pathList.Add($f.FullName) } }
 
 for ($k = 0; $k -lt $pathList.Count; $k++) {
     $p = $pathList[$k];
-    Write-Host ('正在生成图片特征：[' + ($k + 1) + '/' + $pathList.Count + '] "' + $p + '"');
+    Write-Host ('正在生成图片特征：[' + ($k + 1) + '/' + $pathList.Count + ']');
+    Write-Host ('"' + $p + '"');
     $rawFile = Join-Path $tempDir ($k.ToString() + '.rgb');
-    & $ffmpegPath -v error -y -i $p -vf 'format=rgb24,scale=256:256:flags=area' -pix_fmt rgb24 -f rawvideo -frames:v 1 $rawFile 2>$null;
+    & $ffmpegPath -v error -y -i $p -vf ('format=rgb24,scale=' + $gridSize + ':' + $gridSize + ':flags=area') -pix_fmt rgb24 -f rawvideo -frames:v 1 $rawFile 2>$null;
     if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $rawFile)) {
         Write-Host '图片解析失败，跳过此文件';
         Write-Host '';
@@ -336,7 +338,8 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
     $e1 = $entryMap[$f1.FullName];
     if ($null -eq $e1) {
         $parseFailed++;
-        Write-Host ('  跳过，图片解析失败："' + $f1.FullName + '"');
+        Write-Host '  跳过，图片解析失败：';
+        Write-Host ('  "' + $f1.FullName + '"');
         continue;
     }
 
@@ -367,17 +370,22 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
 
     if ($null -eq $dropFile) {
         if ($null -eq $nearestFile) {
-            Write-Host ('  无参考图片，保留："' + $f1.FullName + '"');
+            Write-Host '  无参考图片';
+            Write-Host ('  保留："' + $f1.FullName + '"');
         } else {
             $scoreValue = [ImgDiffKernel]::FineDistance($e1.Fine, $entryMap[$nearestFile.FullName].Fine);
-            Write-Host ('  差异评分 ' + $scoreValue.ToString('F6') + '  不重复  保留 "' + $f1.FullName + '"  最接近 "' + $nearestFile.FullName + '"');
+            Write-Host ('  差异评分 ' + $scoreValue.ToString('F6') + '  不重复');
+            Write-Host ('  保留："' + $f1.FullName + '"');
+            Write-Host ('  最接近："' + $nearestFile.FullName + '"');
         }
         if ($selfMode) { $referenceList.Add($f1) }
         continue;
     }
 
     $duplicate++;
-    Write-Host ('  差异评分 ' + $scoreValue.ToString('F6') + '  判定重复  保留 "' + $keepFile.FullName + '"  删除 "' + $dropFile.FullName + '"');
+    Write-Host ('  差异评分 ' + $scoreValue.ToString('F6') + '  判定重复');
+    Write-Host ('  保留："' + $keepFile.FullName + '"');
+    Write-Host ('  删除："' + $dropFile.FullName + '"');
 
     $deleteError = '';
     try {
