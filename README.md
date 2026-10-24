@@ -11,6 +11,7 @@ A collection of commonly used Windows Batch scripts
 | --- | --- | --- |
 | [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) | [窗体程序](#窗体程序) | 任务批量管理 |
 | [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) | [文件处理](#文件处理) | 压缩解压、加密解密、打包加壳、文件去重、文件夹生成列表等 |
+| [console/git](https://github.com/MoonLord-LM/MyBatch/tree/master/console/git) | [代码仓库](#代码仓库) | Git 设置优化、命令行批量操作等 |
 | [console/media](https://github.com/MoonLord-LM/MyBatch/tree/master/console/media) | [多媒体工具](#多媒体工具) | 视频合并、切片、转码、AI 放大插帧、封面管理、字幕管理、批量重命名等 |
 | [console/server](https://github.com/MoonLord-LM/MyBatch/tree/master/console/server) | [网络服务](#网络服务) | 内网穿透、本地文件服务器等 |
 | [console/system](https://github.com/MoonLord-LM/MyBatch/tree/master/console/system) | [系统优化](#系统优化) | 垃圾清理、缓存清理等 |
@@ -63,6 +64,14 @@ A collection of commonly used Windows Batch scripts
 | [文件重复清理 - 快速版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20快速版.bat) | 清理重复文件，使用 EveryThing 加速 |
 | [文件重复清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理.bat) | 清理重复文件 |
 | [文件自动解压.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件自动解压.bat) | 使用内置的密码，自动解压压缩包 |
+
+### 代码仓库
+
+| 脚本 | 说明 |
+| --- | --- |
+| [Git 设置优化 - 二进制仓库.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20设置优化%20-%20二进制仓库.bat) | 优化 Git 的二进制仓库设置 |
+| [Git 设置优化 - 全局默认.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20设置优化%20-%20全局默认.bat) | 优化 Git 的全局默认设置 |
+| [Git 同步远端代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20同步远端代码.bat) | 批量拉取并合并 Git 仓库的远端代码 |
 
 ### 多媒体工具
 
@@ -158,6 +167,7 @@ MyBatch/
 ├── gui/              # 窗体程序
 ├── console/
 │   ├── file/         # 文件处理
+│   ├── git/          # 代码仓库
 │   ├── media/        # 多媒体工具
 │   ├── server/       # 网络服务
 │   └── system/       # 系统优化

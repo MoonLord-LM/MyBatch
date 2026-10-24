@@ -15,30 +15,11 @@ echo.
 
 
 REM 检查 Git 组件
-if exist "!script_dir!git.exe" (
-    set "git_path=!script_dir!git.exe"
-) else if exist "!cd!\git.exe" (
-    set "git_path=!cd!\git.exe"
-) else if exist "!script_dir!..\git.exe" (
-    set "git_path=!script_dir!..\git.exe"
-) else if exist "..\git.exe" (
-    set "git_path=..\git.exe"
-) else if exist "!ProgramFiles!\Git\bin\git.exe" (
-    set "git_path=!ProgramFiles!\Git\bin\git.exe"
-) else if exist "!ProgramFiles!\Git\cmd\git.exe" (
-    set "git_path=!ProgramFiles!\Git\cmd\git.exe"
-) else if exist "!ProgramFiles(x86)!\Git\bin\git.exe" (
-    set "git_path=!ProgramFiles(x86)!\Git\bin\git.exe"
-) else if exist "!ProgramFiles(x86)!\Git\cmd\git.exe" (
-    set "git_path=!ProgramFiles(x86)!\Git\cmd\git.exe"
-) else (
-    set "git_path=git"
-)
-"!git_path!" --version >nul 2>&1
+"git.exe" --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 Git 组件 & REM
-    echo 请从 https://git-scm.com/downloads/win 下载，并完成安装 & REM
-    "explorer.exe" "https://git-scm.com/downloads/win"
+    echo 请从 https://git-scm.com/install/windows 下载，并完成安装 & REM
+    "explorer.exe" "https://git-scm.com/install/windows"
     echo.
     pause
     exit /b 1
@@ -49,7 +30,7 @@ if !errorlevel! neq 0 (
 echo 开始优化全局默认设置
 echo.
 
-"!git_path!" config --global core.autocrlf false
+"git.exe" config --global core.autocrlf false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.autocrlf 失败
     echo.
@@ -57,7 +38,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"!git_path!" config --global core.safecrlf false
+"git.exe" config --global core.safecrlf false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.safecrlf 失败
     echo.
@@ -65,7 +46,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"!git_path!" config --global core.ignorecase false
+"git.exe" config --global core.ignorecase false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.ignorecase 失败
     echo.
@@ -73,7 +54,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"!git_path!" config --global core.quotepath false
+"git.exe" config --global core.quotepath false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.quotepath 失败
     echo.
@@ -81,7 +62,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"!git_path!" config --global i18n.logoutputencoding utf-8
+"git.exe" config --global i18n.logoutputencoding utf-8
 if !errorlevel! neq 0 (
     echo 错误：设置 i18n.logoutputencoding 失败
     echo.
@@ -89,7 +70,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"!git_path!" config --global i18n.commitencoding utf-8
+"git.exe" config --global i18n.commitencoding utf-8
 if !errorlevel! neq 0 (
     echo 错误：设置 i18n.commitencoding 失败
     echo.
@@ -102,7 +83,7 @@ echo.
 
 echo 当前 Git 全局设置：
 echo.
-"!git_path!" config --global --list
+"git.exe" config --global --list
 echo.
 
 
