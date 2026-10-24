@@ -66,13 +66,13 @@ if "!param1!" == "" (
 
         REM 跳过已是 jpg 的图片
         if /i "!file_ext!"==".jpg" (
-            echo 该文件已是 jpg 格式，跳过
+            echo 跳过，已经是 jpg 格式
         ) else if /i "!file_ext!"==".jpeg" (
-            echo 该文件已是 jpg 格式，跳过
+            echo 跳过，已经是 jpg 格式
         ) else (
             set "output_file=!file_dir!!base_name!.jpg"
             if exist "!output_file!" (
-                echo 已存在："!output_file!"，跳过
+                echo 已存在："!output_file!"，跳过此文件
             ) else (
                 echo 正在转换为："!output_file!"
                 "!ffmpeg_path!" -i "!param1!" -vf "color=white[bg];[bg][0]scale2ref[bg][src];[bg][src]overlay=format=auto,format=yuvj444p" -q:v 2 -frames:v 1 -update 1 "!output_file!"
@@ -142,7 +142,7 @@ if not "!working_dir!" == "" (
     set /a "ok_total=succeeded"
     set /a "fail_total=convert_failed+output_exist"
     echo 共计：!total! 个，成功：!ok_total! 个，失败：!fail_total! 个 & REM
-    echo 其中，转换成功 !succeeded! 个，输出文件已存在 !output_exist! 个，转换失败 !convert_failed! 个
+    echo 其中，转换成功 !succeeded! 个，转换失败 !convert_failed! 个，输出文件已存在 !output_exist! 个
 )
 
 
