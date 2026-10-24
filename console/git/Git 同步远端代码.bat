@@ -87,6 +87,8 @@ if "!repo_count!"=="0" (
 echo 扫描到 !repo_count! 个 Git 仓库
 echo.
 
+
+
 REM 为了实现变量的跨域传递，将变量赋值语句保存到 "!temp_set!" 临时文件
 set "temp_set=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.bat" & type nul > "!temp_set!"
 
@@ -103,65 +105,62 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     echo 正在处理仓库："!repo_dir!"
     echo.
 
+    REM 一次性取出仓库状态，输出格式为 "状态|分支名"
+    set "repo_state="
     set "branch_name="
-    for /f "delims=" %%b in ('
+    for /f "tokens=1,2 delims=|" %%s in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "& git.exe -C $env:repo_dir rev-parse --abbrev-ref HEAD 2>$null"
+            "$branchName = ((@(& git.exe -C $env:repo_dir rev-parse --abbrev-ref HEAD 2>$null)) -join '').Trim();" ^
+            "if ($branchName -eq 'HEAD') { Write-Output ('DETACHED|' + $branchName); exit 0 };" ^
+            "if ($branchName -eq '') { Write-Output 'NO_BRANCH|'; exit 0 };" ^
+            "$changed = @(& git.exe -C $env:repo_dir status --porcelain 2>$null);" ^
+            "if ($changed.Count -ne 0) { Write-Output ('DIRTY|' + $branchName); exit 0 };" ^
+            "Write-Output ('CLEAN|' + $branchName);"
     ') do (
-        set "branch_name=%%b"
+        set "repo_state=%%s"
+        set "branch_name=%%t"
     )
 
-    if "!branch_name!"=="HEAD" (
+    if "!repo_state!"=="DETACHED" (
         echo 错误：当前处于分离 HEAD 状态，跳过同步
         echo set /a "skipped+=1">>"!temp_set!"
         echo set /a "total+=1">>"!temp_set!"
         echo.
-    ) else if "!branch_name!"=="" (
+    ) else if "!repo_state!"=="NO_BRANCH" (
         echo 错误：获取当前分支失败，跳过同步
         echo set /a "failed+=1">>"!temp_set!"
+        echo set /a "total+=1">>"!temp_set!"
+        echo.
+    ) else if "!repo_state!"=="DIRTY" (
+        echo 当前分支：!branch_name!
+        echo 错误：本地存在未提交的修改，跳过同步
+        echo set /a "skipped+=1">>"!temp_set!"
         echo set /a "total+=1">>"!temp_set!"
         echo.
     ) else (
         echo 当前分支：!branch_name!
 
-        set "worktree_clean=0"
-        for /f "delims=" %%s in ('
-            powershell -NoProfile -Command ^
-                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                "$changed = @(& git.exe -C $env:repo_dir status --porcelain 2>$null);" ^
-                "Write-Output ([int]($changed.Count -eq 0));"
-        ') do (
-            set "worktree_clean=%%s"
-        )
-
-        if "!worktree_clean!"=="0" (
-            echo 错误：本地存在未提交的修改，跳过同步
-            echo set /a "skipped+=1">>"!temp_set!"
+        echo "git.exe" -C "!repo_dir!" fetch --all --prune --progress
+        "git.exe" -C "!repo_dir!" fetch --all --prune --progress
+        if !errorlevel! neq 0 (
+            echo 错误：拉取远端的最新信息失败
+            echo set /a "failed+=1">>"!temp_set!"
             echo set /a "total+=1">>"!temp_set!"
             echo.
         ) else (
-            echo "git.exe" -C "!repo_dir!" fetch --all --prune --progress
-            "git.exe" -C "!repo_dir!" fetch --all --prune --progress
+            echo "git.exe" -C "!repo_dir!" merge --progress @{u}
+            "git.exe" -C "!repo_dir!" merge --progress @{u}
             if !errorlevel! neq 0 (
-                echo 错误：拉取远端的最新信息失败
+                echo 错误：合并远端的分支失败
                 echo set /a "failed+=1">>"!temp_set!"
                 echo set /a "total+=1">>"!temp_set!"
-                echo.
-            ) else (
-                echo "git.exe" -C "!repo_dir!" pull --no-rebase --progress
-                "git.exe" -C "!repo_dir!" pull --no-rebase --progress
-                if !errorlevel! neq 0 (
-                    echo 错误：合并远端的分支失败
-                    echo set /a "failed+=1">>"!temp_set!"
-                    echo set /a "total+=1">>"!temp_set!"
                 ) else (
-                    echo 同步完成
-                    echo set /a "succeeded+=1">>"!temp_set!"
-                    echo set /a "total+=1">>"!temp_set!"
-                )
-                echo.
+                echo 同步完成
+                echo set /a "succeeded+=1">>"!temp_set!"
+                echo set /a "total+=1">>"!temp_set!"
             )
+            echo.
         )
     )
 
