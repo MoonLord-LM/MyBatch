@@ -114,7 +114,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
             "$branchName = ((@(& git.exe -C $env:repo_dir rev-parse --abbrev-ref HEAD 2>$null)) -join '').Trim();" ^
             "if ($branchName -eq 'HEAD') { Write-Output ('DETACHED|' + $branchName); exit 0 };" ^
             "if ($branchName -eq '') { Write-Output 'NO_BRANCH|'; exit 0 };" ^
-            "$changed = @(& git.exe -C $env:repo_dir status --porcelain 2>$null);" ^
+            "$changed = @(& git.exe -C $env:repo_dir status --porcelain --untracked-files=no 2>$null);" ^
             "if ($changed.Count -ne 0) { Write-Output ('DIRTY|' + $branchName); exit 0 };" ^
             "Write-Output ('CLEAN|' + $branchName);"
     ') do (
@@ -134,7 +134,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
         echo.
     ) else if "!repo_state!"=="DIRTY" (
         echo 当前分支：!branch_name!
-        echo 错误：本地存在未提交的修改，跳过同步
+        echo 错误：已跟踪的文件存在未提交的改动，跳过同步
         echo set /a "skipped+=1">>"!temp_set!"
         echo set /a "total+=1">>"!temp_set!"
         echo.
