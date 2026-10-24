@@ -129,7 +129,7 @@ set "path2=!param2!"
 
 :input_threshold
     echo 请输入判定为重复图片的差异评分阈值 & REM
-    echo 取值范围为 0 到 1，数值越小判定越严格，直接回车则使用默认值 0.025 & REM
+    echo 取值范围为 0 到 1，数值越小判定越严格，默认值为 0.025 & REM
     set /p "score_threshold="
     if !errorlevel! neq 0 (
         set "score_threshold=0.025"
@@ -169,10 +169,6 @@ if /i "!path1!"=="!path2!" (
     echo.
 )
 
-REM 图片特征临时缓存目录
-set "temp_dir=%temp%\MyBatch_%random%_%random%_%random%_%random%"
-if not exist "!temp_dir!" ( mkdir "!temp_dir!" )
-
 REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码
 powershell -NoProfile -Command ^
     "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
@@ -188,11 +184,9 @@ powershell -NoProfile -Command ^
 if !errorlevel! neq 0 (
     echo 图片比对失败，请检查报错信息
     echo.
-    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
     pause
     exit /b 1
 )
-if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
 
 
 
@@ -213,7 +207,6 @@ $cellByteCount = $cellCount * 3;
 $ffmpegPath = $env:ffmpeg_path;
 $dir1 = $env:path1;
 $dir2 = $env:path2;
-$tempDir = $env:temp_dir;
 $threshold = [double]::Parse($env:score_threshold, [System.Globalization.CultureInfo]::InvariantCulture);
 $selfMode = ($dir1 -eq $dir2);
 $extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$';
@@ -292,9 +285,12 @@ if ($selfMode) {
     Write-Host ('参考文件夹中找到 ' + $files2.Count + ' 个图片文件');
 }
 Write-Host '';
-if ($files1.Count -eq 0) { Write-Host '清理文件夹中没有找到指定格式的图片文件'; exit 0 }
+if ($files1.Count -eq 0) {
+    Write-Host '清理文件夹中没有找到指定格式的图片文件';
+    exit 0;
+}
 
-# 逐个生成图片特征：缩放到 256*256 的像素框，每个格子取原始像素的平均 R G B 值
+# 逐个生成图片特征：缩放到 256*256 的像素采样格，每个格子取原始像素的平均 R G B 值
 $entryMap = @{};
 $pathList = New-Object System.Collections.Generic.List[string];
 foreach ($f in $files1) { if (-not $entryMap.ContainsKey($f.FullName)) { $entryMap[$f.FullName] = $null; $pathList.Add($f.FullName) } }
@@ -304,16 +300,33 @@ for ($k = 0; $k -lt $pathList.Count; $k++) {
     $p = $pathList[$k];
     Write-Host ('正在生成图片特征：[' + ($k + 1) + '/' + $pathList.Count + ']');
     Write-Host ('"' + $p + '"');
-    $rawFile = Join-Path $tempDir ($k.ToString() + '.rgb');
-    & $ffmpegPath -v error -y -i $p -vf ('format=rgb24,scale=' + $gridSize + ':' + $gridSize + ':flags=area') -pix_fmt rgb24 -f rawvideo -frames:v 1 $rawFile 2>$null;
-    if ($LASTEXITCODE -ne 0 -or -not (Test-Path -LiteralPath $rawFile)) {
+    $psi = New-Object System.Diagnostics.ProcessStartInfo;
+    $psi.FileName = $ffmpegPath;
+    $psi.Arguments = '-nostdin -v error -y -i "' + $p + '" -vf "format=rgb24,scale=' + $gridSize + ':' + $gridSize + ':flags=area" -pix_fmt rgb24 -f rawvideo -frames:v 1 -';
+    $psi.UseShellExecute = $false;
+    $psi.CreateNoWindow = $true;
+    $psi.RedirectStandardOutput = $true;
+    $psi.RedirectStandardError = $true;
+    $proc = [System.Diagnostics.Process]::Start($psi);
+    $errTask = $proc.StandardError.ReadToEndAsync();
+    $fine = New-Object byte[] $cellByteCount;
+    $readCount = 0;
+    while ($readCount -lt $cellByteCount) {
+        $n = $proc.StandardOutput.BaseStream.Read($fine, $readCount, $cellByteCount - $readCount);
+        if ($n -le 0) { break }
+        $readCount += $n;
+    }
+    $proc.StandardOutput.BaseStream.Dispose();
+    $proc.WaitForExit();
+    $exitCode = $proc.ExitCode;
+    $null = $errTask.Result;
+    $proc.Dispose();
+    if ($exitCode -ne 0) {
         Write-Host '图片解析失败，跳过此文件';
         Write-Host '';
         continue;
     }
-    $fine = [System.IO.File]::ReadAllBytes($rawFile);
-    Remove-Item -LiteralPath $rawFile -Force;
-    if ($fine.Length -ne $cellByteCount) {
+    if ($readCount -ne $cellByteCount) {
         Write-Host '图片特征长度异常，跳过此文件';
         Write-Host '';
         continue;
