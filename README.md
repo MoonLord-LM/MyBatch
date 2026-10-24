@@ -112,7 +112,8 @@ A collection of commonly used Windows Batch scripts
 | [图片分辨率扩大为3倍 - 动漫 AI 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片分辨率扩大为3倍%20-%20动漫%20AI%20版.bat) | AI 超分放大图片至 3 倍（动漫模型） |
 | [图片分辨率扩大为4倍 - 动漫 AI 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片分辨率扩大为4倍%20-%20动漫%20AI%20版.bat) | AI 超分放大图片至 4 倍（动漫模型） |
 | [图片分辨率扩大为4倍 - 通用 AI 版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片分辨率扩大为4倍%20-%20通用%20AI%20版.bat) | AI 超分放大图片至 4 倍（通用模型） |
-| [图片格式转换为 jpg.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片格式转换为%20jpg.bat) | 图片格式转换为 JPG |
+| [图片格式转换为 jpg - 最佳质量.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片格式转换为%20jpg%20-%20最佳质量.bat) | 图片格式转换为 JPG，使用最高质量和完整色彩 |
+| [图片格式转换为 jpg - 最小文件.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片格式转换为%20jpg%20-%20最小文件.bat) | 图片格式转换为 JPG，使用最差质量和不完整色彩 |
 | [图片详细参数导出.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片详细参数导出.bat) | 导出图片详细参数信息 |
 | [图片修改时间与命名检查.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片修改时间与命名检查.bat) | 检查图片修改时间与文件名是否一致 |
 | [图片修改时间与命名刷新一致.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片修改时间与命名刷新一致.bat) | 把图片修改时间刷新为与文件名一致 |
