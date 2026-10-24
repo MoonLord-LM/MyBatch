@@ -126,34 +126,33 @@ set "path2=!param2!"
         goto input_path2
     )
 
-set "score_threshold=0.025"
-
 :input_threshold
     echo 请输入判定为重复图片的差异评分阈值 & REM
     echo 取值范围为 0 到 1，数值越小判定越严格，直接回车则使用默认值 & REM
     set /p "score_threshold="
     if !errorlevel! neq 0 (
-        echo 无输入，退出脚本
-        echo.
-        exit /b 1
+        set "score_threshold=0.025"
     )
     echo.
     set "score_threshold=!score_threshold:"=!"
-    set "threshold_valid=0"
+    if "!score_threshold: =!"=="" (
+        set "score_threshold=0.025"
+    )
+    set "threshold_valid=-1"
     for /f "delims=" %%v in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "try {" ^
             "    $n = [double]::Parse($env:score_threshold, [System.Globalization.CultureInfo]::InvariantCulture);" ^
-            "    if ($n -ge 0 -and $n -le 1) { Write-Output 1 } else { Write-Output 0 };" ^
-            "} catch { Write-Output 0 }" 2^>nul
+            "    if ($n -ge 0 -and $n -le 1) { Write-Output $n } else { Write-Output -1 };" ^
+            "} catch { Write-Output -1 }" 2^>nul
     ') do (
         set "threshold_valid=%%v"
     )
-    if "!threshold_valid!"=="0" (
+    if "!threshold_valid!"=="-1" (
         echo 错误：差异评分阈值不是 0 到 1 之间的数字："!score_threshold!"，请重新输入
         echo.
-        set "score_threshold=0.025"
+        set "score_threshold="
         goto input_threshold
     )
 
@@ -187,11 +186,11 @@ powershell -NoProfile -Command ^
 if !errorlevel! neq 0 (
     echo 图片比对失败，请检查报错信息
     echo.
-    if exist "!temp_dir!" ( rmdir /s /q "!temp_dir!" )
+    if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
     pause
     exit /b 1
 )
-if exist "!temp_dir!" ( rmdir /s /q "!temp_dir!" )
+if exist "!temp_dir!" ( rd /s /q "!temp_dir!" )
 
 
 
