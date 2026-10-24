@@ -128,7 +128,7 @@ set "path2=!param2!"
 
 :input_threshold
     echo 请输入判定为重复图片的差异评分阈值 & REM
-    echo 取值范围为 0 到 1，数值越小判定越严格，直接回车则使用默认值 & REM
+    echo 取值范围为 0 到 1，数值越小判定越严格，直接回车则使用默认值 0.025 & REM
     set /p "score_threshold="
     if !errorlevel! neq 0 (
         set "score_threshold=0.025"
@@ -138,18 +138,19 @@ set "path2=!param2!"
     if "!score_threshold: =!"=="" (
         set "score_threshold=0.025"
     )
-    set "threshold_valid=-1"
+    set "score_threshold_is_valid=0"
     for /f "delims=" %%v in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "try {" ^
-            "    $n = [double]::Parse($env:score_threshold, [System.Globalization.CultureInfo]::InvariantCulture);" ^
-            "    if ($n -ge 0 -and $n -le 1) { Write-Output $n } else { Write-Output -1 };" ^
-            "} catch { Write-Output -1 }" 2^>nul
+            "$n = [double]0;" ^
+            "if ([double]::TryParse($env:score_threshold, [System.Globalization.NumberStyles]::Float, [System.Globalization.CultureInfo]::InvariantCulture, [ref]$n) -and $n -ge 0 -and $n -le 1) {" ^
+            "    Write-Output $n.ToString([System.Globalization.CultureInfo]::InvariantCulture);" ^
+            "}"
     ') do (
-        set "threshold_valid=%%v"
+        set "score_threshold_is_valid=1"
+        set "score_threshold=%%v"
     )
-    if "!threshold_valid!"=="-1" (
+    if "!score_threshold_is_valid!"=="0" (
         echo 错误：差异评分阈值不是 0 到 1 之间的数字："!score_threshold!"，请重新输入
         echo.
         set "score_threshold="
