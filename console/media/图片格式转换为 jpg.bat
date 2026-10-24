@@ -9,8 +9,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '图片格式转换为 jpg（最高质量 -q:v 2 - 4:4:4 无色度子采样）' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '透明区域（PNG、WebP 等带透明通道的格式）自动铺白底后再转 JPG' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将图片格式转换为 jpg 格式，使用最高质量 -q:v 2 - 4:4:4 无色度子采样' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '透明区域，例如 PNG、WebP 等带透明通道的格式，自动填充为白色底色' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有非 jpg 格式的图片' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
@@ -62,12 +62,10 @@ if "!param1!" == "" (
         echo 开始处理文件："!param1!"
         set "file_dir=!param1_dir!"
         set "base_name=!param1_name!"
-        set "file_ext=!param1_ext!"
 
-        REM 跳过已是 jpg 的图片
-        if /i "!file_ext!"==".jpg" (
+        if /i "!param1_ext!"==".jpg" (
             echo 跳过，已经是 jpg 格式
-        ) else if /i "!file_ext!"==".jpeg" (
+        ) else if /i "!param1_ext!"==".jpeg" (
             echo 跳过，已经是 jpg 格式
         ) else (
             set "output_file=!file_dir!!base_name!.jpg"
@@ -108,7 +106,6 @@ if not "!working_dir!" == "" (
         set "img_file=%%f"
         set "file_dir=%%~dpf"
         set "base_name=%%~nf"
-        set "file_ext=%%~xf"
         setlocal enabledelayedexpansion
 
         echo 处理文件："!img_file!"
