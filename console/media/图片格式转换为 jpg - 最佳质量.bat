@@ -42,6 +42,11 @@ if !errorlevel! neq 0 (
 
 
 
+REM 填充白色底色的滤镜
+set "convert_filter=split=2[bg][fg];[bg]drawbox=color=white:t=fill[bg];[bg][fg]overlay=format=auto,format=yuv444p"
+
+
+
 if "!param1!" == "" (
     echo 开始处理当前文件夹："!cd!"
     set "working_dir=!cd!"
@@ -73,7 +78,7 @@ if "!param1!" == "" (
                 echo 已存在："!output_file!"，跳过此文件
             ) else (
                 echo 正在转换为："!output_file!"
-                "!ffmpeg_path!" -i "!param1!" -vf "color=white[bg];[bg][0]scale2ref[bg][src];[bg][src]overlay=format=auto,format=yuv444p" -q:v 2 -frames:v 1 -update 1 "!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "!convert_filter!" -q:v 2 -frames:v 1 -update 1 "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 转换失败
@@ -115,7 +120,7 @@ if not "!working_dir!" == "" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在转换为："!output_file!"
-            "!ffmpeg_path!" -i "!img_file!" -vf "color=white[bg];[bg][0]scale2ref[bg][src];[bg][src]overlay=format=auto,format=yuv444p" -q:v 2 -frames:v 1 -update 1 "!output_file!"
+            "!ffmpeg_path!" -i "!img_file!" -vf "!convert_filter!" -q:v 2 -frames:v 1 -update 1 "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">>"!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )
