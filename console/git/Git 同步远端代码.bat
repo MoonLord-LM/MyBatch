@@ -9,7 +9,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码，执行 fetch 和 merge' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.
@@ -62,12 +62,14 @@ for /f "delims=" %%n in ('
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
         "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^
-        "if (Test-Path -LiteralPath (Join-Path $env:working_dir '.git')) {" ^
-        "    [System.IO.File]::WriteAllText($env:temp_list, $env:working_dir, $utf8NoBOM);" ^
+        "$rootPath = $env:working_dir;" ^
+        "if (Test-Path -LiteralPath (Join-Path $rootPath '.git')) {" ^
+        "    [System.IO.File]::WriteAllText($env:temp_list, $rootPath, $utf8NoBOM);" ^
         "    Write-Output 1;" ^
         "} else {" ^
-        "    $found = @(Get-ChildItem -LiteralPath $env:working_dir -Directory -Force -ErrorAction SilentlyContinue |" ^
+        "    $found = @(Get-ChildItem -LiteralPath $rootPath -Directory -Force -Recurse -ErrorAction SilentlyContinue |" ^
         "        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName '.git') } |" ^
+        "        Where-Object { $parent = $_.Parent; while ($parent -ne $null -and $parent.FullName -ne $rootPath) { if (Test-Path -LiteralPath (Join-Path $parent.FullName '.git')) { return $false }; $parent = $parent.Parent }; return $true } |" ^
         "        ForEach-Object { $_.FullName });" ^
         "    if ($found.Count -gt 0) { [System.IO.File]::WriteAllLines($env:temp_list, [string[]]$found, $utf8NoBOM) };" ^
         "    Write-Output $found.Count;" ^
@@ -111,11 +113,16 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     for /f "tokens=1,2 delims=|" %%s in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "$branchName = ((@(& git.exe -C $env:repo_dir rev-parse --abbrev-ref HEAD 2>$null)) -join '').Trim();" ^
-            "if ($branchName -eq 'HEAD') { Write-Output ('DETACHED|' + $branchName); exit 0 };" ^
-            "if ($branchName -eq '') { Write-Output 'NO_BRANCH|'; exit 0 };" ^
+            "$branchName = ((@(& git.exe -C $env:repo_dir symbolic-ref --quiet --short HEAD 2>$null)) -join '').Trim();" ^
+            "$headHash = ((@(& git.exe -C $env:repo_dir rev-parse --verify HEAD 2>$null)) -join '').Trim();" ^
+            "if ($branchName -eq '') {" ^
+            "    if ($headHash -eq '') { Write-Output 'NO_BRANCH|'; exit 0 };" ^
+            "    Write-Output ('DETACHED|' + $branchName); exit 0;" ^
+            "};" ^
             "$changed = @(& git.exe -C $env:repo_dir status --porcelain --untracked-files=no 2>$null);" ^
             "if ($changed.Count -ne 0) { Write-Output ('DIRTY|' + $branchName); exit 0 };" ^
+            "$upstream = ((@(& git.exe -C $env:repo_dir rev-parse --abbrev-ref '@{u}' 2>$null)) -join '').Trim();" ^
+            "if ($upstream -eq '') { Write-Output ('NO_UPSTREAM|' + $branchName); exit 0 };" ^
             "Write-Output ('CLEAN|' + $branchName);"
     ') do (
         set "repo_state=%%s"
@@ -125,44 +132,39 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     if "!repo_state!"=="DETACHED" (
         echo 错误：当前处于分离 HEAD 状态，跳过同步
         echo set /a "skipped+=1">>"!temp_set!"
-        echo set /a "total+=1">>"!temp_set!"
-        echo.
     ) else if "!repo_state!"=="NO_BRANCH" (
         echo 错误：获取当前分支失败，跳过同步
         echo set /a "failed+=1">>"!temp_set!"
-        echo set /a "total+=1">>"!temp_set!"
-        echo.
     ) else if "!repo_state!"=="DIRTY" (
         echo 当前分支：!branch_name!
         echo 错误：已跟踪的文件存在未提交的改动，跳过同步
         echo set /a "skipped+=1">>"!temp_set!"
-        echo set /a "total+=1">>"!temp_set!"
-        echo.
+    ) else if "!repo_state!"=="NO_UPSTREAM" (
+        echo 当前分支：!branch_name!
+        echo 错误：当前分支未配置上游分支，跳过同步
+        echo set /a "skipped+=1">>"!temp_set!"
     ) else (
         echo 当前分支：!branch_name!
 
-        echo "git.exe" -C "!repo_dir!" fetch --all --prune --progress
+        echo 执行 fetch --all --prune --progress
         "git.exe" -C "!repo_dir!" fetch --all --prune --progress
         if !errorlevel! neq 0 (
             echo 错误：拉取远端的最新信息失败
             echo set /a "failed+=1">>"!temp_set!"
-            echo set /a "total+=1">>"!temp_set!"
-            echo.
         ) else (
-            echo "git.exe" -C "!repo_dir!" merge --progress @{u}
-            "git.exe" -C "!repo_dir!" merge --progress @{u}
+            echo 执行 merge --no-edit --progress @{u}
+            "git.exe" -C "!repo_dir!" merge --no-edit --progress @{u}
             if !errorlevel! neq 0 (
                 echo 错误：合并远端的分支失败
                 echo set /a "failed+=1">>"!temp_set!"
-                echo set /a "total+=1">>"!temp_set!"
             ) else (
                 echo 同步完成
                 echo set /a "succeeded+=1">>"!temp_set!"
-                echo set /a "total+=1">>"!temp_set!"
             )
-            echo.
         )
     )
+    echo set /a "total+=1">>"!temp_set!"
+    echo.
 
     endlocal
     endlocal
