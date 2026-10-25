@@ -9,7 +9,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码，执行 fetch 和 merge' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，尝试执行 fetch 和 merge 操作，如果有代码冲突等原因导致 merge 失败则放弃' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.
@@ -119,8 +120,6 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
             "    if ($headHash -eq '') { Write-Output 'NO_BRANCH|'; exit 0 };" ^
             "    Write-Output ('DETACHED|' + $branchName); exit 0;" ^
             "};" ^
-            "$changed = @(& git.exe -C $env:repo_dir status --porcelain --untracked-files=no 2>$null);" ^
-            "if ($changed.Count -ne 0) { Write-Output ('DIRTY|' + $branchName); exit 0 };" ^
             "$upstream = ((@(& git.exe -C $env:repo_dir rev-parse --abbrev-ref '@{u}' 2>$null)) -join '').Trim();" ^
             "if ($upstream -eq '') { Write-Output ('NO_UPSTREAM|' + $branchName); exit 0 };" ^
             "Write-Output ('CLEAN|' + $branchName);"
@@ -135,10 +134,6 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     ) else if "!repo_state!"=="NO_BRANCH" (
         echo 错误：获取当前分支失败，跳过同步
         echo set /a "failed+=1">>"!temp_set!"
-    ) else if "!repo_state!"=="DIRTY" (
-        echo 当前分支：!branch_name!
-        echo 错误：已跟踪的文件存在未提交的改动，跳过同步
-        echo set /a "skipped+=1">>"!temp_set!"
     ) else if "!repo_state!"=="NO_UPSTREAM" (
         echo 当前分支：!branch_name!
         echo 错误：当前分支未配置上游分支，跳过同步
@@ -155,6 +150,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
             echo 执行 merge --no-edit --progress @{u}
             "git.exe" -C "!repo_dir!" merge --no-edit --progress @{u}
             if !errorlevel! neq 0 (
+                "git.exe" -C "!repo_dir!" merge --abort >nul 2>&1
                 echo 错误：合并远端的分支失败
                 echo set /a "failed+=1">>"!temp_set!"
             ) else (

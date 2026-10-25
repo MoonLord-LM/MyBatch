@@ -74,13 +74,37 @@ for %%i in ("!working_dir!") do (
     echo 开始导出未提交的改动
     echo.
 
-    REM 暂存所有改动，确保新增文件也包含在差异文件中
+    REM 暂存所有改动
     "git.exe" -C "!working_dir!" add .
     if !errorlevel! neq 0 (
         echo 错误：暂存改动失败
         echo.
         pause
         exit /b 1
+    )
+
+    set "changed_count=-1"
+    for /f "delims=" %%s in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "$changed = @(& git.exe -C $env:working_dir status --porcelain --untracked-files=no 2>$null);" ^
+            "if ($LASTEXITCODE -ne 0) { Write-Output -1; exit 0 };" ^
+            "Write-Output $changed.Count;"
+    ') do (
+        set "changed_count=%%s"
+    )
+    if "!changed_count!"=="-1" (
+        echo 错误：检查未提交的改动失败
+        echo.
+        pause
+        exit /b 1
+    )
+
+    if "!changed_count!"=="0" (
+        echo 当前仓库没有未提交的改动，未生成补丁文件
+        echo.
+        pause
+        exit /b
     )
 
     echo 输出补丁文件："!patch_file!"
@@ -104,12 +128,14 @@ for %%i in ("!working_dir!") do (
     )
 
     if "!patch_size!"=="0" (
-        echo 导出完成，当前仓库没有未提交的改动，补丁文件为空
+        echo 错误：补丁文件内容为空："!patch_file!"
         echo.
-    ) else (
-        echo 导出完成
-        echo.
+        pause
+        exit /b 1
     )
+
+    echo 导出完成
+    echo.
 
     endlocal
     endlocal
