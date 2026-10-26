@@ -198,13 +198,13 @@ foreach ($d in ($files | Group-Object DirectoryName | Sort-Object Name)) {
             continue;
         }
         $pureNumeric = $true;
-        $maxValue = [long]0;
-        foreach ($cn in $coreNames) {
-            if ($cn -notmatch '^[0-9]{1,17}$') { $pureNumeric = $false; break }
-            if ([long]$cn -gt $maxValue) { $maxValue = [long]$cn }
-        }
         $zeroWidth = 0;
-        if ($pureNumeric) { $zeroWidth = ([string]$maxValue).Length }
+        foreach ($cn in $coreNames) {
+            if ($cn -notmatch '^[0-9]+$') { $pureNumeric = $false; break }
+            $digitWidth = $cn.TrimStart('0').Length;
+            if ($digitWidth -eq 0) { $digitWidth = 1 }
+            if ($digitWidth -gt $zeroWidth) { $zeroWidth = $digitWidth }
+        }
         if ($pureNumeric) {
             Write-Host ('  "' + $g.Name + '"：文件名均为纯数字，按组内最大数字的位数，在前面补充 0 或者去除多余的 0');
         } else {
@@ -221,7 +221,9 @@ foreach ($d in ($files | Group-Object DirectoryName | Sort-Object Name)) {
             if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) }
             if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix }
             if ($pureNumeric) {
-                $core = ([long]$core).ToString().PadLeft($zeroWidth, '0')
+                $digits = $core.TrimStart('0');
+                if ($digits.Length -eq 0) { $digits = '0' }
+                $core = $digits.PadLeft($zeroWidth, '0')
             }
             $newName = $core + $f.Extension;
             if ($newName -eq $f.Name) {
