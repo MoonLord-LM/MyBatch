@@ -10,7 +10,7 @@ A collection of commonly used Windows Batch scripts
 | 目录 | 功能分类 | 说明 |
 | --- | --- | --- |
 | [gui](https://github.com/MoonLord-LM/MyBatch/tree/master/gui) | [窗体程序](#窗体程序) | 任务批量管理 |
-| [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) | [文件处理](#文件处理) | 压缩解压、加密解密、打包加壳、文件去重、文件夹生成列表等 |
+| [console/file](https://github.com/MoonLord-LM/MyBatch/tree/master/console/file) | [文件处理](#文件处理) | 压缩解压、加密解密、打包加壳、文件去重、生成文件列表等 |
 | [console/git](https://github.com/MoonLord-LM/MyBatch/tree/master/console/git) | [代码管理](#代码管理) | Git 设置优化、命令行批量操作等 |
 | [console/media](https://github.com/MoonLord-LM/MyBatch/tree/master/console/media) | [多媒体工具](#多媒体工具) | 视频合并、切片、转码、AI 放大插帧、封面管理、字幕管理、批量重命名等 |
 | [console/server](https://github.com/MoonLord-LM/MyBatch/tree/master/console/server) | [网络服务](#网络服务) | 内网穿透、本地文件服务器等 |
