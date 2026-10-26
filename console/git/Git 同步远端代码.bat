@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，尝试执行 fetch 和 merge 操作，如果有代码冲突等原因导致 merge 失败则放弃' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，尝试执行 fetch、merge 操作，如果有代码冲突等原因导致 merge 失败则放弃' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.
@@ -170,7 +170,7 @@ REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
 call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 if exist "!temp_list!" ( del /f /q "!temp_list!" )
 
-echo 全部处理完成
+echo 全部处理完成 & REM
 echo 共计：!total! 个仓库，同步成功：!succeeded! 个，同步失败：!failed! 个，跳过：!skipped! 个 & REM
 
 
