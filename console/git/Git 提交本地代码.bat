@@ -171,14 +171,29 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
                     echo 错误：提交改动失败
                     echo set /a "failed+=1">>"!temp_set!"
                 ) else (
-                    echo 执行 push
-                    "git.exe" -C "!repo_dir!" push
+                    echo 执行 fetch --all --prune --progress
+                    "git.exe" -C "!repo_dir!" fetch --all --prune --progress
                     if !errorlevel! neq 0 (
-                        echo 错误：推送到远端失败
+                        echo 错误：拉取远端的最新信息失败
                         echo set /a "failed+=1">>"!temp_set!"
                     ) else (
-                        echo 提交完成
-                        echo set /a "succeeded+=1">>"!temp_set!"
+                        echo 执行 merge --no-edit --progress @{u}
+                        "git.exe" -C "!repo_dir!" merge --no-edit --progress @{u}
+                        if !errorlevel! neq 0 (
+                            "git.exe" -C "!repo_dir!" merge --abort >nul 2>&1
+                            echo 错误：合并远端的分支失败
+                            echo set /a "failed+=1">>"!temp_set!"
+                        ) else (
+                            echo 执行 push
+                            "git.exe" -C "!repo_dir!" push
+                            if !errorlevel! neq 0 (
+                                echo 错误：推送到远端失败
+                                echo set /a "failed+=1">>"!temp_set!"
+                            ) else (
+                                echo 提交完成
+                                echo set /a "succeeded+=1">>"!temp_set!"
+                            )
+                        )
                     )
                 )
             )
