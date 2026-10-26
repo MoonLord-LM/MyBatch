@@ -53,7 +53,8 @@ A collection of commonly used Windows Batch scripts
 | [文件名列表生成 - csv 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20csv%20格式.bat) | 导出指定目录下的文件名清单 |
 | [文件名列表生成 - json 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20json%20格式.bat) | 导出指定目录下的文件名清单 |
 | [文件名列表生成 - txt 格式.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名列表生成%20-%20txt%20格式.bat) | 导出指定目录下的文件名清单 |
-| [文件名删除重复前后缀.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名删除重复前后缀.bat) | 批量删除文件名中重复的前后缀部分 |
+| [文件名整理 - 大写后缀转小写.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名整理%20-%20大写后缀转小写.bat) | 把文件名后缀中的大写字母，统一转换为小写字母 |
+| [文件名整理 - 删除重复前后缀.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件名整理%20-%20删除重复前后缀.bat) | 批量删除文件名中重复的前后缀部分 |
 | [文件压缩 - 7z 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%207z%20存储.bat) | 压缩为 7z（最快读取速度） |
 | [文件压缩 - 7z 最佳.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%207z%20最佳.bat) | 压缩为 7z（最佳压缩比率） |
 | [文件压缩 - exe 存储.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件压缩%20-%20exe%20存储.bat) | 压缩为自解压 exe（最快读取速度） |
