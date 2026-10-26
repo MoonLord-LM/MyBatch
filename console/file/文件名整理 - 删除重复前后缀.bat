@@ -84,10 +84,10 @@ if not "!working_dir!" == "" (
     REM 执行 "!temp_set!" 中的变量赋值语句，完成变量的跨域传递
     call "!temp_set!" & if exist "!temp_set!" ( del /f /q "!temp_set!" )
 
-    echo 批量处理完成
     set /a "fail_total=name_conflict+rename_failed"
+    echo 批量处理完成 & REM
     echo 共计：!total! 个，成功：!succeeded! 个，失败：!fail_total! 个，跳过：!skipped! 个 & REM
-    echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，跳过 !skipped! 个
+    echo 其中，重命名成功 !succeeded! 个，目标文件已存在 !name_conflict! 个，重命名失败 !rename_failed! 个，跳过 !skipped! 个 & REM
 )
 
 
