@@ -16,6 +16,7 @@ powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp
 powershell -NoProfile -Command "Write-Host '按格式对文件分组，每种格式单独分析处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '特殊场景：如果公共前缀是以数字结尾，那么保留这部分数字，避免破坏日期等格式' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '特殊场景：公共前缀末尾的 [【(（{ 符号，公共后缀开头的 }）)]】 符号，如果成对出现，则进行消除，否则进行保留，避免破坏格式' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '特殊场景：如果文件名均为纯数字，则按组内最大数字的位数对齐，在前面补充 0 或者去除多余的 0' -ForegroundColor Green"
 echo.
 
 
@@ -125,13 +126,6 @@ foreach ($g in ($files | Group-Object Extension)) {
         if (-not $allMatch) { break }
         $suffix = $ch + $suffix;
     }
-    if ($prefix.Length -eq 0 -and $suffix.Length -eq 0) {
-        Write-Host ('跳过，无公共前后缀："' + $g.Name + '"，共 ' + $g.Count + ' 个文件');
-        Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value ('set /a skipped+=' + $g.Count);
-        Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value ('set /a total+=' + $g.Count);
-        continue;
-    }
-    Write-Host ('"' + $g.Name + '"：公共前缀 "' + $prefix + '"，公共后缀 "' + $suffix + '"');
     $keepPrefix = '';
     $i = $prefix.Length - 1;
     while ($i -ge 0) {
@@ -191,6 +185,25 @@ foreach ($g in ($files | Group-Object Extension)) {
         if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName }
         $coreNames += $core;
     }
+    $pureNumeric = $true;
+    $maxValue = [long]0;
+    foreach ($cn in $coreNames) {
+        if ($cn -notmatch '^\d{1,17}$') { $pureNumeric = $false; break }
+        if ([long]$cn -gt $maxValue) { $maxValue = [long]$cn }
+    }
+    $zeroWidth = 0;
+    if ($pureNumeric) { $zeroWidth = ([string]$maxValue).Length }
+    if ($pureNumeric) {
+        Write-Host ('"' + $g.Name + '"：文件名均为纯数字，按组内最大数字的位数，在前面补充 0 或者去除多余的 0');
+    } else {
+        if ($prefix.Length -eq 0 -and $suffix.Length -eq 0) {
+            Write-Host ('跳过，无公共前后缀："' + $g.Name + '"，共 ' + $g.Count + ' 个文件');
+            Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value ('set /a skipped+=' + $g.Count);
+            Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value ('set /a total+=' + $g.Count);
+            continue;
+        }
+        Write-Host ('"' + $g.Name + '"：公共前缀 "' + $prefix + '"，公共后缀 "' + $suffix + '"');
+    }
     $maxDigits = 0;
     foreach ($cn in $coreNames) { if ($cn -match '^\d+$' -and $cn.Length -gt $maxDigits) { $maxDigits = $cn.Length } }
     foreach ($f in $g.Group) {
@@ -198,7 +211,9 @@ foreach ($g in ($files | Group-Object Extension)) {
         if ($prefix.Length -gt 0 -and $core.StartsWith($prefix)) { $core = $keepPrefix + $core.Substring($prefix.Length) }
         if ($suffix.Length -gt 0 -and $core.EndsWith($suffix)) { $core = $core.Substring(0, $core.Length - $suffix.Length) + $keepSuffix }
         if ([string]::IsNullOrEmpty($core)) { $core = $f.BaseName }
-        if ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') }
+        if ($pureNumeric) {
+            $core = ([long]$core).ToString().PadLeft($zeroWidth, '0')
+        } elseif ($core -match '^\d+$' -and $maxDigits -gt 0) { $core = $core.PadLeft($maxDigits, '0') }
         $newName = $core + $f.Extension;
         if ($newName -eq $f.Name) {
             Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value 'set /a skipped+=1';
