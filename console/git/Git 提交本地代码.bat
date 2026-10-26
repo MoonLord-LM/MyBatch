@@ -142,8 +142,8 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     ) else (
         echo 当前分支：!branch_name!
 
-        echo 执行 add .
-        "git.exe" -C "!repo_dir!" add .
+        echo 执行 add -A
+        "git.exe" -C "!repo_dir!" add -A
         if !errorlevel! neq 0 (
             echo 错误：暂存改动失败
             echo set /a "failed+=1">>"!temp_set!"

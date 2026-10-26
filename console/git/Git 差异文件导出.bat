@@ -113,7 +113,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     echo.
 
     REM 暂存所有改动
-    "git.exe" -C "!repo_dir!" add .
+    "git.exe" -C "!repo_dir!" add -A
     if !errorlevel! neq 0 (
         echo 错误：暂存改动失败
         echo set /a "failed+=1">>"!temp_set!"
