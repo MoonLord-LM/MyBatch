@@ -161,20 +161,16 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
             if "!changed_count!"=="-1" (
                 echo 错误：检查未提交的改动失败
                 echo set /a "failed+=1">>"!temp_set!"
+            ) else if "!changed_count!"=="0" (
+                echo 当前仓库没有未提交的改动，跳过提交
+                echo set /a "skipped+=1">>"!temp_set!"
             ) else (
-                set "commit_ok=1"
-                if "!changed_count!"=="0" (
-                    echo 当前仓库没有未提交的改动，跳过提交
+                echo 执行 commit -m "Update"
+                "git.exe" -C "!repo_dir!" commit -m "Update"
+                if !errorlevel! neq 0 (
+                    echo 错误：提交改动失败
+                    echo set /a "failed+=1">>"!temp_set!"
                 ) else (
-                    echo 执行 commit -m "Update"
-                    "git.exe" -C "!repo_dir!" commit -m "Update"
-                    if !errorlevel! neq 0 (
-                        echo 错误：提交改动失败
-                        echo set /a "failed+=1">>"!temp_set!"
-                        set "commit_ok=0"
-                    )
-                )
-                if "!commit_ok!"=="1" (
                     echo 执行 push
                     "git.exe" -C "!repo_dir!" push
                     if !errorlevel! neq 0 (
