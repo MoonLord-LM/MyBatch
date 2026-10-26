@@ -10,9 +10,9 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '把补丁文件中的改动，导入到指定 Git 仓库' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '补丁文件必须在 Git 仓库的同级目录，文件名格式为：仓库名.patch' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '补丁文件读取自 Git 仓库的同级目录，文件名格式为：仓库名.patch' -ForegroundColor Green"
 echo.
 
 
@@ -74,14 +74,28 @@ for %%i in ("!working_dir!") do (
     if not exist "!patch_file!" (
         echo 错误：补丁文件不存在："!patch_file!"
         echo.
-        echo 请先运行 Git 差异文件导出.bat 生成补丁文件 & REM
+        pause
+        exit /b 1
+    )
+
+    echo 补丁文件位置："!patch_file!"
+    echo.
+
+    set "patch_size=-1"
+    for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:patch_file)).Length } catch { -1 }"') do set "patch_size=%%s"
+    if "!patch_size!"=="-1" (
+        echo 错误：补丁文件大小获取失败："!patch_file!"
         echo.
         pause
         exit /b 1
     )
 
-    echo 输入补丁文件："!patch_file!"
-    echo.
+    if "!patch_size!"=="0" (
+        echo 错误：补丁文件内容为空："!patch_file!"
+        echo.
+        pause
+        exit /b 1
+    )
 
     echo 开始导入未提交的改动
     echo.
@@ -94,7 +108,7 @@ for %%i in ("!working_dir!") do (
         exit /b 1
     )
 
-    echo 导入完成
+    echo 导入完成，补丁文件大小："!patch_size!" 字节
     echo.
 
     endlocal

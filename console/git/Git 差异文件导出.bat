@@ -10,9 +10,9 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '导出指定 Git 仓库中未提交的改动，保存为补丁文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '补丁文件保存在 Git 仓库的同级目录，文件名格式为：仓库名.patch' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '补丁文件保存在 Git 仓库的同级目录，文件名格式为：仓库名.patch' -ForegroundColor Green"
 echo.
 
 
@@ -87,7 +87,7 @@ for %%i in ("!working_dir!") do (
     for /f "delims=" %%s in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "$changed = @(& git.exe -C $env:working_dir status --porcelain --untracked-files=no 2>$null);" ^
+            "$changed = @(& git.exe -C $env:working_dir status --porcelain 2>$null);" ^
             "if ($LASTEXITCODE -ne 0) { Write-Output -1; exit 0 };" ^
             "Write-Output $changed.Count;"
     ') do (
@@ -107,7 +107,7 @@ for %%i in ("!working_dir!") do (
         exit /b
     )
 
-    echo 输出补丁文件："!patch_file!"
+    echo 补丁文件位置："!patch_file!"
     echo.
 
     "git.exe" -C "!working_dir!" diff HEAD --binary --output="!patch_file!"
@@ -134,7 +134,7 @@ for %%i in ("!working_dir!") do (
         exit /b 1
     )
 
-    echo 导出完成
+    echo 导出完成，补丁文件大小："!patch_size!" 字节
     echo.
 
     endlocal
