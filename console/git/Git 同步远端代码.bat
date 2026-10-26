@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，尝试执行 fetch、merge、push 操作' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，依次执行 fetch、merge、push 操作' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果有代码冲突等原因导致 merge 失败则放弃' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
