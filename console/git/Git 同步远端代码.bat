@@ -10,7 +10,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '批量同步 Git 仓库的远端代码' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，尝试执行 fetch、merge 操作，如果有代码冲突等原因导致 merge 失败则放弃' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，尝试执行 fetch、merge、push 操作' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '如果有代码冲突等原因导致 merge 失败则放弃' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.
@@ -154,8 +155,15 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
                 echo 错误：合并远端的分支失败
                 echo set /a "failed+=1">>"!temp_set!"
             ) else (
-                echo 同步完成
-                echo set /a "succeeded+=1">>"!temp_set!"
+                echo 执行 push
+                "git.exe" -C "!repo_dir!" push
+                if !errorlevel! neq 0 (
+                    echo 错误：推送到远端失败
+                    echo set /a "failed+=1">>"!temp_set!"
+                ) else (
+                    echo 同步完成
+                    echo set /a "succeeded+=1">>"!temp_set!"
+                )
             )
         )
     )
