@@ -110,13 +110,13 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     set "patch_file=!parent_dir!!repo_name!.patch"
 
     echo 正在处理仓库："!repo_dir!"
-    echo 补丁文件位置："!patch_file!"
     echo.
 
     if not exist "!patch_file!" (
-        echo 当前仓库没有对应的补丁文件，跳过导入
+        echo 当前仓库没有对应的补丁文件，跳过
         echo set /a "skipped+=1">>"!temp_set!"
     ) else (
+        echo 补丁文件位置："!patch_file!"
         set "patch_size=-1"
         for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:patch_file)).Length } catch { -1 }"') do set "patch_size=%%s"
         if "!patch_size!"=="-1" (
@@ -126,13 +126,25 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
             echo 错误：补丁文件内容为空："!patch_file!"
             echo set /a "failed+=1">>"!temp_set!"
         ) else (
-            "git.exe" -C "!repo_dir!" apply "!patch_file!"
+            "git.exe" -C "!repo_dir!" apply --check "!patch_file!" >nul 2>&1
             if !errorlevel! neq 0 (
-                echo 错误：导入差异文件失败
-                echo set /a "failed+=1">>"!temp_set!"
+                "git.exe" -C "!repo_dir!" apply --check -R "!patch_file!" >nul 2>&1
+                if !errorlevel! equ 0 (
+                    echo 当前仓库已包含补丁中的改动，跳过
+                    echo set /a "skipped+=1">>"!temp_set!"
+                ) else (
+                    echo 错误：补丁与当前仓库的文件内容不匹配
+                    echo set /a "failed+=1">>"!temp_set!"
+                )
             ) else (
-                echo 导入完成，补丁文件大小："!patch_size!" 字节
-                echo set /a "succeeded+=1">>"!temp_set!"
+                "git.exe" -C "!repo_dir!" apply "!patch_file!"
+                if !errorlevel! neq 0 (
+                    echo 错误：导入差异文件失败
+                    echo set /a "failed+=1">>"!temp_set!"
+                ) else (
+                    echo 导入完成，补丁文件大小："!patch_size!" 字节
+                    echo set /a "succeeded+=1">>"!temp_set!"
+                )
             )
         )
     )

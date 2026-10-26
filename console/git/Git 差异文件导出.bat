@@ -110,7 +110,6 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     set "patch_file=!parent_dir!!repo_name!.patch"
 
     echo 正在处理仓库："!repo_dir!"
-    echo 补丁文件位置："!patch_file!"
     echo.
 
     REM 暂存所有改动
@@ -133,7 +132,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
             echo 错误：检查未提交的改动失败
             echo set /a "failed+=1">>"!temp_set!"
         ) else if "!changed_count!"=="0" (
-            echo 当前仓库没有未提交的改动，未生成补丁文件
+            echo 当前仓库没有未提交的改动，跳过
             echo set /a "skipped+=1">>"!temp_set!"
         ) else (
             "git.exe" -C "!repo_dir!" diff HEAD --binary --output="!patch_file!"
@@ -141,6 +140,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
                 echo 错误：导出差异文件失败
                 echo set /a "failed+=1">>"!temp_set!"
             ) else (
+                echo 补丁文件位置："!patch_file!"
                 set "patch_size=-1"
                 for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:patch_file)).Length } catch { -1 }"') do set "patch_size=%%s"
                 if "!patch_size!"=="-1" (
