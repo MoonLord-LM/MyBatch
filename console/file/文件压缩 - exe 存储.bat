@@ -113,7 +113,7 @@ for %%i in ("!input_path!") do (
     if exist "!output_path!" (
         echo 输出自解压文件已存在："!output_path!"，跳过不处理
     ) else (
-        "!seven_zip!" a %zip_params% -sfx"!seven_zip_sfx!" -y "!output_path!" "!input_path!"
+        "!seven_zip!" a !zip_params! -sfx"!seven_zip_sfx!" -y "!output_path!" "!input_path!"
         if !errorlevel! equ 0 (
             for /f %%s in ('powershell -NoProfile -Command "try { ([System.IO.FileInfo]($env:output_path)).Length } catch { -1 }"') do set "file_size=%%s"
             echo 压缩成功："!output_path!"，大小：!file_size! 字节
