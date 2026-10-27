@@ -141,8 +141,7 @@ if "!param1!" == "" (
                     )
                     echo 字幕文件："!sub_file!"
                     set "temp_video_file=!file_dir!!base_name!_temp.mkv"
-                    if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
-                    "!ffmpeg_path!" -i "!param1!" -i "!sub_file!" -map 0:v? -map 0:a? -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!temp_video_file!"
+                    "!ffmpeg_path!" -y -i "!param1!" -i "!sub_file!" -map 0:v? -map 0:a? -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!temp_video_file!"
                     if !errorlevel! neq 0 (
                         if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                         echo 嵌入失败
@@ -238,8 +237,7 @@ if not "!working_dir!" == "" (
                     )
                     echo 字幕文件："!sub_file!"
                     set "temp_video_file=!file_dir!!base_name!_temp.mkv"
-                    if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
-                    "!ffmpeg_path!" -i "!video_file!" -i "!sub_file!" -map 0:v? -map 0:a? -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!temp_video_file!"
+                    "!ffmpeg_path!" -y -i "!video_file!" -i "!sub_file!" -map 0:v? -map 0:a? -map 1:0 -c copy -c:s "!sub_codec!" -metadata:s:s:0 language=chi "!temp_video_file!"
                     if !errorlevel! neq 0 (
                         echo set /a "embed_failed+=1">>"!temp_set!"
                         if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )

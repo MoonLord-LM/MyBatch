@@ -76,6 +76,13 @@ if !errorlevel! neq 0 (
 REM 预置的公开密码
 set "public_password_list=@('02acg.com','acgbns.com','ixyg688.com','laoquzhang.com','misskon.com','mrcong.com','shoujihao','theaic.cn','www.asmr.li','www.ruhuamtv.com','xyg688.com','三次郎')"
 
+REM 初始化统计
+set /a "total=0"
+set /a "succeeded=0"
+set /a "password_succeeded=0"
+set /a "output_exist=0"
+set /a "extract_failed=0"
+
 
 
 if "!param1!" == "" (
@@ -201,11 +208,6 @@ if not "!working_dir!" == "" (
     REM 记录已处理过的文件路径，用于去重
     set "temp_skip=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_skip!"
 
-set /a "total=0"
-set /a "succeeded=0"
-set /a "password_succeeded=0"
-set /a "output_exist=0"
-set /a "extract_failed=0"
     set "file_path=!working_dir!"
     set "ext_filter=\.(7z|zip|rar|tar|gz|bz2|xz|tgz|tbz2|001)$"
     set "skip_dirs=.git,.svn,_internal,node_modules,__pycache__"
@@ -223,10 +225,17 @@ set /a "extract_failed=0"
             set "file_ext=%%~xf"
             setlocal enabledelayedexpansion
 
-            powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; if ((Get-Content -Encoding UTF8 -LiteralPath $env:temp_skip) -contains $env:archive_path) { exit 0 } else { exit 1 }"
-            if !errorlevel! neq 0 (
+            set "skip_flag="
+            for /f "delims=" %%s in ('
+                powershell -NoProfile -Command ^
+                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                    "$skipLines = @([System.IO.File]::ReadAllLines($env:temp_skip, [System.Text.UTF8Encoding]::new($false)));" ^
+                    "if ($skipLines -contains $env:archive_path) { Write-Output 1 } else { [System.IO.File]::AppendAllText($env:temp_skip, $env:archive_path + [System.Environment]::NewLine, [System.Text.UTF8Encoding]::new($false)); Write-Output 0 }"
+            ') do (
+                set "skip_flag=%%s"
+            )
+            if not "!skip_flag!"=="1" (
                 echo 处理压缩文件："!archive_path!"
-                echo !archive_path!>>"!temp_skip!"
                 if "!file_ext!"=="" (
                     set "output_dir=!file_dir!_!base_name!"
                 ) else (

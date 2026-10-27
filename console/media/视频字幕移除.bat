@@ -106,8 +106,7 @@ if "!param1!" == "" (
         ) else (
             echo 找到字幕，正在移除
             set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
-            if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
-            "!ffmpeg_path!" -i "!param1!" -map 0 -map -0:s -c copy "!temp_video_file!"
+            "!ffmpeg_path!" -y -i "!param1!" -map 0 -map -0:s -c copy "!temp_video_file!"
             if !errorlevel! neq 0 (
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                 echo 移除失败
@@ -161,8 +160,7 @@ if not "!working_dir!" == "" (
         ) else (
             echo 找到字幕，正在移除
             set "temp_video_file=!file_dir!!base_name!_temp!file_ext!"
-            if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
-            "!ffmpeg_path!" -i "!video_file!" -map 0 -map -0:s -c copy "!temp_video_file!"
+            "!ffmpeg_path!" -y -i "!video_file!" -map 0 -map -0:s -c copy "!temp_video_file!"
             if !errorlevel! neq 0 (
                 echo set /a "remove_failed+=1">>"!temp_set!"
                 if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
