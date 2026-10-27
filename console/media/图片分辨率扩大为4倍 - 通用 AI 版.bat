@@ -94,7 +94,7 @@ if "!param1!" == "" (
             set "temp_video=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.mp4"
             "!video2x_path!" -i "!param1!" -o "!temp_video!" -s 4 -p "realesrgan" --realesrgan-model "realesrgan-plus" -c libx264rgb -e crf=0 -e preset=ultrafast
             if exist "!temp_video!" (
-                "!ffmpeg_path!" -y -i "!temp_video!" -frames:v 1 "!output_file!"
+                "!ffmpeg_path!" -y -i "!temp_video!" -frames:v 1 -update 1 "!output_file!"
                 if !errorlevel! equ 0 (
                     echo 扩大成功
                 ) else (
@@ -142,7 +142,7 @@ if not "!working_dir!" == "" (
             set "temp_video=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp.mp4"
             "!video2x_path!" -i "!image_file!" -o "!temp_video!" -s 4 -p "realesrgan" --realesrgan-model "realesrgan-plus" -c libx264rgb -e crf=0 -e preset=ultrafast
             if exist "!temp_video!" (
-                "!ffmpeg_path!" -y -i "!temp_video!" -frames:v 1 "!output_file!"
+                "!ffmpeg_path!" -y -i "!temp_video!" -frames:v 1 -update 1 "!output_file!"
                 if !errorlevel! equ 0 (
                     echo set /a "succeeded+=1">>"!temp_set!"
                     echo 扩大成功

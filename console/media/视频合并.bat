@@ -1087,7 +1087,7 @@ if not "!working_dir!" == "" (
             if not "!cover_file_type!"=="png" (
                 if not "!cover_file_type!"=="mjpeg" (
                     echo 封面图片只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
-                    "!ffmpeg_path!" -y -i "!cover_file!" -frames:v 1 "!cover_file!.png"
+                    "!ffmpeg_path!" -y -i "!cover_file!" -frames:v 1 -update 1 "!cover_file!.png"
                     if !errorlevel! neq 0 (
                         echo.
                         echo 封面图片格式转换失败，请检查报错信息

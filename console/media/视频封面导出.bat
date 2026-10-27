@@ -116,7 +116,7 @@ if "!param1!" == "" (
             if exist "!cover_file!" (
                 echo 已存在："!cover_file!"，跳过此文件
             ) else (
-                "!ffmpeg_path!" -i "!param1!" -map 0:!cover_index! -c:v !cover_enc! -frames:v 1 "!cover_file!"
+                "!ffmpeg_path!" -i "!param1!" -map 0:!cover_index! -c:v !cover_enc! -frames:v 1 -update 1 "!cover_file!"
                 if !errorlevel! neq 0 (
                     if exist "!cover_file!" ( del /f /q "!cover_file!" )
                     echo 导出失败
@@ -187,7 +187,7 @@ if not "!working_dir!" == "" (
                 echo set /a "cover_exist+=1">>"!temp_set!"
                 echo 已存在："!cover_file!"，跳过此文件
             ) else (
-                "!ffmpeg_path!" -i "!video_file!" -map 0:!cover_index! -c:v !cover_enc! -frames:v 1 "!cover_file!"
+                "!ffmpeg_path!" -i "!video_file!" -map 0:!cover_index! -c:v !cover_enc! -frames:v 1 -update 1 "!cover_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "export_failed+=1">>"!temp_set!"
                     if exist "!cover_file!" ( del /f /q "!cover_file!" )
