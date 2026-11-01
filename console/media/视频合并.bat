@@ -197,7 +197,8 @@ if not "!working_dir!" == "" (
         set "vob_title_index=!vob_title_index:~-2!"
         type nul > "!tmp_vob_list!"
         set "vob_count=0"
-        for /l %%p in (0,1,99) do (
+        REM VTS_XX_0.VOB 是 DVD 的菜单片段，拼接正片时从 _1 开始
+        for /l %%p in (1,1,99) do (
             if exist "!working_dir!\VTS_!vob_title_index!_%%p.VOB" (
                 echo file '!working_dir!\VTS_!vob_title_index!_%%p.VOB'>>"!tmp_vob_list!"
                 set /a "vob_count+=1"
@@ -209,8 +210,7 @@ if not "!working_dir!" == "" (
             set "vob_name=!vob_name:~-2!.mp4"
             if not exist "!working_dir!\!vob_name!" (
                 echo 正在拼接 VTS_!vob_title_index!_*.VOB 为 !vob_name!
-                "!ffmpeg_path!" -y -f concat -safe 0 -i "!tmp_vob_list!" ^
-                    -map 0:v:0 -map 0:a:0? ^
+                "!ffmpeg_path!" -y -fflags +genpts -f concat -safe 0 -i "!tmp_vob_list!" ^
                     -c copy -map_metadata -1 -threads 1 "!working_dir!\!vob_name!"
                 if !errorlevel! neq 0 (
                     echo 错误：拼接 VTS_!vob_title_index!_*.VOB 失败
