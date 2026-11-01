@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4 ... 最多到 999.mp4 拼接合并为 final.mp4 文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '也支持拼接 DVD 中的 VTS_01_1.VOB、VTS_01_2.VOB ... 形式的 VOB 视频文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '也支持拼接 DVD 中的 VTS_01_1.VOB、VTS_01_2.VOB ... 形式的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '会尽可能保留原始视频质量，必要的时候进行转码' -ForegroundColor Green"
@@ -210,8 +210,32 @@ if not "!working_dir!" == "" (
             set "vob_name=!vob_name:~-2!.mp4"
             if not exist "!working_dir!\!vob_name!" (
                 echo 正在拼接 VTS_!vob_title_index!_*.VOB 为 !vob_name!
-                "!ffmpeg_path!" -y -fflags +genpts -f concat -safe 0 -i "!tmp_vob_list!" ^
-                    -c copy -map_metadata -1 -threads 1 "!working_dir!\!vob_name!"
+
+                set "vob_first_file=!working_dir!\VTS_!vob_title_index!_1.VOB"
+                set "vob_audio_codec="
+                for /f "delims=" %%a in ('
+                    powershell -NoProfile -Command ^
+                        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                        "& $env:ffprobe_path -v error -select_streams a -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:vob_first_file 2>$null"
+                ') do (
+                    set "vob_audio_codec=%%a"
+                )
+
+                REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
+                set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
+                set "need_convert=0"
+                for %%c in (!unsupported_codecs!) do (
+                    if /i "!vob_audio_codec!"=="%%c" set "need_convert=1"
+                )
+
+                if "!need_convert!"=="1" (
+                    echo 检测到不支持的音频编码：!vob_audio_codec!，正在转换为 FLAC 格式
+                    "!ffmpeg_path!" -y -fflags +genpts -f concat -safe 0 -i "!tmp_vob_list!" ^
+                        -c:v copy -c:a flac -compression_level 8 -map_metadata -1 -threads 1 "!working_dir!\!vob_name!"
+                ) else (
+                    "!ffmpeg_path!" -y -fflags +genpts -f concat -safe 0 -i "!tmp_vob_list!" ^
+                        -c copy -map_metadata -1 -threads 1 "!working_dir!\!vob_name!"
+                )
                 if !errorlevel! neq 0 (
                     echo 错误：拼接 VTS_!vob_title_index!_*.VOB 失败
                     if exist "!working_dir!\!vob_name!" ( del /f /q "!working_dir!\!vob_name!" )
