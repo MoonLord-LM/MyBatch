@@ -10,6 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频文件 01.mp4、02.mp4 ... 最多到 999.mp4 拼接合并为 final.mp4 文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '也支持拼接 DVD 中的 VTS_01_1.VOB、VTS_01_2.VOB ... 形式的 VOB 视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '会尽可能保留原始视频质量，必要的时候进行转码' -ForegroundColor Green"
@@ -187,6 +188,42 @@ if not "!working_dir!" == "" (
             )
         )
     )
+
+    echo 正在检查和处理 vob 格式的视频
+    set "tmp_vob_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
+    set "vob_index=0"
+    for /l %%t in (1,1,99) do (
+        set "vob_title_index=0%%t"
+        set "vob_title_index=!vob_title_index:~-2!"
+        type nul > "!tmp_vob_list!"
+        set "vob_count=0"
+        for /l %%p in (0,1,99) do (
+            if exist "!working_dir!\VTS_!vob_title_index!_%%p.VOB" (
+                echo file '!working_dir!\VTS_!vob_title_index!_%%p.VOB'>>"!tmp_vob_list!"
+                set /a "vob_count+=1"
+            )
+        )
+        if !vob_count! gtr 0 (
+            set /a "vob_index+=1"
+            set "vob_name=0!vob_index!"
+            set "vob_name=!vob_name:~-2!.mp4"
+            if not exist "!working_dir!\!vob_name!" (
+                echo 正在拼接 VTS_!vob_title_index!_*.VOB 为 !vob_name!
+                "!ffmpeg_path!" -y -f concat -safe 0 -i "!tmp_vob_list!" ^
+                    -map 0:v:0 -map 0:a:0? ^
+                    -c copy -map_metadata -1 -threads 1 "!working_dir!\!vob_name!"
+                if !errorlevel! neq 0 (
+                    echo 错误：拼接 VTS_!vob_title_index!_*.VOB 失败
+                    if exist "!working_dir!\!vob_name!" ( del /f /q "!working_dir!\!vob_name!" )
+                    if exist "!tmp_vob_list!" ( del /f /q "!tmp_vob_list!" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
+            )
+        )
+    )
+    if exist "!tmp_vob_list!" ( del /f /q "!tmp_vob_list!" )
 
     echo 正在检查文件的序号
     set "min_i=0"
