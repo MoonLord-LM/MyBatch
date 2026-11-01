@@ -1135,6 +1135,31 @@ if not "!working_dir!" == "" (
         ) else if exist "!working_dir!\海报.jpeg" (
             set "cover_file=!working_dir!\海报.jpeg"
         )
+
+        REM 没有封面文件时，尝试从 DVD 菜单片段 VTS_XX_0.VOB 的静帧提取，输出为 cover.png
+        if "!cover_file!"=="" (
+            for /l %%t in (1,1,99) do (
+                if "!cover_file!"=="" (
+                    set "vob_menu_index=0%%t"
+                    set "vob_menu_index=!vob_menu_index:~-2!"
+                    if exist "!working_dir!\VTS_!vob_menu_index!_0.VOB" (
+                        echo 正在将菜单片段 VTS_!vob_menu_index!_0.VOB 中的画面提取为封面 cover.png
+                        REM scale=iw*sar:ih 用于把变形宽高比还原为方形像素，避免画面被压扁
+                        "!ffmpeg_path!" -y -i "!working_dir!\VTS_!vob_menu_index!_0.VOB" ^
+                            -map 0:v:0 -frames:v 1 -vf "scale=iw*sar:ih" -update 1 "!working_dir!\cover.png"
+                        if !errorlevel! neq 0 (
+                            echo 菜单片段 VTS_!vob_menu_index!_0.VOB 的画面提取失败
+                            if exist "!working_dir!\cover.png" ( del /f /q "!working_dir!\cover.png" )
+                        ) else if not exist "!working_dir!\cover.png" (
+                            echo 菜单片段 VTS_!vob_menu_index!_0.VOB 中没有可提取的画面
+                        ) else (
+                            set "cover_file=!working_dir!\cover.png"
+                        )
+                    )
+                )
+            )
+        )
+
         if not "!cover_file!"=="" (
             for /f "delims=" %%p in ('
                 powershell -NoProfile -Command ^
