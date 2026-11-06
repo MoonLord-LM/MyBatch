@@ -165,6 +165,14 @@ for /f "tokens=1* delims=|" %%f in ('
             if exist "!file1!" (
                 if exist "!file2!" (
                     fc /b "!file1!" "!file2!" > nul
+                    if !errorlevel! equ -1 (
+                        echo 错误：文件对比失败，请检查路径是否正确
+                        echo 路径 1："!file1!"
+                        echo 路径 2："!file2!"
+                        echo.
+                        pause
+                        exit /b 1
+                    )
                     if !errorlevel! equ 0 (
                         echo 准备删除："!file1!"
                         echo 重复文件："!file2!"
