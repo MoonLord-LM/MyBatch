@@ -131,7 +131,7 @@ if "!param1!" == "" (
 
                     if "!need_convert!"=="1" (
                         echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
-                        "!ffmpeg_path!" -i "!param1!" -c:v libx265 -crf 16 -preset slower -c:a flac -compression_level 8 "!output_file!"
+                        "!ffmpeg_path!" -i "!param1!" -c:v libx265 -crf 16 -preset slower -c:a flac -compression_level 8 -movflags +faststart "!output_file!"
                         if !errorlevel! neq 0 (
                             if exist "!output_file!" ( del /f /q "!output_file!" )
                             echo 转换失败
@@ -139,7 +139,7 @@ if "!param1!" == "" (
                             echo 转换成功，音频已转换
                         )
                     ) else (
-                        "!ffmpeg_path!" -i "!param1!" -c:v libx265 -crf 16 -preset slower -c:a copy "!output_file!"
+                        "!ffmpeg_path!" -i "!param1!" -c:v libx265 -crf 16 -preset slower -c:a copy -movflags +faststart "!output_file!"
                         if !errorlevel! neq 0 (
                             if exist "!output_file!" ( del /f /q "!output_file!" )
                             echo 转换失败
@@ -228,7 +228,7 @@ if not "!working_dir!" == "" (
 
                     if "!need_convert!"=="1" (
                         echo 检测到不支持的音频编码：!audio_codec!，正在转换为 FLAC 格式...
-                        "!ffmpeg_path!" -i "!video_file!" -c:v libx265 -crf 16 -preset slower -c:a flac -compression_level 8 "!output_file!"
+                        "!ffmpeg_path!" -i "!video_file!" -c:v libx265 -crf 16 -preset slower -c:a flac -compression_level 8 -movflags +faststart "!output_file!"
                         if !errorlevel! neq 0 (
                             echo set /a "convert_failed+=1">>"!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -238,7 +238,7 @@ if not "!working_dir!" == "" (
                             echo 转换成功，音频已转换
                         )
                     ) else (
-                        "!ffmpeg_path!" -i "!video_file!" -c:v libx265 -crf 16 -preset slower -c:a copy "!output_file!"
+                        "!ffmpeg_path!" -i "!video_file!" -c:v libx265 -crf 16 -preset slower -c:a copy -movflags +faststart "!output_file!"
                         if !errorlevel! neq 0 (
                             echo set /a "convert_failed+=1">>"!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )
