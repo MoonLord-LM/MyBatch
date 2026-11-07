@@ -108,8 +108,6 @@ if "!param1!" == "" (
             if "!audio_codec!"=="" (
                 echo 无音频
             ) else (
-                set "audio_enc=-c:a flac -compression_level 8"
-
                 set "output_file=!file_dir!!base_name!_音量均衡!file_ext!"
                 if exist "!output_file!" (
                     echo 已存在："!output_file!"，跳过此文件
@@ -131,7 +129,7 @@ if "!param1!" == "" (
                         echo 音量分析失败
                     ) else (
                         echo 正在均衡为："!output_file!"
-                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy !audio_enc! "!output_file!"
+                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy -c:a flac -compression_level 8 "!output_file!"
                         if !errorlevel! neq 0 (
                             if exist "!output_file!" ( del /f /q "!output_file!" )
                             echo 均衡失败
@@ -193,8 +191,6 @@ if not "!working_dir!" == "" (
                 echo set /a "no_audio+=1">>"!temp_set!"
                 echo 无音频
             ) else (
-                set "audio_enc=-c:a flac -compression_level 8"
-
                 set "output_file=!file_dir!!base_name!_音量均衡!file_ext!"
                 if exist "!output_file!" (
                     echo set /a "output_exist+=1">>"!temp_set!"
@@ -218,7 +214,7 @@ if not "!working_dir!" == "" (
                         echo 音量分析失败
                     ) else (
                         echo 正在均衡为："!output_file!"
-                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy !audio_enc! "!output_file!"
+                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy -c:a flac -compression_level 8 "!output_file!"
                         if !errorlevel! neq 0 (
                             echo set /a "balance_failed+=1">>"!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )
