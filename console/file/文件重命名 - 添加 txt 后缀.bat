@@ -12,7 +12,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '在原始文件名和文件后缀的后面，统一添加 txt 后缀' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '例如 a1.jpg 改为 a1.jpg.txt' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '拖拽单个文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '如果文件已经是 txt 后缀，则跳过不处理' -ForegroundColor Green"
 echo.
 
@@ -35,10 +35,20 @@ if "!param1!" == "" (
         set "working_dir=!param1!"
         echo.
     ) else (
-        echo 错误：不支持拖入单个文件，请拖入文件夹或双击运行
+        echo 开始处理文件："!param1!"
         echo.
-        pause
-        exit /b 1
+        if /i "!param1_ext!"==".txt" (
+            echo 跳过，已有 txt 后缀："!param1_name_ext!"
+        ) else if exist "!param1_dir!!param1_name_ext!.txt" (
+            echo 跳过，目标已存在："!param1_name_ext!"
+        ) else (
+            ren "!param1_path!" "!param1_name_ext!.txt"
+            if !errorlevel! neq 0 (
+                echo 重命名失败："!param1_name_ext!"
+            ) else (
+                echo 重命名成功："!param1_name_ext!"，改为 "!param1_name_ext!.txt"
+            )
+        )
     )
 )
 
