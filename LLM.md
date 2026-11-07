@@ -108,6 +108,13 @@ if /i "!cd!"=="!SystemRoot!\System32" ( cd /d "!script_dir!" )
 powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundColor Cyan" && echo.
 ```
 
+## 语言偏好
+
+本工程的功能实现，尽量简化代码、减少依赖  
+首先，尽量使用 Batch 批处理代码和 PowerShell 代码  
+然后，考虑内嵌 C#.NET、VB.NET、VBScript 等代码  
+最后，如果仍然不好实现或者代码过于复杂，可以考虑集成一些通用的、流行的外部 exe、dll 等，来实现复杂的功能  
+
 ## 右键以管理员身份运行
 
 脚本如果用右键的"以管理员权限运行"，默认会切换到 `"!SystemRoot!\System32"` 系统目录  

@@ -64,6 +64,7 @@ A collection of commonly used Windows Batch scripts
 | [文件重复清理 - 仅比对大小.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20仅比对大小.bat) | 仅按文件名称和大小比对去重，清理重复文件 |
 | [文件重复清理 - 快速版.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理%20-%20快速版.bat) | 清理重复文件，使用 EveryThing 加速 |
 | [文件重复清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重复清理.bat) | 清理重复文件 |
+| [文件重命名 - 添加 txt 后缀.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件重命名%20-%20添加%20txt%20后缀.bat) | 在原始文件名和文件后缀的后面，统一添加 txt 后缀 |
 | [文件自动解压.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/file/文件自动解压.bat) | 使用内置的密码，自动解压压缩包 |
 
 ### 代码管理
