@@ -14,7 +14,7 @@ powershell -NoProfile -Command "Write-Host '把过轻的音量提升、过响的
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个视频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '支持的格式为 mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '自动跳过无音轨、以及文件名中包含 “_音量均衡” 的已均衡过的视频' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '自动跳过无音轨、以及文件名中包含 _音量均衡 的已均衡过的视频' -ForegroundColor Green"
 echo.
 
 
@@ -108,8 +108,7 @@ if "!param1!" == "" (
             if "!audio_codec!"=="" (
                 echo 无音频
             ) else (
-                set "audio_enc=-c:a aac -b:a 320k"
-                if /i "!file_ext!"==".webm" set "audio_enc=-c:a libopus -b:a 192k"
+                set "audio_enc=-c:a flac -compression_level 8"
 
                 set "output_file=!file_dir!!base_name!_音量均衡!file_ext!"
                 if exist "!output_file!" (
@@ -194,8 +193,7 @@ if not "!working_dir!" == "" (
                 echo set /a "no_audio+=1">>"!temp_set!"
                 echo 无音频
             ) else (
-                set "audio_enc=-c:a aac -b:a 320k"
-                if /i "!file_ext!"==".webm" set "audio_enc=-c:a libopus -b:a 192k"
+                set "audio_enc=-c:a flac -compression_level 8"
 
                 set "output_file=!file_dir!!base_name!_音量均衡!file_ext!"
                 if exist "!output_file!" (
