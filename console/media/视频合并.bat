@@ -115,6 +115,13 @@ if "!param1!" == "" (
 
 
 
+REM 生成时间标记
+for /f "delims=" %%q in ('
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "(Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz')"
+') do set "creation_time=%%q"
+
 if not "!working_dir!" == "" (
     set "file_count=0"
     set "file_consistent=1"
@@ -1046,7 +1053,7 @@ if not "!working_dir!" == "" (
 
     echo 正在合并视频
     set "tmp_merged_video=%temp%\MyBatch_%random%_%random%_%random%_%random%.mp4"
-    "!ffmpeg_path!" -y -f concat -safe 0 -i "!tmp_file_list!" -c copy -threads 1 "!tmp_merged_video!"
+    "!ffmpeg_path!" -y -f concat -safe 0 -i "!tmp_file_list!" -c copy -metadata creation_time="!creation_time!" -movflags +faststart -threads 1 "!tmp_merged_video!"
     if !errorlevel! neq 0 (
         echo.
         echo 视频合并失败，请检查报错信息
@@ -1188,7 +1195,7 @@ if not "!working_dir!" == "" (
             )
 
             echo 正在添加封面图片 [!cover_file!]
-            "!ffmpeg_path!" -y -i "!tmp_merged_video!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -threads 1 "!working_dir!\final.mp4"
+            "!ffmpeg_path!" -y -i "!tmp_merged_video!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -metadata creation_time="!creation_time!" -movflags +faststart -threads 1 "!working_dir!\final.mp4"
             if !errorlevel! neq 0 (
                 echo.
                 echo 文件 final.mp4 合并失败，请检查报错信息

@@ -77,7 +77,7 @@ if "!param1!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!param1!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
@@ -91,7 +91,7 @@ if "!param1!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!param1!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
@@ -105,7 +105,7 @@ if "!param1!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!param1!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
@@ -119,7 +119,7 @@ if "!param1!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!param1!" -vf "smartblur=lr=2:ls=1:lt=5" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -vf "smartblur=lr=2:ls=1:lt=5" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 降噪失败
@@ -171,7 +171,7 @@ if not "!working_dir!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!video_file!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "nlmeans=s=5:p=7:r=15" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -188,7 +188,7 @@ if not "!working_dir!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!video_file!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "hqdn3d=6:4:8:6" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -205,7 +205,7 @@ if not "!working_dir!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!video_file!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "atadenoise=0a=0.08:0b=0.16:1a=0.08:1b=0.16:2a=0.08:2b=0.16:s=9" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
@@ -222,7 +222,7 @@ if not "!working_dir!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在生成："!output_file!"
-                "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=5" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+                "!ffmpeg_path!" -i "!video_file!" -vf "smartblur=lr=2:ls=1:lt=5" -c:v libx264 -crf 18 -preset slower -c:a copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "convert_failed+=1">>"!temp_set!"
                     if exist "!output_file!" ( del /f /q "!output_file!" )
