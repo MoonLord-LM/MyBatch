@@ -1,4 +1,4 @@
-@echo off
+﻿@echo off
 chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
@@ -131,7 +131,20 @@ try {
     $reader.Options.PossibleFormats = [System.Collections.Generic.List[ZXing.BarcodeFormat]]::new();
     $reader.Options.PossibleFormats.Add([ZXing.BarcodeFormat]::QR_CODE);
 
-    $minSide = 300;
+    # 自适应缩放：长边不超过 3840，短边尽量达到 300，缩放比取 2 的整数次幂
+    function Get-FitScale([int]$Width, [int]$Height) {
+        $maxSideLimit = 3840;
+        $minSideLimit = 300;
+        $maxSide = [System.Math]::Max($Width, $Height);
+        $minSide = [System.Math]::Min($Width, $Height);
+        $scaleMax = [double]$maxSideLimit / [double]$maxSide;
+        $scaleMin = [double]$minSideLimit / [double]$minSide;
+        $scale = [System.Math]::Min($scaleMax, [System.Math]::Max(1.0, $scaleMin));
+        $scale = [System.Math]::Pow(2.0, [System.Math]::Round([System.Math]::Log($scale, 2.0)));
+        while ($scale -gt $scaleMax) { $scale /= 2.0; }
+        while ($scale -lt $scaleMin -and $scale -lt $scaleMax) { $scale *= 2.0; }
+        return $scale;
+    }
 
     # 读取图片并解码二维码
     function Read-QrCode([string]$ImagePath) {
@@ -145,7 +158,7 @@ try {
             }
             $svgWidth = [int]$viewBox.Groups[1].Value;
             $svgHeight = [int]$viewBox.Groups[2].Value;
-            $unit = [int]([System.Math]::Max(1, [System.Math]::Ceiling($minSide / [System.Math]::Min($svgWidth, $svgHeight))));
+            $unit = [System.Math]::Max(1, [int][System.Math]::Round((Get-FitScale -Width $svgWidth -Height $svgHeight)));
             $width = $svgWidth * $unit;
             $height = $svgHeight * $unit;
             $pixels = New-Object byte[] ($width * $height * 4);
@@ -216,21 +229,42 @@ try {
             $converted.Source = $frame;
             $converted.DestinationFormat = [System.Windows.Media.PixelFormats]::Bgra32;
             $converted.EndInit();
-            $imageSource = $converted;
-            $narrowSide = [System.Math]::Min($converted.PixelWidth, $converted.PixelHeight);
-            if ($narrowSide -lt $minSide) {
-                $scale = [double]$minSide / [double]$narrowSide;
+
+            # 自适应缩放：小图放大、大图缩小，缩放比取 2 的整数次幂
+            $scale = Get-FitScale -Width $converted.PixelWidth -Height $converted.PixelHeight;
+            $targetWidth = [System.Math]::Max(1, [int][System.Math]::Round($converted.PixelWidth * $scale));
+            $targetHeight = [System.Math]::Max(1, [int][System.Math]::Round($converted.PixelHeight * $scale));
+
+            if ($scale -eq 1.0) {
+                $scaled = $converted;
+            } else {
                 $scaled = [System.Windows.Media.Imaging.TransformedBitmap]::new();
                 $scaled.BeginInit();
                 $scaled.Source = $converted;
                 $scaled.Transform = [System.Windows.Media.ScaleTransform]::new($scale, $scale);
                 $scaled.EndInit();
-                $imageSource = $scaled;
             }
-            $width = $imageSource.PixelWidth;
-            $height = $imageSource.PixelHeight;
+
+            # 透明背景按白底处理：先铺白底，再叠绘图像（含缩放）
+            $visual = [System.Windows.Media.DrawingVisual]::new();
+            $drawingContext = $visual.RenderOpen();
+            $drawingContext.DrawRectangle([System.Windows.Media.Brushes]::White, $null, [System.Windows.Rect]::new(0, 0, $targetWidth, $targetHeight));
+            $drawingContext.DrawImage($scaled, [System.Windows.Rect]::new(0, 0, $targetWidth, $targetHeight));
+            $drawingContext.Close();
+            $render = [System.Windows.Media.Imaging.RenderTargetBitmap]::new($targetWidth, $targetHeight, 96, 96, [System.Windows.Media.PixelFormats]::Pbgra32);
+            $render.Render($visual);
+
+            # 去除预乘 alpha，转为非预乘 BGRA32 供 ZXing 解码
+            $unpremultiplied = [System.Windows.Media.Imaging.FormatConvertedBitmap]::new();
+            $unpremultiplied.BeginInit();
+            $unpremultiplied.Source = $render;
+            $unpremultiplied.DestinationFormat = [System.Windows.Media.PixelFormats]::Bgra32;
+            $unpremultiplied.EndInit();
+
+            $width = $unpremultiplied.PixelWidth;
+            $height = $unpremultiplied.PixelHeight;
             $pixels = New-Object byte[] ($width * $height * 4);
-            $imageSource.CopyPixels($pixels, $width * 4, 0);
+            $unpremultiplied.CopyPixels($pixels, $width * 4, 0);
             $result = $reader.Decode($pixels, $width, $height, [ZXing.RGBLuminanceSource+BitmapFormat]::BGRA32);
             if ($result -eq $null) {
                 return $null;
