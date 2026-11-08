@@ -40,18 +40,14 @@ if "!zxing_path!" == "" (
 
 
 
-set "target=!param1!"
-set "inner_begin_marker=-----BEGIN POWERSHELL CODE-----"
-set "inner_end_marker=-----END POWERSHELL CODE-----"
-
-
+set "input_file=!param1!"
 
 :loop
 
     :input_file
-        if "!target!"=="" (
+        if "!input_file!"=="" (
             echo 请输入要识别的二维码图片路径：
-            set /p "target="
+            set /p "input_file="
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
                 echo.
@@ -59,63 +55,57 @@ set "inner_end_marker=-----END POWERSHELL CODE-----"
             )
             echo.
         ) else (
-            echo 要识别的二维码图片："!target!"
+            echo 要识别的二维码图片："!input_file!"
             echo.
         )
-        if "!target!"=="" (
+        if "!input_file!"=="" (
             echo 输入不能为空，请重新输入
             echo.
             goto input_file
         )
-        set "target=!target:"=!"
-        if "!target!"=="" (
+        set "input_file=!input_file:"=!"
+        if "!input_file!"=="" (
             echo 输入不能为空，请重新输入
             echo.
             goto input_file
         )
-        if "!target:~-1!"=="\" set "target=!target:~0,-1!"
-        if not exist "!target!" (
-            echo 文件不存在 "!target!"，请重新输入
+        if "!input_file:~-1!"=="\" set "input_file=!input_file:~0,-1!"
+        if not exist "!input_file!" (
+            echo 文件不存在 "!input_file!"，请重新输入
             echo.
-            set "target="
+            set "input_file="
             goto input_file
         )
-        if exist "!target!\" (
-            echo 不支持文件夹 "!target!"，请重新输入
+        if exist "!input_file!\" (
+            echo 不支持文件夹 "!input_file!"，请重新输入
             echo.
-            set "target="
+            set "input_file="
             goto input_file
         )
 
 
 
-    for %%i in ("!target!") do set "out_dir=%%~dpi"
-
-
-
-    REM 提取并执行内嵌 PowerShell 代码
+    REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
-        "try { $lines = [System.IO.File]::ReadAllLines($env:script_path, $utf8Strict) } catch [System.Text.DecoderFallbackException] {" ^
-        "    Write-Host '错误：脚本文件不是 UTF-8 编码' -ForegroundColor Red;" ^
-        "    exit 1;" ^
-        "};" ^
-        "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
-        "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
+        "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+        "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+        "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
         "if ($begin -lt 1 -or $end -lt $begin) {" ^
         "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
         "    exit 1;" ^
         "};" ^
-        "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
+        "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
         "Invoke-Expression $code"
     if !errorlevel! neq 0 (
         echo 识别失败，请检查报错信息
         echo.
+        pause
+        exit /b 1
     )
 
     echo.
-    set "target="
+    set "input_file="
 
 goto loop
 
@@ -129,7 +119,6 @@ exit /b
 
 -----BEGIN POWERSHELL CODE-----
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
-$ErrorActionPreference = 'Stop';
 try {
     Add-Type -Path $env:zxing_path;
     Add-Type -AssemblyName PresentationCore;
@@ -253,18 +242,18 @@ try {
     }
 
     try {
-        $text = Read-QrCode -ImagePath $env:target;
+        $text = Read-QrCode -ImagePath $env:input_file;
     } catch {
-        Write-Host ('错误：图片无法读取或格式不受支持："' + $env:target + '"') -ForegroundColor Red;
+        Write-Host ('错误：图片无法读取或格式不受支持："' + $env:input_file + '"') -ForegroundColor Red;
         exit 1;
     }
     if ([string]::IsNullOrEmpty($text)) {
-        Write-Host ('错误：未在图片中识别到二维码，请确认图片清晰、二维码完整："' + $env:target + '"') -ForegroundColor Red;
+        Write-Host ('错误：未在图片中识别到二维码，请确认图片清晰、二维码完整："' + $env:input_file + '"') -ForegroundColor Red;
         exit 3;
     }
     Write-Host ('识别内容：' + $text);
-    $name = [System.IO.Path]::GetFileNameWithoutExtension($env:target);
-    $txtPath = [System.IO.Path]::Combine($env:out_dir, $name + '_二维码内容.txt');
+    $name = [System.IO.Path]::GetFileNameWithoutExtension($env:input_file);
+    $txtPath = [System.IO.Path]::Combine([System.IO.Path]::GetDirectoryName($env:input_file), $name + '_二维码内容.txt');
     [System.IO.File]::WriteAllText($txtPath, $text, [System.Text.UTF8Encoding]::new($false));
     Write-Host ('保存文件："' + $txtPath + '"');
 } catch {
