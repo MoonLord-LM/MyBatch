@@ -9,11 +9,11 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '从图片中识别二维码并解码为文本' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时手动输入图片路径；也可以拖拽单个二维码图片文件到此脚本上' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '识别二维码图片并解码为文本' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '小图自动放大后识别，大图自动缩小后识别，透明背景按白底处理，并尝试识别反色二维码' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入图片文件的路径；也可以拖拽单个二维码图片文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对一个图片处理完成后，可继续输入下一个图片' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持 jpg png bmp gif webp tif svg 等常见图片格式' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '小图自动放大后识别，并尝试识别反色二维码' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
 echo.
 
 

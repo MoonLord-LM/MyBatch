@@ -9,12 +9,12 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '将输入的文本编码为二维码' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '输出同名位图：.1bit.png（1-bit PNG）、.png（8-bit PNG）、.jpg（最佳质量），每模块 8 像素' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '输出同名矢量图 .svg，以及内嵌 1-bit PNG 的 .html 与 .md 文本文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要生成二维码的文本；不支持拖拽文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '将输入的文本编码为二维码图片' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host 'QR 码版本：1-40 自适应，数据模式：字节模式，字符编码：UTF8' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '纠错等级：最高（H），每模块像素数：16，边缘留白模块数：6' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '输出 png、jpg、svg、html、md 等格式的二维码图片文件' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要生成二维码的文本' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对一个文本处理完成后，可继续输入下一个文本' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持中文、网址与任意文本；采用 UTF-8 编码，纠错等级为最高（H），四周预留 4 模块静区' -ForegroundColor Green"
 echo.
 
 
@@ -156,18 +156,24 @@ try {
         $baseName = '二维码';
     }
 
+    # QR 码版本 1-40 自适应，数据按 UTF-8 字节模式编码
+    # 纠错等级 H，每模块像素数 16，边缘留白模块数 6
+    $scale = 16;
+    $quiet = 6;
     $options = [ZXing.QrCode.QrCodeEncodingOptions]::new();
     $options.Width = 0;
     $options.Height = 0;
-    $options.Margin = 4;
+    $options.Margin = $quiet;
     $options.CharacterSet = 'UTF-8';
+    $options.DisableECI = $false;
     $options.ErrorCorrection = [ZXing.QrCode.Internal.ErrorCorrectionLevel]::H;
+    $options.QrCompact = $false;
 
     $pngWriter = [ZXing.BarcodeWriter]::new();
     $pngWriter.Format = [ZXing.BarcodeFormat]::QR_CODE;
     $pngWriter.Options = $options;
     $matrix = $pngWriter.Encode($qrText);
-    $imageSize = $matrix.Width * 8;
+    $imageSize = $matrix.Width * $scale;
     $options.Width = $imageSize;
     $options.Height = $imageSize;
 
