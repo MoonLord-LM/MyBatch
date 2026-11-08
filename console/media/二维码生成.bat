@@ -41,48 +41,6 @@ if "!zxing_path!" == "" (
 
 
 
-if not "!param1!" == "" (
-    echo 错误：不支持拖拽文件，请双击运行后手动输入文本
-    echo.
-    pause
-    exit /b 1
-)
-
-
-
-set "temp_text=%temp%\MyBatch_%random%_%random%_%random%_%random%.txt"
-set "in_file=!temp_text!"
-set "out_dir=!cd!"
-if "!out_dir:~-1!"=="\" set "out_dir=!out_dir:~0,-1!"
-set "ps_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.ps1"
-set "inner_begin_marker=-----BEGIN POWERSHELL CODE-----"
-set "inner_end_marker=-----END POWERSHELL CODE-----"
-REM 提取并执行内嵌 PowerShell 代码
-powershell -NoProfile -Command ^
-    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-    "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
-    "try { $lines = [System.IO.File]::ReadAllLines($env:script_path, $utf8Strict) } catch [System.Text.DecoderFallbackException] {" ^
-    "    Write-Host '错误：脚本文件不是 UTF-8 编码' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
-    "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
-    "if ($begin -lt 1 -or $end -lt $begin) {" ^
-    "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
-    "[System.IO.File]::WriteAllText($env:ps_file, $code, [System.Text.UTF8Encoding]::new($true));"
-if !errorlevel! neq 0 (
-    if exist "!ps_file!" ( del /f /q "!ps_file!" )
-    echo 错误：提取内嵌脚本失败 & REM
-    echo.
-    pause
-    exit /b 1
-)
-
-
-
 :loop
 
     :input_text
@@ -91,8 +49,6 @@ if !errorlevel! neq 0 (
         if !errorlevel! neq 0 (
             echo 无输入，退出脚本
             echo.
-            if exist "!ps_file!" ( del /f /q "!ps_file!" )
-            if exist "!temp_text!" ( del /f /q "!temp_text!" )
             exit /b 1
         )
         echo.
@@ -104,14 +60,23 @@ if !errorlevel! neq 0 (
 
 
 
+    REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "[System.IO.File]::WriteAllText($env:temp_text, $env:qr_text, [System.Text.Encoding]::UTF8)"
+        "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+        "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+        "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+        "Invoke-Expression $code"
     if !errorlevel! neq 0 (
-        echo 错误：保存输入文本失败
+        echo 错误：生成二维码失败
         echo.
-    ) else (
-        powershell -NoProfile -ExecutionPolicy Bypass -File "!ps_file!"
+        pause
+        exit /b 1
     )
 
     echo.
@@ -129,20 +94,13 @@ exit /b
 
 -----BEGIN POWERSHELL CODE-----
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
-$ErrorActionPreference = 'Stop';
 try {
     Add-Type -Path $env:zxing_path;
     Add-Type -AssemblyName System.Drawing;
     Add-Type -AssemblyName PresentationCore;
     Add-Type -AssemblyName WindowsBase;
 
-    $utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);
-    try {
-        $qrText = [System.IO.File]::ReadAllText($env:in_file, $utf8Strict);
-    } catch [System.Text.DecoderFallbackException] {
-        Write-Host '错误：文本文件不是 UTF-8 编码' -ForegroundColor Red;
-        exit 1;
-    }
+    $qrText = $env:qr_text;
     if ([string]::IsNullOrWhiteSpace($qrText)) {
         Write-Host '错误：文本为空，无法生成二维码' -ForegroundColor Red;
         exit 1;
@@ -179,7 +137,7 @@ try {
 
     # 位图：1-bit PNG、PNG 与 JPG
     $bitmap = $pngWriter.Write($qrText);
-    $oneBitPngPath = [System.IO.Path]::Combine($env:out_dir, $baseName + '.1bit.png');
+    $oneBitPngPath = [System.IO.Path]::Combine($env:script_dir, $baseName + '.1bit.png');
     $sourceStream = [System.IO.MemoryStream]::new();
     try {
         $bitmap.Save($sourceStream, [System.Drawing.Imaging.ImageFormat]::Png);
@@ -202,10 +160,10 @@ try {
     } finally {
         $sourceStream.Dispose();
     }
-    $pngPath = [System.IO.Path]::Combine($env:out_dir, $baseName + '.png');
+    $pngPath = [System.IO.Path]::Combine($env:script_dir, $baseName + '.png');
     [System.IO.File]::WriteAllBytes($pngPath, $pngBytes);
 
-    $jpgPath = [System.IO.Path]::Combine($env:out_dir, $baseName + '.jpg');
+    $jpgPath = [System.IO.Path]::Combine($env:script_dir, $baseName + '.jpg');
     $jpegCodec = [System.Drawing.Imaging.ImageCodecInfo]::GetImageEncoders() | Where-Object { $_.MimeType -eq 'image/jpeg' } | Select-Object -First 1;
     $encoderParams = [System.Drawing.Imaging.EncoderParameters]::new(1);
     $encoderParams.Param[0] = [System.Drawing.Imaging.EncoderParameter]::new([System.Drawing.Imaging.Encoder]::Quality, [int64]100);
@@ -220,14 +178,14 @@ try {
     $svgImage = $svgWriter.Write($qrText);
     $svgSizeAttr = '<svg width="' + $imageSize + '" height="' + $imageSize + '" ';
     $svgContent = $svgImage.Content.Replace('<svg ', $svgSizeAttr);
-    $svgPath = [System.IO.Path]::Combine($env:out_dir, $baseName + '.svg');
+    $svgPath = [System.IO.Path]::Combine($env:script_dir, $baseName + '.svg');
     [System.IO.File]::WriteAllText($svgPath, $svgContent, [System.Text.UTF8Encoding]::new($false));
 
     # 文本文件：HTML 与 Markdown，内嵌 1-bit PNG
     $pngBase64 = [System.Convert]::ToBase64String([System.IO.File]::ReadAllBytes($oneBitPngPath));
     $dataUri = 'data:image/png;base64,' + $pngBase64;
-    $htmlPath = [System.IO.Path]::Combine($env:out_dir, $baseName + '.html');
-    $mdPath = [System.IO.Path]::Combine($env:out_dir, $baseName + '.md');
+    $htmlPath = [System.IO.Path]::Combine($env:script_dir, $baseName + '.html');
+    $mdPath = [System.IO.Path]::Combine($env:script_dir, $baseName + '.md');
     $imgTag = '<body><img src="' + $dataUri + '" alt="二维码"></body>';
     $htmlLines = @(
         '<!DOCTYPE html>',
