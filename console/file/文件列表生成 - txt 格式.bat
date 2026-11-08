@@ -56,6 +56,7 @@ if not "!working_dir!" == "" (
         echo.
 
         set "self_script=!script_path!"
+        if exist "!output_file!" ( del /f /q "!output_file!" )
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
             "$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);" ^

@@ -124,7 +124,7 @@ $pipe = [System.IO.Pipes.NamedPipeServerStream]::new($env:pipe_name, [System.IO.
 $psi = [System.Diagnostics.ProcessStartInfo]::new();
 $psi.FileName = $env:ffmpeg_path;
 $creationTime = (Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz');
-$psi.Arguments = '-y -f gdigrab -framerate 1/3 -draw_mouse 1 -i desktop -vf settb=AVTB,setpts=N/(60*TB),fps=60 -c:v libx264rgb -crf 0 -preset ultrafast -pix_fmt bgr0 -movflags +faststart -metadata creation_time="' + $creationTime + '" ' + $env:output_file;
+$psi.Arguments = '-y -f gdigrab -framerate 1/3 -draw_mouse 1 -i desktop -vf settb=AVTB,setpts=N/(60*TB),fps=60 -c:v libx264rgb -crf 0 -preset ultrafast -pix_fmt bgr0 -movflags +faststart -metadata creation_time="' + $creationTime + '" "' + $env:output_file + '"';
 $psi.UseShellExecute = $false;
 $psi.CreateNoWindow = $true;
 $psi.RedirectStandardInput = $true;

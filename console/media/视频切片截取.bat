@@ -159,10 +159,13 @@ set "end_time=!param3!"
         REM 把开始/结束时间里的 : 和 . 替换为空，作为输出文件名
         set "begin=!begin_time::=!"
         set "begin=!begin:.=!"
-        set "end=!end_time::=!"
-        set "end=!end:.=!"
-        if "!end!"=="" set "end=end"
-        set "output_file=!file_dir!!base_name!_!begin!-!end!.mp4"
+        if "!end_time!"=="" (
+            set "output_file=!file_dir!!base_name!_!begin!-end.mp4"
+        ) else (
+            set "end_name=!end_time::=!"
+            set "end_name=!end_name:.=!"
+            set "output_file=!file_dir!!base_name!_!begin!-!end_name!.mp4"
+        )
         set "end_args="
         if not "!end_time!"=="" set "end_args=-to "!end_time!""
         if exist "!output_file!" (

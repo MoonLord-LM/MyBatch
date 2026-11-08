@@ -41,32 +41,8 @@ if "!zxing_path!" == "" (
 
 
 set "target=!param1!"
-set "ps_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.ps1"
 set "inner_begin_marker=-----BEGIN POWERSHELL CODE-----"
 set "inner_end_marker=-----END POWERSHELL CODE-----"
-REM 提取并执行内嵌 PowerShell 代码
-powershell -NoProfile -Command ^
-    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-    "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
-    "try { $lines = [System.IO.File]::ReadAllLines($env:script_path, $utf8Strict) } catch [System.Text.DecoderFallbackException] {" ^
-    "    Write-Host '错误：脚本文件不是 UTF-8 编码' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
-    "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
-    "if ($begin -lt 1 -or $end -lt $begin) {" ^
-    "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
-    "[System.IO.File]::WriteAllText($env:ps_file, $code, [System.Text.UTF8Encoding]::new($true));"
-if !errorlevel! neq 0 (
-    if exist "!ps_file!" ( del /f /q "!ps_file!" )
-    echo 错误：提取内嵌脚本失败 & REM
-    echo.
-    pause
-    exit /b 1
-)
 
 
 
@@ -79,7 +55,6 @@ if !errorlevel! neq 0 (
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
                 echo.
-                if exist "!ps_file!" ( del /f /q "!ps_file!" )
                 exit /b 1
             )
             echo.
@@ -114,13 +89,29 @@ if !errorlevel! neq 0 (
 
 
 
-    for %%i in ("!target!") do (
-        setlocal disabledelayedexpansion
-        set "out_dir=%%~dpi"
-        setlocal enabledelayedexpansion
-        powershell -NoProfile -ExecutionPolicy Bypass -File "!ps_file!"
-        endlocal
-        endlocal
+    for %%i in ("!target!") do set "out_dir=%%~dpi"
+
+
+
+    REM 提取并执行内嵌 PowerShell 代码
+    powershell -NoProfile -Command ^
+        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+        "$utf8Strict = [System.Text.Encoding]::GetEncoding(65001, [System.Text.EncoderFallback]::ExceptionFallback, [System.Text.DecoderFallback]::ExceptionFallback);" ^
+        "try { $lines = [System.IO.File]::ReadAllLines($env:script_path, $utf8Strict) } catch [System.Text.DecoderFallbackException] {" ^
+        "    Write-Host '错误：脚本文件不是 UTF-8 编码' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$begin = [array]::IndexOf($lines, $env:inner_begin_marker) + 1;" ^
+        "$end = [array]::IndexOf($lines, $env:inner_end_marker);" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
+        "Invoke-Expression $code"
+    if !errorlevel! neq 0 (
+        echo 识别失败，请检查报错信息
+        echo.
     )
 
     echo.

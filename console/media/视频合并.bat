@@ -1069,37 +1069,37 @@ if not "!working_dir!" == "" (
         if not exist "!working_dir!\0.png" (
             if exist "!working_dir!\0.webp" (
                 echo 检测到封面 0.webp，正在转换为 0.png
-                "!ffmpeg_path!" -y -i "!working_dir!\0.webp" "!working_dir!\0.png"
+                "!ffmpeg_path!" -y -i "!working_dir!\0.webp" -frames:v 1 -update 1 "!working_dir!\0.png"
             )
         )
         if not exist "!working_dir!\00.png" (
             if exist "!working_dir!\00.webp" (
                 echo 检测到封面 00.webp，正在转换为 00.png
-                "!ffmpeg_path!" -y -i "!working_dir!\00.webp" "!working_dir!\00.png"
+                "!ffmpeg_path!" -y -i "!working_dir!\00.webp" -frames:v 1 -update 1 "!working_dir!\00.png"
             )
         )
         if not exist "!working_dir!\000.png" (
             if exist "!working_dir!\000.webp" (
                 echo 检测到封面 000.webp，正在转换为 000.png
-                "!ffmpeg_path!" -y -i "!working_dir!\000.webp" "!working_dir!\000.png"
+                "!ffmpeg_path!" -y -i "!working_dir!\000.webp" -frames:v 1 -update 1 "!working_dir!\000.png"
             )
         )
         if not exist "!working_dir!\cover.png" (
             if exist "!working_dir!\cover.webp" (
                 echo 检测到封面 cover.webp，正在转换为 cover.png
-                "!ffmpeg_path!" -y -i "!working_dir!\cover.webp" "!working_dir!\cover.png"
+                "!ffmpeg_path!" -y -i "!working_dir!\cover.webp" -frames:v 1 -update 1 "!working_dir!\cover.png"
             )
         )
         if not exist "!working_dir!\封面.png" (
             if exist "!working_dir!\封面.webp" (
                 echo 检测到封面 封面.webp，正在转换为 封面.png
-                "!ffmpeg_path!" -y -i "!working_dir!\封面.webp" "!working_dir!\封面.png"
+                "!ffmpeg_path!" -y -i "!working_dir!\封面.webp" -frames:v 1 -update 1 "!working_dir!\封面.png"
             )
         )
         if not exist "!working_dir!\海报.png" (
             if exist "!working_dir!\海报.webp" (
                 echo 检测到封面 海报.webp，正在转换为 海报.png
-                "!ffmpeg_path!" -y -i "!working_dir!\海报.webp" "!working_dir!\海报.png"
+                "!ffmpeg_path!" -y -i "!working_dir!\海报.webp" -frames:v 1 -update 1 "!working_dir!\海报.png"
             )
         )
 
