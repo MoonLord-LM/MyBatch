@@ -193,16 +193,41 @@ set "end_time=!param3!"
         if not "!ffprobe_path!"=="" (
             echo 正在分析附近的关键帧位置 ...
             powershell -NoProfile -Command ^
-                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                "$ff=$env:ffprobe_path; $vid=$env:video_file; $b=$env:begin_time; $e=$env:end_time;" ^
-                "function F($s){if([string]::IsNullOrWhiteSpace($s)){return $null}try{return [TimeSpan]::Parse($s.Trim()).TotalSeconds}catch{return $null}}" ^
-                "$bs=F $b; $es=F $e;" ^
-                "$raw=& $ff -v error -select_streams v:0 -skip_frame nokey -show_entries frame=pts_time -of csv=p=0 $vid 2>$null;" ^
-                "$ks=@($raw|Where-Object{$_ -match '^[\d]'}|ForEach-Object{[double]$_});" ^
-                "function T($x){$t=[TimeSpan]::FromSeconds($x);return ('{0:00}:{1:00}:{2:00}.{3:000}' -f [int]$t.TotalHours,$t.Minutes,$t.Seconds,[int]$t.Milliseconds)}" ^
-                "function N($lab,$t){if($null -eq $t){return}; $bf=@($ks|Where-Object{$_ -le $t}|Sort-Object -Descending|Select-Object -First 3); $af=@($ks|Where-Object{$_ -gt $t}|Sort-Object|Select-Object -First 3); $cs=@(($bf+$af)|Sort-Object -Unique); Write-Host ('['+$lab+'] 输入时间 '+(T $t)) -ForegroundColor Yellow; if($cs.Count -eq 0){Write-Host '  附近未找到关键帧';return}; foreach($c in $cs){$m=if([Math]::Abs($c-$t) -lt 0.001){'  <-- 正好是关键帧'}else{''}; Write-Host ('  '+(T $c)+$m)}}" ^
-                "N '开始时间附近关键帧' $bs;" ^
-                "if($null -ne $es){N '结束时间附近关键帧' $es}"
+                "[System.Console]::OutputEncoding = [System.Text.Encoding]::UTF8;" ^
+                "$ffmpegPath = $env:ffprobe_path;" ^
+                "$videoFilePath = $env:video_file;" ^
+                "$beginTimeInput = $env:begin_time;" ^
+                "$endTimeInput = $env:end_time;" ^
+                "function Convert-To-Seconds($TimeString) {" ^
+                "    if ([System.String]::IsNullOrWhiteSpace($TimeString)) { return $null }" ^
+                "    try { return [System.TimeSpan]::Parse($TimeString.Trim()).TotalSeconds }" ^
+                "    catch { return $null }" ^
+                "}" ^
+                "function Format-As-Timestamp($TotalSeconds) {" ^
+                "    $timeSpan = [System.TimeSpan]::FromSeconds($TotalSeconds);" ^
+                "    return ('{0:00}:{1:00}:{2:00}.{3:000}' -f [int]$timeSpan.TotalHours, $timeSpan.Minutes, $timeSpan.Seconds, [int]$timeSpan.Milliseconds);" ^
+                "}" ^
+                "function Show-Nearby-Keyframes($Label, $TargetSeconds) {" ^
+                "    if ($null -eq $TargetSeconds) { return }" ^
+                "    $beforeList = @($keyframeSecondsList | Where-Object { $_ -le $TargetSeconds } | Sort-Object -Descending | Select-Object -First 3);" ^
+                "    $afterList = @($keyframeSecondsList | Where-Object { $_ -gt $TargetSeconds } | Sort-Object | Select-Object -First 3);" ^
+                "    $candidateList = @(($beforeList + $afterList) | Sort-Object -Unique);" ^
+                "    Write-Host ('[' + $Label + '] 输入时间 ' + (Format-As-Timestamp $TargetSeconds)) -ForegroundColor Yellow;" ^
+                "    if ($candidateList.Count -eq 0) {" ^
+                "        Write-Host '  附近未找到关键帧';" ^
+                "        return;" ^
+                "    }" ^
+                "    foreach ($keyframeTime in $candidateList) {" ^
+                "        $markText = if ([System.Math]::Abs($keyframeTime - $TargetSeconds) -lt 0.001) { '  <-- 正好是关键帧' } else { '' };" ^
+                "        Write-Host ('  ' + (Format-As-Timestamp $keyframeTime) + $markText);" ^
+                "    }" ^
+                "}" ^
+                "$beginSeconds = Convert-To-Seconds $beginTimeInput;" ^
+                "$endSeconds = Convert-To-Seconds $endTimeInput;" ^
+                "$rawOutput = & $ffmpegPath -v error -select_streams v:0 -skip_frame nokey -show_entries frame=pts_time -of csv=p=0 $videoFilePath 2>$null;" ^
+                "$keyframeSecondsList = @($rawOutput | Where-Object { $_ -match '^[\d]' } | ForEach-Object { [double]$_ });" ^
+                "Show-Nearby-Keyframes '开始时间附近关键帧' $beginSeconds;" ^
+                "if ($null -ne $endSeconds) { Show-Nearby-Keyframes '结束时间附近关键帧' $endSeconds }"
             if !errorlevel! neq 0 (
                 echo 关键帧分析失败，将继续按输入参数截取
             )
