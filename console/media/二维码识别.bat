@@ -98,14 +98,12 @@ set "input_file=!param1!"
         "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
         "Invoke-Expression $code"
     if !errorlevel! neq 0 (
-        echo 识别失败，请检查报错信息
-        echo.
-        pause
-        exit /b 1
+        echo 识别失败，请检查上面的报错信息
+    ) else (
+        echo 识别成功
     )
-    echo 识别成功
-    echo.
 
+    echo.
     set "input_file="
 
 goto loop

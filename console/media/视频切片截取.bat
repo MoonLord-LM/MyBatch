@@ -168,10 +168,14 @@ set "end_time=!param3!"
                 "!ffmpeg_path!" -y -i "!video_file!" -c copy "!new_file!" >nul 2>&1
                 if !errorlevel! neq 0 (
                     echo.
-                    echo ts 转 mp4 失败，程序退出
+                    echo ts 转 mp4 失败，跳过
                     echo.
-                    pause
-                    exit /b 1
+                    endlocal
+                    endlocal
+                    set "video_file="
+                    set "begin_time="
+                    set "end_time="
+                    goto loop
                 )
                 echo ts 转 mp4 完成
             )

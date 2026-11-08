@@ -87,13 +87,11 @@ set "qr_text=!param1!"
         "Invoke-Expression $code"
     if !errorlevel! neq 0 (
         echo 错误：生成二维码失败
-        echo.
-        pause
-        exit /b 1
+    ) else (
+        echo 生成成功
     )
-    echo 生成成功
-    echo.
 
+    echo.
     set "qr_text="
 
 goto loop
