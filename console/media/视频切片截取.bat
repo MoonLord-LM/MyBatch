@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '根据输入的视频、开始时间、结束时间，对视频做无损的切片截取' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '根据输入的视频、开始时间、结束时间（可选），对视频做无损的切片截取' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入视频文件的路径；也可以拖拽单个视频文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对一个文件处理完成后，可继续输入下一个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '视频如果是 ts 格式，会自动转为同名的 mp4 后再截取，避免音画不同步问题' -ForegroundColor Green"
@@ -112,22 +112,15 @@ set "end_time=!param3!"
 
     :input_end_time
         if "!end_time!"=="" (
-            echo 请输入结束时间，格式: HH:MM:SS.XXX：
+            echo 请输入结束时间，格式: HH:MM:SS.XXX，留空则截取到视频结尾：
             set /p "end_time="
             if !errorlevel! neq 0 (
-                echo 无输入，退出脚本
-                echo.
-                exit /b 1
+                echo 无输入，继续脚本
             )
             echo.
         ) else (
             echo 结束时间："!end_time!"
             echo.
-        )
-        if "!end_time!"=="" (
-            echo 结束时间不能为空
-            echo.
-            goto input_end_time
         )
 
 
@@ -141,7 +134,8 @@ set "end_time=!param3!"
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!" & REM
-        echo 截取时间：!begin_time! - !end_time!
+        if "!end_time!"=="" ( set "end_display=视频结尾" ) else ( set "end_display=!end_time!" )
+        echo 截取时间：!begin_time! - !end_display!
         echo.
 
         if /i "!file_ext!"==".ts" (
@@ -167,12 +161,15 @@ set "end_time=!param3!"
         set "begin=!begin:.=!"
         set "end=!end_time::=!"
         set "end=!end:.=!"
+        if "!end!"=="" set "end=end"
         set "output_file=!file_dir!!base_name!_!begin!-!end!.mp4"
+        set "end_args="
+        if not "!end_time!"=="" set "end_args=-to "!end_time!""
         if exist "!output_file!" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在截取："!output_file!"
-            "!ffmpeg_path!" -y -ss "!begin_time!" -to "!end_time!" -i "!video_file!" -c copy -movflags +faststart "!output_file!"
+            "!ffmpeg_path!" -y -ss "!begin_time!" !end_args! -i "!video_file!" -c copy -movflags +faststart "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 视频截取失败

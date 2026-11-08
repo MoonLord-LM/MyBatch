@@ -133,6 +133,7 @@ set "path2=!param2!"
     echo 取值范围为 0 到 1，数值越小判定越严格，默认值为 0.025 & REM
     set /p "score_threshold="
     if !errorlevel! neq 0 (
+        echo 无输入，继续脚本
         set "score_threshold=0.025"
     )
     echo.

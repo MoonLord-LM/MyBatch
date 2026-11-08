@@ -383,6 +383,8 @@ powershell -NoProfile -Command "这里是 PowerShell 代码，传参可以用 $e
 powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本文件的路径"
 ```
 
+优先使用 -Command 写法，而不是 -ExecutionPolicy Bypass -File 写法，尽量避免生成临时文件  
+
 调用 PowerShell 的 Invoke-WebRequest 方法时，屏幕可能会出现闪烁和文字错乱  
 需要在前面添加 `$ProgressPreference='SilentlyContinue';` 代码，来关闭进度条显示  
 
