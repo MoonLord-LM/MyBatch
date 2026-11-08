@@ -243,7 +243,7 @@ set "end_time=!param3!"
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在截取："!output_file!"
-            "!ffmpeg_path!" -y -ss "!begin_time!" !end_args! -i "!video_file!" -c copy -movflags +faststart "!output_file!"
+            "!ffmpeg_path!" -y -ss "!begin_time!" !end_args! -i "!video_file!" -c copy -movflags +faststart -shortest "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 视频截取失败
