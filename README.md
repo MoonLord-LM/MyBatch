@@ -82,8 +82,8 @@ A collection of commonly used Windows Batch scripts
 
 | 脚本 | 说明 |
 | --- | --- |
-| [二维码生成.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/二维码生成.bat) | 把输入的文本生成为二维码图片，输出同名的 png、jpg、svg 文件 |
-| [二维码识别.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/二维码识别.bat) | 识别二维码图片中的内容，输出文本 |
+| [二维码生成.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/二维码生成.bat) | 将输入的文本编码为二维码图片 |
+| [二维码识别.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/二维码识别.bat) | 识别二维码图片并解码为文本 |
 | [屏幕录制关闭.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕录制关闭.bat) | 关闭系统屏幕录制 |
 | [屏幕录制开启 - 0.5 倍分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕录制开启%20-%200.5%20倍分辨率.bat) | 开启屏幕录制（输出 0.5 倍分辨率） |
 | [屏幕录制开启 - 完整分辨率.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/屏幕录制开启%20-%20完整分辨率.bat) | 开启屏幕录制（输出完整分辨率） |
