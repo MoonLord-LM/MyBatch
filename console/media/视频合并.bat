@@ -143,26 +143,74 @@ if not "!working_dir!" == "" (
         if exist "!working_dir!\%%i.mkv" (
             if not exist "!working_dir!\%%i.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\%%i.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\%%i.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 %%i.mkv 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\%%i.mp4" ( del /f /q "!working_dir!\%%i.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\0%%i.mkv" (
             if not exist "!working_dir!\0%%i.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\0%%i.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\0%%i.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 0%%i.mkv 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\0%%i.mp4" ( del /f /q "!working_dir!\0%%i.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\00%%i.mkv" (
             if not exist "!working_dir!\00%%i.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\00%%i.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\00%%i.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 00%%i.mkv 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\00%%i.mp4" ( del /f /q "!working_dir!\00%%i.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\第%%i集.mkv" (
             if not exist "!working_dir!\第%%i集.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\第%%i集.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\第%%i集.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 第%%i集.mkv 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\第%%i集.mp4" ( del /f /q "!working_dir!\第%%i集.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\第0%%i集.mkv" (
             if not exist "!working_dir!\第0%%i集.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\第0%%i集.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\第0%%i集.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 第0%%i集.mkv 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\第0%%i集.mp4" ( del /f /q "!working_dir!\第0%%i集.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\第00%%i集.mkv" (
             if not exist "!working_dir!\第00%%i集.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\第00%%i集.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\第00%%i集.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 第00%%i集.mkv 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\第00%%i集.mp4" ( del /f /q "!working_dir!\第00%%i集.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         )
     )
@@ -172,26 +220,74 @@ if not "!working_dir!" == "" (
         if exist "!working_dir!\%%i.ts" (
             if not exist "!working_dir!\%%i.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\%%i.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\%%i.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 %%i.ts 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\%%i.mp4" ( del /f /q "!working_dir!\%%i.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\0%%i.ts" (
             if not exist "!working_dir!\0%%i.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\0%%i.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\0%%i.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 0%%i.ts 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\0%%i.mp4" ( del /f /q "!working_dir!\0%%i.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\00%%i.ts" (
             if not exist "!working_dir!\00%%i.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\00%%i.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\00%%i.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 00%%i.ts 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\00%%i.mp4" ( del /f /q "!working_dir!\00%%i.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\第%%i集.ts" (
             if not exist "!working_dir!\第%%i集.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\第%%i集.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\第%%i集.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 第%%i集.ts 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\第%%i集.mp4" ( del /f /q "!working_dir!\第%%i集.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\第0%%i集.ts" (
             if not exist "!working_dir!\第0%%i集.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\第0%%i集.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\第0%%i集.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 第0%%i集.ts 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\第0%%i集.mp4" ( del /f /q "!working_dir!\第0%%i集.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         ) else if exist "!working_dir!\第00%%i集.ts" (
             if not exist "!working_dir!\第00%%i集.mp4" (
                 "!ffmpeg_path!" -i "!working_dir!\第00%%i集.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\第00%%i集.mp4"
+                if !errorlevel! neq 0 (
+                    echo.
+                    echo 错误：文件 第00%%i集.ts 转换为 mp4 失败，请检查报错信息
+                    if exist "!working_dir!\第00%%i集.mp4" ( del /f /q "!working_dir!\第00%%i集.mp4" )
+                    echo.
+                    pause
+                    exit /b 1
+                )
             )
         )
     )
@@ -1208,6 +1304,15 @@ if not "!working_dir!" == "" (
         ) else (
             echo 封面文件，例如 0.png、00.png、000.png、cover.png、封面.png、海报.png 等，都不存在，不添加封面
             move /y "!tmp_merged_video!" "!working_dir!\final.mp4"
+            if !errorlevel! neq 0 (
+                echo.
+                echo 错误：文件 final.mp4 移动失败，请检查报错信息
+                if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
+                if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
+                echo.
+                pause
+                exit /b 1
+            )
         )
         echo 合并完成，已生成 !working_dir!\final.mp4 文件
     ) else (
