@@ -1,4 +1,4 @@
-﻿@echo off
+@echo off
 chcp 65001 >nul
 setlocal disabledelayedexpansion
 set "script=%~0" & set "script_path=%~f0" & set "script_dir=%~dp0" & set "script_name=%~n0" & set "script_ext=%~x0" & set "script_name_ext=%~nx0"
@@ -103,8 +103,9 @@ set "input_file=!param1!"
         pause
         exit /b 1
     )
-
+    echo 识别成功
     echo.
+
     set "input_file="
 
 goto loop
@@ -285,10 +286,13 @@ try {
         Write-Host ('错误：未在图片中识别到二维码，请确认图片清晰、二维码完整："' + $env:input_file + '"') -ForegroundColor Red;
         exit 3;
     }
-    Write-Host ('识别内容：' + $text);
-    $name = [System.IO.Path]::GetFileNameWithoutExtension($env:input_file);
-    $txtPath = [System.IO.Path]::Combine([System.IO.Path]::GetDirectoryName($env:input_file), $name + '_二维码内容.txt');
+    Write-Host ('识别内容：');
+    Write-Host ('————————————————————————————————————————————————');
+    Write-Host ($text);
+    Write-Host ('————————————————————————————————————————————————');
+    $txtPath = [System.IO.Path]::Combine($env:script_dir, 'qrcode.txt');
     [System.IO.File]::WriteAllText($txtPath, $text, [System.Text.UTF8Encoding]::new($false));
+    Write-Host ('');
     Write-Host ('保存文件："' + $txtPath + '"');
 } catch {
     Write-Host ('错误：识别二维码失败：' + $_.Exception.Message) -ForegroundColor Red;

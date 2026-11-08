@@ -56,6 +56,9 @@ if "!zxing_path!" == "" (
             echo 输入不能为空，请重新输入
             echo.
             goto input_text
+        ) else (
+            echo 要处理的文本："!qr_text!"
+            echo.
         )
 
 
@@ -78,8 +81,9 @@ if "!zxing_path!" == "" (
         pause
         exit /b 1
     )
-
+    echo 生成成功
     echo.
+
     set "qr_text="
 
 goto loop
@@ -106,13 +110,7 @@ try {
         exit 1;
     }
 
-    $baseName = $qrText.Trim().Substring(0, [System.Math]::Min(40, $qrText.Trim().Length));
-    $baseName = [System.Text.RegularExpressions.Regex]::Replace($baseName, '[<>:"/\\|?*]', '_');
-    $baseName = -join ($baseName.ToCharArray() | Where-Object { -not [char]::IsControl($_) });
-    $baseName = $baseName.Trim('. ');
-    if ([string]::IsNullOrWhiteSpace($baseName)) {
-        $baseName = '二维码';
-    }
+    $baseName = 'qrcode';
 
     # QR 码版本 1-40 自适应，数据按 UTF-8 字节模式编码
     # 纠错等级 H，每模块像素数 16，边缘留白模块数 6
