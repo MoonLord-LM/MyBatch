@@ -14,6 +14,11 @@ PowerShell 组件，只需要考虑：5.1.26100.4061 Desktop
 这里保存一些零散示例代码，仅用于参考，不保证质量  
 不需要对这个目录进行代码分析  
 
+## makecab 最佳参数
+
+参数 `/D CompressionLevel=7` 对于 makecab 的 LZX 算法是无效的  
+使用 `/D CompressionType=LZX /D CompressionMemory=21` 就已经是最佳压缩率  
+
 
 
 # TODO
