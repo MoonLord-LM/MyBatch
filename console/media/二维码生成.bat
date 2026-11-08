@@ -41,24 +41,34 @@ if "!zxing_path!" == "" (
 
 
 
+set "qr_text=!param1!"
+
 :loop
 
     :input_text
-        echo 请输入要生成二维码的文本：
-        set /p "qr_text="
-        if !errorlevel! neq 0 (
-            echo 无输入，退出脚本
+        if "!qr_text!"=="" (
+            echo 请输入要生成二维码的文本：
+            set /p "qr_text="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
             echo.
-            exit /b 1
+        ) else (
+            echo 要处理的文本："!qr_text!"
+            echo.
         )
-        echo.
         if "!qr_text!"=="" (
             echo 输入不能为空，请重新输入
             echo.
             goto input_text
-        ) else (
-            echo 要处理的文本："!qr_text!"
+        )
+        set "qr_text=!qr_text:"=!"
+        if "!qr_text!"=="" (
+            echo 输入不能为空，请重新输入
             echo.
+            goto input_text
         )
 
 

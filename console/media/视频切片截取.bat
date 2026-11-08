@@ -43,6 +43,28 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
+REM 检查 ffprobe 组件
+if exist "!script_dir!ffprobe.exe" (
+    set "ffprobe_path=!script_dir!ffprobe.exe"
+) else if exist "!cd!\ffprobe.exe" (
+    set "ffprobe_path=!cd!\ffprobe.exe"
+) else if exist "!script_dir!..\ffprobe.exe" (
+    set "ffprobe_path=!script_dir!..\ffprobe.exe"
+) else if exist "..\ffprobe.exe" (
+    set "ffprobe_path=..\ffprobe.exe"
+) else (
+    set "ffprobe_path=ffprobe"
+)
+"!ffprobe_path!" -version >nul 2>&1
+if !errorlevel! neq 0 (
+    echo 错误：缺少 ffprobe 组件 & REM
+    echo 请从 https://ffmpeg.org/download.html 下载，然后把 ffprobe.exe 放到脚本所在文件夹 & REM
+    "explorer.exe" "https://ffmpeg.org/download.html"
+    echo.
+    pause
+    exit /b 1
+)
+
 
 
 set "video_file=!param1!"
@@ -166,6 +188,30 @@ set "end_time=!param3!"
             set "end_name=!end_name:.=!"
             set "output_file=!file_dir!!base_name!_!begin!-!end_name!.mp4"
         )
+
+        REM 关键帧分析（仅提示附近关键帧位置，仍按输入的开始/结束时间截取）
+        if not "!ffprobe_path!"=="" (
+            echo 正在分析附近的关键帧位置 ...
+            powershell -NoProfile -Command ^
+                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+                "$ff=$env:ffprobe_path; $vid=$env:video_file; $b=$env:begin_time; $e=$env:end_time;" ^
+                "function F($s){if([string]::IsNullOrWhiteSpace($s)){return $null}try{return [TimeSpan]::Parse($s.Trim()).TotalSeconds}catch{return $null}}" ^
+                "$bs=F $b; $es=F $e;" ^
+                "$raw=& $ff -v error -select_streams v:0 -skip_frame nokey -show_entries frame=pts_time -of csv=p=0 $vid 2>$null;" ^
+                "$ks=@($raw|Where-Object{$_ -match '^[\d]'}|ForEach-Object{[double]$_});" ^
+                "function T($x){$t=[TimeSpan]::FromSeconds($x);return ('{0:00}:{1:00}:{2:00}.{3:000}' -f [int]$t.TotalHours,$t.Minutes,$t.Seconds,[int]$t.Milliseconds)}" ^
+                "function N($lab,$t){if($null -eq $t){return}; $bf=@($ks|Where-Object{$_ -le $t}|Sort-Object -Descending|Select-Object -First 3); $af=@($ks|Where-Object{$_ -gt $t}|Sort-Object|Select-Object -First 3); $cs=@(($bf+$af)|Sort-Object -Unique); Write-Host ('['+$lab+'] 输入时间 '+(T $t)) -ForegroundColor Yellow; if($cs.Count -eq 0){Write-Host '  附近未找到关键帧';return}; foreach($c in $cs){$m=if([Math]::Abs($c-$t) -lt 0.001){'  <-- 正好是关键帧'}else{''}; Write-Host ('  '+(T $c)+$m)}}" ^
+                "N '开始时间附近关键帧' $bs;" ^
+                "if($null -ne $es){N '结束时间附近关键帧' $es}"
+            if !errorlevel! neq 0 (
+                echo 关键帧分析失败，将继续按输入参数截取
+            )
+            echo.
+        ) else (
+            echo 未找到 ffprobe 组件，跳过关键帧分析，直接按输入参数截取
+            echo.
+        )
+
         set "end_args="
         if not "!end_time!"=="" set "end_args=-to "!end_time!""
         if exist "!output_file!" (
