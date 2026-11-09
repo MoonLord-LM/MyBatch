@@ -81,6 +81,7 @@ for /f "delims=" %%t in ('
 ') do set "time_stamp=%%t"
 set "output_file=!script_dir!延时录屏_!time_stamp!.mp4"
 echo 输出文件："!output_file!"
+echo.
 
 
 
@@ -98,15 +99,12 @@ powershell -NoProfile -Command ^
     "$encoded = [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
     "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded)"
 if !errorlevel! neq 0 (
-    echo.
     echo 录制进程启动失败
     echo.
     pause
     exit /b 1
-) else (
-    echo.
-    echo 录制已开始，将在 3 秒后自动关闭本窗口
 )
+echo 录制已开始，将在 3 秒后自动关闭本窗口
 
 
 
