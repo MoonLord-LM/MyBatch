@@ -65,7 +65,7 @@ if "!param1!" == "" (
         for /f "delims=" %%c in ('
             powershell -NoProfile -Command ^
                 "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                "& $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,codec_tag_string,profile,level -of csv=p=0 $env:param1 2>$null"
+                "& $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,codec_tag_string,level -of csv=p=0 $env:param1 2>$null"
         ') do (
             set "video_codec=%%c"
         )
@@ -121,7 +121,7 @@ if not "!working_dir!" == "" (
         setlocal enabledelayedexpansion
 
         echo 处理文件："!video_file!"
-        powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,codec_tag_string,profile,level -of csv=p=0 $env:video_file 2>$null" >>"!temp_video_codecs!"
+        powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,codec_tag_string,level -of csv=p=0 $env:video_file 2>$null" >>"!temp_video_codecs!"
         if !errorlevel! neq 0 (
             echo set /a "parse_failed+=1">>"!temp_set!"
             echo "!video_file!">>"!temp_failed_files!"
