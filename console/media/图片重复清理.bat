@@ -458,5 +458,4 @@ for ($i = 0; $i -lt $files1.Count; $i++) {
 }
 
 Write-Host ('处理完成，共计：' + $total + ' 个图片，重复：' + $duplicate + ' 个，删除成功：' + $deleted + ' 个，删除失败：' + $failed + ' 个，解析失败：' + $parseFailed + ' 个');
-exit 0;
 -----END POWERSHELL CODE-----

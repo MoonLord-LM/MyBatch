@@ -362,5 +362,4 @@ foreach ($d in $dirs) {
         Count 'total2' 1;
     }
 }
-exit 0;
 -----END POWERSHELL CODE-----

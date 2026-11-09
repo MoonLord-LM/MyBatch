@@ -213,5 +213,4 @@ try {
     Write-Host ('错误：生成二维码失败：' + $_.Exception.Message) -ForegroundColor Red;
     exit 1;
 }
-exit 0;
 -----END POWERSHELL CODE-----
