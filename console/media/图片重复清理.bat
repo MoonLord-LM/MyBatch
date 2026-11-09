@@ -171,7 +171,7 @@ if /i "!path1!"=="!path2!" (
     echo.
 )
 
-REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码
+REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
 powershell -NoProfile -Command ^
     "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^

@@ -84,8 +84,7 @@ echo 输出文件："!output_file!"
 
 
 
-REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 Powershell 代码
-set "recorder_ps1=%temp%\MyBatch_%random%_%random%_%random%_%random%.ps1"
+REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
 powershell -NoProfile -Command ^
     "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
     "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
@@ -95,9 +94,9 @@ powershell -NoProfile -Command ^
     "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
     "    exit 1;" ^
     "};" ^
-    "$code = ($lines[$begin..($end - 1)] -join [System.Environment]::NewLine);" ^
-    "[System.IO.File]::WriteAllText($env:recorder_ps1, $code, [System.Text.UTF8Encoding]::new($true));" ^
-    "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-File',([string][char]34 + $env:recorder_ps1 + [string][char]34))"
+    "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+    "$encoded = [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
+    "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded)"
 if !errorlevel! neq 0 (
     echo.
     echo 录制进程启动失败

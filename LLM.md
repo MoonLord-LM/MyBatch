@@ -397,6 +397,51 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本
 调用 PowerShell 的 Invoke-WebRequest 方法时，屏幕可能会出现闪烁和文字错乱  
 需要在前面添加 `$ProgressPreference='SilentlyContinue';` 代码，来关闭进度条显示  
 
+## 内嵌 PowerShell 大段代码块
+
+如果需要执行大段的复杂的 PowerShell 代码，建议把代码内嵌到 bat 文件末尾，用固定标记分隔  
+如果需要多次重复启动 PowerShell 进程，也可以考虑把代码用一整段 PowerShell 代码实现，避免重复启动进程  
+运行时，读取 bat 文件自身，提取出内嵌的 PowerShell 代码，然后使用 Invoke-Expression 执行，不生成临时文件  
+这套方案，仅适用于大段的复杂的 PowerShell 代码，代码较少时，不建议使用  
+
+代码示例如下：  
+
+```batch
+REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
+powershell -NoProfile -Command ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+    "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+    "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+    "if ($begin -lt 1 -or $end -lt $begin) {" ^
+    "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "};" ^
+    "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+    "Invoke-Expression $code"
+if !errorlevel! neq 0 (
+    echo 错误：XXXXXX 失败，请检查报错信息
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+pause
+exit /b
+
+
+
+-----BEGIN POWERSHELL CODE-----
+[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
+
+# 这里是 PowerShell 代码主体部分，传参可以用 $env:变量名 来传递
+exit 0;
+
+-----END POWERSHELL CODE-----
+
+```
+
 ## 遍历文件时，处理路径的特殊符号
 
 文件路径中可能包含 `!` 等特殊字符，在 enabledelayedexpansion 的环境中会解析为变量，导致错误  
