@@ -13,10 +13,7 @@ powershell -NoProfile -Command "Write-Host '将封面文件 00.jpg 以及视频�
 powershell -NoProfile -Command "Write-Host '也支持拼接 DVD 中的 VTS_01_1.VOB、VTS_01_2.VOB ... 形式的视频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '会尽可能保留原始视频质量，必要的时候进行转码' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '转码过程使用单线程运行，防止占用过多 CPU 资源' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '合并视频时，需要保证每段视频的视频编码、视频帧率、音频编码、音频采样率参数一致，避免音画不一致问题' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '合并视频时，需要使用 -map_metadata -1 参数，清理掉 QuickTime TC 格式的 Time code 资源，避免音画不一致问题' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '会尽可能保留原始视频质量，尽量避免音画不一致问题，必要的时候进行转码' -ForegroundColor Green"
 echo.
 
 
@@ -245,7 +242,7 @@ try {
                 if (-not $fileNames.Contains($mp4Name)) {
                     $src = [System.IO.Path]::Combine($workingDir, $name);
                     $dst = [System.IO.Path]::Combine($workingDir, $mp4Name);
-                    $code = Invoke-FFmpeg -ArgList @('-i', $src, '-c', 'copy', '-map_metadata', '-1', '-threads', '1', $dst);
+                    $code = Invoke-FFmpeg -ArgList @('-i', $src, '-c', 'copy', '-map_metadata', '-1', $dst);
                     if ($code -ne 0) {
                         if ([System.IO.File]::Exists($dst)) { [System.IO.File]::Delete($dst) }
                         throw ('错误：文件 ' + $name + ' 转换为 mp4 失败，请检查报错信息');
@@ -285,9 +282,9 @@ try {
         $ffmpegArgs.AddRange([string[]]@('-y', '-fflags', '+genpts', '-f', 'concat', '-safe', '0', '-i', $vobList));
         if ($unsupportedCodecs -contains $vobAudioCodec.ToLowerInvariant()) {
             Write-Host ('检测到不支持的音频编码：' + $vobAudioCodec + '，正在转换为 FLAC 格式');
-            $ffmpegArgs.AddRange([string[]]@('-c:v', 'copy', '-c:a', 'flac', '-compression_level', '8', '-map_metadata', '-1', '-threads', '1', $vobOut));
+            $ffmpegArgs.AddRange([string[]]@('-c:v', 'copy', '-c:a', 'flac', '-compression_level', '8', '-map_metadata', '-1', $vobOut));
         } else {
-            $ffmpegArgs.AddRange([string[]]@('-c', 'copy', '-map_metadata', '-1', '-threads', '1', $vobOut));
+            $ffmpegArgs.AddRange([string[]]@('-c', 'copy', '-map_metadata', '-1', $vobOut));
         }
         $code = Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray();
         if ($code -ne 0) {
@@ -426,7 +423,7 @@ try {
     }
     $targetClip = $sortedGroups[0].Sample;
 
-    # 与目标格式对比，只转码不一致的视频
+    # 各段视频编码、帧率、音频编码、采样率需一致，避免音画不一致，只转码不一致的视频
     Write-Host ('正在对比视频参数');
     $needTranscode = 0;
     foreach ($clip in $probeList) {
@@ -446,14 +443,14 @@ try {
     $fileConsistent = ($needTranscode -eq 0);
     Write-Host ('与目标格式一致：' + ($probeList.Count - $needTranscode) + '/' + $probeList.Count + '，需要转码：' + $needTranscode + '/' + $probeList.Count);
 
-    # 清理 QuickTime Time code 流
+    # 使用 -map_metadata -1 清理 QuickTime TC 格式的 Time code 资源，避免音画不一致
     Write-Host '正在清理 Time code 资源';
     foreach ($clip in $probeList) {
         if (-not $clip.HasTimeCode) { continue; }
         Write-Host '警告：文件包含 Time code 流，需要进行清理';
         $tmpPath = [System.IO.Path]::Combine($workingDir, [System.IO.Path]::GetFileNameWithoutExtension($clip.Name) + '_tmp.mp4');
         if (-not [System.IO.File]::Exists($tmpPath)) {
-            $code = Invoke-FFmpeg -ArgList @('-i', $clip.Path, '-c', 'copy', '-map_metadata', '-1', '-threads', '1', $tmpPath);
+            $code = Invoke-FFmpeg -ArgList @('-i', $clip.Path, '-c', 'copy', '-map_metadata', '-1', $tmpPath);
             if ($code -ne 0) {
                 if ([System.IO.File]::Exists($tmpPath)) { [System.IO.File]::Delete($tmpPath) }
                 throw ('文件 ' + $clip.Name + ' 的 Time code 清理失败，请检查报错信息');
@@ -629,7 +626,7 @@ try {
                     $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
                     $ffmpegArgs.AddRange([string[]]@('-i', $clip.Path, '-vf', $scaleFilter, '-video_track_timescale', $targetTimebase, '-c:v', 'libx264', '-r', $targetClip.VideoFps, '-c:a'));
                     $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
-                    $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', '-threads', '1', $transcoded));
+                    $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', $transcoded));
                     [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
                 }
                 $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
@@ -660,7 +657,7 @@ try {
                             $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
                             $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate));
                         }
-                        $ffmpegArgs.AddRange([string[]]@('-map_metadata', '-1', '-threads', '1', $transcoded));
+                        $ffmpegArgs.AddRange([string[]]@('-map_metadata', '-1', $transcoded));
                         [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
                     }
                     $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
@@ -670,7 +667,7 @@ try {
                         $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
                         $ffmpegArgs.AddRange([string[]]@('-i', $clip.Path, '-c:v', 'copy', '-c:a'));
                         $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
-                        $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', '-threads', '1', $transcoded));
+                        $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', $transcoded));
                         [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
                     }
                     $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
@@ -683,7 +680,7 @@ try {
     }
 
     Write-Host '正在合并视频';
-    $code = Invoke-FFmpeg -ArgList @('-y', '-f', 'concat', '-safe', '0', '-i', $concatList, '-c', 'copy', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', '-threads', '1', $mergedVideo);
+    $code = Invoke-FFmpeg -ArgList @('-y', '-f', 'concat', '-safe', '0', '-i', $concatList, '-c', 'copy', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', $mergedVideo);
     if ($code -ne 0) { throw '视频合并失败，请检查报错信息' }
     if (-not [System.IO.File]::Exists($mergedVideo)) { throw '合并失败，请检查报错信息' }
 
@@ -735,7 +732,7 @@ try {
             $coverFile = $coverFile + '.png';
         }
         Write-Host ('正在添加封面图片 [' + $coverFile + ']');
-        $code = Invoke-FFmpeg -ArgList @('-y', '-i', $mergedVideo, '-i', $coverFile, '-map', '0', '-map', '1', '-c', 'copy', '-disposition:v:1', 'attached_pic', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', '-threads', '1', $finalVideo);
+        $code = Invoke-FFmpeg -ArgList @('-y', '-i', $mergedVideo, '-i', $coverFile, '-map', '0', '-map', '1', '-c', 'copy', '-disposition:v:1', 'attached_pic', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', $finalVideo);
         if ($code -ne 0) { throw '文件 final.mp4 合并失败，请检查报错信息' }
     } else {
         Write-Host '封面文件，例如 0.png、00.png、000.png、cover.png、封面.png、海报.png 等，都不存在，不添加封面';
