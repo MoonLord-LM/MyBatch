@@ -99,7 +99,7 @@ powershell -NoProfile -Command ^
     "$encoded = [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
     "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded)"
 if !errorlevel! neq 0 (
-    echo 录制进程启动失败
+    echo 错误：录制进程启动失败
     echo.
     pause
     exit /b 1

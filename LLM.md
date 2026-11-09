@@ -404,7 +404,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本
 运行时，读取 bat 文件自身，提取出内嵌的 PowerShell 代码，然后使用 Invoke-Expression 执行，不生成临时文件  
 这套方案，仅适用于大段的复杂的 PowerShell 代码，代码较少时，不建议使用  
 
-代码示例如下：  
+同步执行的代码示例如下：  
 
 ```batch
 REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
@@ -436,7 +436,44 @@ exit /b
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
 
 # 这里是 PowerShell 代码主体部分，传参可以用 $env:变量名 来传递
-exit 0;
+
+-----END POWERSHELL CODE-----
+
+```
+
+异步执行的代码示例如下：  
+
+```batch
+REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
+powershell -NoProfile -Command ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+    "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+    "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+    "if ($begin -lt 1 -or $end -lt $begin) {" ^
+    "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "};" ^
+    "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+    "$encoded = [System.Convert]::ToBase64String([System.Text.Encoding]::Unicode.GetBytes($code));" ^
+    "Start-Process -WindowStyle Hidden -FilePath 'powershell' -ArgumentList @('-NoProfile','-WindowStyle','Hidden','-ExecutionPolicy','Bypass','-EncodedCommand',$encoded)"
+if !errorlevel! neq 0 (
+    echo 错误：XXXXXX 失败
+    echo.
+    pause
+    exit /b 1
+)
+
+echo.
+pause
+exit /b
+
+
+
+-----BEGIN POWERSHELL CODE-----
+[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
+
+# 这里是 PowerShell 代码主体部分，传参可以用 $env:变量名 来传递
 
 -----END POWERSHELL CODE-----
 
