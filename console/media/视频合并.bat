@@ -115,1095 +115,25 @@ if "!param1!" == "" (
 
 
 
-REM 生成时间标记
-for /f "delims=" %%q in ('
+if not "!working_dir!" == "" (
+    REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "(Get-Date).ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz')"
-') do set "creation_time=%%q"
-
-if not "!working_dir!" == "" (
-    set "file_count=0"
-    set "file_consistent=1"
-    set "first_video_width="
-    set "first_video_height="
-    set "first_video_codec="
-    set "first_video_codec_tag="
-    set "first_video_codec_profile="
-    set "first_video_codec_level="
-    set "first_video_codec_tier="
-    set "first_audio_codec="
-    set "first_audio_codec_profile="
-    set "first_video_fps="
-    set "first_audio_sample_rate="
-    set "first_video_time_base="
-
-    echo 正在检查和处理 mkv 格式的视频
-    for /l %%i in (1,1,999) do (
-        if exist "!working_dir!\%%i.mkv" (
-            if not exist "!working_dir!\%%i.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\%%i.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\%%i.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 %%i.mkv 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\%%i.mp4" ( del /f /q "!working_dir!\%%i.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\0%%i.mkv" (
-            if not exist "!working_dir!\0%%i.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\0%%i.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\0%%i.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 0%%i.mkv 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\0%%i.mp4" ( del /f /q "!working_dir!\0%%i.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\00%%i.mkv" (
-            if not exist "!working_dir!\00%%i.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\00%%i.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\00%%i.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 00%%i.mkv 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\00%%i.mp4" ( del /f /q "!working_dir!\00%%i.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\第%%i集.mkv" (
-            if not exist "!working_dir!\第%%i集.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\第%%i集.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\第%%i集.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 第%%i集.mkv 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\第%%i集.mp4" ( del /f /q "!working_dir!\第%%i集.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\第0%%i集.mkv" (
-            if not exist "!working_dir!\第0%%i集.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\第0%%i集.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\第0%%i集.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 第0%%i集.mkv 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\第0%%i集.mp4" ( del /f /q "!working_dir!\第0%%i集.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\第00%%i集.mkv" (
-            if not exist "!working_dir!\第00%%i集.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\第00%%i集.mkv" -c copy -map_metadata -1 -threads 1 "!working_dir!\第00%%i集.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 第00%%i集.mkv 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\第00%%i集.mp4" ( del /f /q "!working_dir!\第00%%i集.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        )
-    )
-
-    echo 正在检查和处理 ts 格式的视频
-    for /l %%i in (1,1,999) do (
-        if exist "!working_dir!\%%i.ts" (
-            if not exist "!working_dir!\%%i.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\%%i.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\%%i.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 %%i.ts 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\%%i.mp4" ( del /f /q "!working_dir!\%%i.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\0%%i.ts" (
-            if not exist "!working_dir!\0%%i.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\0%%i.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\0%%i.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 0%%i.ts 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\0%%i.mp4" ( del /f /q "!working_dir!\0%%i.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\00%%i.ts" (
-            if not exist "!working_dir!\00%%i.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\00%%i.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\00%%i.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 00%%i.ts 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\00%%i.mp4" ( del /f /q "!working_dir!\00%%i.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\第%%i集.ts" (
-            if not exist "!working_dir!\第%%i集.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\第%%i集.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\第%%i集.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 第%%i集.ts 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\第%%i集.mp4" ( del /f /q "!working_dir!\第%%i集.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\第0%%i集.ts" (
-            if not exist "!working_dir!\第0%%i集.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\第0%%i集.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\第0%%i集.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 第0%%i集.ts 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\第0%%i集.mp4" ( del /f /q "!working_dir!\第0%%i集.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        ) else if exist "!working_dir!\第00%%i集.ts" (
-            if not exist "!working_dir!\第00%%i集.mp4" (
-                "!ffmpeg_path!" -i "!working_dir!\第00%%i集.ts" -c copy -map_metadata -1 -threads 1 "!working_dir!\第00%%i集.mp4"
-                if !errorlevel! neq 0 (
-                    echo.
-                    echo 错误：文件 第00%%i集.ts 转换为 mp4 失败，请检查报错信息
-                    if exist "!working_dir!\第00%%i集.mp4" ( del /f /q "!working_dir!\第00%%i集.mp4" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        )
-    )
-
-    echo 正在检查和处理 vob 格式的视频
-    set "tmp_vob_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp"
-    set "vob_index=0"
-    for /l %%t in (1,1,99) do (
-        set "vob_title_index=0%%t"
-        set "vob_title_index=!vob_title_index:~-2!"
-        type nul > "!tmp_vob_list!"
-        set "vob_count=0"
-        REM VTS_XX_0.VOB 是 DVD 的菜单片段，拼接正片时从 _1 开始
-        for /l %%p in (1,1,99) do (
-            if exist "!working_dir!\VTS_!vob_title_index!_%%p.VOB" (
-                echo file '!working_dir!\VTS_!vob_title_index!_%%p.VOB'>>"!tmp_vob_list!"
-                set /a "vob_count+=1"
-            )
-        )
-        if !vob_count! gtr 0 (
-            set /a "vob_index+=1"
-            set "vob_name=0!vob_index!"
-            set "vob_name=!vob_name:~-2!.mp4"
-            if not exist "!working_dir!\!vob_name!" (
-                echo 正在拼接 VTS_!vob_title_index!_*.VOB 为 !vob_name!
-
-                set "vob_first_file=!working_dir!\VTS_!vob_title_index!_1.VOB"
-                set "vob_audio_codec="
-                for /f "delims=" %%a in ('
-                    powershell -NoProfile -Command ^
-                        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                        "& $env:ffprobe_path -v error -select_streams a -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:vob_first_file 2>$null"
-                ') do (
-                    set "vob_audio_codec=%%a"
-                )
-
-                REM 不支持的音频编码列表（含 RealMedia cook、DVD PCM 等）
-                set "unsupported_codecs=cook pcm_dvd pcm_s16be pcm_s16le pcm_u16be pcm_u16le pcm_s24be pcm_s24le pcm_u24be pcm_u24le pcm_s32be pcm_s32le pcm_u32be pcm_u32le"
-                set "need_convert=0"
-                for %%c in (!unsupported_codecs!) do (
-                    if /i "!vob_audio_codec!"=="%%c" set "need_convert=1"
-                )
-
-                if "!need_convert!"=="1" (
-                    echo 检测到不支持的音频编码：!vob_audio_codec!，正在转换为 FLAC 格式
-                    "!ffmpeg_path!" -y -fflags +genpts -f concat -safe 0 -i "!tmp_vob_list!" ^
-                        -c:v copy -c:a flac -compression_level 8 -map_metadata -1 -threads 1 "!working_dir!\!vob_name!"
-                ) else (
-                    "!ffmpeg_path!" -y -fflags +genpts -f concat -safe 0 -i "!tmp_vob_list!" ^
-                        -c copy -map_metadata -1 -threads 1 "!working_dir!\!vob_name!"
-                )
-                if !errorlevel! neq 0 (
-                    echo 错误：拼接 VTS_!vob_title_index!_*.VOB 失败
-                    if exist "!working_dir!\!vob_name!" ( del /f /q "!working_dir!\!vob_name!" )
-                    if exist "!tmp_vob_list!" ( del /f /q "!tmp_vob_list!" )
-                    echo.
-                    pause
-                    exit /b 1
-                )
-            )
-        )
-    )
-    if exist "!tmp_vob_list!" ( del /f /q "!tmp_vob_list!" )
-
-    echo 正在检查文件的序号
-    set "min_i=0"
-    set "max_i=0"
-    for /l %%i in (1,1,999) do (
-        set "name_count=0"
-        set "name_list="
-        if exist "!working_dir!\%%i.mp4" (
-            set /a "name_count+=1"
-            set "name_list=%%i.mp4"
-        )
-        if exist "!working_dir!\0%%i.mp4" (
-            set /a "name_count+=1"
-            set "name_list=!name_list! 0%%i.mp4"
-        )
-        if exist "!working_dir!\00%%i.mp4" (
-            set /a "name_count+=1"
-            set "name_list=!name_list! 00%%i.mp4"
-        )
-        if exist "!working_dir!\第%%i集.mp4" (
-            set /a "name_count+=1"
-            set "name_list=!name_list! 第%%i集.mp4"
-        )
-        if exist "!working_dir!\第0%%i集.mp4" (
-            set /a "name_count+=1"
-            set "name_list=!name_list! 第0%%i集.mp4"
-        )
-        if exist "!working_dir!\第00%%i集.mp4" (
-            set /a "name_count+=1"
-            set "name_list=!name_list! 第00%%i集.mp4"
-        )
-        if !name_count! equ 0 (
-            REM 无匹配，跳过
-        ) else if !name_count! equ 1 (
-            REM 单个匹配，正常
-        ) else (
-            echo 错误：序号 %%i 存在多个命名方式相同的文件：!name_list!，请只保留其中一个文件
-            echo.
-            pause
-            exit /b 1
-        )
-        if !name_count! equ 0 (
-            REM 无匹配
-        ) else (
-            if "!min_i!"=="0" set "min_i=%%i"
-            set "max_i=%%i"
-        )
-    )
-    set "missing_list="
-    for /l %%i in (!min_i!,1,!max_i!) do (
-        set "name_count=0"
-        if exist "!working_dir!\%%i.mp4" set /a "name_count+=1"
-        if exist "!working_dir!\0%%i.mp4" set /a "name_count+=1"
-        if exist "!working_dir!\00%%i.mp4" set /a "name_count+=1"
-        if exist "!working_dir!\第%%i集.mp4" set /a "name_count+=1"
-        if exist "!working_dir!\第0%%i集.mp4" set /a "name_count+=1"
-        if exist "!working_dir!\第00%%i集.mp4" set /a "name_count+=1"
-        if !name_count! equ 0 (
-            if "!missing_list!"=="" (
-                set "missing_list=%%i"
-            ) else (
-                set "missing_list=!missing_list! %%i"
-            )
-        )
-    )
-    if not "!missing_list!"=="" (
-        echo 错误：视频序号不连续，缺少以下序号：!missing_list!，请补齐缺失的视频文件
-        echo.
-        pause
-        exit /b 1
-    )
-
-    echo 正在检查视频内容
-    for /l %%i in (1,1,999) do (
-        set "file_name="
-        if exist "!working_dir!\%%i.mp4" (
-            set "file_name=%%i.mp4"
-        ) else if exist "!working_dir!\0%%i.mp4" (
-            set "file_name=0%%i.mp4"
-        ) else if exist "!working_dir!\00%%i.mp4" (
-            set "file_name=00%%i.mp4"
-        ) else if exist "!working_dir!\第%%i集.mp4" (
-            set "file_name=第%%i集.mp4"
-        ) else if exist "!working_dir!\第0%%i集.mp4" (
-            set "file_name=第0%%i集.mp4"
-        ) else if exist "!working_dir!\第00%%i集.mp4" (
-            set "file_name=第00%%i集.mp4"
-        )
-        if not "!file_name!"=="" (
-            "!ffprobe_path!" -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 "!working_dir!\!file_name!" >nul 2>&1
-            if !errorlevel! neq 0 (
-                echo.
-                echo 文件 "!working_dir!\!file_name!" 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行
-                echo.
-                pause
-                "!ffprobe_path!" -v error -show_entries format=format_name -of default=noprint_wrappers=1:nokey=1 "!working_dir!\!file_name!"
-                "!ffmpeg_path!" -v error -i "!working_dir!\!file_name!" -map 0 -f null -
-                echo.
-                pause
-                exit /b 1
-            )
-        )
-    )
-
-    echo 正在清理 Time code 资源
-    for /l %%i in (1,1,999) do (
-        set "file_name="
-        if exist "!working_dir!\%%i.mp4" (
-            set "file_name=%%i.mp4"
-        ) else if exist "!working_dir!\0%%i.mp4" (
-            set "file_name=0%%i.mp4"
-        ) else if exist "!working_dir!\00%%i.mp4" (
-            set "file_name=00%%i.mp4"
-        ) else if exist "!working_dir!\第%%i集.mp4" (
-            set "file_name=第%%i集.mp4"
-        ) else if exist "!working_dir!\第0%%i集.mp4" (
-            set "file_name=第0%%i集.mp4"
-        ) else if exist "!working_dir!\第00%%i集.mp4" (
-            set "file_name=第00%%i集.mp4"
-        )
-        if not "!file_name!"=="" (
-            for /f "delims=" %%d in ('
-                powershell -NoProfile -Command ^
-                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                    "& $env:ffprobe_path -v error -select_streams d -show_entries stream=codec_tag_string -of default=noprint_wrappers=1:nokey=1 (Join-Path $env:working_dir $env:file_name) 2>$null"
-            ') do (
-                if "%%d"=="tmcd" (
-                    echo 警告：文件包含 Time code 流，需要进行清理
-                    if not exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" (
-                        "!ffmpeg_path!" -i "!working_dir!\!file_name!" -c copy -map_metadata -1 -threads 1 "!working_dir!\!file_name:~0,-4!_tmp.mp4"
-                        if !errorlevel! neq 0 (
-                            echo.
-                            echo 文件 "!file_name!" 的 Time code 清理失败，请检查报错信息
-                            if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
-                            echo.
-                            pause
-                            exit /b 1
-                        )
-                    )
-                    set "file_to_delete=!working_dir!\!file_name!"
-                    powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
-                    ren "!working_dir!\!file_name:~0,-4!_tmp.mp4" "!file_name!"
-                    if !errorlevel! neq 0 (
-                        echo.
-                        echo 错误：文件 "!file_name!" 替换失败，原文件已移入回收站，请检查报错信息
-                        if exist "!working_dir!\!file_name:~0,-4!_tmp.mp4" ( del /f /q "!working_dir!\!file_name:~0,-4!_tmp.mp4" )
-                        echo.
-                        pause
-                        exit /b 1
-                    )
-                )
-            )
-        )
-    )
-
-    echo 正在生成文件列表
-    set "tmp_file_list=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_file_list!"
-    for /l %%i in (1,1,999) do (
-        set "file_name="
-        if exist "!working_dir!\%%i.mp4" (
-            set "file_name=%%i.mp4"
-        ) else if exist "!working_dir!\0%%i.mp4" (
-            set "file_name=0%%i.mp4"
-        ) else if exist "!working_dir!\00%%i.mp4" (
-            set "file_name=00%%i.mp4"
-        ) else if exist "!working_dir!\第%%i集.mp4" (
-            set "file_name=第%%i集.mp4"
-        ) else if exist "!working_dir!\第0%%i集.mp4" (
-            set "file_name=第0%%i集.mp4"
-        ) else if exist "!working_dir!\第00%%i集.mp4" (
-            set "file_name=第00%%i集.mp4"
-        )
-        if not "!file_name!"=="" (
-            set "file_path=!working_dir!\!file_name!"
-            echo file '!file_path!'>>"!tmp_file_list!"
-            set /a "file_count+=1"
-            REM 清空上一轮的结果
-            set "current_video_width="
-            set "current_video_height="
-            set "current_video_codec="
-            set "current_video_codec_tag="
-            set "current_video_codec_profile="
-            set "current_video_codec_level="
-            set "current_video_codec_tier="
-            set "current_video_fps="
-            set "current_video_time_base="
-            set "current_audio_codec="
-            set "current_audio_codec_profile="
-            set "current_audio_sample_rate="
-            REM 视频流：ffprobe csv 固定顺序 codec_name,profile,codec_tag_string,width,height,level,r_frame_rate,time_base
-            for /f "tokens=1-8 delims=," %%a in ('
-                powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,codec_tag_string,width,height,level,r_frame_rate,time_base -of csv=p=0 $env:file_path 2>$null"
-            ') do (
-                set "current_video_codec=%%a"
-                set "current_video_codec_profile=%%b"
-                set "current_video_codec_tag=%%c"
-                set "current_video_width=%%d"
-                set "current_video_height=%%e"
-                set "current_video_codec_level=%%f"
-                set "current_video_fps=%%g"
-                set "current_video_time_base=%%h"
-            )
-            REM 音频流：ffprobe csv 固定顺序 codec_name,profile,sample_rate
-            for /f "tokens=1-3 delims=," %%a in ('
-                powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile,sample_rate -of csv=p=0 $env:file_path 2>$null"
-            ') do (
-                set "current_audio_codec=%%a"
-                set "current_audio_codec_profile=%%b"
-                set "current_audio_sample_rate=%%c"
-            )
-            REM 编码 Tier：MediaInfo Format_Profile 取 @ 最后一段
-            for /f "delims=" %%a in ('
-                powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; (& $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:file_path 2>$null)-split '@'|Select-Object -Last 1"
-            ') do (
-                set "current_video_codec_tier=%%a"
-            )
-            set "current_video_codec_all=!current_video_codec! - !current_video_codec_tag! - !current_video_codec_profile! - !current_video_codec_level! - !current_video_codec_tier!"
-            set "current_audio_codec_all=!current_audio_codec! - !current_audio_codec_profile!"
-            echo 第 !file_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
-
-            REM 对比参数
-            if "!first_video_width!"=="" ( set "first_video_width=!current_video_width!" )
-            if "!first_video_height!"=="" ( set "first_video_height=!current_video_height!" )
-            if "!first_video_codec!"=="" ( set "first_video_codec=!current_video_codec!" )
-            if "!first_video_codec_tag!"=="" ( set "first_video_codec_tag=!current_video_codec_tag!" )
-            if "!first_video_codec_profile!"=="" ( set "first_video_codec_profile=!current_video_codec_profile!" )
-            if "!first_video_codec_level!"=="" ( set "first_video_codec_level=!current_video_codec_level!" )
-            if "!first_video_codec_tier!"=="" ( set "first_video_codec_tier=!current_video_codec_tier!" )
-            if "!first_audio_codec!"=="" ( set "first_audio_codec=!current_audio_codec!" )
-            if "!first_audio_codec_profile!"=="" ( set "first_audio_codec_profile=!current_audio_codec_profile!" )
-            if "!first_video_fps!"=="" ( set "first_video_fps=!current_video_fps!" )
-            if "!first_audio_sample_rate!"=="" ( set "first_audio_sample_rate=!current_audio_sample_rate!" )
-            if "!first_video_time_base!"=="" ( set "first_video_time_base=!current_video_time_base!" )
-
-            if "!first_video_codec_all!"=="" ( set "first_video_codec_all=!current_video_codec_all!" )
-            if "!first_audio_codec_all!"=="" ( set "first_audio_codec_all=!current_audio_codec_all!" )
-
-            if not "!current_video_width!"=="!first_video_width!" (
-                echo 警告：文件 !file_name! 的视频分辨率宽度 !current_video_width! 与第一个视频的分辨率宽度 !first_video_width! 不一致
-                set "file_consistent=0"
-            )
-            if not "!current_video_height!"=="!first_video_height!" (
-                echo 警告：文件 !file_name! 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
-                set "file_consistent=0"
-            )
-            if not "!current_video_codec_all!"=="!first_video_codec_all!" (
-                echo 警告：文件 !file_name! 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
-                set "file_consistent=0"
-            )
-            if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
-                echo 警告：文件 !file_name! 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
-                set "file_consistent=0"
-            )
-            if not "!current_video_fps!"=="!first_video_fps!" (
-                echo 警告：文件 !file_name! 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
-                set "file_consistent=0"
-            )
-            if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
-                echo 警告：文件 !file_name! 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
-                set "file_consistent=0"
-            )
-            if not "!current_video_time_base!"=="!first_video_time_base!" (
-                echo 警告：文件 !file_name! 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
-                set "file_consistent=0"
-            )
-        )
-    )
-
-    if "!file_count!"=="0" (
-        echo 没有找到任何视频文件，搜索范围为 01.mp4 到 999.mp4
-        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
-        echo.
-        pause
-        exit /b 1
-    )
-
-    set "target_video_encoder=libx264"
-    if /i "!first_video_codec!"=="AV1" (
-        set "target_video_encoder=libaom-av1"
-        if /i "!first_video_codec_tag!"=="av01" (
-            set "target_video_encoder=!target_video_encoder! -tag:v av01"
-        ) else (
-            echo 警告：未知 AV1 Tag："!first_video_codec_tag!"，不指定 Tag
-            echo.
-            pause
-        )
-    ) else if /i "!first_video_codec!"=="HEVC" (
-        set "target_video_encoder=libx265"
-        if /i "!first_video_codec_tag!"=="hev1" (
-            set "target_video_encoder=!target_video_encoder! -tag:v hev1"
-        ) else if /i "!first_video_codec_tag!"=="hvc1" (
-            set "target_video_encoder=!target_video_encoder! -tag:v hvc1"
-        ) else (
-            echo 警告：未知 HEVC Tag："!first_video_codec_tag!"，不指定 Tag
-            echo.
-            pause
-        )
-
-        if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
-        ) else if /i "!first_video_codec_profile!"=="Main 10" ( set "target_video_encoder=!target_video_encoder! -profile:v main10"
-        ) else if /i "!first_video_codec_profile!"=="Main 12" ( set "target_video_encoder=!target_video_encoder! -profile:v main12"
-        ) else (
-            echo 警告：未知 HEVC Profile："!first_video_codec_profile!"，不指定 Profile
-            echo.
-            pause
-        )
-
-        set "x265_level="
-        if /i "!first_video_codec_level!"=="30" ( set "x265_level=10"
-        ) else if /i "!first_video_codec_level!"=="60" ( set "x265_level=20"
-        ) else if /i "!first_video_codec_level!"=="63" ( set "x265_level=21"
-        ) else if /i "!first_video_codec_level!"=="90" ( set "x265_level=30"
-        ) else if /i "!first_video_codec_level!"=="93" ( set "x265_level=31"
-        ) else if /i "!first_video_codec_level!"=="120" ( set "x265_level=40"
-        ) else if /i "!first_video_codec_level!"=="123" ( set "x265_level=41"
-        ) else if /i "!first_video_codec_level!"=="150" ( set "x265_level=50"
-        ) else if /i "!first_video_codec_level!"=="153" ( set "x265_level=51"
-        ) else if /i "!first_video_codec_level!"=="156" ( set "x265_level=52"
-        ) else if /i "!first_video_codec_level!"=="180" ( set "x265_level=60"
-        ) else if /i "!first_video_codec_level!"=="183" ( set "x265_level=61"
-        ) else if /i "!first_video_codec_level!"=="186" ( set "x265_level=62"
-        ) else (
-            echo 警告：未知 HEVC Level："!first_video_codec_level!"，不指定 Level
-            echo.
-            pause
-        )
-        if not "!x265_level!"=="" (
-            if /i "!first_video_codec_tier!"=="Main" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=0^""
-            ) else if /i "!first_video_codec_tier!"=="High" ( set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!:high-tier=1^""
-            ) else (
-                echo 警告：未知 HEVC Tier："!first_video_codec_tier!"，不指定 Tier
-                echo.
-                pause
-                set "target_video_encoder=!target_video_encoder! -x265-params ^"level-idc=!x265_level!^""
-            )
-        )
-    ) else if /i "!first_video_codec!"=="H264" (
-        set "target_video_encoder=libx264"
-        if /i "!first_video_codec_tag!"=="avc1" (
-            set "target_video_encoder=!target_video_encoder! -tag:v avc1"
-        ) else (
-            echo 警告：未知 H264 Tag："!first_video_codec_tag!"，不指定 Tag
-            echo.
-            pause
-        )
-
-        if /i "!first_video_codec_profile!"=="Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
-        ) else if /i "!first_video_codec_profile!"=="Constrained Baseline" ( set "target_video_encoder=!target_video_encoder! -profile:v baseline"
-        ) else if /i "!first_video_codec_profile!"=="Main" ( set "target_video_encoder=!target_video_encoder! -profile:v main"
-        ) else if /i "!first_video_codec_profile!"=="High" ( set "target_video_encoder=!target_video_encoder! -profile:v high"
-        ) else if /i "!first_video_codec_profile!"=="High 10" ( set "target_video_encoder=!target_video_encoder! -profile:v high10"
-        ) else if /i "!first_video_codec_profile!"=="High 4:2:2" ( set "target_video_encoder=!target_video_encoder! -profile:v high422"
-        ) else if /i "!first_video_codec_profile!"=="High 4:4:4" ( set "target_video_encoder=!target_video_encoder! -profile:v high444"
-        ) else (
-            echo 警告：未知 H264 Profile："!first_video_codec_profile!"，不指定 Profile
-            echo.
-            pause
-        )
-
-        if /i "!first_video_codec_level!"=="10" ( set "target_video_encoder=!target_video_encoder! -level:v 1.0"
-        ) else if /i "!first_video_codec_level!"=="11" ( set "target_video_encoder=!target_video_encoder! -level:v 1.1"
-        ) else if /i "!first_video_codec_level!"=="12" ( set "target_video_encoder=!target_video_encoder! -level:v 1.2"
-        ) else if /i "!first_video_codec_level!"=="13" ( set "target_video_encoder=!target_video_encoder! -level:v 1.3"
-        ) else if /i "!first_video_codec_level!"=="20" ( set "target_video_encoder=!target_video_encoder! -level:v 2.0"
-        ) else if /i "!first_video_codec_level!"=="21" ( set "target_video_encoder=!target_video_encoder! -level:v 2.1"
-        ) else if /i "!first_video_codec_level!"=="22" ( set "target_video_encoder=!target_video_encoder! -level:v 2.2"
-        ) else if /i "!first_video_codec_level!"=="30" ( set "target_video_encoder=!target_video_encoder! -level:v 3.0"
-        ) else if /i "!first_video_codec_level!"=="31" ( set "target_video_encoder=!target_video_encoder! -level:v 3.1"
-        ) else if /i "!first_video_codec_level!"=="32" ( set "target_video_encoder=!target_video_encoder! -level:v 3.2"
-        ) else if /i "!first_video_codec_level!"=="40" ( set "target_video_encoder=!target_video_encoder! -level:v 4.0"
-        ) else if /i "!first_video_codec_level!"=="41" ( set "target_video_encoder=!target_video_encoder! -level:v 4.1"
-        ) else if /i "!first_video_codec_level!"=="42" ( set "target_video_encoder=!target_video_encoder! -level:v 4.2"
-        ) else if /i "!first_video_codec_level!"=="50" ( set "target_video_encoder=!target_video_encoder! -level:v 5.0"
-        ) else if /i "!first_video_codec_level!"=="51" ( set "target_video_encoder=!target_video_encoder! -level:v 5.1"
-        ) else if /i "!first_video_codec_level!"=="52" ( set "target_video_encoder=!target_video_encoder! -level:v 5.2"
-        ) else if /i "!first_video_codec_level!"=="60" ( set "target_video_encoder=!target_video_encoder! -level:v 6.0"
-        ) else if /i "!first_video_codec_level!"=="61" ( set "target_video_encoder=!target_video_encoder! -level:v 6.1"
-        ) else if /i "!first_video_codec_level!"=="62" ( set "target_video_encoder=!target_video_encoder! -level:v 6.2"
-        ) else (
-            echo 警告：未知 H264 Level："!first_video_codec_level!"，不指定 Level
-            echo.
-            pause
-        )
-    ) else if /i "!first_video_codec!"=="MPEG4" (
-        set "target_video_encoder=mpeg4"
-        if /i "!first_video_codec_tag!"=="mp4v" (
-            set "target_video_encoder=!target_video_encoder! -tag:v mp4v"
-        ) else (
-            echo 警告：未知 MPEG4 Tag："!first_video_codec_tag!"，不指定 Tag
-            echo.
-            pause
-        )
-
-        if /i "!first_video_codec_profile!"=="Simple Profile" (
-            set "target_video_encoder=!target_video_encoder! -profile:v simple"
-        ) else (
-            echo 警告：未知 MPEG4 Profile："!first_video_codec_profile!"，不指定 Profile
-            echo.
-            pause
-        )
-
-        if /i "!first_video_codec_level!"=="3" ( set "target_video_encoder=!target_video_encoder! -level 3"
-        ) else (
-            echo 警告：未知 MPEG4 Level："!first_video_codec_level!"，不指定 Level
-            echo.
-            pause
-        )
-    ) else if /i "!first_video_codec!"=="MPEG2VIDEO" (
-        set "target_video_encoder=mpeg2video"
-        if /i "!first_video_codec_profile!"=="Main" (
-            set "target_video_encoder=!target_video_encoder! -profile:v main"
-        ) else if /i "!first_video_codec_profile!"=="High" (
-            set "target_video_encoder=!target_video_encoder! -profile:v high"
-        ) else (
-            echo 警告：未知 MPEG2 Profile："!first_video_codec_profile!"，不指定 Profile
-            echo.
-            pause
-        )
-
-        if "!first_video_codec_level!"=="10" (
-            set "target_video_encoder=!target_video_encoder! -level:v low"
-        ) else if "!first_video_codec_level!"=="8" (
-            set "target_video_encoder=!target_video_encoder! -level:v main"
-        ) else if "!first_video_codec_level!"=="6" (
-            set "target_video_encoder=!target_video_encoder! -level:v high1440"
-        ) else if "!first_video_codec_level!"=="4" (
-            set "target_video_encoder=!target_video_encoder! -level:v high"
-        ) else (
-            echo 警告：未知 MPEG2 Level："!first_video_codec_level!"，不指定 Level
-            echo.
-            pause
-        )
-    ) else if /i "!first_video_codec!"=="VP9" (
-        set "target_video_encoder=libvpx-vp9"
-        if /i "!first_video_codec_tag!"=="vp09" (
-            set "target_video_encoder=!target_video_encoder! -tag:v vp09"
-        ) else (
-            echo 警告：未知 VP9 Tag："!first_video_codec_tag!"，不指定 Tag
-            echo.
-            pause
-        )
-    ) else (
-        echo 警告：未知视频编码 "!first_video_codec!"，使用默认 libx264
-        echo.
-        pause
-    )
-
-    set "target_audio_encoder=aac"
-    if /i "!first_audio_codec!"=="AAC" (
-        if /i "!first_audio_codec_profile!"=="LC" ( set "target_audio_encoder=aac -profile:a aac_low"
-        ) else if /i "!first_audio_codec_profile!"=="HE-AAC" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he"
-        ) else if /i "!first_audio_codec_profile!"=="HE-AACv2" ( set "target_audio_encoder=libfdk_aac -profile:a aac_he_v2"
-        ) else (
-            echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
-            echo.
-            pause
-        )
-    ) else if /i "!first_audio_codec!"=="MP3" (
-        set "target_audio_encoder=libmp3lame"
-    ) else if /i "!first_audio_codec!"=="AC3" (
-        set "target_audio_encoder=ac3"
-    ) else if /i "!first_audio_codec!"=="EAC3" (
-        set "target_audio_encoder=eac3"
-    ) else if /i "!first_audio_codec!"=="FLAC" (
-        set "target_audio_encoder=flac"
-    ) else if /i "!first_audio_codec!"=="MP2" (
-        set "target_audio_encoder=mp2"
-    ) else if /i "!first_audio_codec!"=="OPUS" (
-        set "target_audio_encoder=libopus"
-    ) else (
-        echo 警告：未知音频编码 "!first_audio_codec! - !first_audio_codec_profile!"，使用默认 aac
-        echo.
-        pause
-    )
-
-    echo 当前视频编码参数 !target_video_encoder!
-    echo 当前音频编码参数 !target_audio_encoder!
-    echo.
-
-    REM 为了做文件名安全，把 '/' 和 '\' 替换为 '_' 用于临时文件名
-    set "suffix_safe=!first_video_fps!_!first_audio_sample_rate!"
-    set "suffix_safe=!suffix_safe:/=_!"
-    set "suffix_safe=!suffix_safe:\=_!"
-
-    REM 参数不一致进行转码
-    if "!file_consistent!"=="0" (
-
-        if /i "!first_video_codec!"=="HEVC" (
-            echo.
-            echo H265 编码较为复杂，直接拼接容易出现音画不同步问题，可以尝试进行全量的重新编码
-            echo.
-            echo 请选择按 Enter 键开始转码，或者关闭窗口结束运行
-            echo.
-            pause
-            echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
-
-            type nul > "!tmp_file_list!"
-            for /l %%i in (1,1,999) do (
-                set "file_name="
-                if exist "!working_dir!\%%i.mp4" (
-                    set "file_name=%%i.mp4"
-                ) else if exist "!working_dir!\0%%i.mp4" (
-                    set "file_name=0%%i.mp4"
-                ) else if exist "!working_dir!\00%%i.mp4" (
-                    set "file_name=00%%i.mp4"
-                ) else if exist "!working_dir!\第%%i集.mp4" (
-                    set "file_name=第%%i集.mp4"
-                ) else if exist "!working_dir!\第0%%i集.mp4" (
-                    set "file_name=第0%%i集.mp4"
-                ) else if exist "!working_dir!\第00%%i集.mp4" (
-                    set "file_name=第00%%i集.mp4"
-                )
-                if not "!file_name!"=="" (
-                    set "file_path=!working_dir!\!file_name!"
-                    REM 从 "1/1000" 中提取分母 "1000" 作为 timescale；格式异常时回退原值
-                    for /f "tokens=2 delims=/" %%t in ("!first_video_time_base!") do set "target_timebase=%%t"
-                    if "!target_timebase!"=="" set "target_timebase=!first_video_time_base!"
-                    echo 重新编码视频："!file_path!" - "!file_path:~0,-4!_h264_!suffix_safe!.mp4"
-                    if not exist "!file_path:~0,-4!_h264_!suffix_safe!.mp4" (
-                        "!ffmpeg_path!" -i "!file_path!" ^
-                            -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
-                            -video_track_timescale "!target_timebase!" ^
-                            -c:v "libx264" -r "!first_video_fps!" ^
-                            -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
-                            -map_metadata -1 -threads 1 "!file_path:~0,-4!_h264_!suffix_safe!.mp4"
-                    )
-                    echo file '!file_path:~0,-4!_h264_!suffix_safe!.mp4'>>"!tmp_file_list!"
-                )
-            )
-        ) else (
-            echo.
-            echo 分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行
-            echo.
-            pause
-            echo 正在转码视频，目标分辨率：!first_video_width!x!first_video_height!，视频编码：!first_video_codec_all!，目标帧率：!first_video_fps!，目标音频编码：!first_audio_codec_all!，目标音频采样率：!first_audio_sample_rate!，目标视频时间基准：!first_video_time_base!
-
-            type nul > "!tmp_file_list!"
-            set "temp_count=0"
-            for /l %%i in (1,1,999) do (
-                set "file_name="
-                if exist "!working_dir!\%%i.mp4" (
-                    set "file_name=%%i.mp4"
-                ) else if exist "!working_dir!\0%%i.mp4" (
-                    set "file_name=0%%i.mp4"
-                ) else if exist "!working_dir!\00%%i.mp4" (
-                    set "file_name=00%%i.mp4"
-                ) else if exist "!working_dir!\第%%i集.mp4" (
-                    set "file_name=第%%i集.mp4"
-                ) else if exist "!working_dir!\第0%%i集.mp4" (
-                    set "file_name=第0%%i集.mp4"
-                ) else if exist "!working_dir!\第00%%i集.mp4" (
-                    set "file_name=第00%%i集.mp4"
-                )
-                if not "!file_name!"=="" (
-                    set "file_path=!working_dir!\!file_name!"
-                    set /a "temp_count+=1"
-                    REM 清空上一轮的结果
-                    set "current_video_width="
-                    set "current_video_height="
-                    set "current_video_codec="
-                    set "current_video_codec_tag="
-                    set "current_video_codec_profile="
-                    set "current_video_codec_level="
-                    set "current_video_codec_tier="
-                    set "current_video_fps="
-                    set "current_video_time_base="
-                    set "current_audio_codec="
-                    set "current_audio_codec_profile="
-                    set "current_audio_sample_rate="
-                    REM 视频流：ffprobe csv 固定顺序 codec_name,profile,codec_tag_string,width,height,level,r_frame_rate,time_base
-                    for /f "tokens=1-8 delims=," %%a in ('
-                        powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name,profile,codec_tag_string,width,height,level,r_frame_rate,time_base -of csv=p=0 $env:file_path 2>$null"
-                    ') do (
-                        set "current_video_codec=%%a"
-                        set "current_video_codec_profile=%%b"
-                        set "current_video_codec_tag=%%c"
-                        set "current_video_width=%%d"
-                        set "current_video_height=%%e"
-                        set "current_video_codec_level=%%f"
-                        set "current_video_fps=%%g"
-                        set "current_video_time_base=%%h"
-                    )
-                    REM 音频流：ffprobe csv 固定顺序 codec_name,profile,sample_rate
-                    for /f "tokens=1-3 delims=," %%a in ('
-                        powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; & $env:ffprobe_path -v error -select_streams a:0 -show_entries stream=codec_name,profile,sample_rate -of csv=p=0 $env:file_path 2>$null"
-                    ') do (
-                        set "current_audio_codec=%%a"
-                        set "current_audio_codec_profile=%%b"
-                        set "current_audio_sample_rate=%%c"
-                    )
-                    REM 编码 Tier：MediaInfo Format_Profile 取 @ 最后一段
-                    for /f "delims=" %%a in ('
-                        powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; (& $env:mediainfo_path '--Inform=Video;%%Format_Profile%%' $env:file_path 2>$null)-split '@'|Select-Object -Last 1"
-                    ') do (
-                        set "current_video_codec_tier=%%a"
-                    )
-                    set "current_video_codec_all=!current_video_codec! - !current_video_codec_tag! - !current_video_codec_profile! - !current_video_codec_level! - !current_video_codec_tier!"
-                    set "current_audio_codec_all=!current_audio_codec! - !current_audio_codec_profile!"
-                    echo 第 !temp_count! 个视频，分辨率：!current_video_width!x!current_video_height!，视频编码：!current_video_codec_all!，帧率：!current_video_fps!，音频编码：!current_audio_codec_all!，音频采样率：!current_audio_sample_rate!，视频时间基准：!current_video_time_base!
-                    REM 对比参数
-                    set "video_consistent=1"
-                    set "audio_consistent=1"
-                    if not "!current_video_width!"=="!first_video_width!" (
-                        set "video_consistent=0"
-                        echo 警告：文件 !file_name! 的视频分辨率宽度 !current_video_width! 与第一个视频的视频分辨率宽度 !first_video_width! 不一致
-                    )
-                    if not "!current_video_height!"=="!first_video_height!" (
-                        set "video_consistent=0"
-                        echo 警告：文件 !file_name! 的视频分辨率高度 !current_video_height! 与第一个视频的视频分辨率高度 !first_video_height! 不一致
-                    )
-                    if not "!current_video_codec_all!"=="!first_video_codec_all!" (
-                        set "video_consistent=0"
-                        echo 警告：文件 !file_name! 的视频编码 !current_video_codec_all! 与第一个视频的视频编码 !first_video_codec_all! 不一致
-                    )
-                    if not "!current_video_fps!"=="!first_video_fps!" (
-                        set "video_consistent=0"
-                        echo 警告：文件 !file_name! 的帧率 !current_video_fps! 与第一个视频的帧率 !first_video_fps! 不一致
-                    )
-                    if not "!current_video_time_base!"=="!first_video_time_base!" (
-                        set "video_consistent=0"
-                        echo 警告：文件 !file_name! 的视频时间基准 !current_video_time_base! 与第一个视频的视频时间基准 !first_video_time_base! 不一致
-                    )
-                    if not "!current_audio_codec_all!"=="!first_audio_codec_all!" (
-                        set "audio_consistent=0"
-                        echo 警告：文件 !file_name! 的音频编码 !current_audio_codec_all! 与第一个视频的音频编码 !first_audio_codec_all! 不一致
-                    )
-                    if not "!current_audio_sample_rate!"=="!first_audio_sample_rate!" (
-                        set "audio_consistent=0"
-                        echo 警告：文件 !file_name! 的音频采样率 !current_audio_sample_rate! 与第一个视频的音频采样率 !first_audio_sample_rate! 不一致
-                    )
-                    echo 视频信息对比完成
-
-                    REM 从 "1/1000" 中提取分母 "1000" 作为 timescale；格式异常时回退原值
-                    for /f "tokens=2 delims=/" %%t in ("!first_video_time_base!") do set "target_timebase=%%t"
-                    if "!target_timebase!"=="" set "target_timebase=!first_video_time_base!"
-                    if not "!video_consistent!"=="1" (
-                        echo 重新编码视频："!file_path!" - "!file_path:~0,-4!_!suffix_safe!.mp4"
-                        if not "!audio_consistent!"=="1" (
-                            if not exist "!file_path:~0,-4!_!suffix_safe!.mp4" (
-                                "!ffmpeg_path!" -i "!file_path!" ^
-                                    -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
-                                    -video_track_timescale "!target_timebase!" ^
-                                    -c:v !target_video_encoder! -r "!first_video_fps!" ^
-                                    -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
-                                    -map_metadata -1 -threads 1 "!file_path:~0,-4!_!suffix_safe!.mp4"
-                            )
-                        ) else (
-                            if not exist "!file_path:~0,-4!_!suffix_safe!.mp4" (
-                                "!ffmpeg_path!" -i "!file_path!" ^
-                                    -vf "scale=!first_video_width!:!first_video_height!:force_original_aspect_ratio=increase,crop=!first_video_width!:!first_video_height!" ^
-                                    -video_track_timescale "!target_timebase!" ^
-                                    -c:v !target_video_encoder! -r "!first_video_fps!" ^
-                                    -c:a copy ^
-                                    -map_metadata -1 -threads 1 "!file_path:~0,-4!_!suffix_safe!.mp4"
-                            )
-                        )
-                        echo file '!file_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
-                    ) else if not "!audio_consistent!"=="1" (
-                        echo 重新编码视频："!file_path!" - "!file_path:~0,-4!_!suffix_safe!.mp4"
-                        if not exist "!file_path:~0,-4!_!suffix_safe!.mp4" (
-                            "!ffmpeg_path!" -i "!file_path!" ^
-                                -c:v copy ^
-                                -c:a !target_audio_encoder! -ar "!first_audio_sample_rate!" ^
-                                -map_metadata -1 -threads 1 "!file_path:~0,-4!_!suffix_safe!.mp4"
-                        )
-                        echo file '!file_path:~0,-4!_!suffix_safe!.mp4'>>"!tmp_file_list!"
-                    ) else (
-                        echo file '!file_path!'>>"!tmp_file_list!"
-                    )
-                )
-            )
-        )
-    )
-
-    echo 正在合并视频
-    set "tmp_merged_video=%temp%\MyBatch_%random%_%random%_%random%_%random%.mp4"
-    "!ffmpeg_path!" -y -f concat -safe 0 -i "!tmp_file_list!" -c copy -metadata creation_time="!creation_time!" -movflags +faststart -threads 1 "!tmp_merged_video!"
+        "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+        "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+        "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+        "if ($begin -lt 1 -or $end -lt $begin) {" ^
+        "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+        "    exit 1;" ^
+        "};" ^
+        "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+        "Invoke-Expression $code"
     if !errorlevel! neq 0 (
-        echo.
-        echo 视频合并失败，请检查报错信息
-        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
-        if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
+        echo 错误：视频合并失败，请检查报错信息
         echo.
         pause
         exit /b 1
     )
-
-    if exist "!tmp_merged_video!" (
-        REM 兼容 webp 封面，自动转为 PNG 格式
-        if not exist "!working_dir!\0.png" (
-            if exist "!working_dir!\0.webp" (
-                echo 检测到封面 0.webp，正在转换为 0.png
-                "!ffmpeg_path!" -y -i "!working_dir!\0.webp" -frames:v 1 -update 1 "!working_dir!\0.png"
-            )
-        )
-        if not exist "!working_dir!\00.png" (
-            if exist "!working_dir!\00.webp" (
-                echo 检测到封面 00.webp，正在转换为 00.png
-                "!ffmpeg_path!" -y -i "!working_dir!\00.webp" -frames:v 1 -update 1 "!working_dir!\00.png"
-            )
-        )
-        if not exist "!working_dir!\000.png" (
-            if exist "!working_dir!\000.webp" (
-                echo 检测到封面 000.webp，正在转换为 000.png
-                "!ffmpeg_path!" -y -i "!working_dir!\000.webp" -frames:v 1 -update 1 "!working_dir!\000.png"
-            )
-        )
-        if not exist "!working_dir!\cover.png" (
-            if exist "!working_dir!\cover.webp" (
-                echo 检测到封面 cover.webp，正在转换为 cover.png
-                "!ffmpeg_path!" -y -i "!working_dir!\cover.webp" -frames:v 1 -update 1 "!working_dir!\cover.png"
-            )
-        )
-        if not exist "!working_dir!\封面.png" (
-            if exist "!working_dir!\封面.webp" (
-                echo 检测到封面 封面.webp，正在转换为 封面.png
-                "!ffmpeg_path!" -y -i "!working_dir!\封面.webp" -frames:v 1 -update 1 "!working_dir!\封面.png"
-            )
-        )
-        if not exist "!working_dir!\海报.png" (
-            if exist "!working_dir!\海报.webp" (
-                echo 检测到封面 海报.webp，正在转换为 海报.png
-                "!ffmpeg_path!" -y -i "!working_dir!\海报.webp" -frames:v 1 -update 1 "!working_dir!\海报.png"
-            )
-        )
-
-        REM 查找封面文件，优先使用 PNG 格式，顺序为 0、00、000、cover、封面、海报
-        set "cover_file="
-        if exist "!working_dir!\0.png" (
-            set "cover_file=!working_dir!\0.png"
-        ) else if exist "!working_dir!\0.jpg" (
-            set "cover_file=!working_dir!\0.jpg"
-        ) else if exist "!working_dir!\0.jpeg" (
-            set "cover_file=!working_dir!\0.jpeg"
-        ) else if exist "!working_dir!\00.png" (
-            set "cover_file=!working_dir!\00.png"
-        ) else if exist "!working_dir!\00.jpg" (
-            set "cover_file=!working_dir!\00.jpg"
-        ) else if exist "!working_dir!\00.jpeg" (
-            set "cover_file=!working_dir!\00.jpeg"
-        ) else if exist "!working_dir!\000.png" (
-            set "cover_file=!working_dir!\000.png"
-        ) else if exist "!working_dir!\000.jpg" (
-            set "cover_file=!working_dir!\000.jpg"
-        ) else if exist "!working_dir!\000.jpeg" (
-            set "cover_file=!working_dir!\000.jpeg"
-        ) else if exist "!working_dir!\cover.png" (
-            set "cover_file=!working_dir!\cover.png"
-        ) else if exist "!working_dir!\cover.jpg" (
-            set "cover_file=!working_dir!\cover.jpg"
-        ) else if exist "!working_dir!\cover.jpeg" (
-            set "cover_file=!working_dir!\cover.jpeg"
-        ) else if exist "!working_dir!\封面.png" (
-            set "cover_file=!working_dir!\封面.png"
-        ) else if exist "!working_dir!\封面.jpg" (
-            set "cover_file=!working_dir!\封面.jpg"
-        ) else if exist "!working_dir!\封面.jpeg" (
-            set "cover_file=!working_dir!\封面.jpeg"
-        ) else if exist "!working_dir!\海报.png" (
-            set "cover_file=!working_dir!\海报.png"
-        ) else if exist "!working_dir!\海报.jpg" (
-            set "cover_file=!working_dir!\海报.jpg"
-        ) else if exist "!working_dir!\海报.jpeg" (
-            set "cover_file=!working_dir!\海报.jpeg"
-        )
-
-        REM 没有封面文件时，尝试从 DVD 菜单片段 VTS_XX_0.VOB 的静帧提取，输出为 cover.png
-        if "!cover_file!"=="" (
-            for /l %%t in (1,1,99) do (
-                if "!cover_file!"=="" (
-                    set "vob_menu_index=0%%t"
-                    set "vob_menu_index=!vob_menu_index:~-2!"
-                    if exist "!working_dir!\VTS_!vob_menu_index!_0.VOB" (
-                        echo 正在将菜单片段 VTS_!vob_menu_index!_0.VOB 中的画面提取为封面 cover.png
-                        REM scale=iw*sar:ih 用于把变形宽高比还原为方形像素，避免画面被压扁
-                        "!ffmpeg_path!" -y -i "!working_dir!\VTS_!vob_menu_index!_0.VOB" ^
-                            -map 0:v:0 -frames:v 1 -vf "scale=iw*sar:ih" -update 1 "!working_dir!\cover.png"
-                        if !errorlevel! neq 0 (
-                            echo 菜单片段 VTS_!vob_menu_index!_0.VOB 的画面提取失败
-                            if exist "!working_dir!\cover.png" ( del /f /q "!working_dir!\cover.png" )
-                        ) else if not exist "!working_dir!\cover.png" (
-                            echo 菜单片段 VTS_!vob_menu_index!_0.VOB 中没有可提取的画面
-                        ) else (
-                            set "cover_file=!working_dir!\cover.png"
-                        )
-                    )
-                )
-            )
-        )
-
-        if not "!cover_file!"=="" (
-            for /f "delims=" %%p in ('
-                powershell -NoProfile -Command ^
-                    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                    "& $env:ffprobe_path -v error -select_streams v:0 -show_entries stream=codec_name -of default=noprint_wrappers=1:nokey=1 $env:cover_file 2>$null"
-            ') do (
-                set "cover_file_type=%%p"
-                echo 封面图片编码：[!cover_file_type!]
-            )
-
-            if not "!cover_file_type!"=="png" (
-                if not "!cover_file_type!"=="mjpeg" (
-                    echo 封面图片只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG
-                    "!ffmpeg_path!" -y -i "!cover_file!" -frames:v 1 -update 1 "!cover_file!.png"
-                    if !errorlevel! neq 0 (
-                        echo.
-                        echo 封面图片格式转换失败，请检查报错信息
-                        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
-                        if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
-                        echo.
-                        pause
-                        exit /b 1
-                    )
-                    set "cover_file=!cover_file!.png"
-                )
-            )
-
-            echo 正在添加封面图片 [!cover_file!]
-            "!ffmpeg_path!" -y -i "!tmp_merged_video!" -i "!cover_file!" -map 0 -map 1 -c copy -disposition:v:1 attached_pic -metadata creation_time="!creation_time!" -movflags +faststart -threads 1 "!working_dir!\final.mp4"
-            if !errorlevel! neq 0 (
-                echo.
-                echo 文件 final.mp4 合并失败，请检查报错信息
-                if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
-                if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
-                echo.
-                pause
-                exit /b 1
-            )
-        ) else (
-            echo 封面文件，例如 0.png、00.png、000.png、cover.png、封面.png、海报.png 等，都不存在，不添加封面
-            move /y "!tmp_merged_video!" "!working_dir!\final.mp4"
-            if !errorlevel! neq 0 (
-                echo.
-                echo 错误：文件 final.mp4 移动失败，请检查报错信息
-                if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
-                if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
-                echo.
-                pause
-                exit /b 1
-            )
-        )
-        echo 合并完成，已生成 !working_dir!\final.mp4 文件
-    ) else (
-        echo 合并失败，请检查报错信息
-        if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
-        if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
-        echo.
-        pause
-        exit /b 1
-    )
-
-    if exist "!tmp_file_list!" ( del /f /q "!tmp_file_list!" )
-    if exist "!tmp_merged_video!" ( del /f /q "!tmp_merged_video!" )
 )
 
 
@@ -1211,3 +141,617 @@ if not "!working_dir!" == "" (
 echo.
 pause
 exit /b
+
+
+
+-----BEGIN POWERSHELL CODE-----
+[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
+
+$workingDir = $env:working_dir;
+$ffmpegPath = $env:ffmpeg_path;
+$ffprobePath = $env:ffprobe_path;
+$mediainfoPath = $env:mediainfo_path;
+$creationTime = [System.DateTimeOffset]::Now.ToString('yyyy-MM-ddTHH:mm:ss.fffffffzzz');
+$utf8NoBOM = [System.Text.UTF8Encoding]::new($false);
+$tempDir = [System.IO.Path]::GetTempPath();
+$concatList = [System.IO.Path]::Combine($tempDir, 'MyBatch_' + [System.Guid]::NewGuid().ToString('N') + '.tmp');
+$mergedVideo = [System.IO.Path]::Combine($tempDir, 'MyBatch_' + [System.Guid]::NewGuid().ToString('N') + '.mp4');
+$vobList = [System.IO.Path]::Combine($tempDir, 'MyBatch_' + [System.Guid]::NewGuid().ToString('N') + '.tmp');
+$finalVideo = [System.IO.Path]::Combine($workingDir, 'final.mp4');
+
+function Format-Arg-String([string[]]$ArgList) {
+    $parts = [System.Collections.Generic.List[string]]::new();
+    foreach ($arg in $ArgList) {
+        if ($arg.IndexOf(' ') -ge 0) { $parts.Add('"' + $arg + '"') } else { $parts.Add($arg) }
+    }
+    return ($parts -join ' ');
+}
+
+function Format-Concat-Line([string]$FilePath) {
+    return "file '" + $FilePath.Replace("'", "'\''") + "'";
+}
+
+function Invoke-FFmpeg([string[]]$ArgList) {
+    Write-Host ('> "' + $ffmpegPath + '" -nostdin ' + (Format-Arg-String -ArgList $ArgList));
+    & $ffmpegPath -nostdin @ArgList 2>&1 | ForEach-Object { Write-Host ($_) };
+    return $LASTEXITCODE;
+}
+
+function Get-Tool-Output([string]$ExePath, [string[]]$ArgList) {
+    $startInfo = [System.Diagnostics.ProcessStartInfo]::new();
+    $startInfo.FileName = $ExePath;
+    $startInfo.Arguments = Format-Arg-String -ArgList $ArgList;
+    $startInfo.UseShellExecute = $false;
+    $startInfo.CreateNoWindow = $true;
+    $startInfo.RedirectStandardInput = $true;
+    $startInfo.RedirectStandardOutput = $true;
+    $startInfo.RedirectStandardError = $true;
+    $startInfo.StandardOutputEncoding = [System.Text.Encoding]::UTF8;
+    $startInfo.StandardErrorEncoding = [System.Text.Encoding]::UTF8;
+    $proc = [System.Diagnostics.Process]::Start($startInfo);
+    $proc.StandardInput.Close();
+    $stdoutTask = $proc.StandardOutput.ReadToEndAsync();
+    $stderrTask = $proc.StandardError.ReadToEndAsync();
+    $proc.WaitForExit();
+    $result = [pscustomobject]@{ ExitCode = $proc.ExitCode; Text = $stdoutTask.Result; ErrorText = $stderrTask.Result };
+    $proc.Dispose();
+    return $result;
+}
+
+function Get-Clip-Names([int]$Index, [string]$Extension) {
+    $n = [string]$Index;
+    return [string[]]@(
+        ($n + $Extension),
+        ('0' + $n + $Extension),
+        ('00' + $n + $Extension),
+        ('000' + $n + $Extension),
+        ('第' + $n + '集' + $Extension),
+        ('第0' + $n + '集' + $Extension),
+        ('第00' + $n + '集' + $Extension),
+        ('第000' + $n + '集' + $Extension)
+    );
+}
+
+function Wait-Enter-Key {
+    [void][System.Console]::ReadLine();
+}
+
+function Remove-Temp-Files {
+    foreach ($tempFile in @($concatList, $mergedVideo, $vobList)) {
+        if ([System.IO.File]::Exists($tempFile)) { [System.IO.File]::Delete($tempFile) }
+    }
+}
+
+Add-Type -AssemblyName Microsoft.VisualBasic;
+
+try {
+    $fileNames = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase);
+    foreach ($entry in [System.IO.Directory]::EnumerateFiles($workingDir)) {
+        [void]$fileNames.Add([System.IO.Path]::GetFileName($entry));
+    }
+
+    # mkv / ts 转封装为 mp4
+    foreach ($ext in @('.mkv', '.ts')) {
+        Write-Host ('正在检查和处理 ' + $ext.Substring(1) + ' 格式的视频');
+        $hasInput = $false;
+        foreach ($name in $fileNames) {
+            if ($name.EndsWith($ext, [System.StringComparison]::OrdinalIgnoreCase)) { $hasInput = $true; break }
+        }
+        if (-not $hasInput) { continue }
+        for ($i = 1; $i -le 9999; $i++) {
+            foreach ($name in (Get-Clip-Names -Index $i -Extension $ext)) {
+                if (-not $fileNames.Contains($name)) { continue; }
+                $mp4Name = [System.IO.Path]::ChangeExtension($name, '.mp4');
+                if (-not $fileNames.Contains($mp4Name)) {
+                    $src = [System.IO.Path]::Combine($workingDir, $name);
+                    $dst = [System.IO.Path]::Combine($workingDir, $mp4Name);
+                    $code = Invoke-FFmpeg -ArgList @('-i', $src, '-c', 'copy', '-map_metadata', '-1', '-threads', '1', $dst);
+                    if ($code -ne 0) {
+                        if ([System.IO.File]::Exists($dst)) { [System.IO.File]::Delete($dst) }
+                        throw ('错误：文件 ' + $name + ' 转换为 mp4 失败，请检查报错信息');
+                    }
+                    [void]$fileNames.Add($mp4Name);
+                }
+                break;
+            }
+        }
+    }
+
+    # DVD 正片 VOB 按标题拼接为 01.mp4、02.mp4 ...
+    Write-Host '正在检查和处理 vob 格式的视频';
+    $unsupportedCodecs = @('cook', 'pcm_dvd', 'pcm_s16be', 'pcm_s16le', 'pcm_u16be', 'pcm_u16le', 'pcm_s24be', 'pcm_s24le', 'pcm_u24be', 'pcm_u24le', 'pcm_s32be', 'pcm_s32le', 'pcm_u32be', 'pcm_u32le');
+    $vobIndex = 0;
+    for ($t = 1; $t -le 99; $t++) {
+        $title = $t.ToString('00');
+        $vobPaths = [System.Collections.Generic.List[string]]::new();
+        for ($p = 1; $p -le 99; $p++) {
+            $vobName = 'VTS_' + $title + '_' + $p + '.VOB';
+            if ($fileNames.Contains($vobName)) { $vobPaths.Add([System.IO.Path]::Combine($workingDir, $vobName)) }
+        }
+        if ($vobPaths.Count -eq 0) { continue; }
+        $vobIndex++;
+        $clipName = $vobIndex.ToString('00') + '.mp4';
+        if ($fileNames.Contains($clipName)) { continue; }
+        Write-Host ('正在拼接 VTS_' + $title + '_*.VOB 为 ' + $clipName);
+        $vobLines = [System.Collections.Generic.List[string]]::new();
+        foreach ($vobPath in $vobPaths) { $vobLines.Add((Format-Concat-Line -FilePath $vobPath)) }
+        [System.IO.File]::WriteAllLines($vobList, [string[]]$vobLines.ToArray(), $utf8NoBOM);
+        $audioProbe = Get-Tool-Output -ExePath $ffprobePath -ArgList @('-v', 'error', '-select_streams', 'a', '-show_entries', 'stream=codec_name', '-of', 'default=noprint_wrappers=1:nokey=1', $vobPaths[0]);
+        $audioLines = @($audioProbe.Text.Split([char[]]@([char]10, [char]13), [System.StringSplitOptions]::RemoveEmptyEntries) | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' });
+        $vobAudioCodec = '';
+        if ($audioLines.Count -gt 0) { $vobAudioCodec = $audioLines[$audioLines.Count - 1] }
+        $vobOut = [System.IO.Path]::Combine($workingDir, $clipName);
+        $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
+        $ffmpegArgs.AddRange([string[]]@('-y', '-fflags', '+genpts', '-f', 'concat', '-safe', '0', '-i', $vobList));
+        if ($unsupportedCodecs -contains $vobAudioCodec.ToLowerInvariant()) {
+            Write-Host ('检测到不支持的音频编码：' + $vobAudioCodec + '，正在转换为 FLAC 格式');
+            $ffmpegArgs.AddRange([string[]]@('-c:v', 'copy', '-c:a', 'flac', '-compression_level', '8', '-map_metadata', '-1', '-threads', '1', $vobOut));
+        } else {
+            $ffmpegArgs.AddRange([string[]]@('-c', 'copy', '-map_metadata', '-1', '-threads', '1', $vobOut));
+        }
+        $code = Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray();
+        if ($code -ne 0) {
+            if ([System.IO.File]::Exists($vobOut)) { [System.IO.File]::Delete($vobOut) }
+            throw ('错误：拼接 VTS_' + $title + '_*.VOB 失败');
+        }
+        [void]$fileNames.Add($clipName);
+    }
+
+    # 序号重名与缺号检查
+    Write-Host '正在检查文件的序号';
+    $clipNames = [System.Collections.Generic.List[string]]::new();
+    $foundIndexes = [System.Collections.Generic.HashSet[int]]::new();
+    $minIndex = 0;
+    $maxIndex = 0;
+    for ($i = 1; $i -le 9999; $i++) {
+        $matched = [System.Collections.Generic.List[string]]::new();
+        foreach ($name in (Get-Clip-Names -Index $i -Extension '.mp4')) {
+            if ($fileNames.Contains($name)) { $matched.Add($name) }
+        }
+        if ($matched.Count -gt 1) {
+            throw ('错误：序号 ' + $i + ' 存在多个命名方式相同的文件：' + ($matched.ToArray() -join ' ') + '，请只保留其中一个文件');
+        }
+        if ($matched.Count -eq 1) {
+            $clipNames.Add($matched[0]);
+            [void]$foundIndexes.Add($i);
+            if ($minIndex -eq 0) { $minIndex = $i }
+            $maxIndex = $i;
+        }
+    }
+    if ($clipNames.Count -eq 0) {
+        throw '没有找到任何视频文件，搜索范围为 01.mp4 到 9999.mp4';
+    }
+    $missingList = [System.Collections.Generic.List[string]]::new();
+    for ($i = $minIndex; $i -le $maxIndex; $i++) {
+        if (-not $foundIndexes.Contains($i)) { $missingList.Add([string]$i) }
+    }
+    if ($missingList.Count -gt 0) {
+        throw ('错误：视频序号不连续，缺少以下序号：' + ($missingList.ToArray() -join ' ') + '，请补齐缺失的视频文件');
+    }
+
+    # MediaInfo 分批一次取回所有文件的 HEVC Tier
+    $clipPaths = [System.Collections.Generic.List[string]]::new();
+    foreach ($name in $clipNames) { $clipPaths.Add([System.IO.Path]::Combine($workingDir, $name)) }
+    $tierText = '';
+    $batchSize = 40;
+    for ($start = 0; $start -lt $clipPaths.Count; $start += $batchSize) {
+        $endIndex = [System.Math]::Min($start + $batchSize - 1, $clipPaths.Count - 1);
+        $batchArgs = [System.Collections.Generic.List[string]]::new();
+        $batchArgs.Add('--Inform=Video;%Format_Profile%|');
+        for ($k = $start; $k -le $endIndex; $k++) { $batchArgs.Add($clipPaths[$k]) }
+        $tierProbe = Get-Tool-Output -ExePath $mediainfoPath -ArgList $batchArgs.ToArray();
+        $tierText += $tierProbe.Text;
+    }
+    $tierParts = @($tierText.Replace([string][char]13, '').Replace([string][char]10, '').Split([char]124));
+
+    # 每文件一次 ffprobe，参数解析后立即逐条打印
+    Write-Host ('正在检查视频内容');
+    $probeList = [System.Collections.Generic.List[object]]::new();
+    $videoFileList = [System.Collections.Generic.List[string]]::new();
+    $clipIndex = 0;
+    $formatGroups = [System.Collections.Generic.Dictionary[string,object]]::new();
+    foreach ($name in $clipNames) {
+        $videoPath = $clipPaths[$clipIndex];
+        $clipIndex++;
+        $probe = Get-Tool-Output -ExePath $ffprobePath -ArgList @('-v', 'error', '-show_streams', '-show_format', '-print_format', 'json', $videoPath);
+        $info = $null;
+        if (-not [string]::IsNullOrWhiteSpace($probe.Text)) {
+            try { $info = $probe.Text | ConvertFrom-Json } catch { $info = $null }
+        }
+        if ($probe.ExitCode -ne 0 -or $null -eq $info -or $null -eq $info.format) {
+            Write-Host '';
+            Write-Host ('文件 "' + $videoPath + '" 已损坏，无法处理，按 Enter 键显示详细解码错误，或者关闭窗口结束运行');
+            Write-Host '';
+            Wait-Enter-Key;
+            if ($probe.ErrorText) { Write-Host $probe.ErrorText }
+            [void](Invoke-FFmpeg -ArgList @('-v', 'error', '-i', $videoPath, '-map', '0', '-f', 'null', '-'));
+            throw ('文件 "' + $videoPath + '" 已损坏，无法处理');
+        }
+        $videoStream = @($info.streams | Where-Object { $_.codec_type -eq 'video' })[0];
+        $audioStream = @($info.streams | Where-Object { $_.codec_type -eq 'audio' })[0];
+        if ($null -eq $videoStream -or $null -eq $audioStream) {
+            throw ('文件 "' + $videoPath + '" 缺少视频流或音频流，无法处理');
+        }
+        $tier = '';
+        if (($clipIndex - 1) -lt $tierParts.Count) { $tier = @($tierParts[$clipIndex - 1] -split '@')[-1] }
+        $clip = [pscustomobject]@{
+            Name = $name;
+            Path = $videoPath;
+            VideoWidth = [string]$videoStream.width;
+            VideoHeight = [string]$videoStream.height;
+            VideoCodec = [string]$videoStream.codec_name;
+            VideoCodecTag = [string]$videoStream.codec_tag_string;
+            VideoCodecProfile = [string]$videoStream.profile;
+            VideoCodecLevel = [string]$videoStream.level;
+            VideoFps = [string]$videoStream.r_frame_rate;
+            VideoTimeBase = [string]$videoStream.time_base;
+            AudioCodec = [string]$audioStream.codec_name;
+            AudioCodecProfile = [string]$audioStream.profile;
+            AudioSampleRate = [string]$audioStream.sample_rate;
+            HasTimeCode = (@($info.streams | Where-Object { $_.codec_tag_string -eq 'tmcd' }).Count -gt 0);
+            CodecTier = $tier;
+            VideoCodecAll = '';
+            AudioCodecAll = '';
+            VideoConsistent = $false;
+            AudioConsistent = $false;
+        };
+        $clip.VideoCodecAll = $clip.VideoCodec + ' ' + $clip.VideoCodecTag + ' ' + $clip.VideoCodecProfile + ' ' + $clip.VideoCodecLevel + ' ' + $clip.CodecTier;
+        $clip.AudioCodecAll = $clip.AudioCodec + ' ' + $clip.AudioCodecProfile;
+        $probeList.Add($clip);
+        $videoFileList.Add((Format-Concat-Line -FilePath $videoPath));
+        Write-Host ('[' + $clipIndex + '/' + $clipNames.Count + ']：' + $name + '，分辨率：' + $clip.VideoWidth + 'x' + $clip.VideoHeight + '，视频编码：' + $clip.VideoCodecAll + ' ' + $clip.VideoFps + '，音频编码：' + $clip.AudioCodecAll + ' ' + $clip.AudioSampleRate + ' ' + $clip.VideoTimeBase);
+        $formatKey = $clip.VideoWidth + 'x' + $clip.VideoHeight + '|' + $clip.VideoCodecAll + '|' + $clip.VideoFps + '|' + $clip.AudioCodecAll + '|' + $clip.AudioSampleRate + '|' + $clip.VideoTimeBase;
+        $formatDescription = '分辨率：' + $clip.VideoWidth + 'x' + $clip.VideoHeight + '，视频编码：' + $clip.VideoCodecAll + ' ' + $clip.VideoFps + '，音频编码：' + $clip.AudioCodecAll + ' ' + $clip.AudioSampleRate + ' ' + $clip.VideoTimeBase;
+        if ($formatGroups.ContainsKey($formatKey)) {
+            $formatGroups[$formatKey].Count++;
+        } else {
+            $pixels = 0;
+            try { $pixels = [int]$clip.VideoWidth * [int]$clip.VideoHeight } catch { }
+            $formatGroups[$formatKey] = [pscustomobject]@{
+                Key = $formatKey;
+                Count = 1;
+                Pixels = $pixels;
+                Description = $formatDescription;
+                Sample = $clip;
+            };
+        }
+    }
+
+    # 按分辨率、数量降序展示所有格式，取第一项作为转码目标
+    Write-Host ('正在统计视频格式');
+    $sortedGroups = @($formatGroups.Values | Sort-Object -Property @{ Expression = { $_.Pixels }; Descending = $true }, @{ Expression = { $_.Count }; Descending = $true }, @{ Expression = { $_.Key }; Descending = $false });
+    Write-Host ('共 ' + $probeList.Count + ' 个视频，' + $sortedGroups.Count + ' 种格式（按分辨率、数量降序，第一项为转码目标）：');
+    foreach ($group in $sortedGroups) {
+        Write-Host ('[' + $group.Count + '/' + $probeList.Count + '] ' + $group.Description);
+    }
+    $targetClip = $sortedGroups[0].Sample;
+
+    # 与目标格式对比，只转码不一致的视频
+    Write-Host ('正在对比视频参数');
+    $needTranscode = 0;
+    foreach ($clip in $probeList) {
+        $videoMatch = $true;
+        $audioMatch = $true;
+        if ($clip.VideoWidth -ne $targetClip.VideoWidth) { $videoMatch = $false }
+        if ($clip.VideoHeight -ne $targetClip.VideoHeight) { $videoMatch = $false }
+        if ($clip.VideoCodecAll -ne $targetClip.VideoCodecAll) { $videoMatch = $false }
+        if ($clip.AudioCodecAll -ne $targetClip.AudioCodecAll) { $audioMatch = $false }
+        if ($clip.VideoFps -ne $targetClip.VideoFps) { $videoMatch = $false }
+        if ($clip.AudioSampleRate -ne $targetClip.AudioSampleRate) { $audioMatch = $false }
+        if ($clip.VideoTimeBase -ne $targetClip.VideoTimeBase) { $videoMatch = $false }
+        $clip.VideoConsistent = $videoMatch;
+        $clip.AudioConsistent = $audioMatch;
+        if (-not ($videoMatch -and $audioMatch)) { $needTranscode++ }
+    }
+    $fileConsistent = ($needTranscode -eq 0);
+    Write-Host ('与目标格式一致：' + ($probeList.Count - $needTranscode) + '/' + $probeList.Count + '，需要转码：' + $needTranscode + '/' + $probeList.Count);
+
+    # 清理 QuickTime Time code 流
+    Write-Host '正在清理 Time code 资源';
+    foreach ($clip in $probeList) {
+        if (-not $clip.HasTimeCode) { continue; }
+        Write-Host '警告：文件包含 Time code 流，需要进行清理';
+        $tmpPath = [System.IO.Path]::Combine($workingDir, [System.IO.Path]::GetFileNameWithoutExtension($clip.Name) + '_tmp.mp4');
+        if (-not [System.IO.File]::Exists($tmpPath)) {
+            $code = Invoke-FFmpeg -ArgList @('-i', $clip.Path, '-c', 'copy', '-map_metadata', '-1', '-threads', '1', $tmpPath);
+            if ($code -ne 0) {
+                if ([System.IO.File]::Exists($tmpPath)) { [System.IO.File]::Delete($tmpPath) }
+                throw ('文件 ' + $clip.Name + ' 的 Time code 清理失败，请检查报错信息');
+            }
+        }
+        [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($clip.Path, 'OnlyErrorDialogs', 'SendToRecycleBin');
+        try {
+            [System.IO.File]::Move($tmpPath, $clip.Path);
+        } catch {
+            if ([System.IO.File]::Exists($tmpPath)) { [System.IO.File]::Delete($tmpPath) }
+            throw ('错误：文件 ' + $clip.Name + ' 替换失败，原文件已移入回收站，请检查报错信息');
+        }
+    }
+
+    # 生成文件列表
+    Write-Host ('正在生成文件列表');
+    [System.IO.File]::WriteAllLines($concatList, [string[]]$videoFileList.ToArray(), $utf8NoBOM);
+
+    # 按目标格式的编码，确定转码参数
+    $targetVideoArgs = [System.Collections.Generic.List[string]]::new();
+    $targetAudioArgs = [System.Collections.Generic.List[string]]::new();
+    $videoCodec = $targetClip.VideoCodec;
+    $videoCodecTag = $targetClip.VideoCodecTag;
+    $videoCodecProfile = $targetClip.VideoCodecProfile;
+    $videoCodecLevel = $targetClip.VideoCodecLevel;
+    $videoCodecTier = $targetClip.CodecTier;
+    $audioCodec = $targetClip.AudioCodec;
+    $audioCodecProfile = $targetClip.AudioCodecProfile;
+
+    if ($videoCodec -ieq 'AV1') {
+        $targetVideoArgs.Add('libaom-av1');
+        if ($videoCodecTag -ieq 'av01') {
+            $targetVideoArgs.AddRange([string[]]@('-tag:v', 'av01'));
+        } else {
+            Write-Host ('警告：未知 AV1 Tag："' + $videoCodecTag + '"，不指定 Tag'); Write-Host ''; Wait-Enter-Key;
+        }
+    } elseif ($videoCodec -ieq 'HEVC') {
+        $targetVideoArgs.Add('libx265');
+        if ($videoCodecTag -ieq 'hev1' -or $videoCodecTag -ieq 'hvc1') {
+            $targetVideoArgs.AddRange([string[]]@('-tag:v', $videoCodecTag));
+        } else {
+            Write-Host ('警告：未知 HEVC Tag："' + $videoCodecTag + '"，不指定 Tag'); Write-Host ''; Wait-Enter-Key;
+        }
+        $hevcProfileMap = @{ 'Main' = 'main'; 'Main 10' = 'main10'; 'Main 12' = 'main12' };
+        if ($hevcProfileMap.ContainsKey($videoCodecProfile)) {
+            $targetVideoArgs.AddRange([string[]]@('-profile:v', $hevcProfileMap[$videoCodecProfile]));
+        } else {
+            Write-Host ('警告：未知 HEVC Profile："' + $videoCodecProfile + '"，不指定 Profile'); Write-Host ''; Wait-Enter-Key;
+        }
+        $hevcLevelMap = @{ '30' = '10'; '60' = '20'; '63' = '21'; '90' = '30'; '93' = '31'; '120' = '40'; '123' = '41'; '150' = '50'; '153' = '51'; '156' = '52'; '180' = '60'; '183' = '61'; '186' = '62' };
+        if ($hevcLevelMap.ContainsKey($videoCodecLevel)) {
+            $x265Level = $hevcLevelMap[$videoCodecLevel];
+            if ($videoCodecTier -ieq 'Main') {
+                $targetVideoArgs.AddRange([string[]]@('-x265-params', ('level-idc=' + $x265Level + ':high-tier=0')));
+            } elseif ($videoCodecTier -ieq 'High') {
+                $targetVideoArgs.AddRange([string[]]@('-x265-params', ('level-idc=' + $x265Level + ':high-tier=1')));
+            } else {
+                Write-Host ('警告：未知 HEVC Tier："' + $videoCodecTier + '"，不指定 Tier'); Write-Host ''; Wait-Enter-Key;
+                $targetVideoArgs.AddRange([string[]]@('-x265-params', ('level-idc=' + $x265Level)));
+            }
+        } else {
+            Write-Host ('警告：未知 HEVC Level："' + $videoCodecLevel + '"，不指定 Level'); Write-Host ''; Wait-Enter-Key;
+        }
+    } elseif ($videoCodec -ieq 'H264') {
+        $targetVideoArgs.Add('libx264');
+        if ($videoCodecTag -ieq 'avc1') {
+            $targetVideoArgs.AddRange([string[]]@('-tag:v', 'avc1'));
+        } else {
+            Write-Host ('警告：未知 H264 Tag："' + $videoCodecTag + '"，不指定 Tag'); Write-Host ''; Wait-Enter-Key;
+        }
+        $h264ProfileMap = @{ 'Baseline' = 'baseline'; 'Constrained Baseline' = 'baseline'; 'Main' = 'main'; 'High' = 'high'; 'High 10' = 'high10'; 'High 4:2:2' = 'high422'; 'High 4:4:4' = 'high444' };
+        if ($h264ProfileMap.ContainsKey($videoCodecProfile)) {
+            $targetVideoArgs.AddRange([string[]]@('-profile:v', $h264ProfileMap[$videoCodecProfile]));
+        } else {
+            Write-Host ('警告：未知 H264 Profile："' + $videoCodecProfile + '"，不指定 Profile'); Write-Host ''; Wait-Enter-Key;
+        }
+        $h264LevelMap = @{ '10' = '1.0'; '11' = '1.1'; '12' = '1.2'; '13' = '1.3'; '20' = '2.0'; '21' = '2.1'; '22' = '2.2'; '30' = '3.0'; '31' = '3.1'; '32' = '3.2'; '40' = '4.0'; '41' = '4.1'; '42' = '4.2'; '50' = '5.0'; '51' = '5.1'; '52' = '5.2'; '60' = '6.0'; '61' = '6.1'; '62' = '6.2' };
+        if ($h264LevelMap.ContainsKey($videoCodecLevel)) {
+            $targetVideoArgs.AddRange([string[]]@('-level:v', $h264LevelMap[$videoCodecLevel]));
+        } else {
+            Write-Host ('警告：未知 H264 Level："' + $videoCodecLevel + '"，不指定 Level'); Write-Host ''; Wait-Enter-Key;
+        }
+    } elseif ($videoCodec -ieq 'MPEG4') {
+        $targetVideoArgs.Add('mpeg4');
+        if ($videoCodecTag -ieq 'mp4v') {
+            $targetVideoArgs.AddRange([string[]]@('-tag:v', 'mp4v'));
+        } else {
+            Write-Host ('警告：未知 MPEG4 Tag："' + $videoCodecTag + '"，不指定 Tag'); Write-Host ''; Wait-Enter-Key;
+        }
+        if ($videoCodecProfile -ieq 'Simple Profile') {
+            $targetVideoArgs.AddRange([string[]]@('-profile:v', 'simple'));
+        } else {
+            Write-Host ('警告：未知 MPEG4 Profile："' + $videoCodecProfile + '"，不指定 Profile'); Write-Host ''; Wait-Enter-Key;
+        }
+        if ($videoCodecLevel -eq '3') {
+            $targetVideoArgs.AddRange([string[]]@('-level', '3'));
+        } else {
+            Write-Host ('警告：未知 MPEG4 Level："' + $videoCodecLevel + '"，不指定 Level'); Write-Host ''; Wait-Enter-Key;
+        }
+    } elseif ($videoCodec -ieq 'MPEG2VIDEO') {
+        $targetVideoArgs.Add('mpeg2video');
+        if ($videoCodecProfile -ieq 'Main') {
+            $targetVideoArgs.AddRange([string[]]@('-profile:v', 'main'));
+        } elseif ($videoCodecProfile -ieq 'High') {
+            $targetVideoArgs.AddRange([string[]]@('-profile:v', 'high'));
+        } else {
+            Write-Host ('警告：未知 MPEG2 Profile："' + $videoCodecProfile + '"，不指定 Profile'); Write-Host ''; Wait-Enter-Key;
+        }
+        $mpeg2LevelMap = @{ '10' = 'low'; '8' = 'main'; '6' = 'high1440'; '4' = 'high' };
+        if ($mpeg2LevelMap.ContainsKey($videoCodecLevel)) {
+            $targetVideoArgs.AddRange([string[]]@('-level:v', $mpeg2LevelMap[$videoCodecLevel]));
+        } else {
+            Write-Host ('警告：未知 MPEG2 Level："' + $videoCodecLevel + '"，不指定 Level'); Write-Host ''; Wait-Enter-Key;
+        }
+    } elseif ($videoCodec -ieq 'VP9') {
+        $targetVideoArgs.Add('libvpx-vp9');
+        if ($videoCodecTag -ieq 'vp09') {
+            $targetVideoArgs.AddRange([string[]]@('-tag:v', 'vp09'));
+        } else {
+            Write-Host ('警告：未知 VP9 Tag："' + $videoCodecTag + '"，不指定 Tag'); Write-Host ''; Wait-Enter-Key;
+        }
+    } else {
+        $targetVideoArgs.Add('libx264');
+        Write-Host ('警告：未知视频编码 "' + $videoCodec + '"，使用默认 libx264'); Write-Host ''; Wait-Enter-Key;
+    }
+
+    if ($audioCodec -ieq 'AAC') {
+        if ($audioCodecProfile -ieq 'LC') {
+            $targetAudioArgs.AddRange([string[]]@('aac', '-profile:a', 'aac_low'));
+        } elseif ($audioCodecProfile -ieq 'HE-AAC') {
+            $targetAudioArgs.AddRange([string[]]@('libfdk_aac', '-profile:a', 'aac_he'));
+        } elseif ($audioCodecProfile -ieq 'HE-AACv2') {
+            $targetAudioArgs.AddRange([string[]]@('libfdk_aac', '-profile:a', 'aac_he_v2'));
+        } else {
+            $targetAudioArgs.Add('aac');
+            Write-Host ('警告：未知音频编码 "' + $audioCodec + ' ' + $audioCodecProfile + '"，使用默认 aac'); Write-Host ''; Wait-Enter-Key;
+        }
+    } else {
+        $audioEncoderMap = @{ 'MP3' = 'libmp3lame'; 'AC3' = 'ac3'; 'EAC3' = 'eac3'; 'FLAC' = 'flac'; 'MP2' = 'mp2'; 'OPUS' = 'libopus' };
+        if ($audioEncoderMap.ContainsKey($audioCodec)) {
+            $targetAudioArgs.Add($audioEncoderMap[$audioCodec]);
+        } else {
+            $targetAudioArgs.Add('aac');
+            Write-Host ('警告：未知音频编码 "' + $audioCodec + ' ' + $audioCodecProfile + '"，使用默认 aac'); Write-Host ''; Wait-Enter-Key;
+        }
+    }
+
+    Write-Host '';
+    Write-Host ('目标视频编码参数 ' + ($targetVideoArgs.ToArray() -join ' '));
+    Write-Host ('目标音频编码参数 ' + ($targetAudioArgs.ToArray() -join ' '));
+    Write-Host '';
+
+    # 参数不一致时按缓存的参数转码，不再重复探测
+    if (-not $fileConsistent) {
+        $suffixSafe = ($targetClip.VideoFps + '_' + $targetClip.AudioSampleRate).Replace('/', '_').Replace([string][char]92, '_');
+        $timeBaseParts = @($targetClip.VideoTimeBase -split '/');
+        $targetTimebase = $targetClip.VideoTimeBase;
+        if ($timeBaseParts.Count -gt 1 -and -not [string]::IsNullOrEmpty($timeBaseParts[1])) { $targetTimebase = $timeBaseParts[1] }
+        $videoFileList.Clear();
+        $scaleFilter = 'scale=' + $targetClip.VideoWidth + ':' + $targetClip.VideoHeight + ':force_original_aspect_ratio=increase,crop=' + $targetClip.VideoWidth + ':' + $targetClip.VideoHeight;
+        $needVideoTranscode = @($probeList | Where-Object { -not $_.VideoConsistent }).Count -gt 0;
+
+        if ($videoCodec -ieq 'HEVC' -and $needVideoTranscode) {
+            Write-Host '';
+            Write-Host '存在 H265 视频编码不一致，需要进行全量转码，请选择按 Enter 键开始转码，或者关闭窗口结束运行';
+            Write-Host '';
+            Wait-Enter-Key;
+            Write-Host ('正在转码视频，目标分辨率：' + $targetClip.VideoWidth + 'x' + $targetClip.VideoHeight + '，视频编码：' + $targetClip.VideoCodecAll + ' ' + $targetClip.VideoFps + '，音频编码：' + $targetClip.AudioCodecAll + ' ' + $targetClip.AudioSampleRate + ' ' + $targetClip.VideoTimeBase);
+            foreach ($clip in $probeList) {
+                $transcoded = [System.IO.Path]::Combine($workingDir, [System.IO.Path]::GetFileNameWithoutExtension($clip.Name) + '_h264_' + $suffixSafe + '.mp4');
+                Write-Host ('重新编码视频："' + $clip.Path + '" - "' + $transcoded + '"');
+                if (-not [System.IO.File]::Exists($transcoded)) {
+                    $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
+                    $ffmpegArgs.AddRange([string[]]@('-i', $clip.Path, '-vf', $scaleFilter, '-video_track_timescale', $targetTimebase, '-c:v', 'libx264', '-r', $targetClip.VideoFps, '-c:a'));
+                    $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
+                    $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', '-threads', '1', $transcoded));
+                    [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
+                }
+                $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
+            }
+        } else {
+            Write-Host '';
+            Write-Host '分段视频的参数不一致，请选择按 Enter 键开始转码，或者关闭窗口结束运行';
+            Write-Host '';
+            Wait-Enter-Key;
+            Write-Host ('正在转码视频，目标分辨率：' + $targetClip.VideoWidth + 'x' + $targetClip.VideoHeight + '，视频编码：' + $targetClip.VideoCodecAll + ' ' + $targetClip.VideoFps + '，音频编码：' + $targetClip.AudioCodecAll + ' ' + $targetClip.AudioSampleRate + ' ' + $targetClip.VideoTimeBase);
+            $tempCount = 0;
+            foreach ($clip in $probeList) {
+                $tempCount++;
+                Write-Host ('第 ' + $tempCount + ' 个视频，分辨率：' + $clip.VideoWidth + 'x' + $clip.VideoHeight + '，视频编码：' + $clip.VideoCodecAll + ' ' + $clip.VideoFps + '，音频编码：' + $clip.AudioCodecAll + ' ' + $clip.AudioSampleRate + ' ' + $clip.VideoTimeBase);
+                Write-Host '视频信息对比完成';
+
+                $transcoded = [System.IO.Path]::Combine($workingDir, [System.IO.Path]::GetFileNameWithoutExtension($clip.Name) + '_' + $suffixSafe + '.mp4');
+                if (-not $clip.VideoConsistent) {
+                    Write-Host ('重新编码视频："' + $clip.Path + '" - "' + $transcoded + '"');
+                    if (-not [System.IO.File]::Exists($transcoded)) {
+                        $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
+                        $ffmpegArgs.AddRange([string[]]@('-i', $clip.Path, '-vf', $scaleFilter, '-video_track_timescale', $targetTimebase, '-c:v'));
+                        $ffmpegArgs.AddRange([string[]]$targetVideoArgs.ToArray());
+                        $ffmpegArgs.AddRange([string[]]@('-r', $targetClip.VideoFps, '-c:a'));
+                        if ($clip.AudioConsistent) {
+                            $ffmpegArgs.Add('copy');
+                        } else {
+                            $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
+                            $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate));
+                        }
+                        $ffmpegArgs.AddRange([string[]]@('-map_metadata', '-1', '-threads', '1', $transcoded));
+                        [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
+                    }
+                    $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
+                } elseif (-not $clip.AudioConsistent) {
+                    Write-Host ('重新编码视频："' + $clip.Path + '" - "' + $transcoded + '"');
+                    if (-not [System.IO.File]::Exists($transcoded)) {
+                        $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
+                        $ffmpegArgs.AddRange([string[]]@('-i', $clip.Path, '-c:v', 'copy', '-c:a'));
+                        $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
+                        $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', '-threads', '1', $transcoded));
+                        [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
+                    }
+                    $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
+                } else {
+                    $videoFileList.Add((Format-Concat-Line -FilePath $clip.Path));
+                }
+            }
+        }
+        [System.IO.File]::WriteAllLines($concatList, [string[]]$videoFileList.ToArray(), $utf8NoBOM);
+    }
+
+    Write-Host '正在合并视频';
+    $code = Invoke-FFmpeg -ArgList @('-y', '-f', 'concat', '-safe', '0', '-i', $concatList, '-c', 'copy', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', '-threads', '1', $mergedVideo);
+    if ($code -ne 0) { throw '视频合并失败，请检查报错信息' }
+    if (-not [System.IO.File]::Exists($mergedVideo)) { throw '合并失败，请检查报错信息' }
+
+    # 兼容 webp 封面
+    foreach ($base in @('0', '00', '000', 'cover', '封面', '海报')) {
+        $webpName = $base + '.webp';
+        $pngName = $base + '.png';
+        if (-not $fileNames.Contains($pngName) -and $fileNames.Contains($webpName)) {
+            Write-Host ('检测到封面 ' + $webpName + '，正在转换为 ' + $pngName);
+            $code = Invoke-FFmpeg -ArgList @('-y', '-i', [System.IO.Path]::Combine($workingDir, $webpName), '-frames:v', '1', '-update', '1', [System.IO.Path]::Combine($workingDir, $pngName));
+            if ($code -eq 0) { [void]$fileNames.Add($pngName) }
+        }
+    }
+
+    # 查找封面，优先 PNG
+    $coverFile = '';
+    foreach ($candidate in @('0.png', '0.jpg', '0.jpeg', '00.png', '00.jpg', '00.jpeg', '000.png', '000.jpg', '000.jpeg', 'cover.png', 'cover.jpg', 'cover.jpeg', '封面.png', '封面.jpg', '封面.jpeg', '海报.png', '海报.jpg', '海报.jpeg')) {
+        if ($fileNames.Contains($candidate)) { $coverFile = [System.IO.Path]::Combine($workingDir, $candidate); break }
+    }
+
+    # 无封面时从 DVD 菜单片段提取
+    if ($coverFile -eq '') {
+        for ($t = 1; $t -le 99; $t++) {
+            $menuName = 'VTS_' + $t.ToString('00') + '_0.VOB';
+            if (-not $fileNames.Contains($menuName)) { continue; }
+            Write-Host ('正在将菜单片段 ' + $menuName + ' 中的画面提取为封面 cover.png');
+            $coverPng = [System.IO.Path]::Combine($workingDir, 'cover.png');
+            $code = Invoke-FFmpeg -ArgList @('-y', '-i', [System.IO.Path]::Combine($workingDir, $menuName), '-map', '0:v:0', '-frames:v', '1', '-vf', 'scale=iw*sar:ih', '-update', '1', $coverPng);
+            if ($code -ne 0) {
+                Write-Host ('菜单片段 ' + $menuName + ' 的画面提取失败');
+                if ([System.IO.File]::Exists($coverPng)) { [System.IO.File]::Delete($coverPng) }
+            } elseif (-not [System.IO.File]::Exists($coverPng)) {
+                Write-Host ('菜单片段 ' + $menuName + ' 中没有可提取的画面');
+            } else {
+                $coverFile = $coverPng;
+                break;
+            }
+        }
+    }
+
+    if ($coverFile -ne '') {
+        $coverProbe = Get-Tool-Output -ExePath $ffprobePath -ArgList @('-v', 'error', '-select_streams', 'v:0', '-show_entries', 'stream=codec_name', '-of', 'default=noprint_wrappers=1:nokey=1', $coverFile);
+        $coverType = $coverProbe.Text.Trim();
+        Write-Host ('封面图片编码：[' + $coverType + ']');
+        if ($coverType -ne 'png' -and $coverType -ne 'mjpeg') {
+            Write-Host '封面图片只支持 PNG 和 JPG 格式，其他格式则需要转换为 PNG';
+            $code = Invoke-FFmpeg -ArgList @('-y', '-i', $coverFile, '-frames:v', '1', '-update', '1', ($coverFile + '.png'));
+            if ($code -ne 0) { throw '封面图片格式转换失败，请检查报错信息' }
+            $coverFile = $coverFile + '.png';
+        }
+        Write-Host ('正在添加封面图片 [' + $coverFile + ']');
+        $code = Invoke-FFmpeg -ArgList @('-y', '-i', $mergedVideo, '-i', $coverFile, '-map', '0', '-map', '1', '-c', 'copy', '-disposition:v:1', 'attached_pic', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', '-threads', '1', $finalVideo);
+        if ($code -ne 0) { throw '文件 final.mp4 合并失败，请检查报错信息' }
+    } else {
+        Write-Host '封面文件，例如 0.png、00.png、000.png、cover.png、封面.png、海报.png 等，都不存在，不添加封面';
+        if ([System.IO.File]::Exists($finalVideo)) { [System.IO.File]::Delete($finalVideo) }
+        try {
+            [System.IO.File]::Move($mergedVideo, $finalVideo);
+        } catch {
+            [System.IO.File]::Copy($mergedVideo, $finalVideo);
+        }
+    }
+    Write-Host ('合并完成，已生成 ' + $finalVideo + ' 文件');
+} catch {
+    Write-Host ('错误：' + ($_.Exception.Message -replace '^错误：', '')) -ForegroundColor Red;
+    Remove-Temp-Files;
+    exit 1;
+}
+
+Remove-Temp-Files;
+-----END POWERSHELL CODE-----
