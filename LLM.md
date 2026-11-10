@@ -741,3 +741,9 @@ set "temp_dir=%temp%\MyBatch\cache\!file_size!\!file_sha512!"
 if not exist "!temp_dir!" ( mkdir "!temp_dir!" )
 set "temp_file=!temp_dir!\!file_name!"
 ```
+
+### FFmpeg 参数推荐
+
+不建议使用 `-hide_banner` 隐藏版本版权编译信息横幅  
+不建议使用 `-nostdin` 禁止从标准输入读取输入  
+不建议使用 `-nostats` 禁止输出统计信息  

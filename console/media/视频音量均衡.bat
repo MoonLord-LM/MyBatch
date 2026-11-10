@@ -117,7 +117,7 @@ if "!param1!" == "" (
                     for /f "delims=" %%m in ('
                         powershell -NoProfile -Command ^
                             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                            "$log = & $env:ffmpeg_path -hide_banner -nostdin -nostats -i $env:video_file -map 0:a:0 -af ('loudnorm=' + $env:loudnorm_base + ':print_format=json') -f null - 2>&1 | Out-String;" ^
+                            "$log = & $env:ffmpeg_path -i $env:video_file -map 0:a:0 -af ('loudnorm=' + $env:loudnorm_base + ':print_format=json') -f null - 2>&1 | Out-String;" ^
                             "$matched = [regex]::Match($log, '\{[^}]*\}');" ^
                             "if ($matched.Success) { $stats = $matched.Value | ConvertFrom-Json;" ^
                             "Write-Output ('measured_I={0}:measured_TP={1}:measured_LRA={2}:measured_thresh={3}:offset={4}:linear=true' -f $stats.input_i, $stats.input_tp, $stats.input_lra, $stats.input_thresh, $stats.target_offset); }"
@@ -201,7 +201,7 @@ if not "!working_dir!" == "" (
                     for /f "delims=" %%m in ('
                         powershell -NoProfile -Command ^
                             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                            "$log = & $env:ffmpeg_path -hide_banner -nostdin -nostats -i $env:video_file -map 0:a:0 -af ('loudnorm=' + $env:loudnorm_base + ':print_format=json') -f null - 2>&1 | Out-String;" ^
+                            "$log = & $env:ffmpeg_path -i $env:video_file -map 0:a:0 -af ('loudnorm=' + $env:loudnorm_base + ':print_format=json') -f null - 2>&1 | Out-String;" ^
                             "$matched = [regex]::Match($log, '\{[^}]*\}');" ^
                             "if ($matched.Success) { $stats = $matched.Value | ConvertFrom-Json;" ^
                             "Write-Output ('measured_I={0}:measured_TP={1}:measured_LRA={2}:measured_thresh={3}:offset={4}:linear=true' -f $stats.input_i, $stats.input_tp, $stats.input_lra, $stats.input_thresh, $stats.target_offset); }"

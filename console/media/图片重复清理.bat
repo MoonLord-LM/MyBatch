@@ -331,7 +331,7 @@ for ($k = 0; $k -lt $pathList.Count; $k++) {
     Write-Host ('"' + $p + '"');
     $psi = New-Object System.Diagnostics.ProcessStartInfo;
     $psi.FileName = $ffmpegPath;
-    $psi.Arguments = '-nostdin -v error -y -i "' + $p + '" -vf "format=rgb24,scale=' + $gridSize + ':' + $gridSize + ':flags=area" -pix_fmt rgb24 -f rawvideo -frames:v 1 -';
+    $psi.Arguments = '-v error -y -i "' + $p + '" -vf "format=rgb24,scale=' + $gridSize + ':' + $gridSize + ':flags=area" -pix_fmt rgb24 -f rawvideo -frames:v 1 -';
     $psi.UseShellExecute = $false;
     $psi.CreateNoWindow = $true;
     $psi.RedirectStandardOutput = $true;

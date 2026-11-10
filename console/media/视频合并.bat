@@ -169,8 +169,8 @@ function Format-Concat-Line([string]$FilePath) {
 }
 
 function Invoke-FFmpeg([string[]]$ArgList) {
-    Write-Host ('> "' + $ffmpegPath + '" -nostdin ' + (Format-Arg-String -ArgList $ArgList));
-    & $ffmpegPath -nostdin @ArgList 2>&1 | ForEach-Object { Write-Host ($_) };
+    Write-Host ('> "' + $ffmpegPath + '" ' + (Format-Arg-String -ArgList $ArgList));
+    & $ffmpegPath @ArgList 2>&1 | ForEach-Object { Write-Host ($_) };
     return $LASTEXITCODE;
 }
 
