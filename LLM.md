@@ -397,6 +397,14 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "这里是 PowerShell 脚本
 调用 PowerShell 的 Invoke-WebRequest 方法时，屏幕可能会出现闪烁和文字错乱  
 需要在前面添加 `$ProgressPreference='SilentlyContinue';` 代码，来关闭进度条显示  
 
+## 调用 PowerShell 输出带颜色的文字
+
+普通的、不重要的、可忽略的输出信息，或者大量重复打印的信息，不需要带颜色  
+建议把 `-ForegroundColor Cyan` 只用于开头位置显示脚本名称的颜色  
+建议把 `-ForegroundColor Green` 只用于显示少量的正向提示信息  
+建议把 `-ForegroundColor Red` 只用于显示少量的负向提示信息  
+建议尽量不要使用 `-ForegroundColor Yellow` 等其它颜色  
+
 ## 内嵌 PowerShell 大段代码块
 
 如果需要执行大段的复杂的 PowerShell 代码，建议把代码内嵌到 bat 文件末尾，用固定标记分隔  
