@@ -75,7 +75,7 @@ if "!param1!" == "" (
                 echo 已存在："!output_file!"，跳过
             ) else (
                 echo 正在转换："!param1!"
-                "!ffmpeg_path!" -i "!param1!" -map 0 -c:a !aac_encoder! -b:a !aac_bitrate! !aac_extra! -c:v copy "!output_file!"
+                "!ffmpeg_path!" -i "!param1!" -map 0 -c:a !aac_encoder! -b:a !aac_bitrate! !aac_extra! -c:v copy -movflags +faststart "!output_file!"
                 if !errorlevel! neq 0 (
                     if exist "!output_file!" ( del /f /q "!output_file!" )
                     echo 转换失败
@@ -119,7 +119,7 @@ if not "!working_dir!" == "" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在转换："!audio_file!"
-            "!ffmpeg_path!" -i "!audio_file!" -map 0 -c:a !aac_encoder! -b:a !aac_bitrate! !aac_extra! -c:v copy "!output_file!"
+            "!ffmpeg_path!" -i "!audio_file!" -map 0 -c:a !aac_encoder! -b:a !aac_bitrate! !aac_extra! -c:v copy -movflags +faststart "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "convert_failed+=1">>"!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )

@@ -98,11 +98,11 @@ if "!param1!" == "" (
             echo 无音频
         ) else (
             set "audio_ext=m4a"
-            set "audio_enc=-c:a aac -b:a 320k"
+            set "audio_enc=-c:a aac -b:a 320k -movflags +faststart"
             echo 音频编码：!audio_codec!
-            if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
-            if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
-            if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+            if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy -movflags +faststart" )
+            if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy -movflags +faststart" )
+            if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy -movflags +faststart" )
             if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_enc=-c:a copy" )
             if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_enc=-c:a copy" )
             if /i "!audio_codec!"=="pcm_dvd" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
@@ -175,11 +175,11 @@ if not "!working_dir!" == "" (
             echo 无音频
         ) else (
             set "audio_ext=m4a"
-            set "audio_enc=-c:a aac -b:a 320k"
+            set "audio_enc=-c:a aac -b:a 320k -movflags +faststart"
             echo 音频编码：!audio_codec!
-            if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
-            if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
-            if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy" )
+            if /i "!audio_codec!"=="aac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy -movflags +faststart" )
+            if /i "!audio_codec!"=="eac3" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy -movflags +faststart" )
+            if /i "!audio_codec!"=="alac" ( set "audio_ext=m4a" & set "audio_enc=-c:a copy -movflags +faststart" )
             if /i "!audio_codec!"=="mp3" ( set "audio_ext=mp3" & set "audio_enc=-c:a copy" )
             if /i "!audio_codec!"=="flac" ( set "audio_ext=flac" & set "audio_enc=-c:a copy" )
             if /i "!audio_codec!"=="pcm_dvd" ( set "audio_ext=flac" & set "audio_enc=-c:a flac -compression_level 8" )
