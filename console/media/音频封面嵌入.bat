@@ -12,7 +12,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '将同名的图片文件、cover.png 或 cover.jpg，设置为音频的封面' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的音频文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个音频文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 flac mp3' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 flac m4a mp3' -ForegroundColor Green"
 echo.
 
 
@@ -127,10 +127,10 @@ if "!param1!" == "" (
                 ) else (
                     set "cover_enc=mjpeg"
                 )
-                if /i "!file_ext!"==".flac" (
-                    "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
-                ) else (
+                if /i "!file_ext!"==".mp3" (
                     "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic "!temp_audio_file!"
+                ) else (
+                    "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
@@ -160,7 +160,7 @@ if not "!working_dir!" == "" (
     set /a "no_cover_file=0"
     set /a "set_failed=0"
     set "file_path=!working_dir!"
-    set "ext_filter=\.(flac|mp3)$"
+    set "ext_filter=\.(flac|m4a|mp3)$"
     for /f "delims=" %%f in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
@@ -216,10 +216,10 @@ if not "!working_dir!" == "" (
                 ) else (
                     set "cover_enc=mjpeg"
                 )
-                if /i "!file_ext!"==".flac" (
-                    "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
-                ) else (
+                if /i "!file_ext!"==".mp3" (
                     "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic "!temp_audio_file!"
+                ) else (
+                    "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
                     echo set /a "set_failed+=1">>"!temp_set!"
