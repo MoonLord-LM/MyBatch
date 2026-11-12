@@ -140,17 +140,6 @@ for /f "usebackq tokens=1* delims=|" %%i in ("!tmp_list1!") do (
                 if exist "!file1!" (
                     if exist "!file2!" (
                         fc /b "!file1!" "!file2!" > nul
-                        if !errorlevel! equ -1 (
-                            echo 错误：文件对比失败，请检查路径是否正确
-                            echo 路径 1："!file1!"
-                            echo 路径 2："!file2!"
-                            echo.
-                            if exist "!temp_set!" ( del /f /q "!temp_set!" )
-                            if exist "!tmp_list1!" ( del /f /q "!tmp_list1!" )
-                            if exist "!tmp_list2!" ( del /f /q "!tmp_list2!" )
-                            pause
-                            exit /b 1
-                        )
                         if !errorlevel! equ 0 (
                             echo 准备删除："!file1!"
                             echo 重复文件："!file2!"
@@ -164,6 +153,18 @@ for /f "usebackq tokens=1* delims=|" %%i in ("!tmp_list1!") do (
                                 echo 已删除到回收站
                                 echo set /a "deleted+=1">>"!temp_set!"
                             )
+                        ) else if !errorlevel! equ 1 (
+                            REM 文件内容不同，不是重复文件，跳过
+                        ) else (
+                            echo 错误：文件对比失败，请检查路径是否正确
+                            echo 路径 1："!file1!"
+                            echo 路径 2："!file2!"
+                            echo.
+                            if exist "!temp_set!" ( del /f /q "!temp_set!" )
+                            if exist "!tmp_list1!" ( del /f /q "!tmp_list1!" )
+                            if exist "!tmp_list2!" ( del /f /q "!tmp_list2!" )
+                            pause
+                            exit /b 1
                         )
                     )
                 )

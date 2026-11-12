@@ -127,36 +127,27 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     "git.exe" -C "!repo_dir!" reflog expire --expire=now --all
     if !errorlevel! neq 0 (
         echo 错误：回收 reflog 失败
-        echo set /a "failed+=1">>"!temp_set!"
-        echo set /a "total+=1">>"!temp_set!"
         echo.
-        endlocal
-        endlocal
-        continue
+        pause
+        exit /b 1
     )
 
     echo 执行垃圾回收
     "git.exe" -C "!repo_dir!" gc --prune=now --aggressive
     if !errorlevel! neq 0 (
         echo 错误：压缩并清理对象失败
-        echo set /a "failed+=1">>"!temp_set!"
-        echo set /a "total+=1">>"!temp_set!"
         echo.
-        endlocal
-        endlocal
-        continue
+        pause
+        exit /b 1
     )
 
     echo 执行重新打包
     "git.exe" -C "!repo_dir!" repack -ad --depth=250 --window=250
     if !errorlevel! neq 0 (
         echo 错误：合并打包对象失败
-        echo set /a "failed+=1">>"!temp_set!"
-        echo set /a "total+=1">>"!temp_set!"
         echo.
-        endlocal
-        endlocal
-        continue
+        pause
+        exit /b 1
     )
 
     set "after_size="
