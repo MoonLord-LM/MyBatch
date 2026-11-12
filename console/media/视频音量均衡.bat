@@ -129,7 +129,9 @@ if "!param1!" == "" (
                         echo 音量分析失败
                     ) else (
                         echo 正在均衡为："!output_file!"
-                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy -c:a flac -compression_level 8 "!output_file!"
+                        set "faststart_args="
+                        for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy -c:a flac -compression_level 8 !faststart_args! "!output_file!"
                         if !errorlevel! neq 0 (
                             if exist "!output_file!" ( del /f /q "!output_file!" )
                             echo 均衡失败
@@ -214,7 +216,9 @@ if not "!working_dir!" == "" (
                         echo 音量分析失败
                     ) else (
                         echo 正在均衡为："!output_file!"
-                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy -c:a flac -compression_level 8 "!output_file!"
+                        set "faststart_args="
+                        for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                        "!ffmpeg_path!" -i "!video_file!" -af "loudnorm=!loudnorm_base!:!loudnorm_measured!" -c:v copy -c:a flac -compression_level 8 !faststart_args! "!output_file!"
                         if !errorlevel! neq 0 (
                             echo set /a "balance_failed+=1">>"!temp_set!"
                             if exist "!output_file!" ( del /f /q "!output_file!" )

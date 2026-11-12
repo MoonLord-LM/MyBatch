@@ -165,7 +165,7 @@ set "end_time=!param3!"
                 echo 已存在同名 mp4 文件 "!new_file!"，优先使用该格式的文件处理
             ) else (
                 echo 检测到 ts 格式，先转为同名 mp4："!new_file!"
-                "!ffmpeg_path!" -y -i "!video_file!" -c copy "!new_file!" >nul 2>&1
+                "!ffmpeg_path!" -y -i "!video_file!" -c copy -movflags +faststart "!new_file!" >nul 2>&1
                 if !errorlevel! neq 0 (
                     echo.
                     echo ts 转 mp4 失败，跳过

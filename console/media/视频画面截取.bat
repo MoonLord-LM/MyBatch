@@ -125,7 +125,7 @@ set "screenshot_time=!param2!"
         if /i "!file_ext!"==".ts" (
             set "work_file=!file_dir!!base_name!.mp4"
             echo 检测到 ts 格式，先转为同名 mp4："!work_file!"
-            "!ffmpeg_path!" -y -i "!video_file!" -c copy "!work_file!" >nul 2>&1
+            "!ffmpeg_path!" -y -i "!video_file!" -c copy -movflags +faststart "!work_file!" >nul 2>&1
             if !errorlevel! neq 0 (
                 echo.
                 echo ts 转 mp4 失败，跳过

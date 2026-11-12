@@ -103,7 +103,9 @@ if "!param1!" == "" (
             echo 找到封面，正在移除
             set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
 
-            "!ffmpeg_path!" -y -i "!param1!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy "!temp_audio_file!"
+            set "faststart_args="
+            for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+            "!ffmpeg_path!" -y -i "!param1!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy !faststart_args! "!temp_audio_file!"
             if !errorlevel! neq 0 (
                 if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                 echo 移除失败
@@ -160,7 +162,9 @@ if not "!working_dir!" == "" (
             echo 找到封面，正在移除
             set "temp_audio_file=!file_dir!!base_name!_temp!file_ext!"
 
-            "!ffmpeg_path!" -y -i "!audio_file!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy "!temp_audio_file!"
+            set "faststart_args="
+            for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+            "!ffmpeg_path!" -y -i "!audio_file!" -map 0:a? -map 0:v? -map 0:s? -map -0:v:disp:attached_pic -c copy !faststart_args! "!temp_audio_file!"
             if !errorlevel! neq 0 (
                 echo set /a "remove_failed+=1">>"!temp_set!"
                 if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )

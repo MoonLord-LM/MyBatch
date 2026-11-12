@@ -180,7 +180,9 @@ for %%i in ("!video1!") do (
     )
 
     REM 小写 v 匹配所有视频流（含封面），此处保留第 1 个文件的全部画面和封面
-    "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:a -map 0:v? -map 0:s? -c copy "!tmp_file!"
+    set "faststart_args="
+    for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+    "!ffmpeg_path!" -y -i "!video1!" -i "!video2!" -map 1:a -map 0:v? -map 0:s? -c copy !faststart_args! "!tmp_file!"
     if !errorlevel! neq 0 (
         if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
         echo.

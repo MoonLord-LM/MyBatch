@@ -128,7 +128,9 @@ if "!param1!" == "" (
                 ) else (
                     set "cover_enc=mjpeg"
                 )
-                "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0 -map 1 -c copy -c:v:1 !cover_enc! -disposition:v:1 attached_pic "!temp_video_file!"
+                set "faststart_args="
+                for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0 -map 1 -c copy -c:v:1 !cover_enc! -disposition:v:1 attached_pic !faststart_args! "!temp_video_file!"
                 if !errorlevel! neq 0 (
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )
                     echo 设置失败
@@ -215,7 +217,9 @@ if not "!working_dir!" == "" (
                 ) else (
                     set "cover_enc=mjpeg"
                 )
-                "!ffmpeg_path!" -y -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -c:v:1 !cover_enc! -disposition:v:1 attached_pic "!temp_video_file!"
+                set "faststart_args="
+                for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                "!ffmpeg_path!" -y -i "!video_file!" -i "!cover_file!" -map 0 -map 1 -c copy -c:v:1 !cover_enc! -disposition:v:1 attached_pic !faststart_args! "!temp_video_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "set_failed+=1">>"!temp_set!"
                     if exist "!temp_video_file!" ( del /f /q "!temp_video_file!" )

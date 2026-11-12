@@ -68,7 +68,9 @@ if "!param1!" == "" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在扩大为："!output_file!"
-            "!ffmpeg_path!" -i "!param1!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            set "faststart_args="
+            for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+            "!ffmpeg_path!" -i "!param1!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 18 -preset slower -c:a copy !faststart_args! "!output_file!"
             if !errorlevel! neq 0 (
                 if exist "!output_file!" ( del /f /q "!output_file!" )
                 echo 扩大失败
@@ -110,7 +112,9 @@ if not "!working_dir!" == "" (
             echo 已存在："!output_file!"，跳过
         ) else (
             echo 正在扩大为："!output_file!"
-            "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 18 -preset slower -c:a copy "!output_file!"
+            set "faststart_args="
+            for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+            "!ffmpeg_path!" -i "!video_file!" -vf "scale=iw*2:ih*2" -c:v libx264 -crf 18 -preset slower -c:a copy !faststart_args! "!output_file!"
             if !errorlevel! neq 0 (
                 echo set /a "resize_failed+=1">>"!temp_set!"
                 if exist "!output_file!" ( del /f /q "!output_file!" )

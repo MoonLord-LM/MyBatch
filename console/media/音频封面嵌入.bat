@@ -128,9 +128,13 @@ if "!param1!" == "" (
                     set "cover_enc=mjpeg"
                 )
                 if /i "!file_ext!"==".mp3" (
-                    "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic "!temp_audio_file!"
+                    set "faststart_args="
+                    for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                    "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic !faststart_args! "!temp_audio_file!"
                 ) else (
-                    "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
+                    set "faststart_args="
+                    for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                    "!ffmpeg_path!" -y -i "!param1!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" !faststart_args! "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
@@ -217,9 +221,13 @@ if not "!working_dir!" == "" (
                     set "cover_enc=mjpeg"
                 )
                 if /i "!file_ext!"==".mp3" (
-                    "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic "!temp_audio_file!"
+                    set "faststart_args="
+                    for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                    "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -id3v2_version 3 -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic !faststart_args! "!temp_audio_file!"
                 ) else (
-                    "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" "!temp_audio_file!"
+                    set "faststart_args="
+                    for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                    "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! -disposition:v:0 attached_pic -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" !faststart_args! "!temp_audio_file!"
                 )
                 if !errorlevel! neq 0 (
                     echo set /a "set_failed+=1">>"!temp_set!"

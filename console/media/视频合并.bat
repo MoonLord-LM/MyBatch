@@ -242,7 +242,7 @@ try {
                 if (-not $fileNames.Contains($mp4Name)) {
                     $src = [System.IO.Path]::Combine($workingDir, $name);
                     $dst = [System.IO.Path]::Combine($workingDir, $mp4Name);
-                    $code = Invoke-FFmpeg -ArgList @('-i', $src, '-c', 'copy', '-map_metadata', '-1', $dst);
+                    $code = Invoke-FFmpeg -ArgList @('-i', $src, '-c', 'copy', '-map_metadata', '-1', '-movflags', '+faststart', $dst);
                     if ($code -ne 0) {
                         if ([System.IO.File]::Exists($dst)) { [System.IO.File]::Delete($dst) }
                         throw ('错误：文件 ' + $name + ' 转换为 mp4 失败，请检查报错信息');
@@ -282,9 +282,9 @@ try {
         $ffmpegArgs.AddRange([string[]]@('-y', '-fflags', '+genpts', '-f', 'concat', '-safe', '0', '-i', $vobList));
         if ($unsupportedCodecs -contains $vobAudioCodec.ToLowerInvariant()) {
             Write-Host ('检测到不支持的音频编码：' + $vobAudioCodec + '，正在转换为 FLAC 格式');
-            $ffmpegArgs.AddRange([string[]]@('-c:v', 'copy', '-c:a', 'flac', '-compression_level', '8', '-map_metadata', '-1', $vobOut));
+            $ffmpegArgs.AddRange([string[]]@('-c:v', 'copy', '-c:a', 'flac', '-compression_level', '8', '-map_metadata', '-1', '-movflags', '+faststart', $vobOut));
         } else {
-            $ffmpegArgs.AddRange([string[]]@('-c', 'copy', '-map_metadata', '-1', $vobOut));
+            $ffmpegArgs.AddRange([string[]]@('-c', 'copy', '-map_metadata', '-1', '-movflags', '+faststart', $vobOut));
         }
         $code = Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray();
         if ($code -ne 0) {
@@ -450,7 +450,7 @@ try {
         Write-Host '警告：文件包含 Time code 流，需要进行清理';
         $tmpPath = [System.IO.Path]::Combine($workingDir, [System.IO.Path]::GetFileNameWithoutExtension($clip.Name) + '_tmp.mp4');
         if (-not [System.IO.File]::Exists($tmpPath)) {
-            $code = Invoke-FFmpeg -ArgList @('-i', $clip.Path, '-c', 'copy', '-map_metadata', '-1', $tmpPath);
+            $code = Invoke-FFmpeg -ArgList @('-i', $clip.Path, '-c', 'copy', '-map_metadata', '-1', '-movflags', '+faststart', $tmpPath);
             if ($code -ne 0) {
                 if ([System.IO.File]::Exists($tmpPath)) { [System.IO.File]::Delete($tmpPath) }
                 throw ('文件 ' + $clip.Name + ' 的 Time code 清理失败，请检查报错信息');
@@ -626,7 +626,7 @@ try {
                     $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
                     $ffmpegArgs.AddRange([string[]]@('-i', $clip.Path, '-vf', $scaleFilter, '-video_track_timescale', $targetTimebase, '-c:v', 'libx264', '-r', $targetClip.VideoFps, '-c:a'));
                     $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
-                    $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', $transcoded));
+                    $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', '-movflags', '+faststart', $transcoded));
                     [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
                 }
                 $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
@@ -657,7 +657,7 @@ try {
                             $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
                             $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate));
                         }
-                        $ffmpegArgs.AddRange([string[]]@('-map_metadata', '-1', $transcoded));
+                        $ffmpegArgs.AddRange([string[]]@('-map_metadata', '-1', '-movflags', '+faststart', $transcoded));
                         [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
                     }
                     $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
@@ -667,7 +667,7 @@ try {
                         $ffmpegArgs = [System.Collections.Generic.List[string]]::new();
                         $ffmpegArgs.AddRange([string[]]@('-i', $clip.Path, '-c:v', 'copy', '-c:a'));
                         $ffmpegArgs.AddRange([string[]]$targetAudioArgs.ToArray());
-                        $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', $transcoded));
+                        $ffmpegArgs.AddRange([string[]]@('-ar', $targetClip.AudioSampleRate, '-map_metadata', '-1', '-movflags', '+faststart', $transcoded));
                         [void](Invoke-FFmpeg -ArgList $ffmpegArgs.ToArray());
                     }
                     $videoFileList.Add((Format-Concat-Line -FilePath $transcoded));
