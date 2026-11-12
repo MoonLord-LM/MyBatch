@@ -747,3 +747,5 @@ set "temp_file=!temp_dir!\!file_name!"
 不建议使用 `-hide_banner` 隐藏版本版权编译信息横幅  
 不建议使用 `-nostdin` 禁止从标准输入读取输入  
 不建议使用 `-nostats` 禁止输出统计信息  
+
+对于 mp4、3gp、m4v、f4v、mov 格式的视频和 m4a 格式的音频，尽量添加 -movflags +faststart 参数，以加快播放速度  
