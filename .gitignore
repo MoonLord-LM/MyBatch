@@ -59,48 +59,62 @@ video2x
 *.tif
 *.TIFF
 *.tiff
+*.AVIF
+*.avif
 *.HEIC
 *.heic
 *.HEIF
 *.heif
-*.AVIF
-*.avif
-*.ICO
-*.ico
 *.JFIF
 *.jfif
+*.PSD
+*.psd
+*.ICO
+*.ico
 
 # Audio files
-*.MP3
-*.mp3
-*.M4A
-*.m4a
 *.FLAC
 *.flac
-*.AAC
-*.aac
-*.OGG
-*.ogg
-*.OPUS
-*.opus
+*.M4A
+*.m4a
+*.MP3
+*.mp3
 *.WAV
 *.wav
+*.OGG
+*.ogg
+*.AAC
+*.aac
+*.OPUS
+*.opus
 *.WMA
 *.wma
 *.ALAC
 *.alac
+*.AC3
+*.ac3
+*.EAC3
+*.eac3
+*.MP2
+*.mp2
 
 # Subtitle files
 *.SRT
 *.srt
 *.ASS
 *.ass
-*.SSA
-*.ssa
-*.VTT
-*.vtt
-*.SUB
-*.sub
+
+# Font files
+*.TTF
+*.ttf
+*.OTF
+*.otf
+*.WOFF2
+*.woff2
+*.WOFF
+*.woff
+*.EOT
+*.eot
 
 # Archive files
 *.7Z
@@ -121,6 +135,33 @@ video2x
 *.tgz
 *.TBZ2
 *.tbz2
+*.ZST
+*.zst
+*.CAB
+*.cab
+*.LZ4
+*.lz4
+*.ISO
+*.iso
+*.001
+
+# Document files
+*.DOC
+*.doc
+*.DOCX
+*.docx
+*.XLS
+*.xls
+*.XLSX
+*.xlsx
+*.PPT
+*.ppt
+*.PPTX
+*.pptx
+*.PDF
+*.pdf
+*.CSV
+*.csv
 
 # Temp Files
 .codebuddy
@@ -136,8 +177,6 @@ temp
 *.json
 *.PID
 *.pid
-*.CSV
-*.csv
 *.DB
 *.db
 *.PEM
