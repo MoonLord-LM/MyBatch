@@ -82,23 +82,21 @@ set "input_file=!param1_path!"
         set "input_file="
         goto input_file
     )
+    set "output_file=!input_file!.enc"
+    if exist "!output_file!" (
+        echo 错误：输出文件已存在："!output_file!"，请重新输入或先移走旧文件
+        echo.
+        set "input_file="
+        goto input_file
+    )
 
 
 
 echo 开始处理："!input_file!"
 echo.
 
-set "output_file=!input_file!.enc"
 echo 输出文件："!output_file!"
 echo.
-
-if exist "!output_file!" (
-    echo 输出文件已存在："!output_file!"，跳过不处理 & REM
-    echo 如果需要重新加密，请先移走旧文件 & REM
-    echo.
-    pause
-    exit /b 1
-)
 
 REM 从自身文件末尾的 -----BEGIN CSHARP CODE----- / -----END CSHARP CODE----- 之间提取 C# 源码，并编译调用
 powershell -NoProfile -Command ^
