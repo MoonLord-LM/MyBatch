@@ -749,3 +749,18 @@ set "temp_file=!temp_dir!\!file_name!"
 不建议使用 `-nostats` 禁止输出统计信息  
 
 对于 mp4、3gp、m4v、f4v、mov 格式的视频和 m4a 格式的音频，尽量添加 -movflags +faststart 参数，以加快播放速度  
+
+### 常见文件格式
+
+在不增加代码复杂度的情况下，对某一类文件处理时，代码应该尽量兼容多一些格式  
+
+视频格式：mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm  
+音频格式：flac m4a mp3 wav ogg aac opus wma alac ac3 eac3 mp2  
+图片格式：jpg jpeg png webp bmp gif tif tiff avif heic heif jfif psd ico  
+字幕格式：srt ass  
+字体格式：ttf otf woff2 woff eot  
+压缩包格式：7z zip rar tar gz bz2 xz tgz tbz2 zst cab lz4 iso exe 001  
+文档格式：doc docx xls xlsx ppt pptx pdf csv  
+网页资源：css js ejs svg svgz eps pict mid midi ps pls swf class jar apk dmg bin  
+
+可参考 CloudFlare 缓存的文件格式：https://developers.cloudflare.com/cache/concepts/default-cache-behavior/  
