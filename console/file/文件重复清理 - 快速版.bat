@@ -170,6 +170,7 @@ for /f "tokens=1* delims=|" %%f in ('
                         echo 路径 1："!file1!"
                         echo 路径 2："!file2!"
                         echo.
+                        if exist "!temp_set!" ( del /f /q "!temp_set!" )
                         pause
                         exit /b 1
                     )

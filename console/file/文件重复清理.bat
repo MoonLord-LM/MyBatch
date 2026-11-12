@@ -145,6 +145,9 @@ for /f "usebackq tokens=1* delims=|" %%i in ("!tmp_list1!") do (
                             echo 路径 1："!file1!"
                             echo 路径 2："!file2!"
                             echo.
+                            if exist "!temp_set!" ( del /f /q "!temp_set!" )
+                            if exist "!tmp_list1!" ( del /f /q "!tmp_list1!" )
+                            if exist "!tmp_list2!" ( del /f /q "!tmp_list2!" )
                             pause
                             exit /b 1
                         )
