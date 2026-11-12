@@ -613,8 +613,8 @@ for /f "delims=" %%a in ('" "!ffprobe_path!" -v error -select_streams a:0 -show_
 代码示例如下：  
 
 ```batch
-set "tmp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!tmp_file!"
-if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
+set "temp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_file!"
+if exist "!temp_file!" ( del /f /q "!temp_file!" )
 ```
 
 ## 获取文件大小
@@ -708,6 +708,22 @@ echo 中文括号可以不转义：（Hello）
 [System.Text.Encoding]::UTF8
 [System.Threading.Thread]::CurrentThread
 [System.Uri]::EscapeUriString('')
+```
+
+## 临时文件和临时文件夹
+
+代码示例如下：  
+
+```batch
+set "temp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_file!"
+REM 这里是使用临时文件 temp_file 的代码
+if exist "!temp_file!" ( del /f /q "!temp_file!" )
+
+set "temp_dir=%temp%\MyBatch_%random%_%random%_%random%_%random%\"
+if exist "!temp_dir!" ( rmdir /s /q "!temp_dir!" )
+if not exist "!temp_dir!" ( mkdir "!temp_dir!" )
+REM 这里是使用临时文件夹 temp_dir 的代码
+if exist "!temp_dir!" ( rmdir /s /q "!temp_dir!" )
 ```
 
 ## 临时文件缓存
