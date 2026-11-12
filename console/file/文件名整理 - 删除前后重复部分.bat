@@ -12,7 +12,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 powershell -NoProfile -Command "Write-Host '删除多个文件名中重复的公共前缀和后缀' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则递归处理其中所有文件；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico ass srt' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif jfif mp4 mkv ts avi wmv flv rmvb rm vob mpg mpeg 3gp m4v f4v mov webm ico ass srt flac m4a mp3 wav ogg aac opus wma alac ac3 eac3 mp2' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '每个子文件夹单独分析处理，并且按后缀名对文件分组，后缀名不区分大小写，每种格式单独分析处理' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '特殊场景：如果公共前缀是以数字结尾，那么保留这部分数字，避免破坏日期等格式' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '特殊场景：公共前缀末尾的 [【(（{ 符号，公共后缀开头的 }）)]】 符号，如果成对出现，则进行消除，否则进行保留，避免破坏格式' -ForegroundColor Green"
@@ -101,7 +101,7 @@ exit /b
 -----BEGIN POWERSHELL CODE-----
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
 $utf8NoBOM = [System.Text.UTF8Encoding]::new($false);
-$extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico|ass|srt)$';
+$extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|jfif|mp4|mkv|ts|avi|wmv|flv|rmvb|rm|vob|mpg|mpeg|3gp|m4v|f4v|mov|webm|ico|ass|srt|flac|m4a|mp3|wav|ogg|aac|opus|wma|alac|ac3|eac3|mp2)$';
 $files = @(Get-ChildItem -LiteralPath $env:file_path -File -Recurse | Where-Object { $_.Extension -imatch $extFilter });
 if ($files.Count -eq 0) { Write-Host '没有找到指定格式的文件'; exit 0 }
 Write-Host ('一共 ' + $files.Count + ' 个文件');

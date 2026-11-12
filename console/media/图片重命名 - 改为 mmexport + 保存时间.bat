@@ -14,7 +14,7 @@ powershell -NoProfile -Command "Write-Host '原文件名必须以 mmexport 开�
 powershell -NoProfile -Command "Write-Host '仅支持 mmexportXXXXXXXXXXXXX.jpg 的原文件名格式' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif jfif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '带有 EXIF 拍摄时间的图片给出提示，仍然处理' -ForegroundColor Green"
 echo.
 
@@ -176,7 +176,7 @@ if not "!working_dir!" == "" (
     set /a "has_exif=0"
     set /a "not_mmexport=0"
     set "file_path=!working_dir!"
-    set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
+    set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|jfif)$"
     for /f "delims=" %%f in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^

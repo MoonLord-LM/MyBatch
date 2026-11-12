@@ -13,7 +13,7 @@ powershell -NoProfile -Command "Write-Host '将带 EXIF 拍摄时间的图片，
 powershell -NoProfile -Command "Write-Host '按文件的总数量，分别使用 1-9 / 01-99 / 001-999 作为新的文件名，预留 0 / 00 / 000 给封面图使用' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动递归扫描和处理当前文件夹下所有的图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽单个图片文件到此脚本上时，则只处理该文件；拖拽文件夹时，则递归处理其中所有文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif jfif' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '没有 EXIF 拍摄时间的图片，不纳入数字序号编号' -ForegroundColor Green"
 echo.
 
@@ -170,7 +170,7 @@ if not "!working_dir!" == "" (
     set /a "name_conflict2=0"
     set /a "rename_failed2=0"
     set "file_path=!working_dir!"
-    set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$"
+    set "ext_filter=\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|jfif)$"
     for /f "delims=" %%f in ('
         powershell -NoProfile -Command ^
             "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
@@ -309,7 +309,7 @@ exit /b
 
 -----BEGIN POWERSHELL CODE-----
 [System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
-$extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$';
+$extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|jfif)$';
 $hasTemp = [bool]$env:temp_set -and (Test-Path -LiteralPath $env:temp_set);
 function Report($line) { if ($hasTemp) { Add-Content -LiteralPath $env:temp_set -Encoding UTF8 -Value $line } }
 function Count($name, $n) { Report ('set /a ' + $name + '+=' + $n) }

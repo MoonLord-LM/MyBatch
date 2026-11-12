@@ -18,7 +18,7 @@ powershell -NoProfile -Command "Write-Host '两张图片的差异评分不高于
 powershell -NoProfile -Command "Write-Host '图片特征提取：使用 256*256 的像素采样格，逐格计算全部像素的 R G B 平均值，得到 256*256*3 个字节的特征值' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '差异评分计算方式：计算不同图片的相同位置的采样格的 R G B 值的空间距离，最后计算全部格子的平均值' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '差异评分计算时，会尝试做 8 种变换：旋转 0、90、180、270 度，以及水平、垂直、主对角、副对角镜像，取最小的值' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 jpg jpeg png webp bmp gif tif tiff heic heif avif jfif' -ForegroundColor Green"
 echo.
 
 
@@ -211,7 +211,7 @@ $dir1 = $env:path1;
 $dir2 = $env:path2;
 $threshold = [double]::Parse($env:score_threshold, [System.Globalization.CultureInfo]::InvariantCulture);
 $selfMode = ($dir1 -eq $dir2);
-$extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif)$';
+$extFilter = '^\.(jpg|jpeg|png|webp|bmp|gif|tif|tiff|heic|heif|avif|jfif)$';
 
 Add-Type -AssemblyName Microsoft.VisualBasic;
 

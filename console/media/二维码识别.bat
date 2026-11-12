@@ -13,7 +13,7 @@ powershell -NoProfile -Command "Write-Host '识别二维码图片并解码为文
 powershell -NoProfile -Command "Write-Host '小图自动放大后识别，大图自动缩小后识别，透明背景按白底处理，并尝试识别反色二维码' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入图片文件的路径；也可以拖拽单个二维码图片文件到此脚本上' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '对一个图片处理完成后，可继续输入下一个图片' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '支持的格式为 png webp bmp gif tif tiff heic heif avif' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '支持的格式为 png webp bmp gif tif tiff heic heif avif jfif' -ForegroundColor Green"
 echo.
 
 
