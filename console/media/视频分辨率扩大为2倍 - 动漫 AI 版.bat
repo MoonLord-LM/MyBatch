@@ -93,6 +93,17 @@ if "!param1!" == "" (
             echo 正在扩大为："!output_file!"
             "!video2x_path!" -i "!param1!" -o "!output_file!" -s 2 -p "realesrgan" --realesrgan-model "realesr-animevideov3" -e crf=0 -e preset=ultrafast
             if !errorlevel! equ 0 (
+                set "faststart_args="
+                for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                if not "!faststart_args!"=="" (
+                    "!ffmpeg_path!" -y -i "!output_file!" -map 0 -c copy !faststart_args! "!output_file!.fs!file_ext!"
+                    if !errorlevel! equ 0 (
+                        move /y "!output_file!.fs!file_ext!" "!output_file!"
+                    ) else (
+                        if exist "!output_file!.fs!file_ext!" del /f /q "!output_file!.fs!file_ext!"
+                        echo faststart 优化失败，保留原输出文件
+                    )
+                )
                 echo 扩大成功
             ) else if exist "!output_file!" (
                 echo 扩大失败，请检查 "!output_file!" 文件
@@ -136,6 +147,17 @@ if not "!working_dir!" == "" (
             echo 正在扩大为："!output_file!"
             "!video2x_path!" -i "!video_file!" -o "!output_file!" -s 2 -p "realesrgan" --realesrgan-model "realesr-animevideov3" -e crf=0 -e preset=ultrafast
             if !errorlevel! equ 0 (
+                set "faststart_args="
+                for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
+                if not "!faststart_args!"=="" (
+                    "!ffmpeg_path!" -y -i "!output_file!" -map 0 -c copy !faststart_args! "!output_file!.fs!file_ext!"
+                    if !errorlevel! equ 0 (
+                        move /y "!output_file!.fs!file_ext!" "!output_file!"
+                    ) else (
+                        if exist "!output_file!.fs!file_ext!" del /f /q "!output_file!.fs!file_ext!"
+                        echo faststart 优化失败，保留原输出文件
+                    )
+                )
                 echo set /a "succeeded+=1">>"!temp_set!"
                 echo 扩大成功
             ) else if exist "!output_file!" (
