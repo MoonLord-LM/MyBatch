@@ -617,6 +617,21 @@ set "temp_file=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nu
 if exist "!temp_file!" ( del /f /q "!temp_file!" )
 ```
 
+一些可能比较重要的文件，优先删除到回收站，而不是直接彻底删除   
+
+代码示例如下：  
+
+```batch
+set "file_to_delete=!xxx!"
+powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
+```
+
+```powershell
+Add-Type -AssemblyName Microsoft.VisualBasic;
+[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete, 'OnlyErrorDialogs', 'SendToRecycleBin');
+[Microsoft.VisualBasic.FileIO.FileSystem]::DeleteDirectory($env:dir_to_delete, 'OnlyErrorDialogs', 'SendToRecycleBin');
+```
+
 ## 获取文件大小
 
 避免使用 `%%~zf` 的写法，受 32 位有符号整数的返回值限制，无法处理超过 2GB 的文件，存在溢出风险  
