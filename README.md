@@ -77,6 +77,7 @@ A collection of commonly used Windows Batch scripts
 | [Git 设置优化 - 全局默认.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20设置优化%20-%20全局默认.bat) | 优化 Git 的全局默认设置 |
 | [Git 提交本地代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20提交本地代码.bat) | 批量提交 Git 仓库的本地代码 |
 | [Git 同步远端代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20同步远端代码.bat) | 批量同步 Git 仓库的远端代码 |
+| [Git 仓库压缩.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20仓库压缩.bat) | 压缩 Git 仓库，回收冗余对象、优化对象打包以减小仓库体积 |
 
 ### 多媒体工具
 
@@ -147,6 +148,7 @@ A collection of commonly used Windows Batch scripts
 | [音频封面导出.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频封面导出.bat) | 提取音频封面图 |
 | [音频封面嵌入.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频封面嵌入.bat) | 嵌入封面到音频 |
 | [音频封面移除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频封面移除.bat) | 移除音频封面 |
+| [音频格式转换为 m4a.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/音频格式转换为%20m4a.bat) | 音频编码转换为 m4a 格式 |
 
 ### 网络服务
 
