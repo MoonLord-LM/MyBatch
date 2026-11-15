@@ -18,7 +18,7 @@ echo.
 
 
 REM 检查 Git 组件
-"git.exe" --version >nul 2>&1
+git --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 Git 组件 & REM
     echo 请从 https://git-scm.com/install/windows 下载，并完成安装 & REM
@@ -124,7 +124,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     )
 
     echo 执行 reflog 清理
-    "git.exe" -C "!repo_dir!" reflog expire --expire=now --all
+    git -C "!repo_dir!" reflog expire --expire=now --all
     if !errorlevel! neq 0 (
         echo 错误：回收 reflog 失败
         echo.
@@ -133,7 +133,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     )
 
     echo 执行垃圾回收
-    "git.exe" -C "!repo_dir!" gc --prune=now --aggressive
+    git -C "!repo_dir!" gc --prune=now --aggressive
     if !errorlevel! neq 0 (
         echo 错误：压缩并清理对象失败
         echo.
@@ -142,7 +142,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     )
 
     echo 执行重新打包
-    "git.exe" -C "!repo_dir!" repack -ad --depth=250 --window=250
+    git -C "!repo_dir!" repack -ad --depth=250 --window=250
     if !errorlevel! neq 0 (
         echo 错误：合并打包对象失败
         echo.

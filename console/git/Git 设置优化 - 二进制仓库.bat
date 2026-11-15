@@ -19,7 +19,7 @@ echo.
 
 
 REM 检查 Git 组件
-"git.exe" --version >nul 2>&1
+git --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 Git 组件 & REM
     echo 请从 https://git-scm.com/install/windows 下载，并完成安装 & REM
@@ -67,7 +67,7 @@ if not exist "!working_dir!\.git" (
 echo 开始设置仓库设置
 echo.
 
-"git.exe" -C "!working_dir!" config --local core.bigFileThreshold 100m
+git -C "!working_dir!" config --local core.bigFileThreshold 100m
 if !errorlevel! neq 0 (
     echo 错误：设置 core.bigFileThreshold 失败
     echo.
@@ -75,7 +75,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" -C "!working_dir!" config --local core.compression 0
+git -C "!working_dir!" config --local core.compression 0
 if !errorlevel! neq 0 (
     echo 错误：设置 core.compression 失败
     echo.
@@ -83,7 +83,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" -C "!working_dir!" config --local core.looseCompression 0
+git -C "!working_dir!" config --local core.looseCompression 0
 if !errorlevel! neq 0 (
     echo 错误：设置 core.looseCompression 失败
     echo.
@@ -91,7 +91,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" -C "!working_dir!" config --local pack.compression 0
+git -C "!working_dir!" config --local pack.compression 0
 if !errorlevel! neq 0 (
     echo 错误：设置 pack.compression 失败
     echo.
@@ -106,7 +106,7 @@ echo.
 
 echo 当前 Git 仓库设置：
 echo.
-"git.exe" -C "!working_dir!" config --local --list
+git -C "!working_dir!" config --local --list
 echo.
 
 

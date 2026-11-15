@@ -18,7 +18,7 @@ echo.
 
 
 REM 检查 Git 组件
-"git.exe" --version >nul 2>&1
+git --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 Git 组件 & REM
     echo 请从 https://git-scm.com/install/windows 下载，并完成安装 & REM
@@ -113,7 +113,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
     echo.
 
     REM 暂存所有改动
-    "git.exe" -C "!repo_dir!" add -A
+    git -C "!repo_dir!" add -A
     if !errorlevel! neq 0 (
         echo 错误：暂存改动失败
         echo set /a "failed+=1">>"!temp_set!"
@@ -135,7 +135,7 @@ for /f "usebackq delims=" %%d in ("!temp_list!") do (
             echo 当前仓库没有未提交的改动，跳过
             echo set /a "skipped+=1">>"!temp_set!"
         ) else (
-            "git.exe" -C "!repo_dir!" diff HEAD --binary --output="!patch_file!"
+            git -C "!repo_dir!" diff HEAD --binary --output="!patch_file!"
             if !errorlevel! neq 0 (
                 echo 错误：导出差异文件失败
                 echo set /a "failed+=1">>"!temp_set!"

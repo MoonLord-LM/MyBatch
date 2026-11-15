@@ -15,7 +15,7 @@ echo.
 
 
 REM 检查 Git 组件
-"git.exe" --version >nul 2>&1
+git --version >nul 2>&1
 if !errorlevel! neq 0 (
     echo 错误：缺少 Git 组件 & REM
     echo 请从 https://git-scm.com/install/windows 下载，并完成安装 & REM
@@ -30,7 +30,7 @@ if !errorlevel! neq 0 (
 echo 开始优化全局默认设置
 echo.
 
-"git.exe" config --global core.autocrlf false
+git config --global core.autocrlf false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.autocrlf 失败
     echo.
@@ -38,7 +38,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" config --global core.safecrlf false
+git config --global core.safecrlf false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.safecrlf 失败
     echo.
@@ -46,7 +46,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" config --global core.ignorecase false
+git config --global core.ignorecase false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.ignorecase 失败
     echo.
@@ -54,7 +54,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" config --global core.quotepath false
+git config --global core.quotepath false
 if !errorlevel! neq 0 (
     echo 错误：设置 core.quotepath 失败
     echo.
@@ -62,7 +62,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" config --global i18n.logoutputencoding utf-8
+git config --global i18n.logoutputencoding utf-8
 if !errorlevel! neq 0 (
     echo 错误：设置 i18n.logoutputencoding 失败
     echo.
@@ -70,7 +70,7 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-"git.exe" config --global i18n.commitencoding utf-8
+git config --global i18n.commitencoding utf-8
 if !errorlevel! neq 0 (
     echo 错误：设置 i18n.commitencoding 失败
     echo.
@@ -83,7 +83,7 @@ echo.
 
 echo 当前 Git 全局设置：
 echo.
-"git.exe" config --global --list
+git config --global --list
 echo.
 
 
