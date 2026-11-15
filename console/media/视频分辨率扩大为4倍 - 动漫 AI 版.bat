@@ -106,7 +106,7 @@ if "!param1!" == "" (
                             exit /b 1
                         )
                     ) else (
-                        if exist "!output_file!.fs!file_ext!" del /f /q "!output_file!.fs!file_ext!"
+                        if exist "!output_file!.fs!file_ext!" ( del /f /q "!output_file!.fs!file_ext!" )
                         echo faststart 优化失败，保留原输出文件
                     )
                 )
@@ -166,7 +166,7 @@ if not "!working_dir!" == "" (
                             exit /b 1
                         )
                     ) else (
-                        if exist "!output_file!.fs!file_ext!" del /f /q "!output_file!.fs!file_ext!"
+                        if exist "!output_file!.fs!file_ext!" ( del /f /q "!output_file!.fs!file_ext!" )
                         echo faststart 优化失败，保留原输出文件
                     )
                 )
