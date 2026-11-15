@@ -190,6 +190,12 @@ for %%i in ("!video1!") do (
         echo 画面替换失败
     ) else (
         move /y "!tmp_file!" "!output_file!"
+        if !errorlevel! neq 0 (
+            echo 错误：重命名文件失败："!tmp_file!"
+            echo.
+            pause
+            exit /b 1
+        )
         echo.
         echo 画面替换成功
         echo 输出文件："!output_file!"

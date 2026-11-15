@@ -152,6 +152,12 @@ if "!param1!" == "" (
                             powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         )
                         move /y "!temp_video_file!" "!target_file!"
+                        if !errorlevel! neq 0 (
+                            echo 错误：重命名文件失败："!temp_video_file!"
+                            echo.
+                            pause
+                            exit /b 1
+                        )
                         echo 嵌入成功
                     )
                 )
@@ -250,6 +256,12 @@ if not "!working_dir!" == "" (
                             powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                         )
                         move /y "!temp_video_file!" "!target_file!"
+                        if !errorlevel! neq 0 (
+                            echo 错误：重命名文件失败："!temp_video_file!"
+                            echo.
+                            pause
+                            exit /b 1
+                        )
                         echo 嵌入成功
                     )
                 )

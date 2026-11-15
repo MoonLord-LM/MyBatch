@@ -99,6 +99,12 @@ if "!param1!" == "" (
                     "!ffmpeg_path!" -y -i "!output_file!" -map 0 -c copy !faststart_args! "!output_file!.fs!file_ext!"
                     if !errorlevel! equ 0 (
                         move /y "!output_file!.fs!file_ext!" "!output_file!"
+                        if !errorlevel! neq 0 (
+                            echo 错误：重命名文件失败："!output_file!.fs!file_ext!"
+                            echo.
+                            pause
+                            exit /b 1
+                        )
                     ) else (
                         if exist "!output_file!.fs!file_ext!" del /f /q "!output_file!.fs!file_ext!"
                         echo faststart 优化失败，保留原输出文件
@@ -153,6 +159,12 @@ if not "!working_dir!" == "" (
                     "!ffmpeg_path!" -y -i "!output_file!" -map 0 -c copy !faststart_args! "!output_file!.fs!file_ext!"
                     if !errorlevel! equ 0 (
                         move /y "!output_file!.fs!file_ext!" "!output_file!"
+                        if !errorlevel! neq 0 (
+                            echo 错误：重命名文件失败："!output_file!.fs!file_ext!"
+                            echo.
+                            pause
+                            exit /b 1
+                        )
                     ) else (
                         if exist "!output_file!.fs!file_ext!" del /f /q "!output_file!.fs!file_ext!"
                         echo faststart 优化失败，保留原输出文件

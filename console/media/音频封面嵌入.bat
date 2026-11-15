@@ -143,6 +143,12 @@ if "!param1!" == "" (
                     set "file_to_delete=!audio_file!"
                     powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     move /y "!temp_audio_file!" "!audio_file!"
+                    if !errorlevel! neq 0 (
+                        echo 错误：重命名文件失败："!temp_audio_file!"
+                        echo.
+                        pause
+                        exit /b 1
+                    )
                     echo 设置成功
                 )
             ) else (
@@ -238,6 +244,12 @@ if not "!working_dir!" == "" (
                     set "file_to_delete=!audio_file!"
                     powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; Add-Type -AssemblyName Microsoft.VisualBasic; [Microsoft.VisualBasic.FileIO.FileSystem]::DeleteFile($env:file_to_delete,'OnlyErrorDialogs','SendToRecycleBin')"
                     move /y "!temp_audio_file!" "!audio_file!"
+                    if !errorlevel! neq 0 (
+                        echo 错误：重命名文件失败："!temp_audio_file!"
+                        echo.
+                        pause
+                        exit /b 1
+                    )
                     echo 设置成功
                 )
             ) else (
