@@ -77,7 +77,8 @@ A collection of commonly used Windows Batch scripts
 | [Git 设置优化 - 全局默认.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20设置优化%20-%20全局默认.bat) | 优化 Git 的全局默认设置 |
 | [Git 提交本地代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20提交本地代码.bat) | 批量提交 Git 仓库的本地代码 |
 | [Git 同步远端代码.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20同步远端代码.bat) | 批量同步 Git 仓库的远端代码 |
-| [Git 仓库压缩.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20仓库压缩.bat) | 压缩 Git 仓库，回收冗余对象、优化对象打包以减小仓库体积 |
+| [Git 仓库文件彻底删除.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20仓库文件彻底删除.bat) | 从所有分支历史中彻底删除指定文件，清理空间 |
+| [Git 仓库清理压缩.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/git/Git%20仓库清理压缩.bat) | 清理压缩 Git 仓库，依次清理 reflog、垃圾回收、重新打包 |
 
 ### 多媒体工具
 
