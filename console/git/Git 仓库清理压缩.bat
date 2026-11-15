@@ -9,7 +9,8 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '压缩 Git 仓库，回收冗余对象、优化对象打包以减小仓库体积' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '清理压缩 Git 仓库，以减小仓库体积' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '执行过程：回收冗余对象 + 执行垃圾回收 + 优化对象打包' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，依次执行 reflog 清理、垃圾回收、重新打包' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
