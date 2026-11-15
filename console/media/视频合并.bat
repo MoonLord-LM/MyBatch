@@ -732,7 +732,7 @@ try {
             $coverFile = $coverFile + '.png';
         }
         Write-Host ('正在添加封面图片 [' + $coverFile + ']');
-        $code = Invoke-FFmpeg -ArgList @('-y', '-i', $mergedVideo, '-i', $coverFile, '-map', '0', '-map', '1', '-c', 'copy', '-disposition:v:1', 'attached_pic', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', $finalVideo);
+        $code = Invoke-FFmpeg -ArgList @('-y', '-i', $mergedVideo, '-i', $coverFile, '-map', '0', '-map', '1:v:0', '-c', 'copy', '-disposition:v:1', 'attached_pic', '-metadata', ('creation_time=' + $creationTime), '-movflags', '+faststart', $finalVideo);
         if ($code -ne 0) { throw '文件 final.mp4 合并失败，请检查报错信息' }
     } else {
         Write-Host '封面文件，例如 0.png、00.png、000.png、cover.png、封面.png、海报.png 等，都不存在，不添加封面';

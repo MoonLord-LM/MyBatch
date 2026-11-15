@@ -133,7 +133,7 @@ if "!param1!" == "" (
                 if /i "!file_ext!"==".mp3" set "mp3_args=-id3v2_version 3"
                 set "faststart_args="
                 for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
-                "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! !mp3_args! -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic !faststart_args! "!temp_audio_file!"
+                "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:a -map 1:v:0 -c:a copy -c:v !cover_enc! !mp3_args! -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic !faststart_args! "!temp_audio_file!"
                 if !errorlevel! neq 0 (
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
                     echo 设置失败
@@ -230,7 +230,7 @@ if not "!working_dir!" == "" (
                 if /i "!file_ext!"==".mp3" set "mp3_args=-id3v2_version 3"
                 set "faststart_args="
                 for %%e in (.mp4 .3gp .m4v .f4v .mov .m4a) do if /i "!file_ext!"=="%%e" set "faststart_args=-movflags +faststart"
-                "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:0 -map 1:0 -c:a copy -c:v !cover_enc! !mp3_args! -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic !faststart_args! "!temp_audio_file!"
+                "!ffmpeg_path!" -y -i "!audio_file!" -i "!cover_file!" -map 0:a -map 1:v:0 -c:a copy -c:v !cover_enc! !mp3_args! -metadata:s:v title="Album cover" -metadata:s:v comment="Cover (front)" -disposition:v:0 attached_pic !faststart_args! "!temp_audio_file!"
                 if !errorlevel! neq 0 (
                     echo set /a "set_failed+=1">>"!temp_set!"
                     if exist "!temp_audio_file!" ( del /f /q "!temp_audio_file!" )
