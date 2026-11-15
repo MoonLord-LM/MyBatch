@@ -130,23 +130,8 @@ echo.
 REM 确认操作
 echo 警告：即将重写所有分支和标签的历史，并立即清除旧对象，操作不可逆 & REM
 echo 建议先备份整个仓库文件夹 & REM
-set "confirm="
-set /p "confirm=确认继续吗？输入 y 开始，其它任意输入取消："
-if !errorlevel! neq 0 (
-    echo 无输入，取消操作
-    echo.
-    pause
-    exit /b
-)
-if /i not "!confirm!"=="y" (
-    echo 已取消操作
-    echo.
-    pause
-    exit /b
-)
 echo.
-
-
+pause
 
 set "temp_paths=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_paths!"
 set /a "path_count=0"
@@ -155,7 +140,7 @@ set /a "path_count=0"
 
     :input_delete_path
         if "!param2!"=="" (
-            echo 请输入参数2：要从历史中彻底删除的文件路径，直接回车表示输入完成
+            echo 请输入要从历史中彻底删除的文件路径：
             set /p "param2="
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
@@ -163,7 +148,7 @@ set /a "path_count=0"
             )
             echo.
         ) else (
-            echo 参数2："!param2!"
+            echo 彻底删除的文件路径："!param2!"
             echo.
         )
         if "!param2!"=="" goto input_done
