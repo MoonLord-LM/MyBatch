@@ -43,6 +43,7 @@ if !errorlevel! neq 0 (
 
 
 set "repo_dir=!param1!"
+set "delete_file_path=!param2!"
 
 :input_repo_dir
     if "!repo_dir!"=="" (
@@ -133,39 +134,36 @@ echo 建议先备份整个仓库文件夹 & REM
 echo.
 pause
 
-set "temp_paths=%temp%\MyBatch_%random%_%random%_%random%_%random%.tmp" & type nul > "!temp_paths!"
-set /a "path_count=0"
-
 :loop
 
     :input_delete_path
-        if "!param2!"=="" (
+        if "!delete_file_path!"=="" (
             echo 请输入要从历史中彻底删除的文件路径：
-            set /p "param2="
+            set /p "delete_file_path="
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
-                goto cleanup_fail
+                exit /b 1
             )
             echo.
         ) else (
-            echo 彻底删除的文件路径："!param2!"
+            echo 彻底删除的文件路径："!delete_file_path!"
             echo.
         )
-        if "!param2!"=="" goto input_done
-        set "param2=!param2:"=!"
-        if "!param2!"=="" (
+        if "!delete_file_path!"=="" goto input_done
+        set "delete_file_path=!delete_file_path:"=!"
+        if "!delete_file_path!"=="" (
             echo 输入不能为空，请重新输入
             echo.
-            set "param2="
+            set "delete_file_path="
             goto input_delete_path
         )
 
-        REM 规范化为仓库内路径，并检查重复
+        REM 规范化为仓库内路径
         set "path_result="
         for /f "delims=" %%p in ('
             powershell -NoProfile -Command ^
                 "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                "$inputValue = $env:param2;" ^
+                "$inputValue = $env:delete_file_path;" ^
                 "$repoRoot = $env:repo_dir;" ^
                 "$isAbsolute = ($inputValue.Length -ge 2 -and $inputValue[1] -eq ':') -or $inputValue.StartsWith('//');" ^
                 "if ($isAbsolute) {" ^
@@ -179,68 +177,41 @@ set /a "path_count=0"
                 "$relative = $relative.Replace('\', '/');" ^
                 "if ($relative.StartsWith('./')) { $relative = $relative.Substring(2) };" ^
                 "if ($relative -eq '' -or $relative.StartsWith('/') -or $relative.Split('/') -contains '..') { Write-Output 'ERROR'; exit 0 };" ^
-                "$lines = [System.IO.File]::ReadAllLines($env:temp_paths, [System.Text.Encoding]::UTF8);" ^
-                "if ($lines -contains ('literal:' + $relative)) { Write-Output 'DUP'; exit 0 };" ^
                 "Write-Output $relative;"
         ') do set "path_result=%%p"
         if "!path_result!"=="ERROR" (
-            echo 错误：路径无效或不在当前仓库内："!param2!"
+            echo 错误：路径无效或不在当前仓库内："!delete_file_path!"
             echo.
-            set "param2="
-            goto input_delete_path
-        )
-        if "!path_result!"=="DUP" (
-            echo 提示：该路径已添加，跳过
-            echo.
-            set "param2="
+            set "delete_file_path="
             goto input_delete_path
         )
         if "!path_result!"=="" (
-            echo 错误：路径解析失败："!param2!"
+            echo 错误：路径解析失败："!delete_file_path!"
             goto cleanup_fail
         )
-        set "delete_path=!path_result!"
+        set "delete_file_path=!path_result!"
 
         REM 查看该路径在历史中的提交数量
         set "commit_count=-1"
         for /f "delims=" %%c in ('
             powershell -NoProfile -Command ^
                 "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                "$commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $env:delete_path 2>$null);" ^
+                "$commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $env:delete_file_path 2>$null);" ^
                 "if ($LASTEXITCODE -ne 0) { Write-Output -1 } else { Write-Output $commits.Count }"
         ') do set "commit_count=%%c"
         if "!commit_count!"=="-1" (
-            echo 错误：检查历史记录失败："!delete_path!"
+            echo 错误：检查历史记录失败："!delete_file_path!"
             goto cleanup_fail
         )
-        echo 已添加："!delete_path!"，历史中有 !commit_count! 个提交
-
-        powershell -NoProfile -Command "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8; $utf8NoBOM = [System.Text.UTF8Encoding]::new($false); [System.IO.File]::AppendAllText($env:temp_paths, 'literal:' + $env:delete_path + [char]10, $utf8NoBOM)"
-        if !errorlevel! neq 0 (
-            echo 错误：记录文件路径失败
-            goto cleanup_fail
-        )
-        set /a "path_count+=1"
+        echo 已添加："!delete_file_path!"，历史中有 !commit_count! 个提交
 
         echo.
-        set "param2="
-
-goto loop
-
-:input_done
-echo.
-if "!path_count!"=="0" (
-    echo 错误：没有输入任何文件路径
-    goto cleanup_fail
-)
-echo 共计输入 !path_count! 个路径，开始重写历史
-echo.
 
 
 
 REM 重写历史：删除所有分支和标签中匹配的路径
-echo 执行 git filter-repo --paths-from-file ... --invert-paths --force
-git -C "!repo_dir!" filter-repo --paths-from-file "!temp_paths!" --invert-paths --force
+echo 执行 git filter-repo --path ... --invert-paths --force
+git -C "!repo_dir!" filter-repo --path "!delete_file_path!" --invert-paths --force
 if !errorlevel! neq 0 (
     echo 错误：重写历史失败
     goto cleanup_fail
@@ -286,13 +257,9 @@ set "verify_failed=0"
 for /f "tokens=1,* delims=|" %%a in ('
     powershell -NoProfile -Command ^
         "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "$lines = [System.IO.File]::ReadAllLines($env:temp_paths, [System.Text.Encoding]::UTF8);" ^
-        "foreach ($line in $lines) {" ^
-        "    $p = $line;" ^
-        "    if ($p.StartsWith('literal:')) { $p = $p.Substring(8) };" ^
-        "    $commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $p 2>$null);" ^
-        "    if ($LASTEXITCODE -ne 0) { Write-Output ('ERROR|' + $p) } else { Write-Output ($commits.Count.ToString() + '|' + $p) };" ^
-        "};"
+        "$p = $env:delete_file_path;" ^
+        "$commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $p 2>$null);" ^
+        "if ($LASTEXITCODE -ne 0) { Write-Output ('ERROR|' + $p) } else { Write-Output ($commits.Count.ToString() + '|' + $p) };"
 ') do (
     if "%%a"=="ERROR" (
         echo 错误：检查历史记录失败："%%b"
@@ -309,8 +276,10 @@ if "!verify_failed!"=="1" (
     goto cleanup_fail
 )
 
-if exist "!temp_paths!" ( del /f /q "!temp_paths!" )
+set "delete_file_path="
+goto loop
 
+:input_done
 echo.
 echo 全部处理完成，历史清理和空间回收已完成 & REM
 echo.
@@ -328,7 +297,6 @@ pause
 exit /b
 
 :cleanup_fail
-    if exist "!temp_paths!" ( del /f /q "!temp_paths!" )
     echo.
     pause
     exit /b 1
