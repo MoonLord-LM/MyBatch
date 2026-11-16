@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '从 Git 仓库中彻底删除指定文件，清理空间' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '双击运行时，如果当前文件夹是 Git 仓库则自动处理，否则提示输入' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '此操作不可逆，执行前请先备份仓库，并确保没有未提交的改动' -ForegroundColor Green"
 echo.
@@ -29,15 +29,27 @@ if !errorlevel! neq 0 (
     exit /b 1
 )
 
-REM 检查 git-filter-repo 组件
+REM 检查 git-filter-repo 组件，缺少时自动安装
 git filter-repo -h >nul 2>&1
 if !errorlevel! neq 0 (
-    echo 错误：缺少 git-filter-repo 组件 & REM
-    echo 请从 https://git-scm.com/install/windows 下载，并完成安装 & REM
-    "explorer.exe" "https://git-scm.com/install/windows"
+    echo 缺少 git-filter-repo 组件，正在尝试安装 & REM
+    echo 执行：python -m pip install git-filter-repo & REM
+    python -m pip install git-filter-repo
+    if !errorlevel! neq 0 (
+        echo 错误：git-filter-repo 安装失败，请手动执行 python -m pip install git-filter-repo & REM
+        echo.
+        pause
+        exit /b 1
+    )
+    git filter-repo -h >nul 2>&1
+    if !errorlevel! neq 0 (
+        echo 错误：git-filter-repo 安装后仍不可用，请检查 Python Scripts 目录是否已加入 PATH & REM
+        echo.
+        pause
+        exit /b 1
+    )
+    echo 安装完成
     echo.
-    pause
-    exit /b 1
 )
 
 
@@ -47,14 +59,20 @@ set "delete_file_path=!param2!"
 
 :input_repo_dir
     if "!repo_dir!"=="" (
-        echo 请输入 Git 仓库文件夹路径：
-        set /p "repo_dir="
-        if !errorlevel! neq 0 (
-            echo 无输入，退出脚本
+        if exist "!cd!\.git" (
+            set "repo_dir=!cd!"
+            echo 当前仓库文件夹："!repo_dir!"
             echo.
-            exit /b 1
+        ) else (
+            echo 请输入 Git 仓库文件夹路径：
+            set /p "repo_dir="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
+            echo.
         )
-        echo.
     ) else (
         echo 仓库文件夹："!repo_dir!"
         echo.
@@ -92,220 +110,196 @@ set "delete_file_path=!param2!"
 
 
 
-REM 检查工作区是否干净
-set "dirty_count=-1"
-for /f "delims=" %%s in ('
-    powershell -NoProfile -Command ^
-        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "$changed = @(& git.exe -C $env:repo_dir status --porcelain 2>$null);" ^
-        "if ($LASTEXITCODE -ne 0) { Write-Output -1 } else { Write-Output $changed.Count }"
-') do set "dirty_count=%%s"
-if "!dirty_count!"=="-1" (
-    echo 错误：检查仓库状态失败
+REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
+powershell -NoProfile -Command ^
+    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+    "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+    "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+    "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+    "if ($begin -lt 1 -or $end -lt $begin) {" ^
+    "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+    "    exit 1;" ^
+    "};" ^
+    "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+    "Invoke-Expression $code"
+if !errorlevel! neq 0 (
+    echo 文件删除失败，请检查报错信息
     echo.
     pause
     exit /b 1
 )
-if not "!dirty_count!"=="0" (
-    echo 错误：仓库存在未提交的改动，请先提交后再运行
-    echo.
-    pause
-    exit /b 1
-)
-
-REM 记录原始 origin 地址，filter-repo 默认会移除 origin
-set "origin_url="
-for /f "delims=" %%u in ('
-    powershell -NoProfile -Command ^
-        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "$url = ((@(& git.exe -C $env:repo_dir remote get-url origin 2>$null)) -join '').Trim();" ^
-        "if ($url -ne '') { Write-Output $url }"
-') do set "origin_url=%%u"
-if "!origin_url!"=="" (
-    echo 提示：当前仓库没有配置 origin 远程仓库
-) else (
-    echo 当前 origin 地址："!origin_url!"
-)
-echo.
-
-REM 确认操作
-echo 警告：即将重写所有分支和标签的历史，并立即清除旧对象，操作不可逆 & REM
-echo 建议先备份整个仓库文件夹 & REM
-echo.
-pause
-
-:loop
-
-    :input_delete_path
-        if "!delete_file_path!"=="" (
-            echo 请输入要从历史中彻底删除的文件路径，直接回车则结束输入：
-            set /p "delete_file_path="
-            echo.
-        ) else (
-            echo 彻底删除的文件路径："!delete_file_path!"
-            echo.
-        )
-        if "!delete_file_path!"=="" (
-            echo.
-            echo 全部处理完成，历史清理和空间回收已完成 & REM
-            echo.
-            echo 请手动推送所有分支： & REM
-            echo # 推送所有分支
-            echo git push origin --force --all
-            echo # 如果有 tag，一并推送
-            echo git push origin --force --tags
-            echo.
-            pause
-            exit /b
-        )
-        set "delete_file_path=!delete_file_path:"=!"
-        if "!delete_file_path!"=="" (
-            echo 输入不能为空，请重新输入
-            echo.
-            set "delete_file_path="
-            goto input_delete_path
-        )
-
-        REM 规范化为仓库内路径
-        set "path_result="
-        for /f "delims=" %%p in ('
-            powershell -NoProfile -Command ^
-                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                "$inputValue = $env:delete_file_path;" ^
-                "$repoRoot = $env:repo_dir;" ^
-                "$isAbsolute = ($inputValue.Length -ge 2 -and $inputValue[1] -eq ':') -or $inputValue.StartsWith('//');" ^
-                "if ($isAbsolute) {" ^
-                "    $full = [System.IO.Path]::GetFullPath($inputValue);" ^
-                "    $prefix = $repoRoot.Replace('/', '\').TrimEnd('\') + '\';" ^
-                "    if (-not $full.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) { Write-Output 'ERROR'; exit 0 };" ^
-                "    $relative = $full.Substring($prefix.Length);" ^
-                "} else {" ^
-                "    $relative = $inputValue;" ^
-                "};" ^
-                "$relative = $relative.Replace('\', '/');" ^
-                "if ($relative.StartsWith('./')) { $relative = $relative.Substring(2) };" ^
-                "if ($relative -eq '' -or $relative.StartsWith('/') -or $relative.Split('/') -contains '..') { Write-Output 'ERROR'; exit 0 };" ^
-                "Write-Output $relative;"
-        ') do set "path_result=%%p"
-        if "!path_result!"=="ERROR" (
-            echo 错误：路径无效或不在当前仓库内："!delete_file_path!"
-            echo.
-            set "delete_file_path="
-            goto input_delete_path
-        )
-        if "!path_result!"=="" (
-            echo 错误：路径解析失败："!delete_file_path!"
-            echo.
-            pause
-            exit /b 1
-        )
-        set "delete_file_path=!path_result!"
-
-        REM 查看该路径在历史中的提交数量
-        set "commit_count=-1"
-        for /f "delims=" %%c in ('
-            powershell -NoProfile -Command ^
-                "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-                "$commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $env:delete_file_path 2>$null);" ^
-                "if ($LASTEXITCODE -ne 0) { Write-Output -1 } else { Write-Output $commits.Count }"
-        ') do set "commit_count=%%c"
-        if "!commit_count!"=="-1" (
-            echo 错误：检查历史记录失败："!delete_file_path!"
-            echo.
-            pause
-            exit /b 1
-        )
-        echo 已添加："!delete_file_path!"，历史中有 !commit_count! 个提交
-        echo.
-
-
-
-    REM 重写历史：删除所有分支和标签中匹配的路径
-    echo 执行 git filter-repo --path ... --invert-paths --force
-    git -C "!repo_dir!" filter-repo --path "!delete_file_path!" --invert-paths --force
-    if !errorlevel! neq 0 (
-        echo 错误：重写历史失败
-        echo.
-        pause
-        exit /b 1
-    )
-
-    REM 彻底清理空间
-    echo 执行 reflog 清理
-    git -C "!repo_dir!" reflog expire --expire=now --all
-    if !errorlevel! neq 0 (
-        echo 错误：清理 reflog 失败
-        echo.
-        pause
-        exit /b 1
-    )
-
-    echo 执行垃圾回收
-    git -C "!repo_dir!" gc --prune=now --aggressive
-    if !errorlevel! neq 0 (
-        echo 错误：垃圾回收失败
-        echo.
-        pause
-        exit /b 1
-    )
-
-    echo 执行重新打包
-    git -C "!repo_dir!" repack -ad --depth=250 --window=250
-    if !errorlevel! neq 0 (
-        echo 错误：重新打包失败
-        echo.
-        pause
-        exit /b 1
-    )
-
-    REM 恢复 origin 远程仓库，便于手动推送
-    if not "!origin_url!"=="" (
-        echo 恢复 origin 远程仓库
-        git -C "!repo_dir!" remote remove origin >nul 2>&1
-        git -C "!repo_dir!" remote add origin "!origin_url!"
-        if !errorlevel! neq 0 (
-            echo 错误：恢复 origin 远程仓库失败
-            echo.
-            pause
-            exit /b 1
-        )
-    )
-
-    REM 验证：所有被删除路径在历史中都不再有提交
-    echo.
-    echo 验证历史清理结果：
-    set "verify_failed=0"
-    for /f "tokens=1,* delims=|" %%a in ('
-        powershell -NoProfile -Command ^
-            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-            "$p = $env:delete_file_path;" ^
-            "$commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $p 2>$null);" ^
-            "if ($LASTEXITCODE -ne 0) { Write-Output ('ERROR|' + $p) } else { Write-Output ($commits.Count.ToString() + '|' + $p) };"
-    ') do (
-        if "%%a"=="ERROR" (
-            echo 错误：检查历史记录失败："%%b"
-            set "verify_failed=1"
-        ) else if "%%a"=="0" (
-            echo 已彻底删除："%%b"
-        ) else (
-            echo 错误：历史中仍有 %%a 个提交："%%b"
-            set "verify_failed=1"
-        )
-    )
-    if "!verify_failed!"=="1" (
-        echo 错误：历史清理验证未通过
-        echo.
-        pause
-        exit /b 1
-    )
-
-    echo.
-    set "delete_file_path="
-
-goto loop
 
 
 
 echo.
 pause
 exit /b
+
+
+
+-----BEGIN POWERSHELL CODE-----
+[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;
+
+$repoDir = $env:repo_dir;
+$deleteFilePath = $env:delete_file_path;
+
+# 检查工作区是否干净
+$changedLines = @(& git.exe -C $repoDir status --porcelain 2>$null);
+if ($LASTEXITCODE -ne 0) {
+    Write-Host '错误：检查仓库状态失败' -ForegroundColor Red;
+    exit 1;
+}
+if ($changedLines.Count -ne 0) {
+    Write-Host '错误：仓库存在未提交的改动，请先提交后再运行' -ForegroundColor Red;
+    exit 1;
+}
+
+# 记录原始 origin 地址，filter-repo 默认会移除 origin
+$originUrl = ((@(& git.exe -C $repoDir remote get-url origin 2>$null)) -join '').Trim();
+if ([string]::IsNullOrEmpty($originUrl)) {
+    Write-Host '提示：当前仓库没有配置 origin 远程仓库';
+} else {
+    Write-Host "当前 origin 地址：$originUrl";
+}
+Write-Host '';
+
+# 确认操作
+Write-Host '警告：即将重写所有分支和标签的历史，并立即清除旧对象，操作不可逆';
+Write-Host '建议先备份整个仓库文件夹';
+Write-Host '';
+$null = Read-Host '确认无误，请按回车键继续';
+
+while ($true) {
+    if ([string]::IsNullOrEmpty($deleteFilePath)) {
+        $deleteFilePath = Read-Host '请输入要从历史中彻底删除的文件路径，直接回车则结束输入';
+        Write-Host '';
+    } else {
+        Write-Host "彻底删除的文件路径：$deleteFilePath";
+        Write-Host '';
+    }
+    if ([string]::IsNullOrEmpty($deleteFilePath)) {
+        Write-Host '';
+        Write-Host '全部处理完成，历史清理和空间回收已完成';
+        Write-Host '';
+        Write-Host '请手动推送所有分支：';
+        Write-Host '# 推送所有分支';
+        Write-Host 'git push origin --force --all';
+        Write-Host '# 如果有 tag，一并推送';
+        Write-Host 'git push origin --force --tags';
+        Write-Host '';
+        exit 0;
+    }
+    $deleteFilePath = $deleteFilePath.Replace('"', '');
+    if ([string]::IsNullOrEmpty($deleteFilePath)) {
+        Write-Host '输入不能为空，请重新输入';
+        Write-Host '';
+        $deleteFilePath = '';
+        continue;
+    }
+
+    # 规范化为仓库内路径，仓库根目录统一转为绝对路径后再比较
+    $inputValue = $deleteFilePath;
+    $repoRoot = [System.IO.Path]::GetFullPath($env:repo_dir).Replace('/', '\');
+    $isAbsolute = ($inputValue.Length -ge 2 -and $inputValue[1] -eq ':') -or $inputValue.StartsWith('//');
+    if ($isAbsolute) {
+        $fullPath = [System.IO.Path]::GetFullPath($inputValue);
+        $prefix = $repoRoot.TrimEnd('\') + '\';
+        if (-not $fullPath.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
+            Write-Host "错误：路径无效或不在当前仓库内：$inputValue" -ForegroundColor Red;
+            Write-Host '';
+            $deleteFilePath = '';
+            continue;
+        }
+        $relative = $fullPath.Substring($prefix.Length);
+    } else {
+        $relative = $inputValue;
+    }
+    $relative = $relative.Replace('\', '/');
+    if ($relative.StartsWith('./')) { $relative = $relative.Substring(2) };
+    if ($relative -eq '' -or $relative.StartsWith('/') -or $relative.Split('/') -contains '..') {
+        Write-Host "错误：路径无效或不在当前仓库内：$inputValue" -ForegroundColor Red;
+        Write-Host '';
+        $deleteFilePath = '';
+        continue;
+    }
+    $deleteFilePath = $relative;
+
+    # 查看该路径在历史中的提交数量
+    $commits = @(& git.exe -C $repoDir log --all --full-history --oneline -- $deleteFilePath 2>$null);
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "错误：检查历史记录失败：$deleteFilePath" -ForegroundColor Red;
+        Write-Host '';
+        exit 1;
+    }
+    Write-Host "已添加：$deleteFilePath，历史中有 $($commits.Count) 个提交";
+    Write-Host '';
+
+    # 重写历史：删除所有分支和标签中匹配的路径
+    Write-Host '执行 git filter-repo --path ... --invert-paths --force';
+    & git.exe -C $repoDir filter-repo --path $deleteFilePath --invert-paths --force;
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '错误：重写历史失败' -ForegroundColor Red;
+        Write-Host '';
+        exit 1;
+    }
+
+    # 彻底清理空间
+    Write-Host '执行 reflog 清理';
+    & git.exe -C $repoDir reflog expire --expire=now --all;
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '错误：清理 reflog 失败' -ForegroundColor Red;
+        Write-Host '';
+        exit 1;
+    }
+
+    Write-Host '执行垃圾回收';
+    & git.exe -C $repoDir gc --prune=now --aggressive;
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '错误：垃圾回收失败' -ForegroundColor Red;
+        Write-Host '';
+        exit 1;
+    }
+
+    Write-Host '执行重新打包';
+    & git.exe -C $repoDir repack -ad --depth=250 --window=250;
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host '错误：重新打包失败' -ForegroundColor Red;
+        Write-Host '';
+        exit 1;
+    }
+
+    # 恢复 origin 远程仓库，便于手动推送
+    if (-not [string]::IsNullOrEmpty($originUrl)) {
+        Write-Host '恢复 origin 远程仓库';
+        & git.exe -C $repoDir remote remove origin >$null 2>&1;
+        & git.exe -C $repoDir remote add origin $originUrl;
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host '错误：恢复 origin 远程仓库失败' -ForegroundColor Red;
+            Write-Host '';
+            exit 1;
+        }
+    }
+
+    # 验证：该路径在历史中不再有提交
+    Write-Host '';
+    Write-Host '验证历史清理结果：';
+    $verifyCommits = @(& git.exe -C $repoDir log --all --full-history --oneline -- $deleteFilePath 2>$null);
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "错误：检查历史记录失败：$deleteFilePath" -ForegroundColor Red;
+        Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
+        Write-Host '';
+        exit 1;
+    }
+    if ($verifyCommits.Count -eq 0) {
+        Write-Host "已彻底删除：$deleteFilePath";
+    } else {
+        Write-Host "错误：历史中仍有 $($verifyCommits.Count) 个提交：$deleteFilePath" -ForegroundColor Red;
+        Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
+        Write-Host '';
+        exit 1;
+    }
+
+    Write-Host '';
+    $deleteFilePath = '';
+}
+-----END POWERSHELL CODE-----
