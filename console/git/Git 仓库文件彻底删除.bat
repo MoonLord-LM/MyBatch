@@ -256,28 +256,6 @@ if ($LASTEXITCODE -ne 0) {
     exit 1;
 }
 
-# 彻底清理空间
-Write-Host '执行 reflog 清理';
-& git.exe -C $repoDir reflog expire --expire=now --all;
-if ($LASTEXITCODE -ne 0) {
-    Write-Host '错误：清理 reflog 失败' -ForegroundColor Red;
-    exit 1;
-}
-
-Write-Host '执行垃圾回收';
-& git.exe -C $repoDir gc --prune=now --aggressive;
-if ($LASTEXITCODE -ne 0) {
-    Write-Host '错误：垃圾回收失败' -ForegroundColor Red;
-    exit 1;
-}
-
-Write-Host '执行重新打包';
-& git.exe -C $repoDir repack -ad --depth=250 --window=250;
-if ($LASTEXITCODE -ne 0) {
-    Write-Host '错误：重新打包失败' -ForegroundColor Red;
-    exit 1;
-}
-
 # 恢复 origin 远程仓库，便于手动推送
 if (-not [string]::IsNullOrEmpty($originUrl)) {
     Write-Host '恢复 origin 远程仓库';
