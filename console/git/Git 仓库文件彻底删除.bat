@@ -276,11 +276,10 @@ if ($LASTEXITCODE -ne 0) {
     Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
     exit 1;
 }
-if ($verifyCommits.Count -eq 0) {
-    Write-Host "已彻底删除：$deleteFilePath";
-} else {
+if ($verifyCommits.Count -ne 0) {
     Write-Host "错误：历史中仍有 $($verifyCommits.Count) 个提交：$deleteFilePath" -ForegroundColor Red;
     Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
     exit 1;
 }
+Write-Host "已彻底删除：$deleteFilePath";
 -----END POWERSHELL CODE-----
