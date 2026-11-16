@@ -110,24 +110,77 @@ set "delete_file_path=!param2!"
 
 
 
-REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
-powershell -NoProfile -Command ^
-    "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-    "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
-    "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
-    "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
-    "if ($begin -lt 1 -or $end -lt $begin) {" ^
-    "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
-    "    exit 1;" ^
-    "};" ^
-    "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
-    "Invoke-Expression $code"
-if !errorlevel! neq 0 (
-    echo 文件删除失败，请检查报错信息
-    echo.
-    pause
-    exit /b 1
-)
+echo 警告：即将重写所有分支和标签的历史，并立即清除旧对象，操作不可逆
+echo 建议先备份整个仓库文件夹
+echo.
+pause
+echo.
+
+
+
+:loop
+
+    :input_file_path
+        if "!delete_file_path!"=="" (
+            echo 请输入要彻底删除的文件路径：
+            set /p "delete_file_path="
+            if !errorlevel! neq 0 (
+                echo 无输入，退出脚本
+                echo.
+                exit /b 1
+            )
+            echo.
+        ) else (
+            echo 要彻底删除的文件路径："!delete_file_path!"
+            echo.
+        )
+        if "!delete_file_path!"=="" (
+            echo 输入不能为空，请重新输入
+            echo.
+            goto input_file_path
+        )
+        set "delete_file_path=!delete_file_path:"=!"
+        if "!delete_file_path!"=="" (
+            echo 输入不能为空，请重新输入
+            echo.
+            goto input_file_path
+        )
+
+        REM 从自身文件末尾的 -----BEGIN POWERSHELL CODE----- / -----END POWERSHELL CODE----- 之间提取 PowerShell 代码
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "$lines = Get-Content -Encoding UTF8 -LiteralPath $env:script_path;" ^
+            "$begin = [array]::IndexOf($lines, '-----BEGIN POWERSHELL CODE-----') + 1;" ^
+            "$end = [array]::IndexOf($lines, '-----END POWERSHELL CODE-----');" ^
+            "if ($begin -lt 1 -or $end -lt $begin) {" ^
+            "    Write-Host '错误：未找到内嵌的 PowerShell 代码块' -ForegroundColor Red;" ^
+            "    exit 1;" ^
+            "};" ^
+            "$code = $lines[$begin..($end - 1)] -join [System.Environment]::NewLine;" ^
+            "Invoke-Expression $code"
+        if !errorlevel! equ 2 (
+            echo 输入异常，请重新输入
+            echo.
+            set "delete_file_path="
+            goto input_file_path
+        )
+        if !errorlevel! neq 0 (
+            echo 文件删除失败，请检查报错信息
+            echo.
+            pause
+            exit /b 1
+        )
+
+        echo.
+        echo 处理完成
+        echo.
+        echo 请手动推送所有分支
+        echo git push origin --force --all
+        echo git push origin --force --tags
+        echo.
+        set "delete_file_path="
+
+goto loop
 
 
 
@@ -163,143 +216,93 @@ if ([string]::IsNullOrEmpty($originUrl)) {
 }
 Write-Host '';
 
-# 确认操作
-Write-Host '警告：即将重写所有分支和标签的历史，并立即清除旧对象，操作不可逆';
-Write-Host '建议先备份整个仓库文件夹';
-Write-Host '';
-$null = Read-Host '确认无误，请按回车键继续';
-
-while ($true) {
-    if ([string]::IsNullOrEmpty($deleteFilePath)) {
-        $deleteFilePath = Read-Host '请输入要从历史中彻底删除的文件路径，直接回车则结束输入';
-        Write-Host '';
-    } else {
-        Write-Host "彻底删除的文件路径：$deleteFilePath";
-        Write-Host '';
-    }
-    if ([string]::IsNullOrEmpty($deleteFilePath)) {
-        Write-Host '';
-        Write-Host '全部处理完成，历史清理和空间回收已完成';
-        Write-Host '';
-        Write-Host '请手动推送所有分支：';
-        Write-Host '# 推送所有分支';
-        Write-Host 'git push origin --force --all';
-        Write-Host '# 如果有 tag，一并推送';
-        Write-Host 'git push origin --force --tags';
-        Write-Host '';
-        exit 0;
-    }
-    $deleteFilePath = $deleteFilePath.Replace('"', '');
-    if ([string]::IsNullOrEmpty($deleteFilePath)) {
-        Write-Host '输入不能为空，请重新输入';
-        Write-Host '';
-        $deleteFilePath = '';
-        continue;
-    }
-
-    # 规范化为仓库内路径，仓库根目录统一转为绝对路径后再比较
-    $inputValue = $deleteFilePath;
-    $repoRoot = [System.IO.Path]::GetFullPath($env:repo_dir).Replace('/', '\');
-    $isAbsolute = ($inputValue.Length -ge 2 -and $inputValue[1] -eq ':') -or $inputValue.StartsWith('//');
-    if ($isAbsolute) {
-        $fullPath = [System.IO.Path]::GetFullPath($inputValue);
-        $prefix = $repoRoot.TrimEnd('\') + '\';
-        if (-not $fullPath.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-            Write-Host "错误：路径无效或不在当前仓库内：$inputValue" -ForegroundColor Red;
-            Write-Host '';
-            $deleteFilePath = '';
-            continue;
-        }
-        $relative = $fullPath.Substring($prefix.Length);
-    } else {
-        $relative = $inputValue;
-    }
-    $relative = $relative.Replace('\', '/');
-    if ($relative.StartsWith('./')) { $relative = $relative.Substring(2) };
-    if ($relative -eq '' -or $relative.StartsWith('/') -or $relative.Split('/') -contains '..') {
+# 规范化为仓库内路径
+$inputValue = $deleteFilePath;
+$repoRoot = [System.IO.Path]::GetFullPath($env:repo_dir).Replace('/', '\');
+$isAbsolute = ($inputValue.Length -ge 2 -and $inputValue[1] -eq ':') -or $inputValue.StartsWith('//');
+if ($isAbsolute) {
+    $fullPath = [System.IO.Path]::GetFullPath($inputValue);
+    $prefix = $repoRoot.TrimEnd('\') + '\';
+    if (-not $fullPath.StartsWith($prefix, [System.StringComparison]::OrdinalIgnoreCase)) {
         Write-Host "错误：路径无效或不在当前仓库内：$inputValue" -ForegroundColor Red;
-        Write-Host '';
-        $deleteFilePath = '';
-        continue;
+        exit 2;
     }
-    $deleteFilePath = $relative;
+    $relative = $fullPath.Substring($prefix.Length);
+} else {
+    $relative = $inputValue;
+}
+$relative = $relative.Replace('\', '/');
+if ($relative.StartsWith('./')) { $relative = $relative.Substring(2) };
+if ($relative -eq '' -or $relative.StartsWith('/') -or $relative.Split('/') -contains '..') {
+    Write-Host "错误：路径无效或不在当前仓库内：$inputValue" -ForegroundColor Red;
+    exit 2;
+}
+$deleteFilePath = $relative;
 
-    # 查看该路径在历史中的提交数量
-    $commits = @(& git.exe -C $repoDir log --all --full-history --oneline -- $deleteFilePath 2>$null);
+# 查看该路径在历史中的提交数量
+$commits = @(& git.exe -C $repoDir log --all --full-history --oneline -- $deleteFilePath 2>$null);
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "错误：检查历史记录失败：$deleteFilePath" -ForegroundColor Red;
+    exit 1;
+}
+Write-Host "历史中有 $($commits.Count) 个提交：$deleteFilePath";
+Write-Host '';
+
+# 重写历史：删除所有分支和标签中匹配的路径
+Write-Host '执行 git filter-repo --path ... --invert-paths --force';
+& git.exe -C $repoDir filter-repo --path $deleteFilePath --invert-paths --force;
+if ($LASTEXITCODE -ne 0) {
+    Write-Host '错误：重写历史失败' -ForegroundColor Red;
+    exit 1;
+}
+
+# 彻底清理空间
+Write-Host '执行 reflog 清理';
+& git.exe -C $repoDir reflog expire --expire=now --all;
+if ($LASTEXITCODE -ne 0) {
+    Write-Host '错误：清理 reflog 失败' -ForegroundColor Red;
+    exit 1;
+}
+
+Write-Host '执行垃圾回收';
+& git.exe -C $repoDir gc --prune=now --aggressive;
+if ($LASTEXITCODE -ne 0) {
+    Write-Host '错误：垃圾回收失败' -ForegroundColor Red;
+    exit 1;
+}
+
+Write-Host '执行重新打包';
+& git.exe -C $repoDir repack -ad --depth=250 --window=250;
+if ($LASTEXITCODE -ne 0) {
+    Write-Host '错误：重新打包失败' -ForegroundColor Red;
+    exit 1;
+}
+
+# 恢复 origin 远程仓库，便于手动推送
+if (-not [string]::IsNullOrEmpty($originUrl)) {
+    Write-Host '恢复 origin 远程仓库';
+    & git.exe -C $repoDir remote remove origin >$null 2>&1;
+    & git.exe -C $repoDir remote add origin $originUrl;
     if ($LASTEXITCODE -ne 0) {
-        Write-Host "错误：检查历史记录失败：$deleteFilePath" -ForegroundColor Red;
-        Write-Host '';
+        Write-Host '错误：恢复 origin 远程仓库失败' -ForegroundColor Red;
         exit 1;
     }
-    Write-Host "已添加：$deleteFilePath，历史中有 $($commits.Count) 个提交";
-    Write-Host '';
+}
 
-    # 重写历史：删除所有分支和标签中匹配的路径
-    Write-Host '执行 git filter-repo --path ... --invert-paths --force';
-    & git.exe -C $repoDir filter-repo --path $deleteFilePath --invert-paths --force;
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host '错误：重写历史失败' -ForegroundColor Red;
-        Write-Host '';
-        exit 1;
-    }
-
-    # 彻底清理空间
-    Write-Host '执行 reflog 清理';
-    & git.exe -C $repoDir reflog expire --expire=now --all;
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host '错误：清理 reflog 失败' -ForegroundColor Red;
-        Write-Host '';
-        exit 1;
-    }
-
-    Write-Host '执行垃圾回收';
-    & git.exe -C $repoDir gc --prune=now --aggressive;
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host '错误：垃圾回收失败' -ForegroundColor Red;
-        Write-Host '';
-        exit 1;
-    }
-
-    Write-Host '执行重新打包';
-    & git.exe -C $repoDir repack -ad --depth=250 --window=250;
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host '错误：重新打包失败' -ForegroundColor Red;
-        Write-Host '';
-        exit 1;
-    }
-
-    # 恢复 origin 远程仓库，便于手动推送
-    if (-not [string]::IsNullOrEmpty($originUrl)) {
-        Write-Host '恢复 origin 远程仓库';
-        & git.exe -C $repoDir remote remove origin >$null 2>&1;
-        & git.exe -C $repoDir remote add origin $originUrl;
-        if ($LASTEXITCODE -ne 0) {
-            Write-Host '错误：恢复 origin 远程仓库失败' -ForegroundColor Red;
-            Write-Host '';
-            exit 1;
-        }
-    }
-
-    # 验证：该路径在历史中不再有提交
-    Write-Host '';
-    Write-Host '验证历史清理结果：';
-    $verifyCommits = @(& git.exe -C $repoDir log --all --full-history --oneline -- $deleteFilePath 2>$null);
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "错误：检查历史记录失败：$deleteFilePath" -ForegroundColor Red;
-        Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
-        Write-Host '';
-        exit 1;
-    }
-    if ($verifyCommits.Count -eq 0) {
-        Write-Host "已彻底删除：$deleteFilePath";
-    } else {
-        Write-Host "错误：历史中仍有 $($verifyCommits.Count) 个提交：$deleteFilePath" -ForegroundColor Red;
-        Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
-        Write-Host '';
-        exit 1;
-    }
-
-    Write-Host '';
-    $deleteFilePath = '';
+# 验证：该路径在历史中不再有提交
+Write-Host '';
+Write-Host '验证历史清理结果：';
+$verifyCommits = @(& git.exe -C $repoDir log --all --full-history --oneline -- $deleteFilePath 2>$null);
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "错误：检查历史记录失败：$deleteFilePath" -ForegroundColor Red;
+    Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
+    exit 1;
+}
+if ($verifyCommits.Count -eq 0) {
+    Write-Host "已彻底删除：$deleteFilePath";
+} else {
+    Write-Host "错误：历史中仍有 $($verifyCommits.Count) 个提交：$deleteFilePath" -ForegroundColor Red;
+    Write-Host '错误：历史清理验证未通过' -ForegroundColor Red;
+    exit 1;
 }
 -----END POWERSHELL CODE-----
