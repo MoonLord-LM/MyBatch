@@ -138,18 +138,26 @@ pause
 
     :input_delete_path
         if "!delete_file_path!"=="" (
-            echo 请输入要从历史中彻底删除的文件路径：
+            echo 请输入要从历史中彻底删除的文件路径，直接回车则结束输入：
             set /p "delete_file_path="
-            if !errorlevel! neq 0 (
-                echo 无输入，退出脚本
-                exit /b 1
-            )
             echo.
         ) else (
             echo 彻底删除的文件路径："!delete_file_path!"
             echo.
         )
-        if "!delete_file_path!"=="" goto input_done
+        if "!delete_file_path!"=="" (
+            echo.
+            echo 全部处理完成，历史清理和空间回收已完成 & REM
+            echo.
+            echo 请手动推送所有分支： & REM
+            echo # 推送所有分支
+            echo git push origin --force --all
+            echo # 如果有 tag，一并推送
+            echo git push origin --force --tags
+            echo.
+            pause
+            exit /b
+        )
         set "delete_file_path=!delete_file_path:"=!"
         if "!delete_file_path!"=="" (
             echo 输入不能为空，请重新输入
@@ -187,7 +195,9 @@ pause
         )
         if "!path_result!"=="" (
             echo 错误：路径解析失败："!delete_file_path!"
-            goto cleanup_fail
+            echo.
+            pause
+            exit /b 1
         )
         set "delete_file_path=!path_result!"
 
@@ -201,102 +211,101 @@ pause
         ') do set "commit_count=%%c"
         if "!commit_count!"=="-1" (
             echo 错误：检查历史记录失败："!delete_file_path!"
-            goto cleanup_fail
+            echo.
+            pause
+            exit /b 1
         )
         echo 已添加："!delete_file_path!"，历史中有 !commit_count! 个提交
-
         echo.
 
 
 
-REM 重写历史：删除所有分支和标签中匹配的路径
-echo 执行 git filter-repo --path ... --invert-paths --force
-git -C "!repo_dir!" filter-repo --path "!delete_file_path!" --invert-paths --force
-if !errorlevel! neq 0 (
-    echo 错误：重写历史失败
-    goto cleanup_fail
-)
-
-REM 彻底清理空间
-echo 执行 reflog 清理
-git -C "!repo_dir!" reflog expire --expire=now --all
-if !errorlevel! neq 0 (
-    echo 错误：清理 reflog 失败
-    goto cleanup_fail
-)
-
-echo 执行垃圾回收
-git -C "!repo_dir!" gc --prune=now --aggressive
-if !errorlevel! neq 0 (
-    echo 错误：垃圾回收失败
-    goto cleanup_fail
-)
-
-echo 执行重新打包
-git -C "!repo_dir!" repack -ad --depth=250 --window=250
-if !errorlevel! neq 0 (
-    echo 错误：重新打包失败
-    goto cleanup_fail
-)
-
-REM 恢复 origin 远程仓库，便于手动推送
-if not "!origin_url!"=="" (
-    echo 恢复 origin 远程仓库
-    git -C "!repo_dir!" remote remove origin >nul 2>&1
-    git -C "!repo_dir!" remote add origin "!origin_url!"
+    REM 重写历史：删除所有分支和标签中匹配的路径
+    echo 执行 git filter-repo --path ... --invert-paths --force
+    git -C "!repo_dir!" filter-repo --path "!delete_file_path!" --invert-paths --force
     if !errorlevel! neq 0 (
-        echo 错误：恢复 origin 远程仓库失败
-        goto cleanup_fail
+        echo 错误：重写历史失败
+        echo.
+        pause
+        exit /b 1
     )
-)
 
-REM 验证：所有被删除路径在历史中都不再有提交
-echo.
-echo 验证历史清理结果：
-set "verify_failed=0"
-for /f "tokens=1,* delims=|" %%a in ('
-    powershell -NoProfile -Command ^
-        "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
-        "$p = $env:delete_file_path;" ^
-        "$commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $p 2>$null);" ^
-        "if ($LASTEXITCODE -ne 0) { Write-Output ('ERROR|' + $p) } else { Write-Output ($commits.Count.ToString() + '|' + $p) };"
-') do (
-    if "%%a"=="ERROR" (
-        echo 错误：检查历史记录失败："%%b"
-        set "verify_failed=1"
-    ) else if "%%a"=="0" (
-        echo 已彻底删除："%%b"
-    ) else (
-        echo 错误：历史中仍有 %%a 个提交："%%b"
-        set "verify_failed=1"
+    REM 彻底清理空间
+    echo 执行 reflog 清理
+    git -C "!repo_dir!" reflog expire --expire=now --all
+    if !errorlevel! neq 0 (
+        echo 错误：清理 reflog 失败
+        echo.
+        pause
+        exit /b 1
     )
-)
-if "!verify_failed!"=="1" (
-    echo 错误：历史清理验证未通过
-    goto cleanup_fail
-)
 
-set "delete_file_path="
+    echo 执行垃圾回收
+    git -C "!repo_dir!" gc --prune=now --aggressive
+    if !errorlevel! neq 0 (
+        echo 错误：垃圾回收失败
+        echo.
+        pause
+        exit /b 1
+    )
+
+    echo 执行重新打包
+    git -C "!repo_dir!" repack -ad --depth=250 --window=250
+    if !errorlevel! neq 0 (
+        echo 错误：重新打包失败
+        echo.
+        pause
+        exit /b 1
+    )
+
+    REM 恢复 origin 远程仓库，便于手动推送
+    if not "!origin_url!"=="" (
+        echo 恢复 origin 远程仓库
+        git -C "!repo_dir!" remote remove origin >nul 2>&1
+        git -C "!repo_dir!" remote add origin "!origin_url!"
+        if !errorlevel! neq 0 (
+            echo 错误：恢复 origin 远程仓库失败
+            echo.
+            pause
+            exit /b 1
+        )
+    )
+
+    REM 验证：所有被删除路径在历史中都不再有提交
+    echo.
+    echo 验证历史清理结果：
+    set "verify_failed=0"
+    for /f "tokens=1,* delims=|" %%a in ('
+        powershell -NoProfile -Command ^
+            "[System.Console]::OutputEncoding=[System.Text.Encoding]::UTF8;" ^
+            "$p = $env:delete_file_path;" ^
+            "$commits = @(& git.exe -C $env:repo_dir log --all --full-history --oneline -- $p 2>$null);" ^
+            "if ($LASTEXITCODE -ne 0) { Write-Output ('ERROR|' + $p) } else { Write-Output ($commits.Count.ToString() + '|' + $p) };"
+    ') do (
+        if "%%a"=="ERROR" (
+            echo 错误：检查历史记录失败："%%b"
+            set "verify_failed=1"
+        ) else if "%%a"=="0" (
+            echo 已彻底删除："%%b"
+        ) else (
+            echo 错误：历史中仍有 %%a 个提交："%%b"
+            set "verify_failed=1"
+        )
+    )
+    if "!verify_failed!"=="1" (
+        echo 错误：历史清理验证未通过
+        echo.
+        pause
+        exit /b 1
+    )
+
+    echo.
+    set "delete_file_path="
+
 goto loop
-
-:input_done
-echo.
-echo 全部处理完成，历史清理和空间回收已完成 & REM
-echo.
-echo 请手动推送所有分支：
-echo # 推送所有分支
-echo git push origin --force --all
-echo # 如果有 tag，一并推送
-echo git push origin --force --tags
-echo.
 
 
 
 echo.
 pause
 exit /b
-
-:cleanup_fail
-    echo.
-    pause
-    exit /b 1
