@@ -10,10 +10,10 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 
-powershell -NoProfile -Command "Write-Host '从 Git 仓库中彻底删除指定文件，清理空间' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '从 Git 仓库中彻底删除指定文件，并清理相关的历史记录' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '此操作不可逆，执行前请先备份仓库，并确保没有未提交的改动' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '此操作不可逆，执行前请先备份仓库，并确保没有未提交的改动' -ForegroundColor Green"
 echo.
 
 
@@ -110,8 +110,8 @@ set "delete_file_path=!param2!"
 
 
 
-echo 警告：即将重写所有分支和标签的历史，并立即清除旧对象，操作不可逆
-echo 建议先备份整个仓库文件夹
+echo 警告：彻底删除指定文件，并清理相关的历史记录
+echo 此操作不可逆，执行前请先备份仓库，并确保没有未提交的改动
 echo.
 pause
 echo.
