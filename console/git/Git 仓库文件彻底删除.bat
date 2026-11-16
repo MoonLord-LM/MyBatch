@@ -30,20 +30,19 @@ if !errorlevel! neq 0 (
 )
 
 REM 检查 git-filter-repo 组件，缺少时自动安装
-git filter-repo -h >nul 2>&1
+python.exe -m git_filter_repo -h >nul 2>&1
 if !errorlevel! neq 0 (
     echo 缺少 git-filter-repo 组件，正在尝试安装 & REM
-    echo 执行：python -m pip install git-filter-repo & REM
-    python -m pip install git-filter-repo
+    python.exe -m pip install git-filter-repo
     if !errorlevel! neq 0 (
-        echo 错误：git-filter-repo 安装失败，请手动执行 python -m pip install git-filter-repo & REM
+        echo 错误：执行 python.exe -m pip install git-filter-repo 失败，请检查报错信息 & REM
         echo.
         pause
         exit /b 1
     )
-    git filter-repo -h >nul 2>&1
+    python.exe -m git_filter_repo -h
     if !errorlevel! neq 0 (
-        echo 错误：git-filter-repo 安装后仍不可用，请检查 Python Scripts 目录是否已加入 PATH & REM
+        echo 错误：执行 python.exe -m git_filter_repo -h 失败，请检查报错信息 & REM
         echo.
         pause
         exit /b 1
@@ -249,9 +248,15 @@ Write-Host "历史中有 $($commits.Count) 个提交：$deleteFilePath";
 Write-Host '';
 
 # 重写历史：删除所有分支和标签中匹配的路径
-Write-Host '执行 git filter-repo --path ... --invert-paths --force';
-& git.exe -C $repoDir filter-repo --path $deleteFilePath --invert-paths --force;
-if ($LASTEXITCODE -ne 0) {
+Write-Host '执行 python.exe -m git_filter_repo --path ... --invert-paths --force';
+Push-Location $repoDir;
+try {
+    & python.exe -m git_filter_repo --path $deleteFilePath --invert-paths --force;
+    $frExit = $LASTEXITCODE;
+} finally {
+    Pop-Location;
+}
+if ($frExit -ne 0) {
     Write-Host '错误：重写历史失败' -ForegroundColor Red;
     exit 1;
 }
