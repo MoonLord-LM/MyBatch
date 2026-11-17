@@ -11,7 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '清理压缩 Git 仓库，以减小仓库体积' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '扫描存在的 Git 仓库，依次执行：清理 reflog、垃圾回收、重新打包' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host '已提交的代码、未提交的代码、未跟踪的文件，都将被保留，不会丢失' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '已被代码分支记录的代码、未提交的代码、未跟踪的文件，都将被保留，不会丢失' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.

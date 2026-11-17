@@ -11,6 +11,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 powershell -NoProfile -Command "Write-Host '批量导出 Git 仓库中未提交的改动，保存为补丁文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '补丁文件保存在 Git 仓库的同级目录，文件名格式为：仓库名.patch' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host '未跟踪的文件，也会添加到暂存区，一并导出' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，自动扫描当前文件夹' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '拖拽文件夹到此脚本上时，则处理拖入的文件夹；不支持拖入单个文件' -ForegroundColor Green"
 echo.
