@@ -121,7 +121,7 @@ echo.
 
     :input_file_path
         if "!delete_file_path!"=="" (
-            echo 请输入要彻底删除的文件路径（文件夹请以 / 或 \ 结尾）：
+            echo 请输入要彻底删除的文件或文件夹路径：
             set /p "delete_file_path="
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
@@ -254,7 +254,7 @@ Write-Host "历史中有 $($commits.Count) 个提交：$deleteFilePath";
 Write-Host '';
 
 # 重写历史：删除所有分支和标签中匹配的路径
-Write-Host '执行 python.exe -m git_filter_repo --path ... --invert-paths --force';
+Write-Host "执行 python.exe -m git_filter_repo --path '$deleteFilePath' --invert-paths --force";
 Push-Location $repoDir;
 try {
     & python.exe -m git_filter_repo --path $deleteFilePath --invert-paths --force;
