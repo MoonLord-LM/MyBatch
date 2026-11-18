@@ -137,6 +137,8 @@ A collection of commonly used Windows Batch scripts
 | [图片格式转换为 jpg - 最佳质量.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片格式转换为%20jpg%20-%20最佳质量.bat) | 图片格式转换为 JPG，使用最佳质量和完整色彩 |
 | [图片格式转换为 jpg - 最小文件.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片格式转换为%20jpg%20-%20最小文件.bat) | 图片格式转换为 JPG，使用最差质量和不完整色彩 |
 | [图片格式转码为 png.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片格式转码为%20png.bat) | 图片格式转换为 PNG，使用无损压缩，保留透明通道 |
+| [图片缩放裁切 - 960x540.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片缩放裁切%20-%20960x540.bat) | 将图片等比缩放并居中裁切为 960x540 |
+| [图片缩放裁切 - 1920x1080.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片缩放裁切%20-%201920x1080.bat) | 将图片等比缩放并居中裁切为 1920x1080 |
 | [图片详细参数导出.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片详细参数导出.bat) | 导出图片详细参数信息 |
 | [图片修改时间与命名检查.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片修改时间与命名检查.bat) | 检查图片修改时间与文件名是否一致 |
 | [图片修改时间与命名刷新一致.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/media/图片修改时间与命名刷新一致.bat) | 把图片修改时间刷新为与文件名一致 |

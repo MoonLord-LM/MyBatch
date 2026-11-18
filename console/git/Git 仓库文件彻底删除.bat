@@ -121,7 +121,7 @@ echo.
 
     :input_file_path
         if "!delete_file_path!"=="" (
-            echo 请输入要彻底删除的文件路径：
+            echo 请输入要彻底删除的文件路径（文件夹请以 / 或 \ 结尾）：
             set /p "delete_file_path="
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
@@ -194,6 +194,7 @@ exit /b
 
 $repoDir = $env:repo_dir;
 $deleteFilePath = $env:delete_file_path;
+$isDirectory = $deleteFilePath.EndsWith('/') -or $deleteFilePath.EndsWith('\');
 
 # 检查工作区是否干净
 $changedLines = @(& git.exe -C $repoDir status --porcelain 2>$null);
@@ -232,11 +233,16 @@ if ($isAbsolute) {
 }
 $relative = $relative.Replace('\', '/');
 if ($relative.StartsWith('./')) { $relative = $relative.Substring(2) };
-if ($relative -eq '' -or $relative.StartsWith('/') -or $relative.Split('/') -contains '..') {
+if ($relative.StartsWith('/')) { $relative = $relative.Substring(1) };
+if ($relative -eq '' -or $relative.Split('/') -contains '..') {
     Write-Host "错误：路径无效或不在当前仓库内：$inputValue" -ForegroundColor Red;
     exit 2;
 }
 $deleteFilePath = $relative;
+if ($isDirectory) {
+    if (-not $deleteFilePath.EndsWith('/')) { $deleteFilePath = $deleteFilePath + '/' };
+    Write-Host "文件夹模式：将删除该路径下的所有文件";
+};
 
 # 查看该路径在历史中的提交数量
 $commits = @(& git.exe -C $repoDir log --all --full-history --oneline -- $deleteFilePath 2>$null);
