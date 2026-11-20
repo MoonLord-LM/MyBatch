@@ -840,7 +840,7 @@ set "temp_file=!temp_dir!\!file_name!"
 在自动化环境中运行时，使用 `call` 和 `<nul` 的写法，就可以保证只执行一个循环  
 
 批处理的 `set /p` 写法，无法区分 `<nul` 和直接按 Enter 键输入空白内容，错误码都为 1  
-因此，循环里的 `无输入，退出脚本` 的错误，统一用 `exit` 写法，而不用 `exit /b 1` 写法  
+因此，循环里的 `无输入，退出脚本` 的错误，统一用 `exit /b` 写法，而不用 `exit /b 1` 写法  
 
 代码示例如下：
 
@@ -854,7 +854,7 @@ set "temp_file=!temp_dir!\!file_name!"
     if !errorlevel! neq 0 (
         echo 无输入，退出脚本
         echo.
-        exit
+        exit /b
     )
 
     REM 这里是循环结束的代码

@@ -56,7 +56,7 @@ set "screenshot_time=!param2!"
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
                 echo.
-                exit
+                exit /b
             )
             echo.
         ) else (
@@ -95,7 +95,7 @@ set "screenshot_time=!param2!"
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
                 echo.
-                exit
+                exit /b
             )
             echo.
         ) else (
