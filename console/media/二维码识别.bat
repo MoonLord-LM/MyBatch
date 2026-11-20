@@ -290,7 +290,7 @@ try {
     Write-Host ('————————————————————————————————————————————————');
     $txtPath = [System.IO.Path]::Combine($env:script_dir, 'qrcode.txt');
     [System.IO.File]::WriteAllText($txtPath, $text, [System.Text.UTF8Encoding]::new($false));
-    Write-Host ('');
+    Write-Host '';
     Write-Host ('保存文件："' + $txtPath + '"');
 } catch {
     Write-Host ('错误：识别二维码失败：' + $_.Exception.Message) -ForegroundColor Red;
