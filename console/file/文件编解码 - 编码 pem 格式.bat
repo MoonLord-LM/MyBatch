@@ -86,4 +86,4 @@ if !errorlevel! neq 0 (
 
 echo.
 pause
-exit /b
+exit /b 0

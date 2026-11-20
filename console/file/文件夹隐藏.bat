@@ -96,4 +96,4 @@ echo 已隐藏，当前文件夹："!clsid_path!"
 
 echo.
 pause
-exit /b
+exit /b 0

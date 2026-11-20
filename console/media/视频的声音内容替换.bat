@@ -208,4 +208,4 @@ for %%i in ("!video1!") do (
 
 echo.
 pause
-exit /b
+exit /b 0

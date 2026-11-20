@@ -90,7 +90,7 @@ if not "!working_dir!" == "" (
 
 echo.
 pause
-exit /b
+exit /b 0
 
 
 

@@ -107,4 +107,4 @@ for %%i in ("!input_path!") do (
 
 echo.
 pause
-exit /b
+exit /b 0

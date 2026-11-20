@@ -32,7 +32,7 @@ if !errorlevel! equ 0 (
         pause
         exit /b 1
     )
-    exit /b
+    exit /b 0
 )
 
 
@@ -195,4 +195,4 @@ echo 已完成重启
 
 echo.
 pause
-exit /b
+exit /b 0

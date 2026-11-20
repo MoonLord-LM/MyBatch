@@ -24,7 +24,7 @@ goto :main_loop
 :init
     yt-dlp --update
     yt-dlp --rm-cache-dir
-exit /b
+exit /b 0
 
 
 :download_video
@@ -59,7 +59,7 @@ exit /b
 
     start "" cmd /c "%command1% & %command2% || pause"
     echo.
-exit /b
+exit /b 0
 
 
 :download_video_list
@@ -89,7 +89,7 @@ exit /b
             call :download_video "!line!"
         )
     )
-exit /b
+exit /b 0
 
 
 :main_loop

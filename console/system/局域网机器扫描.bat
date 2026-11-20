@@ -92,4 +92,4 @@ echo 扫描完成
 
 echo.
 pause
-exit /b
+exit /b 0

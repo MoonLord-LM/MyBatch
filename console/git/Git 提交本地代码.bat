@@ -217,4 +217,4 @@ echo 共计：!total! 个仓库，提交成功：!succeeded! 个，提交失败�
 
 echo.
 pause
-exit /b
+exit /b 0

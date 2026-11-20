@@ -110,7 +110,7 @@ echo 录制已开始，将在 3 秒后自动关闭本窗口
 
 echo.
 timeout /t 3 /nobreak
-exit /b
+exit /b 0
 
 
 

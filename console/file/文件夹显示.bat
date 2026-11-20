@@ -96,4 +96,4 @@ echo 已显示，当前文件夹："!file_path!"
 
 echo.
 pause
-exit /b
+exit /b 0

@@ -166,4 +166,4 @@ echo 共计：!total! 个仓库，导入成功：!succeeded! 个，导入失败�
 
 echo.
 pause
-exit /b
+exit /b 0

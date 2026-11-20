@@ -126,7 +126,7 @@ echo.
             if !errorlevel! neq 0 (
                 echo 无输入，退出脚本
                 echo.
-                exit /b
+                exit /b 0
             )
             echo.
         ) else (
@@ -185,7 +185,7 @@ goto loop
 
 echo.
 pause
-exit /b
+exit /b 0
 
 
 

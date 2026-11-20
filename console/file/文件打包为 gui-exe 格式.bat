@@ -611,7 +611,7 @@ for %%i in ("!input_file!") do (
 
 echo.
 pause
-exit /b
+exit /b 0
 
 
 

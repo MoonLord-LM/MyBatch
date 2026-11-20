@@ -185,4 +185,4 @@ echo 共计：!total! 个仓库，同步成功：!succeeded! 个，同步失败�
 
 echo.
 pause
-exit /b
+exit /b 0

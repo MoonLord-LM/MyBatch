@@ -45,7 +45,7 @@ setlocal disabledelayedexpansion
 echo "%*"
 echo "%~1"
 pause
-exit /b
+exit /b 0
 ```
 
 测试拖入 `C:\ABC123%%%!!!===;;;,,,.png` 文件，实际输出为：  
@@ -99,7 +99,7 @@ TODO 考虑把比较小的 exe、dll 等组件，内嵌到脚本中，减少外�
     使用 UTF-8 编码  
     组合使用 setlocal 和 endlocal 处理变量实时生效和特殊符号转义问题  
     开头位置，使用 powershell 显示带颜色的提示信息  
-    正常退出时，使用 exit /b，异常退出时，使用 exit /b 1  
+    正常退出时，使用 exit /b 0，异常退出时，使用 exit /b 1  
     结尾位置，使用 pause 或 timeout /t 3 /nobreak ，确保异常信息可以显示  
 
 ## 代码结构
@@ -143,7 +143,7 @@ REM 这里是代码主体功能部分
 
 echo.
 pause
-exit /b
+exit /b 0
 
 ```
 
@@ -202,7 +202,7 @@ if !errorlevel! equ 0 (
         pause
         exit /b 1
     )
-    exit /b
+    exit /b 0
 )
 ```
 
@@ -482,7 +482,7 @@ if !errorlevel! neq 0 (
 
 echo.
 pause
-exit /b
+exit /b 0
 
 
 
@@ -520,7 +520,7 @@ if !errorlevel! neq 0 (
 
 echo.
 pause
-exit /b
+exit /b 0
 
 
 
@@ -840,7 +840,7 @@ set "temp_file=!temp_dir!\!file_name!"
 在自动化环境中运行时，使用 `call` 和 `<nul` 的写法，就可以保证只执行一个循环  
 
 批处理的 `set /p` 写法，无法区分 `<nul` 和直接按 Enter 键输入空白内容，错误码都为 1  
-因此，循环里的 `无输入，退出脚本` 的错误，统一用 `exit /b` 写法，而不用 `exit /b 1` 写法  
+因此，循环里的 `无输入，退出脚本` 的错误，统一用 `exit /b 0` 写法，而不用 `exit /b 1` 写法  
 
 代码示例如下：
 
@@ -854,7 +854,7 @@ set "temp_file=!temp_dir!\!file_name!"
     if !errorlevel! neq 0 (
         echo 无输入，退出脚本
         echo.
-        exit /b
+        exit /b 0
     )
 
     REM 这里是循环结束的代码

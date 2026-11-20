@@ -20,4 +20,4 @@ echo.
 
 echo.
 timeout /t 3 /nobreak
-exit /b
+exit /b 0

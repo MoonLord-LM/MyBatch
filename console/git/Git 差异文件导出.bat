@@ -175,4 +175,4 @@ echo 共计：!total! 个仓库，导出成功：!succeeded! 个，导出失败�
 
 echo.
 pause
-exit /b
+exit /b 0

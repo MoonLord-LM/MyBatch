@@ -286,4 +286,4 @@ echo 全部处理完成
 
 echo.
 pause
-exit /b
+exit /b 0

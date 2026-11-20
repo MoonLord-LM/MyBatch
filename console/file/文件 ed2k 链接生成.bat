@@ -105,4 +105,4 @@ if exist "!tmp_file!" ( del /f /q "!tmp_file!" )
 
 echo.
 pause
-exit /b
+exit /b 0

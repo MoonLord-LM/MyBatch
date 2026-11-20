@@ -209,4 +209,4 @@ echo 共计：!total! 个文件，重复：!duplicate! 个，删除成功：!del
 
 echo.
 pause
-exit /b
+exit /b 0

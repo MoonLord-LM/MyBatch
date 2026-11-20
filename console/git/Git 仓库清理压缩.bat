@@ -205,4 +205,4 @@ echo 共计：!total! 个仓库，压缩成功：!succeeded! 个，压缩失败�
 
 echo.
 pause
-exit /b
+exit /b 0

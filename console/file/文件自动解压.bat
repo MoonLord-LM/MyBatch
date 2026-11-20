@@ -331,4 +331,4 @@ echo 其中，无密码解压成功 !succeeded! 个，密码解压成功 !passwo
 
 echo.
 pause
-exit /b
+exit /b 0

@@ -32,7 +32,7 @@ if !errorlevel! equ 0 (
         pause
         exit /b 1
     )
-    exit /b
+    exit /b 0
 )
 
 
@@ -74,4 +74,4 @@ echo 清理完成，请重启浏览器后，查看 chrome://policy/ 页面，确
 
 echo.
 pause
-exit /b
+exit /b 0
