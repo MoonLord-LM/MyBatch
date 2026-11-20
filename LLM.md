@@ -832,3 +832,32 @@ set "temp_file=!temp_dir!\!file_name!"
 网页资源：css js ejs svg svgz eps pict mid midi ps pls swf class jar apk dmg bin  
 
 可参考 CloudFlare 缓存的文件格式：https://developers.cloudflare.com/cache/concepts/default-cache-behavior/  
+
+## 循环与退出
+
+脚本可以使用 `:loop` 这种标签进行循环跳转，重复执行某些代码  
+在循环的代码中，必须要求用户执行输入，否则就退出，避免无限循环  
+在自动化环境中运行时，使用 `call` 和 `<nul` 的写法，就可以保证只执行一个循环  
+
+批处理的 `set /p` 写法，无法区分 `<nul` 和直接按 Enter 键输入空白内容，错误码都为 1  
+因此，循环里的 `无输入，退出脚本` 的错误，统一用 `exit` 写法，而不用 `exit /b 1` 写法  
+
+代码示例如下：
+
+```batch
+:loop
+
+    REM 这里是循环开始的代码
+
+    echo 请输入要处理的 XXXXXX：
+    set /p "input_xxxxxx="
+    if !errorlevel! neq 0 (
+        echo 无输入，退出脚本
+        echo.
+        exit
+    )
+
+    REM 这里是循环结束的代码
+
+goto loop
+```
