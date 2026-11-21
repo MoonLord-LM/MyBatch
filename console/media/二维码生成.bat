@@ -10,7 +10,7 @@ powershell -NoProfile -Command "Write-Host '[ !script_name_ext! ]' -ForegroundCo
 
 
 powershell -NoProfile -Command "Write-Host '将输入的文本编码为二维码图片' -ForegroundColor Green"
-powershell -NoProfile -Command "Write-Host 'QR 码版本：1-40 自适应，数据模式：字节模式，字符编码：UTF8' -ForegroundColor Green"
+powershell -NoProfile -Command "Write-Host 'QR 码版本：1-40 自适应，数据模式：字节模式，字符编码：UTF-8' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '纠错等级：最高（H），每模块像素数：16，边缘留白模块数：6' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '输出 png、jpg、svg、html、md 等格式的二维码图片文件' -ForegroundColor Green"
 powershell -NoProfile -Command "Write-Host '双击运行时，按提示输入要生成二维码的文本；也可以在参数 1 传入一个非空的文本参数' -ForegroundColor Green"
