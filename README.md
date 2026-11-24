@@ -174,6 +174,7 @@ A collection of commonly used Windows Batch scripts
 | [图标缓存清理.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/图标缓存清理.bat) | 清理重建图标缓存 |
 | [显示器关闭.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器关闭.bat) | 关闭显示器 |
 | [显示器开启.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/显示器开启.bat) | 开启显示器 |
+| [修改 hosts 文件.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/修改%20hosts%20文件.bat) | 用记事本打开系统 hosts 文件，编辑保存后自动刷新 DNS 缓存 |
 | [重启桌面进程.bat](https://github.com/MoonLord-LM/MyBatch/blob/master/console/system/重启桌面进程.bat) | 重启 Windows 资源管理器进程 |
 
 ## [工程结构]
